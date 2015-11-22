@@ -3,7 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/FozruciX.iml" filepath="$PROJECT_DIR$/FozruciX.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../pircbotx-master/pircbotx-master.iml" filepath="$PROJECT_DIR$/../pircbotx-master/pircbotx-master.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../pircbotx-master/pircbotx/pircbotx.iml" filepath="$PROJECT_DIR$/../pircbotx-master/pircbotx/pircbotx.iml" />
     </modules>
   </component>
 </project>
