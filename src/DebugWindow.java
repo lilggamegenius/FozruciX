@@ -3,19 +3,19 @@ import java.awt.*;
 
 /**
  * Created by ggonz on 11/4/2015.
+ * A debug window to monitor certain variables
  */
 public class DebugWindow extends JFrame {
     // Define constants, variables, and labels
     private static final int WIDTH = 0x2CC;
     private static final int HEIGHT = 0x13A;
-
-    private JLabel currentNickL, messageLabelL, currDML, myPlayerNameL, myPlayerHPL, myPlayerXPL, myFamiliarL, myFamiliarHPL, myFamiliarXPL;
     private JTextField currentNickTF, messageLabelTF, currDMTF, myPlayerNameTF, myPlayerHPTF, myPlayerXPTF, myFamiliarTF, myFamiliarHPTF, myFamiliarXPTF;
 
     public DebugWindow(String botNick) {
+        JLabel currentNickL, messageLabelL, currDML, myPlayerNameL, myPlayerHPL, myPlayerXPL, myFamiliarL, myFamiliarHPL, myFamiliarXPL;
         setTitle(botNick);
 
-        currentNickL = new JLabel("Currently registered nick", SwingConstants.LEFT);
+        currentNickL = new JLabel("Currently Registered User", SwingConstants.LEFT);
         messageLabelL = new JLabel("Last message", SwingConstants.LEFT);
         currDML = new JLabel("Current Dungeon master", SwingConstants.LEFT);
         myPlayerNameL = new JLabel("My username", SwingConstants.LEFT);

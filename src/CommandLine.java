@@ -5,7 +5,9 @@ import java.io.OutputStreamWriter;
 import java.util.Scanner;
 
 /**
- * Created by ggonz on 11/13/2015.
+ * Created by Lil-G on 11/13/2015.
+ * this class is meant to interface with the systems command processor to allow the bot to run system commands
+ * this version does not close after it has run allowing it to have the same environment without having to set it again
  */
 public class CommandLine extends Thread {
     String termStr = "cd C:\\cygwin64\\bin && bash -c ";
@@ -36,7 +38,11 @@ public class CommandLine extends Thread {
         } catch (Exception e) {
             p = null;
         }
-        p_stdin = new BufferedWriter(new OutputStreamWriter(p.getOutputStream()));
+        try {
+            p_stdin = new BufferedWriter(new OutputStreamWriter(p.getOutputStream()));
+        } catch (NullPointerException e) {
+            p_stdin = null;
+        }
 
         if (term) {
             try {
@@ -50,7 +56,7 @@ public class CommandLine extends Thread {
     public void doCommand(MessageEvent event, String command) {
         this.event = event;
         this.command = command;
-        System.out.print("Running");
+        System.out.print("Running.");
         run();
     }
 
@@ -67,7 +73,7 @@ public class CommandLine extends Thread {
             p_stdin.newLine();
             p_stdin.flush();
         } catch (Exception e) {
-            System.out.println(e);
+            e.printStackTrace();
         }
 
         // write stdout of shell (=output of all commands)

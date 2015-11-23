@@ -25,12 +25,18 @@
         <processorPath useClasspath="true" />
         <module name="pircbotx" />
       </profile>
+      <profile default="false" name="Annotation profile for chatter-bot-api" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target\generated-test-sources\test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="true" />
+        <module name="chatter-bot-api" />
+      </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
+      <module name="chatter-bot-api" target="1.5" />
+      <module name="FozruciX" target="" />
       <module name="pircbotx" target="1.5" />
     </bytecodeTargetLevel>
-  </component>
-  <component name="EclipseCompilerSettings">
-    <option name="GENERATE_NO_WARNINGS" value="true" />
   </component>
 </project>
