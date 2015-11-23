@@ -34,7 +34,6 @@
       </library>
     </orderEntry>
     <orderEntry type="module" module-name="yandex-translator-java-api" />
-    <orderEntry type="module" module-name="pircbotx" />
     <orderEntry type="module" module-name="chatter-bot-api" />
     <orderEntry type="module-library">
       <library>
@@ -52,6 +51,15 @@
       <library>
         <CLASSES>
           <root url="jar://$USER_HOME$/Downloads/irc bot/lombok.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="jar://$USER_HOME$/Downloads/irc bot/pircbotx-2.1-20151112.042241-148.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
