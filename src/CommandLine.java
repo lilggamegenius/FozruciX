@@ -40,7 +40,7 @@ public class CommandLine extends Thread {
         }
         try {
             p_stdin = new BufferedWriter(new OutputStreamWriter(p.getOutputStream()));
-        } catch (NullPointerException e) {
+        } catch (Exception e) {
             p_stdin = null;
         }
 
