@@ -6,7 +6,7 @@
   <component name="MavenProjectsManager">
     <option name="originalFiles">
       <list>
-        <option value="$PROJECT_DIR$/../pircbotx-master/pircbotx/pom.xml" />
+        <option value="$USER_HOME$/Downloads/irc bot/chatter-bot-api-master/java/pom.xml" />
       </list>
     </option>
   </component>
@@ -22,5 +22,8 @@
   </component>
   <component name="ProjectRootManager" version="2" languageLevel="JDK_1_8" default="false" assert-keyword="true" jdk-15="true" project-jdk-name="1.8" project-jdk-type="JavaSDK">
     <output url="file://$PROJECT_DIR$/out" />
+  </component>
+  <component name="SvnBranchConfigurationManager">
+    <option name="mySupportsUserInfoFilter" value="true" />
   </component>
 </project>

@@ -34,11 +34,12 @@ public class MyBotXMain {
                 .addListener(new MyBotX()) //Add our listener that will be called on Events
                 .buildConfiguration();
 
+
         Configuration debugConfig = new Configuration.Builder()
                 .setEncoding(Charset.forName("UTF-8"))
                 .setAutoReconnect(true)
                 .setNickservPassword(PASSWORD)
-                .setName("FozruciX") //Set the nick of the bot. CHANGE IN YOUR CODE
+                .setName("FozruciX") //Set the nick of the bot.
                 .setLogin("SmugLeaf")
                 .setRealName("Lil-Gs Bot")
                 .setServer("irc.Badnik.net", 6697) //Join the BadnikNET network
@@ -58,7 +59,6 @@ public class MyBotXMain {
         }
         //Connect to the server
         bot.startBot();
-        bot.sendIRC().mode(bot.getNick(), "+B");
 
 
     }
@@ -77,7 +77,6 @@ public class MyBotXMain {
             fin.read(fileContent);
             //create string from byte array
             ret = new String(fileContent);
-            System.out.println("File content: " + ret);
         } catch (FileNotFoundException e) {
             System.out.println("File not found" + e);
         } catch (IOException ioe) {

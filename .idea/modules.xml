@@ -3,7 +3,8 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/FozruciX.iml" filepath="$PROJECT_DIR$/FozruciX.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../pircbotx-master/pircbotx/pircbotx.iml" filepath="$PROJECT_DIR$/../pircbotx-master/pircbotx/pircbotx.iml" />
+      <module fileurl="file://$USER_HOME$/Downloads/irc bot/chatter-bot-api-master/java/chatter-bot-api.iml" filepath="$USER_HOME$/Downloads/irc bot/chatter-bot-api-master/java/chatter-bot-api.iml" />
+      <module fileurl="file://$USER_HOME$/Downloads/irc bot/yandex-translator-java-api-master/yandex-translator-java-api.iml" filepath="$USER_HOME$/Downloads/irc bot/yandex-translator-java-api-master/yandex-translator-java-api.iml" />
     </modules>
   </component>
 </project>

@@ -2,6 +2,7 @@ package Translate;
 
 import com.rmtheis.yandtran.detect.Detect;
 import com.rmtheis.yandtran.language.Language;
+import com.rmtheis.yandtran.translate.Translate;
 
 
 public class test {

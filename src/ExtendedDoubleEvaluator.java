@@ -48,11 +48,17 @@ public class ExtendedDoubleEvaluator extends DoubleEvaluator {
 
     protected Double eveluate(Operator operator, Iterator<Double> operands, Object evaluationContext) {
         if (operator == AND) {
-            return (double) (operands.next().intValue() & operands.next().intValue());
+            int num1 = operands.next().intValue();
+            int num2 = operands.next().intValue();
+            return (double) (num1 & num2);
         } else if (operator == OR) {
-            return (double) (operands.next().intValue() | operands.next().intValue());
+            int num1 = operands.next().intValue();
+            int num2 = operands.next().intValue();
+            return (double) (num1 | num2);
         } else if (operator == XOR) {
-            return (double) (operands.next().intValue() ^ operands.next().intValue());
+            int num1 = operands.next().intValue();
+            int num2 = operands.next().intValue();
+            return (double) (num1 ^ num2);
         } else {
             return super.evaluate(operator, operands, evaluationContext);
         }
