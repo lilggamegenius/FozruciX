@@ -1405,10 +1405,13 @@ public class MyBotX extends ListenerAdapter {
         } else {
             int index = authedUser.size() - 1;
             while (index > -1) {
-                String mask = authedUser.get(index);
-                if (mask.substring(0, mask.indexOf("!") + 1).equalsIgnoreCase(user.getNick()) || mask.substring(0, mask.indexOf("!") + 1).equalsIgnoreCase("*")) {
-                    if (mask.substring(mask.indexOf("!") + 1, mask.indexOf("@") - 1).equalsIgnoreCase(user.getLogin()) || mask.substring(mask.indexOf("!") + 1, mask.indexOf("@") - 1).equalsIgnoreCase("*")) {
-                        if (mask.substring(mask.indexOf("@") + 1).equalsIgnoreCase(user.getHostmask()) || mask.substring(mask.indexOf("@") + 1).equalsIgnoreCase("*")) {
+                String ident = authedUser.get(index);
+                String nick = ident.substring(0, ident.indexOf("!") + 1);
+                String userName = ident.substring(ident.indexOf("!") + 1, ident.indexOf("@") - 1);
+                String hostMask = ident.substring(ident.indexOf("@") + 1);
+                if (nick.equalsIgnoreCase(user.getNick()) || nick.equalsIgnoreCase("*")) {
+                    if (userName.equalsIgnoreCase(user.getLogin()) || userName.equalsIgnoreCase("*")) {
+                        if (hostMask.equalsIgnoreCase(user.getHostmask()) || hostMask.equalsIgnoreCase("*")) {
                             if (authedUserLevel.get(index) >= userLevel) {
                                 return true;
                             }
