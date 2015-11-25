@@ -302,6 +302,8 @@ public class MyBotX extends ListenerAdapter {
                     authedUser.clear();
                     authedUserLevel.clear();
                     event.respond("Permission list cleared");
+                } else if (arg[1].equalsIgnoreCase("List")) {
+                    event.respond(authedUser.toString());
                 }
             }
         }
@@ -1164,7 +1166,7 @@ public class MyBotX extends ListenerAdapter {
             }
         }
 
-// !myDickSize - Joke command - joke help command
+// !myDickSize - Joke command - This was requested by Greeny in #origami64. ask him about it
         if (event.getMessage().equalsIgnoreCase(prefix + "myDickSize")) {
             if (checkPerm(event.getUser(), 0)) {
                 if (jokeCommands || checkPerm(event.getUser(), 1))
@@ -1406,21 +1408,19 @@ public class MyBotX extends ListenerAdapter {
             int index = authedUser.size() - 1;
             while (index > -1) {
                 String ident = authedUser.get(index);
-                String nick = ident.substring(0, ident.indexOf("!") + 1);
-                String userName = ident.substring(ident.indexOf("!") + 1, ident.indexOf("@") - 1);
+                String nick = ident.substring(0, ident.indexOf("!"));
+                String userName = ident.substring(ident.indexOf("!") + 1, ident.indexOf("@"));
                 String hostMask = ident.substring(ident.indexOf("@") + 1);
                 if (nick.equalsIgnoreCase(user.getNick()) || nick.equalsIgnoreCase("*")) {
                     if (userName.equalsIgnoreCase(user.getLogin()) || userName.equalsIgnoreCase("*")) {
                         if (hostMask.equalsIgnoreCase(user.getHostmask()) || hostMask.equalsIgnoreCase("*")) {
-                            if (authedUserLevel.get(index) >= userLevel) {
-                                return true;
-                            }
+                            return authedUserLevel.get(index) >= userLevel;
                         }
                     }
                 }
                 index--;
             }
-            if (userLevel > -1) {
+            if (userLevel < -1) {
                 return true;
             }
         }
