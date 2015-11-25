@@ -67,6 +67,6 @@
         </SOURCES>
       </library>
     </orderEntry>
-    <orderEntry type="module" module-name="json-io" />
+    <orderEntry type="library" name="com.google.code.gson:gson:2.5" level="application" />
   </component>
 </module>

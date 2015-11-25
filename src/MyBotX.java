@@ -3,12 +3,13 @@
  * Main bot class
  */
 
-import com.cedarsoftware.util.io.JsonWriter;
+
 import com.fathzer.soft.javaluator.StaticVariableSet;
 import com.google.code.chatterbotapi.ChatterBot;
 import com.google.code.chatterbotapi.ChatterBotFactory;
 import com.google.code.chatterbotapi.ChatterBotSession;
 import com.google.code.chatterbotapi.ChatterBotType;
+import com.google.gson.Gson;
 import com.rmtheis.yandtran.YandexTranslatorAPI;
 import com.rmtheis.yandtran.detect.Detect;
 import com.rmtheis.yandtran.language.Language;
@@ -86,6 +87,8 @@ public class MyBotX extends ListenerAdapter {
     String counter = "";
     int countercount = 0;
 
+    Gson gson = new Gson();
+
     /**
      * Returns a pseudo-random number between min and max, inclusive.
      * The difference between min and max can be at most
@@ -160,26 +163,13 @@ public class MyBotX extends ListenerAdapter {
     }
 
     public void onConnect(ConnectEvent event) throws Exception {
-        FileInputStream fis = new FileInputStream("Data/DND/DNDPlayers.dat");
-        ObjectInputStream ois = new ObjectInputStream(fis);
-        DNDList = (List<DNDPlayer>) ois.readObject();
-        ois.close();
-        fis = new FileInputStream("Data/DND/DNDJoined.dat");
-        ois = new ObjectInputStream(fis);
-        DNDJoined = (List<String>) ois.readObject();
-        ois.close();
-        fis = new FileInputStream("Data/noteList.dat");
-        ois = new ObjectInputStream(fis);
-        noteList = (List<Note>) ois.readObject();
-        ois.close();
-        fis = new FileInputStream("Data/authedUserLevel.dat");
-        ois = new ObjectInputStream(fis);
-        authedUserLevel = (List<Integer>) ois.readObject();
-        ois.close();
-        fis = new FileInputStream("Data/authedUserNick.dat");
-        ois = new ObjectInputStream(fis);
-        authedUser = (List<String>) ois.readObject();
-        ois.close();
+        BufferedReader br = new BufferedReader(new FileReader("Data.json"));
+        SaveDataStore save = gson.fromJson(br, SaveDataStore.class);
+        noteList = save.getNoteList();
+        authedUser = save.getAuthedUser();
+        authedUserLevel = save.getAuthedUserLevel();
+        DNDJoined = save.getDNDJoined();
+        DNDList = save.getDNDList();
 
         event.getBot().sendIRC().mode(event.getBot().getNick(), "+B");
 
@@ -1421,7 +1411,7 @@ public class MyBotX extends ListenerAdapter {
                 }
                 index--;
             }
-            if (userLevel < -1) {
+            if (userLevel > -1) {
                 return true;
             }
         }
@@ -1455,6 +1445,8 @@ public class MyBotX extends ListenerAdapter {
             return cleverBotsession.think(message);
         } else if (bot.equalsIgnoreCase("pandora")) {
             return pandoraBotsession.think(message);
+        } else if (bot.equalsIgnoreCase("")) {
+            return "Error, not a valid bot";
         } else {
             return "Error, not a valid bot";
         }
@@ -1462,20 +1454,9 @@ public class MyBotX extends ListenerAdapter {
 
     public void saveData(MessageEvent event) {
         try {
-            JsonWriter writer = new JsonWriter(new FileOutputStream("Data/DND/DNDPlayers.json"));
-            writer.write(DNDList);
-
-            writer = new JsonWriter(new FileOutputStream("Data/DND/DNDJoined.json"));
-            writer.write(DNDJoined);
-
-            writer = new JsonWriter(new FileOutputStream("Data/noteList.json"));
-            writer.write(noteList);
-
-            writer = new JsonWriter(new FileOutputStream("Data/authedUserLevel.json"));
-            writer.write(authedUserLevel);
-
-            writer = new JsonWriter(new FileOutputStream("Data/authedUserNick.json"));
-            writer.write(authedUser);
+            SaveDataStore save = new SaveDataStore(noteList, authedUser, authedUserLevel, DNDJoined, DNDList);
+            FileWriter writer = new FileWriter("Data.json");
+            writer.write(gson.toJson(save));
             writer.close();
 
             System.out.println("Data saved!");
