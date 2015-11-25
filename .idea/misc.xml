@@ -7,6 +7,7 @@
     <option name="originalFiles">
       <list>
         <option value="$USER_HOME$/Downloads/irc bot/chatter-bot-api-master/java/pom.xml" />
+        <option value="$PROJECT_DIR$/../json-io-master/json-io/pom.xml" />
       </list>
     </option>
   </component>

@@ -31,10 +31,18 @@
         <processorPath useClasspath="true" />
         <module name="chatter-bot-api" />
       </profile>
+      <profile default="false" name="Annotation profile for json-io" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target\generated-test-sources\test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="true" />
+        <module name="json-io" />
+      </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
       <module name="chatter-bot-api" target="1.5" />
       <module name="FozruciX" target="" />
+      <module name="json-io" target="1.6" />
     </bytecodeTargetLevel>
   </component>
   <component name="EclipseCompilerSettings">

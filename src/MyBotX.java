@@ -3,6 +3,7 @@
  * Main bot class
  */
 
+import com.cedarsoftware.util.io.JsonWriter;
 import com.fathzer.soft.javaluator.StaticVariableSet;
 import com.google.code.chatterbotapi.ChatterBot;
 import com.google.code.chatterbotapi.ChatterBotFactory;
@@ -1461,30 +1462,21 @@ public class MyBotX extends ListenerAdapter {
 
     public void saveData(MessageEvent event) {
         try {
-            FileOutputStream fos = new FileOutputStream("Data/DND/DNDPlayers.dat");
-            ObjectOutputStream oos = new ObjectOutputStream(fos);
-            oos.writeObject(DNDList);
-            oos.close();
+            JsonWriter writer = new JsonWriter(new FileOutputStream("Data/DND/DNDPlayers.json"));
+            writer.write(DNDList);
 
-            fos = new FileOutputStream("Data/DND/DNDJoined.dat");
-            oos = new ObjectOutputStream(fos);
-            oos.writeObject(DNDJoined);
-            oos.close();
+            writer = new JsonWriter(new FileOutputStream("Data/DND/DNDJoined.json"));
+            writer.write(DNDJoined);
 
-            fos = new FileOutputStream("Data/noteList.dat");
-            oos = new ObjectOutputStream(fos);
-            oos.writeObject(noteList);
-            oos.close();
+            writer = new JsonWriter(new FileOutputStream("Data/noteList.json"));
+            writer.write(noteList);
 
-            fos = new FileOutputStream("Data/authedUserLevel.dat");
-            oos = new ObjectOutputStream(fos);
-            oos.writeObject(authedUserLevel);
-            oos.close();
+            writer = new JsonWriter(new FileOutputStream("Data/authedUserLevel.json"));
+            writer.write(authedUserLevel);
 
-            fos = new FileOutputStream("Data/authedUserNick.dat");
-            oos = new ObjectOutputStream(fos);
-            oos.writeObject(authedUser);
-            oos.close();
+            writer = new JsonWriter(new FileOutputStream("Data/authedUserNick.json"));
+            writer.write(authedUser);
+            writer.close();
 
             System.out.println("Data saved!");
         } catch (Exception e) {

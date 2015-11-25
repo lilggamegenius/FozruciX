@@ -67,5 +67,6 @@
         </SOURCES>
       </library>
     </orderEntry>
+    <orderEntry type="module" module-name="json-io" />
   </component>
 </module>
