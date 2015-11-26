@@ -8,7 +8,7 @@ public class DNDFamiliar extends DNDPlayer {
     DNDFamiliars species;
 
     public DNDFamiliar(String name, String owner, DNDFamiliars species) {
-        this.name = owner;
+        this.name = name;
         this.owner = owner;
         this.originalOwner = owner;
         this.species = species;

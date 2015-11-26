@@ -25,12 +25,14 @@ import org.pircbotx.hooks.types.GenericMessageEvent;
 
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
+import java.awt.*;
 import java.io.*;
 import java.lang.ref.WeakReference;
 import java.nio.charset.Charset;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.*;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -780,7 +782,7 @@ public class MyBotX extends ListenerAdapter {
                                 }
                             }
                             if (arg.length == 7) {
-                                if (DNDPlayer.ifClassExists(arg[3])) {
+                                if (DNDPlayer.ifClassExists(arg[4])) {
                                     if (DNDPlayer.ifSpeciesExists(arg[6])) {
                                         DNDList.add(new DNDPlayer(arg[2], arg[3], arg[4], event.getUser().getNick(), arg[5], arg[6]));
                                         DNDJoined.add(event.getUser().getNick());
@@ -903,14 +905,37 @@ public class MyBotX extends ListenerAdapter {
                             }
 
                             if (arg[2].equalsIgnoreCase("DelChar")) {
-                                if (DNDJoined.contains(arg[3])) {
-                                    DNDJoined.remove(index);
-
+                                if (checkPerm(event.getUser(), 5)) {
+                                    if (DNDJoined.contains(arg[3])) {
+                                        DNDJoined.remove(index);
+                                    }
                                 }
                             }
 
                             if (arg[2].equalsIgnoreCase("setPos")) {
+                                DNDDungeon.setLocation(Integer.parseInt(arg[3]), Integer.parseInt(arg[4]));
+                                event.respond("Pos is now: " + DNDDungeon.toString());
+                            }
 
+                            if (arg[2].equalsIgnoreCase("getPos")) {
+                                event.respond(DNDDungeon.toString());
+                            }
+
+                            if (arg[2].equalsIgnoreCase("movePos")) {
+                                DNDDungeon.move(new Point(Integer.parseInt(arg[3]), Integer.parseInt(arg[4])));
+                                event.respond(DNDDungeon.toString());
+                            }
+
+                            if (arg[2].equalsIgnoreCase("getSurroundings")) {
+                                Tile[] tiles = DNDDungeon.getSurroundingTiles();
+                                event.respond(" " + tiles[7] + tiles[0] + tiles[1]);
+                                event.respond(" " + tiles[6] + tiles[8] + tiles[2]);
+                                event.respond(" " + tiles[5] + tiles[4] + tiles[3]);
+                            }
+
+                            if (arg[2].equalsIgnoreCase("genDungeon")) {
+                                DNDDungeon = new Dungeon();
+                                event.respond("Generated new dungeon");
                             }
                         } catch (NullPointerException e) {
                             event.respond("You have to join first! (Null pointer)");
