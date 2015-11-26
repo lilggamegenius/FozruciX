@@ -163,13 +163,6 @@ public class MyBotX extends ListenerAdapter {
     }
 
     public void onConnect(ConnectEvent event) throws Exception {
-        BufferedReader br = new BufferedReader(new FileReader("Data.json"));
-        SaveDataStore save = gson.fromJson(br, SaveDataStore.class);
-        noteList = save.getNoteList();
-        authedUser = save.getAuthedUser();
-        authedUserLevel = save.getAuthedUserLevel();
-        DNDJoined = save.getDNDJoined();
-        DNDList = save.getDNDList();
 
         event.getBot().sendIRC().mode(event.getBot().getNick(), "+B");
 
@@ -180,6 +173,14 @@ public class MyBotX extends ListenerAdapter {
         if (nickInUse) {
             event.getBot().sendRaw().rawLineNow("ns recover " + event.getBot().getNick() + " " + PASSWORD);
         }
+
+        BufferedReader br = new BufferedReader(new FileReader("Data/Data.json"));
+        SaveDataStore save = gson.fromJson(br, SaveDataStore.class);
+        noteList = save.getNoteList();
+        authedUser = save.getAuthedUser();
+        authedUserLevel = save.getAuthedUserLevel();
+        DNDJoined = save.getDNDJoined();
+        DNDList = save.getDNDList();
     }
 
     @Override
@@ -1455,7 +1456,7 @@ public class MyBotX extends ListenerAdapter {
     public void saveData(MessageEvent event) {
         try {
             SaveDataStore save = new SaveDataStore(noteList, authedUser, authedUserLevel, DNDJoined, DNDList);
-            FileWriter writer = new FileWriter("Data.json");
+            FileWriter writer = new FileWriter("Data/Data.json");
             writer.write(gson.toJson(save));
             writer.close();
 
