@@ -10,6 +10,7 @@ import com.google.code.chatterbotapi.ChatterBotFactory;
 import com.google.code.chatterbotapi.ChatterBotSession;
 import com.google.code.chatterbotapi.ChatterBotType;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.rmtheis.yandtran.YandexTranslatorAPI;
 import com.rmtheis.yandtran.detect.Detect;
 import com.rmtheis.yandtran.language.Language;
@@ -87,7 +88,7 @@ public class MyBotX extends ListenerAdapter {
     String counter = "";
     int countercount = 0;
 
-    Gson gson = new Gson();
+    Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
     /**
      * Returns a pseudo-random number between min and max, inclusive.

@@ -8,7 +8,7 @@ import java.awt.*;
 public class DebugWindow extends JFrame {
     // Define constants, variables, and labels
     private static final int WIDTH = 0x2CC;
-    private static final int HEIGHT = 0x13A;
+    private static final int HEIGHT = 0xA0;
     private JTextField currentNickTF, messageLabelTF, currDMTF, myPlayerNameTF, myPlayerHPTF, myPlayerXPTF, myFamiliarTF, myFamiliarHPTF, myFamiliarXPTF;
 
     public DebugWindow(String botNick) {
