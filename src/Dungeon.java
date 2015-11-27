@@ -21,7 +21,7 @@ public class Dungeon {
         for (int x = 0; x < mapSize; x++) {
             for (int y = 0; y < mapSize; y++) {
                 int num = MyBotX.randInt(0, 100);
-                if (num <= 40) {
+                if (num <= 60) {
                     tiles[x][y] = Tile.EMPTY;
                 } else if (num > 60 && num <= 85) {
                     tiles[x][y] = Tile.WALL;
