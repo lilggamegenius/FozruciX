@@ -928,9 +928,9 @@ public class MyBotX extends ListenerAdapter {
 
                             if (arg[2].equalsIgnoreCase("getSurroundings")) {
                                 Tile[] tiles = DNDDungeon.getSurroundingTiles();
-                                event.respond(" " + tiles[7] + tiles[0] + tiles[1]);
-                                event.respond(" " + tiles[6] + tiles[8] + tiles[2]);
-                                event.respond(" " + tiles[5] + tiles[4] + tiles[3]);
+                                event.respond(" | " + tiles[7] + " | " + tiles[0] + " | " + tiles[1] + " | ");
+                                event.respond(" | " + tiles[6] + " | " + tiles[8] + " | " + tiles[2] + " | ");
+                                event.respond(" | " + tiles[5] + " | " + tiles[4] + " | " + tiles[3] + " | ");
                             }
 
                             if (arg[2].equalsIgnoreCase("genDungeon")) {

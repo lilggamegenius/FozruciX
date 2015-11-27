@@ -23,11 +23,11 @@ public class Dungeon {
                 int num = MyBotX.randInt(0, 100);
                 if (num <= 40) {
                     tiles[x][y] = Tile.EMPTY;
-                } else if (num > 40 && num <= 60) {
+                } else if (num > 60 && num <= 85) {
                     tiles[x][y] = Tile.WALL;
-                } else if (num > 60 && num <= 75) {
+                } else if (num > 85 && num <= 90) {
                     tiles[x][y] = Tile.ITEM;
-                } else if (num > 75 && num <= 100) {
+                } else if (num > 90 && num <= 100) {
                     tiles[x][y] = Tile.ENEMY;
                 }
             }
