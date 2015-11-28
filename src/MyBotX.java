@@ -20,6 +20,12 @@ import de.tudarmstadt.ukp.jwktl.api.IWiktionaryEdition;
 import de.tudarmstadt.ukp.jwktl.api.IWiktionaryEntry;
 import de.tudarmstadt.ukp.jwktl.api.IWiktionaryPage;
 import de.tudarmstadt.ukp.jwktl.api.IWiktionarySense;
+import de.tudarmstadt.ukp.wikipedia.api.DatabaseConfiguration;
+import de.tudarmstadt.ukp.wikipedia.api.Page;
+import de.tudarmstadt.ukp.wikipedia.api.WikiConstants;
+import de.tudarmstadt.ukp.wikipedia.api.Wikipedia;
+import de.tudarmstadt.ukp.wikipedia.api.exception.WikiApiException;
+import de.tudarmstadt.ukp.wikipedia.api.exception.WikiInitializationException;
 import org.apache.commons.lang3.StringUtils;
 import org.pircbotx.Colors;
 import org.pircbotx.User;
@@ -413,8 +419,8 @@ public class MyBotX extends ListenerAdapter {
             }
         }
 
-// !LookUp - Looks up a word in the Wiktionary
-        if (arg[0].equalsIgnoreCase(prefix + "Lookup")) {
+// !LookUpWord - Looks up a word in the Wiktionary
+        if (arg[0].equalsIgnoreCase(prefix + "LookupWord")) {
             if (checkPerm(event.getUser(), 0)) {
                 try {
                     String message = "Null";
@@ -426,23 +432,38 @@ public class MyBotX extends ListenerAdapter {
                     IWiktionaryPage page = wkt.getPageForWord(arg[1]);
                     if (page != null) {
                         System.out.println("Getting entry");
-                        IWiktionaryEntry entry = page.getEntry(0);
+                        IWiktionaryEntry entry;
+                        if (arg.length > 2 && isNumeric(arg[2])) {
+                            entry = page.getEntry(Integer.parseInt(arg[2]));
+                        } else {
+                            entry = page.getEntry(0);
+                        }
                         System.out.println("getting sense");
                         IWiktionarySense sense = entry.getSense(1);
                         System.out.println("getting Plain text");
                         if (arg.length > 2) {
-                            if (arg[2].equalsIgnoreCase("Example")) {
+                            int subCommandNum = 2;
+                            if (isNumeric(arg[2])) {
+                                subCommandNum++;
+                            }
+                            if (arg.length > subCommandNum && arg[subCommandNum - 1].equalsIgnoreCase("Example")) {
                                 if (sense.getExamples().size() > 0) {
                                     message = sense.getExamples().get(0).getPlainText();
                                 } else {
                                     event.respond("No examples found");
                                 }
+                            } else {
+                                message = sense.getGloss().getPlainText();
                             }
                         } else {
                             message = sense.getGloss().getPlainText();
                         }
                         System.out.println("Sending message");
-                        event.respond(message);
+                        if (!message.isEmpty()) {
+                            event.respond(message);
+                        } else {
+                            event.respond("Empty response from Database");
+                        }
                     } else {
                         event.respond("That page couldn't be found.");
                     }
@@ -452,6 +473,29 @@ public class MyBotX extends ListenerAdapter {
                 } catch (Exception e) {
                     sendError(event, e);
                 }
+            }
+        }
+
+//lookup - Looks up something in Wikipedia
+        if (arg[0].equalsIgnoreCase(prefix + "Lookup")) {
+            DatabaseConfiguration dbConfig = new DatabaseConfiguration("localhost:63342/FozruciX/Data/Wiktionary", "Wikipedia", "lilggamegenuis", setPassword(), WikiConstants.Language.english);
+
+            Wikipedia wiki = null;
+            try {
+                wiki = new Wikipedia(dbConfig);
+            } catch (WikiInitializationException e1) {
+                event.respond("Could not initialize Wikipedia.");
+            }
+
+            // Get the page with title "Hello world".
+            String title = arg[1];
+            try {
+                Page page = wiki.getPage(title);
+                event.respond(page.getText());
+            } catch (WikiApiException e) {
+                event.respond("Page " + title + " does not exist");
+            } catch (Exception e) {
+                sendError(event, e);
             }
         }
 
