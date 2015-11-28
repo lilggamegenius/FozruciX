@@ -15,6 +15,11 @@ import com.rmtheis.yandtran.YandexTranslatorAPI;
 import com.rmtheis.yandtran.detect.Detect;
 import com.rmtheis.yandtran.language.Language;
 import com.rmtheis.yandtran.translate.Translate;
+import de.tudarmstadt.ukp.jwktl.JWKTL;
+import de.tudarmstadt.ukp.jwktl.api.IWiktionaryEdition;
+import de.tudarmstadt.ukp.jwktl.api.IWiktionaryEntry;
+import de.tudarmstadt.ukp.jwktl.api.IWiktionaryPage;
+import de.tudarmstadt.ukp.jwktl.api.IWiktionarySense;
 import org.apache.commons.lang3.StringUtils;
 import org.pircbotx.Colors;
 import org.pircbotx.User;
@@ -38,6 +43,7 @@ import java.util.regex.Pattern;
 
 
 public class MyBotX extends ListenerAdapter {
+    final static File WIKTIONARY_DIRECTORY = new File("Data\\Wiktionary");
     final int BLOCKS = 128;
     final int BLOCKSMB = 8 * BLOCKS;
     final int BLOCKSGB = 8192 * BLOCKS;
@@ -61,35 +67,23 @@ public class MyBotX extends ListenerAdapter {
     ChatterBotSession pandoraBotsession;
     boolean pandoraBotInt;
     String VERSION = "PircBotX: 2.1-20151112.042241-148. BotVersion: 2.0";
-
     MessageEvent lastEvent;
-
     ExtendedDoubleEvaluator calc = new ExtendedDoubleEvaluator();
     StaticVariableSet<Double> variables = new StaticVariableSet<>();
-
     runCMD singleCMD = null;
-
     List<Note> noteList = new ArrayList<>();
-
     List<String> authedUser = new ArrayList<>();
     List<Integer> authedUserLevel = new ArrayList<>();
-
     List<String> DNDJoined = new ArrayList<>();
     List<DNDPlayer> DNDList = new ArrayList<>();
     String DNDDungeonMaster = "Null";
     Dungeon DNDDungeon = new Dungeon();
-
     DebugWindow debug;
-
     int jokeCommandDebugVar = 30;
-
     CommandLine terminal;
-
     boolean nickInUse = false;
-
     String counter = "";
     int countercount = 0;
-
     Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
     /**
@@ -419,6 +413,47 @@ public class MyBotX extends ListenerAdapter {
             }
         }
 
+// !LookUp - Looks up a word in the Wiktionary
+        if (arg[0].equalsIgnoreCase(prefix + "Lookup")) {
+            if (checkPerm(event.getUser(), 0)) {
+                try {
+                    String message = "Null";
+                    System.out.println("Looking up word");
+                    // Connect to the Wiktionary database.
+                    System.out.println("Opening dictionary");
+                    IWiktionaryEdition wkt = JWKTL.openEdition(WIKTIONARY_DIRECTORY);
+                    System.out.println("Getting page for word");
+                    IWiktionaryPage page = wkt.getPageForWord(arg[1]);
+                    if (page != null) {
+                        System.out.println("Getting entry");
+                        IWiktionaryEntry entry = page.getEntry(0);
+                        System.out.println("getting sense");
+                        IWiktionarySense sense = entry.getSense(1);
+                        System.out.println("getting Plain text");
+                        if (arg.length > 2) {
+                            if (arg[2].equalsIgnoreCase("Example")) {
+                                if (sense.getExamples().size() > 0) {
+                                    message = sense.getExamples().get(0).getPlainText();
+                                } else {
+                                    event.respond("No examples found");
+                                }
+                            }
+                        } else {
+                            message = sense.getGloss().getPlainText();
+                        }
+                        System.out.println("Sending message");
+                        event.respond(message);
+                    } else {
+                        event.respond("That page couldn't be found.");
+                    }
+
+                    // Close the database connection.
+                    wkt.close();
+                } catch (Exception e) {
+                    sendError(event, e);
+                }
+            }
+        }
 
 // !chat - chat's with a internet conversation bot
         if (arg[0].equalsIgnoreCase(prefix + "chat")) {
@@ -1193,7 +1228,7 @@ public class MyBotX extends ListenerAdapter {
                             event.getChannel().send().message("Error: IntegerOutOfBoundsException: Greater than Integer.MAX_VALUE");
                         } else {
                             int size = randInt(0, jokeCommandDebugVar);
-                            event.getChannel().send().message("8" + StringUtils.leftPad("D", size, "=") + " - " + (size + 1));
+                            event.getChannel().send().message("8" + StringUtils.leftPad("D", size, "=") + " - " + size);
                         }
                     }
             }
