@@ -331,6 +331,11 @@ public class MyBotX extends ListenerAdapter {
             }
         }
 
+// !Git - gets the link to source code
+        if (arg[0].equalsIgnoreCase(prefix + "Git")) {
+            event.respond("Link to source code: https://github.com/lilggamegenuis/FozruciX");
+        }
+
 // !GC - Runs the garbage collector
         if (arg[0].equalsIgnoreCase(prefix + "GC")) {
             int num = gc();
