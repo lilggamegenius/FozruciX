@@ -335,9 +335,9 @@ public class MyBotX extends ListenerAdapter {
         if (arg[0].equalsIgnoreCase(prefix + "GC")) {
             int num = gc();
             if (num == 1) {
-                event.respond("It took " + num + " Time to run the Garbage collector");
+                event.respond("Took out the trash");
             } else {
-                event.respond("It took " + num + " Times to run the Garbage collector");
+                event.respond("Took out " + num + " Trash bags");
             }
         }
 

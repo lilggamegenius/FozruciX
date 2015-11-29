@@ -14,7 +14,7 @@ import java.nio.charset.Charset;
 public class MyBotXMain {
     public static void main(String[] args) throws Exception {
         //Configure what we want our bot to do
-        boolean debug = true;
+        boolean debug = false;
         final String PASSWORD = setPassword();
         Configuration normal = new Configuration.Builder()
                 .setEncoding(Charset.forName("UTF-8"))
