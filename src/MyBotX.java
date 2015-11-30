@@ -200,8 +200,7 @@ public class MyBotX extends ListenerAdapter {
 
                 if (event.getMessage().equalsIgnoreCase(prefix + "helpme")) {
                     event.respond("List of commands so far. for more info on these commands do " + prefix + "helpme. commands with \"Joke: \" are joke commands that can be disabled");
-                    ArrayList<String> cmdhelp = new ArrayList<>(Arrays.asList(commands));
-                    event.respond(cmdhelp.toString());
+                    event.respond(Arrays.asList(commands).toString());
                 } else if (arg[1].equalsIgnoreCase("Helpme")) {
                     event.respond("Really? ಠ_ಠ");
                 } else if (arg[1].equalsIgnoreCase("time")) {
@@ -350,7 +349,7 @@ public class MyBotX extends ListenerAdapter {
         if (arg[0].equalsIgnoreCase(prefix + "calcJS")) {
             if (checkPerm(event.getUser(), 0)) {
                 ScriptEngine engine = new ScriptEngineManager().getEngineByName("JavaScript");
-                String factorialFunct = "function factorial(num) { if (num < 0) { return -1; } else if (num == 0) { return 1; } var tmp = num; while (num-- > 2) { tmp *= num; } return tmp; } var life = 42; ";
+                String factorialFunct = "function factorial(num) {\n if (num < 0) {\n return -1;\n } else if (num == 0) \n{ return 1;\n } \nvar tmp = num;\n while (num-- > 2) \n{ tmp *= num;\n } return tmp;\n }\n var life = 42;\n ";
                 String eval;
                 try {
                     if (arg[1].contains(";")) {
