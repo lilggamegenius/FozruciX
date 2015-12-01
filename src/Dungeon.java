@@ -8,6 +8,8 @@ import java.util.List;
 
 public class Dungeon {
     int map_size = 64;
+    boolean currentPointSet = false;
+    Point currentPoint;
     int[][] map = new int[map_size][map_size];
     List<int[]> rooms = new ArrayList<>();
 
@@ -39,47 +41,57 @@ public class Dungeon {
             room[3]--;
 
             rooms.add(room);
+        }
 
-            SquashRooms();
+        SquashRooms();
 
-            for (i = 0; i < room_count; i++) {
-                int[] roomA = rooms.get(i);
-                int[] roomB = FindClosestRoom(roomA);
-                Point pointA = new Point(
-                        MyBotX.randInt(roomA[0], roomA[0] + roomA[2]),
-                        MyBotX.randInt(roomA[1], roomA[1] + roomA[3]));
-                Point pointB = new Point(
-                        MyBotX.randInt(roomB[0], roomB[0] + roomB[2]),
-                        MyBotX.randInt(roomB[1], roomB[1] + roomB[3]));
-                while ((pointB.x != pointA.x) || (pointB.y != pointA.y)) {
-                    if (pointB.x != pointA.x) {
-                        if (pointB.x > pointA.x) pointB.x--;
-                        else pointB.x++;
-                    } else if (pointB.y != pointA.y) {
-                        if (pointB.y > pointA.y) pointB.y--;
-                        else pointB.y++;
-                    }
-
-                    map[pointB.x][pointB.y] = 1;
-                }
+        for (int i = 0; i < room_count; i++) {
+            int[] roomA = rooms.get(i);
+            int[] roomB;
+            if (FindClosestRoom(roomA) == null) {
+                roomB = new int[]{0, 0, 0, 0};
+            } else {
+                roomB = FindClosestRoom(roomA);
             }
 
-            for (i = 0; i < room_count; i++) {
-                room = rooms.get(i);
-                for (int x = room[0]; x < room[0] + room[2]; x++) {
-                    for (int y = room[1]; y < room[1] + room[3]; y++) {
-                        map[x][y] = 1;
-                    }
+            Point pointA = new Point(
+                    MyBotX.randInt(roomA[0], roomA[0] + roomA[2]),
+                    MyBotX.randInt(roomA[1], roomA[1] + roomA[3]));
+            Point pointB = new Point(
+                    MyBotX.randInt(roomB[0], roomB[0] + roomB[2]),
+                    MyBotX.randInt(roomB[1], roomB[1] + roomB[3]));
+
+            while ((pointB.x != pointA.x) || (pointB.y != pointA.y)) {
+                if (pointB.x != pointA.x) {
+                    if (pointB.x > pointA.x) pointB.x--;
+                    else pointB.x++;
+                } else if (pointB.y != pointA.y) {
+                    if (pointB.y > pointA.y) pointB.y--;
+                    else pointB.y++;
+                }
+                if (!currentPointSet) {
+                    currentPoint = pointB;
+                    currentPointSet = true;
+                }
+                map[pointB.x][pointB.y] = 1;
+            }
+        }
+
+        for (int i = 0; i < room_count; i++) {
+            int[] room = rooms.get(i);
+            for (int x = room[0]; x < room[0] + room[2]; x++) {
+                for (int y = room[1]; y < room[1] + room[3]; y++) {
+                    map[x][y] = 1;
                 }
             }
+        }
 
-            for (int x = 0; x < map_size; x++) {
-                for (int y = 0; y < map_size; y++) {
-                    if (map[x][y] == 1) {
-                        for (int xx = x - 1; xx <= x + 1; xx++) {
-                            for (int yy = y - 1; yy <= y + 1; yy++) {
-                                if (map[xx][yy] == 0) map[xx][yy] = 2;
-                            }
+        for (int x = 0; x < map_size; x++) {
+            for (int y = 0; y < map_size; y++) {
+                if (map[x][y] == 1) {
+                    for (int xx = x - 1; xx <= x + 1; xx++) {
+                        for (int yy = y - 1; yy <= y + 1; yy++) {
+                            if (map[xx][yy] == 0) map[xx][yy] = 2;
                         }
                     }
                 }
@@ -141,6 +153,40 @@ public class Dungeon {
                 }
             }
         }
+    }
+
+    public void setLocation(int x, int y) {
+        currentPoint.move(x, y);
+    }
+
+    public Point getLocation() {
+        return currentPoint;
+    }
+
+    public void move(int x, int y) {
+        currentPoint.translate(x, y);
+    }
+
+    public int[] getSurrounding() {
+        int[] temp = new int[9];
+        temp[0] = map[(int) currentPoint.getX()][(int) currentPoint.getY() + 1];
+        temp[1] = map[(int) currentPoint.getX() + 1][(int) currentPoint.getY() + 1];
+        temp[2] = map[(int) currentPoint.getX() + 1][(int) currentPoint.getY()];
+        temp[3] = map[(int) currentPoint.getX() + 1][(int) currentPoint.getY() - 1];
+        temp[4] = map[(int) currentPoint.getX()][(int) currentPoint.getY() - 1];
+        temp[5] = map[(int) currentPoint.getX() - 1][(int) currentPoint.getY() - 1];
+        temp[6] = map[(int) currentPoint.getX() - 1][(int) currentPoint.getY()];
+        temp[7] = map[(int) currentPoint.getX() - 1][(int) currentPoint.getY() + 1];
+        temp[8] = map[(int) currentPoint.getX()][(int) currentPoint.getY()];
+        return temp;
+    }
+
+    public int[][] getMap() {
+        return map;
+    }
+
+    public int getMap_size() {
+        return map_size;
     }
 
 }

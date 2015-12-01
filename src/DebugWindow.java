@@ -117,3 +117,40 @@ public class DebugWindow extends JFrame {
     }
 
 }
+
+class DrawWindow extends Component {
+    int map_size;
+    int[][] map;
+    Point currentPoint;
+
+    public DrawWindow(int[][] map, int map_size, Point currentPoint) {
+        this.map_size = map_size;
+        this.map = map;
+        this.currentPoint = currentPoint;
+    }
+
+    public void paint(Graphics g) {
+        Graphics2D g2d = (Graphics2D) g;
+        int dx = 0;
+        int dy = 0;
+        while (dy < map_size) {
+            while (dx < map_size) {
+                if (dx == currentPoint.x && dy == currentPoint.y) {
+                    g2d.setColor(Color.RED);
+                } else if (map[dx][dy] == 0) {
+                    g2d.setColor(Color.CYAN);
+                } else if (map[dx][dy] == 1) {
+                    g2d.setColor(Color.BLUE);
+                } else {
+                    g2d.setColor(Color.MAGENTA);
+                }
+                g2d.drawLine(dx, dy, dx, dy);
+                dx++;
+            }
+            dy++;
+            dx = 0;
+        }
+        g2d.scale(3, 3);
+
+    }
+}

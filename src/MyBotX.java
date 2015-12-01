@@ -36,6 +36,7 @@ import org.pircbotx.hooks.types.GenericMessageEvent;
 
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
+import javax.swing.*;
 import java.awt.*;
 import java.io.*;
 import java.lang.ref.WeakReference;
@@ -91,6 +92,9 @@ public class MyBotX extends ListenerAdapter {
     String counter = "";
     int countercount = 0;
     Gson gson = new GsonBuilder().setPrettyPrinting().create();
+    int frameWidth = 300;
+    int frameHeight = 300;
+    JFrame frame = new JFrame();
 
     /**
      * Returns a pseudo-random number between min and max, inclusive.
@@ -166,6 +170,11 @@ public class MyBotX extends ListenerAdapter {
     }
 
     public void onConnect(ConnectEvent event) throws Exception {
+        frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+        frame.setSize(frameWidth, frameHeight);
+        frame.setVisible(true);
+        frame.getContentPane().add(new DrawWindow(DNDDungeon.getMap(), DNDDungeon.getMap_size(), DNDDungeon.getLocation()));
+        frame.paintAll(frame.getGraphics());
 
         event.getBot().sendIRC().mode(event.getBot().getNick(), "+B");
 
@@ -998,19 +1007,21 @@ public class MyBotX extends ListenerAdapter {
                             if (arg[2].equalsIgnoreCase("setPos")) {
                                 DNDDungeon.setLocation(Integer.parseInt(arg[3]), Integer.parseInt(arg[4]));
                                 event.respond("Pos is now: " + DNDDungeon.toString());
+
                             }
 
                             if (arg[2].equalsIgnoreCase("getPos")) {
-                                event.respond(DNDDungeon.toString());
+                                Point temp = DNDDungeon.getLocation();
+                                event.respond("Current location: (" + temp.x + "," + temp.y + ")");
                             }
 
                             if (arg[2].equalsIgnoreCase("movePos")) {
-                                DNDDungeon.move(new Point(Integer.parseInt(arg[3]), Integer.parseInt(arg[4])));
+                                DNDDungeon.move(Integer.parseInt(arg[3]), Integer.parseInt(arg[4]));
                                 event.respond(DNDDungeon.toString());
                             }
 
                             if (arg[2].equalsIgnoreCase("getSurroundings")) {
-                                Tile[] tiles = DNDDungeon.getSurroundingTiles();
+                                int[] tiles = DNDDungeon.getSurrounding();
                                 event.respond(" | " + tiles[7] + " | " + tiles[0] + " | " + tiles[1] + " | ");
                                 event.respond(" | " + tiles[6] + " | " + tiles[8] + " | " + tiles[2] + " | ");
                                 event.respond(" | " + tiles[5] + " | " + tiles[4] + " | " + tiles[3] + " | ");
@@ -1019,6 +1030,25 @@ public class MyBotX extends ListenerAdapter {
                             if (arg[2].equalsIgnoreCase("genDungeon")) {
                                 DNDDungeon = new Dungeon();
                                 event.respond("Generated new dungeon");
+                                frame.dispose();
+                                frame = new JFrame();
+                                frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+                                frame.setAlwaysOnTop(true);
+                                frame.setSize(frameWidth, frameHeight);
+                                frame.setVisible(true);
+                                frame.getContentPane().add(new DrawWindow(DNDDungeon.getMap(), DNDDungeon.getMap_size(), DNDDungeon.getLocation()));
+                                frame.paintAll(frame.getGraphics());
+                            }
+
+                            if (arg[2].equalsIgnoreCase("draw")) {
+                                frame.dispose();
+                                frame = new JFrame();
+                                frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+                                frame.setAlwaysOnTop(true);
+                                frame.setSize(frameWidth, frameHeight);
+                                frame.setVisible(true);
+                                frame.getContentPane().add(new DrawWindow(DNDDungeon.getMap(), DNDDungeon.getMap_size(), DNDDungeon.getLocation()));
+                                frame.paintAll(frame.getGraphics());
                             }
                         } catch (NullPointerException e) {
                             event.respond("You have to join first! (Null pointer)");
@@ -1435,7 +1465,9 @@ public class MyBotX extends ListenerAdapter {
             }
         }
         checkIfUserHasANote(event, event.getUser().getNick(), false);
-        debug.setCurrentNick(currentNick + "!" + currentUsername + "@" + currentHost);
+        if (event.getBot().isConnected()) {
+            debug.setCurrentNick(currentNick + "!" + currentUsername + "@" + currentHost);
+        }
     }
 
     public void onNickChange(NickChangeEvent nick) {
