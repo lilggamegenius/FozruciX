@@ -15,6 +15,16 @@ public class Dungeon {
 
 
     public Dungeon() {
+        generate();
+    }
+
+    public Dungeon(int map_size) {
+        this.map_size = map_size;
+        generate();
+    }
+
+    public void generate() {
+
         for (int x = 0; x < map_size; x++) {
             for (int y = 0; y < map_size; y++) {
                 map[x][y] = 0;
@@ -28,12 +38,12 @@ public class Dungeon {
         for (int i = 0; i < room_count; i++) {
             int room[] = new int[4];
 
-            room[0] = MyBotX.randInt(1, this.map_size - max_size - 1); //x
-            room[1] = MyBotX.randInt(1, this.map_size - max_size - 1); //y
+            room[0] = MyBotX.randInt(1, map_size - max_size - 1); //x
+            room[1] = MyBotX.randInt(1, map_size - max_size - 1); //y
             room[2] = MyBotX.randInt(min_size, max_size); //w
             room[3] = MyBotX.randInt(min_size, max_size); //h
 
-            if (this.DoesCollide(room, i)) {
+            if (DoesCollide(room, i)) {
                 i--;
                 continue;
             }
@@ -123,9 +133,9 @@ public class Dungeon {
     }
 
     public boolean DoesCollide(int[] room, int ignore) {
-        for (int i = 0; i < this.rooms.size(); i++) {
+        for (int i = 0; i < rooms.size(); i++) {
             if (i == ignore) continue;
-            int[] check = this.rooms.get(i);
+            int[] check = rooms.get(i);
             if (!((room[0] + room[2] < check[0]) || (room[0] > check[0] + check[2]) || (room[1] + room[3] < check[1]) || (room[1] > check[1] + check[3])))
                 return true;
         }
@@ -135,8 +145,8 @@ public class Dungeon {
 
     public void SquashRooms() {
         for (int i = 0; i < 10; i++) {
-            for (int j = 0; j < this.rooms.size(); j++) {
-                int[] room = this.rooms.get(j);
+            for (int j = 0; j < rooms.size(); j++) {
+                int[] room = rooms.get(j);
                 while (true) {
                     Point old_position = new Point(
                             room[0],

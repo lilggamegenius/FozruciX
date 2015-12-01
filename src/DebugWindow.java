@@ -133,6 +133,8 @@ class DrawWindow extends Component {
         Graphics2D g2d = (Graphics2D) g;
         int dx = 0;
         int dy = 0;
+        int scale = 5;
+        g2d.scale(scale, scale);
         while (dy < map_size) {
             while (dx < map_size) {
                 if (dx == currentPoint.x && dy == currentPoint.y) {
@@ -150,7 +152,7 @@ class DrawWindow extends Component {
             dy++;
             dx = 0;
         }
-        g2d.scale(3, 3);
+
 
     }
 }

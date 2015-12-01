@@ -1017,7 +1017,8 @@ public class MyBotX extends ListenerAdapter {
 
                             if (arg[2].equalsIgnoreCase("movePos")) {
                                 DNDDungeon.move(Integer.parseInt(arg[3]), Integer.parseInt(arg[4]));
-                                event.respond(DNDDungeon.toString());
+                                Point temp = DNDDungeon.getLocation();
+                                event.respond("New location: (" + temp.x + "," + temp.y + ")");
                             }
 
                             if (arg[2].equalsIgnoreCase("getSurroundings")) {
