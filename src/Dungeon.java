@@ -19,7 +19,11 @@ public class Dungeon {
     }
 
     public Dungeon(int map_size) {
-        this.map_size = map_size;
+        if (map_size % 2 == 0) {
+            this.map_size = map_size;
+        } else {
+            this.map_size = map_size * 2;
+        }
         generate();
     }
 
