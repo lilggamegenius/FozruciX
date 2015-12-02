@@ -1391,6 +1391,7 @@ public class MyBotX extends ListenerAdapter {
             if (arg[1].equals(PASSWORD)) {
                 currentNick = PM.getUser().getNick();
                 currentUsername = PM.getUser().getLogin();
+                currentHost = PM.getUser().getHostmask();
             } else
                 PM.getUser().send().message("password is incorrect.");
         }

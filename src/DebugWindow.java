@@ -148,6 +148,11 @@ class DrawWindow extends Component {
                 }
                 g2d.drawLine(dx, dy, dx, dy);
                 dx++;
+                try {
+                    Thread.sleep(1000);                 //1000 milliseconds is one second.
+                } catch (InterruptedException ex) {
+                    Thread.currentThread().interrupt();
+                }
             }
             dy++;
             dx = 0;
