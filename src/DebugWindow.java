@@ -135,27 +135,27 @@ class DrawWindow extends Component {
         int dy = 0;
         int scale = 5;
         g2d.scale(scale, scale);
-        while (dy < map_size) {
-            while (dx < map_size) {
-                if (dx == currentPoint.x && dy == currentPoint.y) {
-                    g2d.setColor(Color.RED);
-                } else if (map[dx][dy] == 0) {
-                    g2d.setColor(Color.CYAN);
-                } else if (map[dx][dy] == 1) {
-                    g2d.setColor(Color.BLUE);
-                } else {
-                    g2d.setColor(Color.MAGENTA);
-                }
-                g2d.drawLine(dx, dy, dx, dy);
-                dx++;
-                try {
+        try {
+            while (dy < map_size) {
+                while (dx < map_size) {
+                    if (dx == currentPoint.x && dy == currentPoint.y) {
+                        g2d.setColor(Color.RED);
+                    } else if (map[dx][dy] == 0) {
+                        g2d.setColor(Color.CYAN);
+                    } else if (map[dx][dy] == 1) {
+                        g2d.setColor(Color.BLUE);
+                    } else {
+                        g2d.setColor(Color.MAGENTA);
+                    }
+                    g2d.drawLine(dx, dy, dx, dy);
+                    dx++;
                     Thread.sleep(100);                 //1000 milliseconds is one second.
-                } catch (InterruptedException ex) {
-                    Thread.currentThread().interrupt();
                 }
+                dy++;
+                dx = 0;
             }
-            dy++;
-            dx = 0;
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
 
