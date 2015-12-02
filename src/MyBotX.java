@@ -2,8 +2,6 @@
  * Created by Lil-G on 10/11/2015.
  * Main bot class
  */
-
-
 import com.fathzer.soft.javaluator.StaticVariableSet;
 import com.google.code.chatterbotapi.ChatterBot;
 import com.google.code.chatterbotapi.ChatterBotFactory;
