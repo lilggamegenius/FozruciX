@@ -149,7 +149,7 @@ class DrawWindow extends Component {
                     }
                     g2d.drawLine(dx, dy, dx, dy);
                     dx++;
-                    Thread.sleep(100);                 //1000 milliseconds is one second.
+                    Thread.sleep(10);                 //1000 milliseconds is one second.
                 }
                 dy++;
                 dx = 0;

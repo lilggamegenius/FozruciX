@@ -168,11 +168,6 @@ public class MyBotX extends ListenerAdapter {
     }
 
     public void onConnect(ConnectEvent event) throws Exception {
-        frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-        frame.setSize(frameWidth, frameHeight);
-        frame.setVisible(true);
-        frame.getContentPane().add(new DrawWindow(DNDDungeon.getMap(), DNDDungeon.getMap_size(), DNDDungeon.getLocation()));
-        frame.paintAll(frame.getGraphics());
 
         event.getBot().sendIRC().mode(event.getBot().getNick(), "+B");
 
@@ -191,6 +186,12 @@ public class MyBotX extends ListenerAdapter {
         authedUserLevel = save.getAuthedUserLevel();
         DNDJoined = save.getDNDJoined();
         DNDList = save.getDNDList();
+
+        frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+        frame.setSize(frameWidth, frameHeight);
+        frame.setVisible(true);
+        frame.getContentPane().add(new DrawWindow(DNDDungeon.getMap(), DNDDungeon.getMap_size(), DNDDungeon.getLocation()));
+        frame.paintAll(frame.getGraphics());
     }
 
     @Override
