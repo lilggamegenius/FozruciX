@@ -205,23 +205,27 @@ public class MyBotX extends ListenerAdapter {
             List<String> message = new ArrayList<>(Arrays.asList(msgToSend.split("\\s+")));
             msgToSend = "";
             for (int i = message.size() - 1; i >= 0; i--) {
-                msgToSend += " " + message.get(i);
+                msgToSend += message.get(i) + " ";
             }
         } else if (messageMode == MessageModes.scrambled) {
             char[] msgChars = msgToSend.toCharArray();
             ArrayList<Character> chars = new ArrayList<>();
-            for (int i = 0; i > msgChars.length; i++) {
+            for (int i = 0; i < msgChars.length; i++) {
                 chars.add(msgChars[i]);
             }
             msgToSend = "";
             while (chars.size() != 0) {
-                msgToSend += chars.get(randInt(0, chars.size() - 1));
+                int num = randInt(0, chars.size() - 1);
+                msgToSend += chars.get(num) + "";
+                chars.remove(num);
             }
         } else if (messageMode == MessageModes.wordScrambled) {
             List<String> message = new ArrayList<>(Arrays.asList(msgToSend.split("\\s+")));
             msgToSend = "";
             while (message.size() != 0) {
-                msgToSend += " " + message.get(randInt(0, message.size() - 1));
+                int num = randInt(0, message.size() - 1);
+                msgToSend += message.get(num) + " ";
+                message.remove(num);
             }
         }
 
@@ -296,18 +300,23 @@ public class MyBotX extends ListenerAdapter {
                 switch (arg[1].toLowerCase()) {
                     case "normal":
                         messageMode = MessageModes.normal;
+                        sendMessage(event, "Message mode set back to normal", true);
                         break;
                     case "reverse":
                         messageMode = MessageModes.reversed;
+                        sendMessage(event, "Message is now reversed", true);
                         break;
                     case "wordreversed":
                         messageMode = MessageModes.wordReversed;
+                        sendMessage(event, "Message words reversed", true);
                         break;
                     case "scramble":
                         messageMode = MessageModes.scrambled;
+                        sendMessage(event, "Messages are scrambled", true);
                         break;
                     case "wordscramble":
                         messageMode = MessageModes.wordScrambled;
+                        sendMessage(event, "Message words are scrambled", true);
                         break;
                     default:
                         sendMessage(event, "Not a message mode", true);
