@@ -14,8 +14,6 @@ public class SaveDataStore {
     List<String> DNDJoined = new ArrayList<>();
     List<DNDPlayer> DNDList = new ArrayList<>();
 
-    public SaveDataStore() {
-    }
 
     public SaveDataStore(List<Note> noteList, List<String> authedUser, List<Integer> authedUserLevel, List<String> DNDJoined, List<DNDPlayer> DNDList) {
         this.noteList = noteList;
