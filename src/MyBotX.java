@@ -290,6 +290,31 @@ public class MyBotX extends ListenerAdapter {
 
         }
 
+// !setMessage - Sets different message formats
+        if (arg[0].equalsIgnoreCase(prefix + "setMessage")) {
+            if (checkPerm(event.getUser(), 5)) {
+                switch (arg[1].toLowerCase()) {
+                    case "normal":
+                        messageMode = MessageModes.normal;
+                        break;
+                    case "reverse":
+                        messageMode = MessageModes.reversed;
+                        break;
+                    case "wordreversed":
+                        messageMode = MessageModes.wordReversed;
+                        break;
+                    case "scramble":
+                        messageMode = MessageModes.scrambled;
+                        break;
+                    case "wordscramble":
+                        messageMode = MessageModes.wordScrambled;
+                        break;
+                    default:
+                        sendMessage(event, "Not a message mode", true);
+                }
+            }
+        }
+
 // !getChannelName - Gets channel name, for debuging
         if (event.getMessage().equalsIgnoreCase(prefix + "GetChannelName")) {
             if (checkPerm(event.getUser(), 0)) {
@@ -375,7 +400,7 @@ public class MyBotX extends ListenerAdapter {
                         sendMessage(event, "" + eval, true);
                     }
                 } catch (Exception e) {
-                    event.getChannel().send().message("Error: " + e);
+                    sendMessage(event, "Error: " + e, false);
                 }
             }
         }
@@ -458,7 +483,7 @@ public class MyBotX extends ListenerAdapter {
             }
             if (event.getMessage().equalsIgnoreCase(prefix + "count")) {
                 countercount++;
-                event.getChannel().send().message("Number of times that " + counter + " is: " + countercount);
+                sendMessage(event, "Number of times that " + counter + " is: " + countercount, false);
             }
         }
 
@@ -720,7 +745,7 @@ public class MyBotX extends ListenerAdapter {
                     try {
                         Note note = new Note(event.getUser().getNick(), arg[2], arg[3], event.getChannel().getName());
                         noteList.add(note);
-                        event.getChannel().send().message("Left note \"" + arg[3] + "\" for \"" + arg[2] + "\".");
+                        sendMessage(event, "Left note \"" + arg[3] + "\" for \"" + arg[2] + "\".", false);
                         event.getUser().send().notice("ID is \"" + noteList.get(noteList.indexOf(note)).getId().toString() + "\"");
                     } catch (Exception e) {
                         sendError(event, e);
@@ -866,7 +891,7 @@ public class MyBotX extends ListenerAdapter {
                 int loopCount = 0;
                 try {
                     while (i > loopCount) {
-                        event.getChannel().send().message(arg[2]);
+                        sendMessage(event, arg[2], false);
                         loopCount++;
                     }
                 } catch (Exception e) {
@@ -1033,7 +1058,7 @@ public class MyBotX extends ListenerAdapter {
                                 if (checkPerm(event.getUser(), 3)) {
                                     DNDJoined.clear();
                                     DNDList.clear();
-                                    event.getChannel().send().message("DND Player lists cleared");
+                                    sendMessage(event, "DND Player lists cleared", false);
                                 }
                             }
 
@@ -1347,10 +1372,10 @@ public class MyBotX extends ListenerAdapter {
                 if (jokeCommands || checkPerm(event.getUser(), 1))
                     if (event.getChannel().getName().equalsIgnoreCase("#origami64") || event.getChannel().getName().equalsIgnoreCase("#Lil-G|bot") || event.getChannel().getName().equalsIgnoreCase("#SSB")) {
                         if (event.getUser().getNick().equalsIgnoreCase(currentNick)) {
-                            event.getChannel().send().message("Error: IntegerOutOfBoundsException: Greater than Integer.MAX_VALUE");
+                            sendMessage(event, "Error: IntegerOutOfBoundsException: Greater than Integer.MAX_VALUE", false);
                         } else {
                             int size = randInt(0, jokeCommandDebugVar);
-                            event.getChannel().send().message("8" + StringUtils.leftPad("D", size, "=") + " - " + size);
+                            sendMessage(event, "8" + StringUtils.leftPad("D", size, "=") + " - " + size, false);
                         }
                     }
             }
@@ -1401,9 +1426,9 @@ public class MyBotX extends ListenerAdapter {
                         }
                     }
                     try {
-                        event.getChannel().send().message("It's " + userList.get(num).toUpperCase() + "!");
+                        sendMessage(event, "It's " + userList.get(num).toUpperCase() + "!", false);
                     } catch (Exception e) {
-                        event.getChannel().send().message("Error: " + e);
+                        sendMessage(event, "Error: " + e, false);
                     }
                 } else
                     sendMessage(event, " Sorry, Joke commands are disabled", true);
@@ -1625,7 +1650,7 @@ public class MyBotX extends ListenerAdapter {
 
 
     public void sendError(MessageEvent event, Exception e) {
-        event.getChannel().send().message(Colors.RED + "Error: " + e.getCause() + ". From " + e);
+        sendMessage(event, Colors.RED + "Error: " + e.getCause() + ". From " + e, false);
     }
 
     public String botTalk(String bot, String message) throws Exception {
