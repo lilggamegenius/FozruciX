@@ -98,6 +98,7 @@ public class MyBotX extends ListenerAdapter {
     JFrame frame = new JFrame();
     MessageModes messageMode = MessageModes.normal;
 
+
     /**
      * Returns a pseudo-random number between min and max, inclusive.
      * The difference between min and max can be at most
@@ -306,7 +307,7 @@ public class MyBotX extends ListenerAdapter {
                         messageMode = MessageModes.reversed;
                         sendMessage(event, "Message is now reversed", true);
                         break;
-                    case "wordreversed":
+                    case "wordreverse":
                         messageMode = MessageModes.wordReversed;
                         sendMessage(event, "Message words reversed", true);
                         break;
@@ -433,7 +434,8 @@ public class MyBotX extends ListenerAdapter {
         if (arg[0].equalsIgnoreCase(prefix + "calcJS")) {
             if (checkPerm(event.getUser(), 0)) {
                 ScriptEngine engine = new ScriptEngineManager().getEngineByName("JavaScript");
-                String factorialFunct = "function factorial(num) {\n if (num < 0) {\n return -1;\n } else if (num == 0) \n{ return 1;\n } \nvar tmp = num;\n while (num-- > 2) \n{ tmp *= num;\n } return tmp;\n }\n var life = 42;\n ";
+                String factorialFunct =
+                        "function factorial(num) {  if (num < 0) {    return -1;  } else if (num == 0) {    return 1;  }  var tmp = num;  while (num-- > 2) {    tmp *= num;  }  return tmp;}function getBit(num, bit) {  var result = (num >> bit) & 1; return result == 1} var life = 42; ";
                 String eval;
                 try {
                     if (arg[1].contains(";")) {
