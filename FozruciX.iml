@@ -8,67 +8,13 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="Maven: com.google.guava:guava:18.0" level="project" />
-    <orderEntry type="library" name="Maven: commons-codec:commons-codec:1.10" level="project" />
-    <orderEntry type="library" name="Maven: org.slf4j:slf4j-api:1.7.12" level="project" />
-    <orderEntry type="module-library">
-      <library>
-        <CLASSES>
-          <root url="jar://$USER_HOME$/Downloads/irc bot/slf4j-simple-1.7.12.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library>
-        <CLASSES>
-          <root url="jar://$USER_HOME$/Downloads/irc bot/Javaluator-v3.0.1/javaluator-3.0.1.jar!/" />
-        </CLASSES>
-        <JAVADOC>
-          <root url="jar://$USER_HOME$/Downloads/irc bot/Javaluator-v3.0.1/javaluator-3.0.1-javadoc.jar!/" />
-        </JAVADOC>
-        <SOURCES>
-          <root url="jar://$USER_HOME$/Downloads/irc bot/Javaluator-v3.0.1/javaluator-3.0.1-sources.jar!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
     <orderEntry type="module" module-name="yandex-translator-java-api" />
-    <orderEntry type="module-library">
-      <library>
-        <CLASSES>
-          <root url="file://$USER_HOME$/Downloads/irc bot/commons-lang3-3.3.2" />
-        </CLASSES>
-        <JAVADOC>
-          <root url="file://$USER_HOME$/Downloads/irc bot/commons-lang3-3.3.2/apidocs" />
-        </JAVADOC>
-        <SOURCES />
-        <jarDirectory url="file://$USER_HOME$/Downloads/irc bot/commons-lang3-3.3.2" recursive="false" />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library>
-        <CLASSES>
-          <root url="jar://$USER_HOME$/Downloads/irc bot/lombok.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library>
-        <CLASSES>
-          <root url="jar://$USER_HOME$/Downloads/irc bot/pircbotx-2.0.1.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES>
-          <root url="jar://$USER_HOME$/.ideaLibSources/pircbotx-2.0.1-sources.jar!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
     <orderEntry type="library" name="com.google.code.gson:gson:2.5" level="application" />
     <orderEntry type="library" name="de.tudarmstadt.ukp.jwktl:jwktl:1.0.1" level="application" />
     <orderEntry type="library" name="de.tudarmstadt.ukp.wikipedia:de.tudarmstadt.ukp.wikipedia.api:1.0.0" level="application" />
     <orderEntry type="library" name="ca.pjer:chatter-bot-api:1.3.3" level="application" />
+    <orderEntry type="library" name="org.pircbotx:pircbotx:2.0.1" level="application" />
+    <orderEntry type="library" name="org.slf4j:slf4j-log4j12:1.7.5" level="application" />
+    <orderEntry type="library" name="com.fathzer:javaluator:3.0.1" level="project" />
   </component>
 </module>

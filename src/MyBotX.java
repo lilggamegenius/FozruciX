@@ -176,6 +176,12 @@ public class MyBotX extends ListenerAdapter {
 
         event.getBot().sendIRC().mode(event.getBot().getNick(), "+B");
 
+        if (event.getBot().getLocalAddress().getHostAddress().equalsIgnoreCase("irc.twitch.tv")) {
+            currentNick = "lilggamegenuis";
+            currentUsername = currentNick;
+            currentHost = currentUsername + ".tmi.twitch.tv";
+        }
+
         debug = new DebugWindow(event.getBot().getNick());
         System.out.println("Debug window created");
         debug.setCurrentNick(currentNick + "!" + currentUsername + "@" + currentHost);
@@ -1547,7 +1553,7 @@ public class MyBotX extends ListenerAdapter {
         }
         checkIfUserHasANote(event, event.getUser().getNick(), false);
         if (event.getBot().isConnected()) {
-            debug.setCurrentNick(currentNick + "!" + currentUsername + "@" + currentHost);
+            //debug.setCurrentNick(currentNick + "!" + currentUsername + "@" + currentHost);
         }
     }
 

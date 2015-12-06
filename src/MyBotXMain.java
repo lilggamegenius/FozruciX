@@ -1,6 +1,7 @@
 import org.pircbotx.Configuration;
-import org.pircbotx.PircBotX;
+import org.pircbotx.MultiBotManager;
 import org.pircbotx.UtilSSLSocketFactory;
+import org.pircbotx.cap.EnableCapHandler;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -15,15 +16,17 @@ public class MyBotXMain {
     public static void main(String[] args) throws Exception {
         //Configure what we want our bot to do
         boolean debug = false;
-        final String PASSWORD = setPassword();
-        Configuration normal = new Configuration.Builder()
+        String nick = "FozruciX";
+        String login = "SmugLeaf";
+        String realName = "Lil-Gs Bot";
+
+        Configuration.Builder normal = new Configuration.Builder()
                 .setEncoding(Charset.forName("UTF-8"))
                 .setAutoReconnect(true)
-                .setNickservPassword(PASSWORD)
-                .setName("FozruciX") //Set the nick of the bot.
-                .setLogin("SmugLeaf")
-                .setRealName("Lil-Gs Bot")
-                .setServer("irc.Badnik.net", 6697) //Join the BadnikNET network
+                .setNickservPassword(setPassword(true))
+                .setName(nick) //Set the nick of the bot.
+                .setLogin(login)
+                .setRealName(realName)
                 .setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates())
                 .addAutoJoinChannel("#Lil-G|bot") //Join the official #Lil-G|Bot channel
                 .addAutoJoinChannel("#pokemon")
@@ -31,40 +34,66 @@ public class MyBotXMain {
                 .addAutoJoinChannel("#retrotech")
                 .addAutoJoinChannel("#SSB")
                 .addAutoJoinChannel("#origami64")
-                .addListener(new MyBotX()) //Add our listener that will be called on Events
-                .buildConfiguration();
+                .addListener(new MyBotX()); //Add our listener that will be called on Events
 
 
-        Configuration debugConfig = new Configuration.Builder()
+        Configuration.Builder debugConfig = new Configuration.Builder()
                 .setEncoding(Charset.forName("UTF-8"))
                 .setAutoReconnect(true)
-                .setNickservPassword(PASSWORD)
-                .setName("FozruciX") //Set the nick of the bot.
-                .setLogin("SmugLeaf")
-                .setRealName("Lil-Gs Bot")
-                .setServer("irc.Badnik.net", 6697) //Join the BadnikNET network
+                .setNickservPassword(setPassword(true))
+                .setName(nick) //Set the nick of the bot.
+                .setLogin(login)
+                .setRealName(realName)
                 .setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates())
                 .addAutoJoinChannel("#Lil-G|bot") //Join the official #Lil-G|Bot channel
                 .addAutoJoinChannel("#SSB")
                 .addAutoJoinChannel("#origami64")
-                .addListener(new MyBotX()) //Add our listener that will be called on Events
-                .buildConfiguration();
+                .addListener(new MyBotX()); //Add our listener that will be called on Events
+
+        Configuration.Builder twitchNormal = new Configuration.Builder()
+                .setAutoNickChange(false) //Twitch doesn't support multiple users
+                .setOnJoinWhoEnabled(false) //Twitch doesn't support WHO command
+                .setCapEnabled(true)
+                .addCapHandler(new EnableCapHandler("twitch.tv/membership")) //Twitch by default doesn't send JOIN, PART, and NAMES unless you request it, see https://github.com/justintv/Twitch-API/blob/master/IRC.md#membership
+                .addCapHandler(new EnableCapHandler("twitch.tv/commands"))
+                .addCapHandler(new EnableCapHandler("twitch.tv/tags"))
+                .setName(nick.toLowerCase()) //Set the nick of the bot.
+                .setLogin(nick.toLowerCase())
+                .addAutoJoinChannel("#lilggamegenuis") //Join lilggamegenuis's twitch chat
+                .addAutoJoinChannel("#deltasmash")
+                .addListener(new MyBotX()); //Add our listener that will be called on Events
+
+
+        Configuration.Builder twitchDebug = new Configuration.Builder()
+                .setEncoding(Charset.forName("UTF-8"))
+                .setAutoReconnect(true)
+                .setName(nick.toLowerCase()) //Set the nick of the bot.
+                .setLogin(nick.toLowerCase())
+                .addAutoJoinChannel("#lilggamegenuis") //Join lilggamegenuis's twitch chat
+                .addListener(new MyBotX()); //Add our listener that will be called on Events
 
         //Create our bot with the configuration
-        PircBotX bot;
+        MultiBotManager manager = new MultiBotManager();
         if (debug) {
-            bot = new PircBotX(debugConfig);
+            manager.addBot(debugConfig.buildForServer("irc.badnik.net", 6697));
+            manager.addBot(twitchDebug.buildForServer("irc.twitch.tv", 6667, setPassword(false)));
         } else {
-            bot = new PircBotX(normal);
+            manager.addBot(normal.buildForServer("irc.badnik.net", 6697));
+            manager.addBot(twitchNormal.buildForServer("irc.twitch.tv", 6667, setPassword(false)));
         }
         //Connect to the server
-        bot.startBot();
+        manager.start();
 
 
     }
 
-    public static String setPassword() {
-        File file = new File("pass.bin");
+    public static String setPassword(boolean password) {
+        File file;
+        if (password) {
+            file = new File("pass.bin");
+        } else {
+            file = new File("twitch.bin");
+        }
         FileInputStream fin = null;
         String ret = " ";
         try {
