@@ -441,7 +441,7 @@ public class MyBotX extends ListenerAdapter {
             if (checkPerm(event.getUser(), 0)) {
                 ScriptEngine engine = new ScriptEngineManager().getEngineByName("JavaScript");
                 String factorialFunct =
-                        "function factorial(num) {  if (num < 0) {    return -1;  } else if (num == 0) {    return 1;  }  var tmp = num;  while (num-- > 2) {    tmp *= num;  }  return tmp;}function getBit(num, bit) {  var result = (num >> bit) & 1; return result == 1} var life = 42; ";
+                        "function factorial(num) {  if (num < 0) {    return -1;  } else if (num == 0) {    return 1;  }  var tmp = num;  while (num-- > 2) {    tmp *= num;  }  return tmp;} function getBit(num, bit) {  var result = (num >> bit) & 1; return result == 1} function offset(array, offsetNum){array = eval(\"\" + array + \"\");var size = array.length * offsetNum;var result = [];for(var i = 0; i < array.length; i++){result[i] = parseInt(array[i], 16) + size} return result;}  var life = 42; ";
                 String eval;
                 try {
                     if (arg[1].contains(";")) {
@@ -1292,6 +1292,23 @@ public class MyBotX extends ListenerAdapter {
             }
         }
 
+// !recycle - Tells the bot to part and rejoin the channel
+        if (arg[0].equalsIgnoreCase(prefix + "recycle")) {
+            if (checkPerm(event.getUser(), 3)) {
+                saveData(event);
+                event.getChannel().send().cycle();
+            } else {
+                permErrorchn(event, "can recycle the bot");
+            }
+        }
+// !revoice - gives everyone voice if they didn't get it
+        if (arg[0].equalsIgnoreCase(prefix + "revoice")) {
+            Iterator<User> user = event.getChannel().getUsers().iterator();
+            while (user.hasNext()) {
+                event.getBot().sendRaw().rawLineNow("mode " + event.getChannel().getName() + " +v " + user.next().getNick());
+            }
+        }
+
 // !kill - Tells the bot to disconnect from server
         if (event.getMessage().contentEquals(prefix + "kill")) {
             if (checkPerm(event.getUser(), 5)) {
@@ -1530,8 +1547,8 @@ public class MyBotX extends ListenerAdapter {
 
     public void onJoin(JoinEvent join) {
         System.out.println("User Joined");
-        if (join.getChannel().toString().equalsIgnoreCase("#Lil-G|Bot") || join.getChannel().toString().equalsIgnoreCase("#SSB")) {
-            join.getChannel().send().voice(join.getUser());
+        if (join.getChannel().getName().equalsIgnoreCase("#Lil-G|Bot") || join.getChannel().getName().equalsIgnoreCase("#SSB")) {
+            join.getChannel().send().voice(join.getUserHostmask());
         }
         checkIfUserHasANote(join, join.getUser().getNick(), true);
         debug.setCurrentNick(currentNick + "!" + currentUsername + "@" + currentHost);
