@@ -98,6 +98,18 @@ public class MyBotX extends ListenerAdapter {
     JFrame frame = new JFrame();
     MessageModes messageMode = MessageModes.normal;
 
+    public MyBotX() {
+
+    }
+
+    public MyBotX(boolean Twitch) {
+        if (Twitch) {
+            currentNick = "lilggamegenuis";
+            currentUsername = currentNick;
+            currentHost = currentUsername + ".tmi.twitch.tv";
+        }
+    }
+
 
     /**
      * Returns a pseudo-random number between min and max, inclusive.

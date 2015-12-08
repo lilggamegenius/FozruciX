@@ -63,7 +63,7 @@ public class MyBotXMain {
                 .setLogin(nick.toLowerCase())
                 .addAutoJoinChannel("#lilggamegenuis") //Join lilggamegenuis's twitch chat
                 .addAutoJoinChannel("#deltasmash")
-                .addListener(new MyBotX()); //Add our listener that will be called on Events
+                .addListener(new MyBotX(true)); //Add our listener that will be called on Events
 
 
         Configuration.Builder twitchDebug = new Configuration.Builder()
@@ -72,7 +72,7 @@ public class MyBotXMain {
                 .setName(nick.toLowerCase()) //Set the nick of the bot.
                 .setLogin(nick.toLowerCase())
                 .addAutoJoinChannel("#lilggamegenuis") //Join lilggamegenuis's twitch chat
-                .addListener(new MyBotX()); //Add our listener that will be called on Events
+                .addListener(new MyBotX(true)); //Add our listener that will be called on Events
 
         //Create our bot with the configuration
         MultiBotManager manager = new MultiBotManager();
