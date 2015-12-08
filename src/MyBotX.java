@@ -61,7 +61,7 @@ public class MyBotX extends ListenerAdapter {
     boolean chngCMDRan = false;
     //boolean spinStarted = false;
     String[] dictionary = {"i don't know what \"%s\" is, do i look like a dictionary?", "Go look it up yourself.", "Why not use your computer and look \"%s\" up.", "Google it.", "Nope.", "Get someone else to do it.", "Why not get that " + Colors.RED + "Other bot" + Colors.NORMAL + " to do it?", "There appears to be a error between your " + Colors.BOLD + "seat" + Colors.NORMAL + " and the " + Colors.BOLD + "Keyboard" + Colors.NORMAL + " >_>", "Uh oh, there appears to be a User error.", "error: Fuck count too low, Cannot give Fuck."};
-    String[] commands = {"HelpMe", " Time", " calcj", " StringToBytes", " Chat", " Temp", " BlockConv", " Hello", " Bot", " GetName", " Login", " GetLogin", " GetID", " GetSate", " ChngCMD", " SayThis", " ToSciNo", " Trans", " DebugVar", " RunCmd", " SayRaw", " SayCTCPCommnad", " Leave", " Respawn", " Kill", " ChangeNick", " SayAction", "NoteJ (Mostly fixed)", " jtoggle", " Joke: Splatoon", "Joke: Attempt", " Joke: potato", " Joke: whatIs?", "Joke: getFinger", " Joke: GayDar"};
+    String[] commands = {"HelpMe", " Time", " calcj", " randomNum", " StringToBytes", " Chat", " Temp", " BlockConv", " Hello", " Bot", " GetName", " recycle", " Login", " GetLogin", " GetID", " GetSate", " ChngCMD", " SayThis", " ToSciNo", " Trans", " DebugVar", " RunCmd", " SayRaw", " SayCTCPCommnad", " Leave", " Respawn", " Kill", " ChangeNick", " SayAction", "NoteJ (Mostly fixed)", " jtoggle", " Joke: Splatoon", "Joke: Attempt", " Joke: potato", " Joke: whatIs?", "Joke: getFinger", " Joke: GayDar"};
     String currentNick = "Lil-G";
     String currentUsername = "GameGenuis";
     String currentHost = "friendly.local.noob";
@@ -1493,7 +1493,7 @@ public class MyBotX extends ListenerAdapter {
             if (arg[1].equals(PASSWORD)) {
                 currentNick = PM.getUser().getNick();
                 currentUsername = PM.getUser().getLogin();
-                currentHost = PM.getUser().getHostmask();
+                currentHost = PM.getUser().getHostname();
             } else
                 PM.getUser().send().message("password is incorrect.");
         }
@@ -1564,6 +1564,8 @@ public class MyBotX extends ListenerAdapter {
                     message.contains("please choose a different nick.") ||
                     message.contains("nick, type /msg NickServ IDENTIFY password.  Otherwise,")) {
 
+            } else if (message.contains("\u0001AVATAR")) {
+                event.getUser().send().notice("\u0001AVATAR http://puu.sh/kA75A.jpg\u0001");
             } else {
                 event.getBot().sendIRC().notice(currentNick, "Got notice from " + event.getUser().getNick() + ". Notice was : " + event.getMessage());
             }
@@ -1598,10 +1600,11 @@ public class MyBotX extends ListenerAdapter {
     }
 
     public void onUnknown(UnknownEvent event) {
-        if (event.getLine().equals("AVATAR")) {
+
+        if (event.getLine().contains("AVATAR")) {
             event.getBot().sendRaw().rawLineNow("notice " + lastEvent.getUser().getNick() + " AVATAR http://puu.sh/kA75A.jpg");
         }
-        System.out.print("Recieved unknown");
+        System.out.println("Recieved unknown");
         debug.setCurrentNick(currentNick + "!" + currentUsername + "@" + currentHost);
     }
 
@@ -1632,7 +1635,10 @@ public class MyBotX extends ListenerAdapter {
      * @return Boolean true if allowed, false if not
      */
     public boolean checkPerm(User user, int userLevel) {
-        if (user.getNick().equalsIgnoreCase(currentNick) && user.getLogin().equalsIgnoreCase(currentUsername) && user.getHostmask().equalsIgnoreCase(currentHost)) {
+        String twitchName = "lilggamegenuis";
+        if (user.getNick().equalsIgnoreCase(currentNick) && user.getLogin().equalsIgnoreCase(currentUsername) && user.getHostname().equalsIgnoreCase(currentHost)) {
+            return true;
+        } else if (user.getNick().equalsIgnoreCase(twitchName) && user.getLogin().equalsIgnoreCase(twitchName) && user.getHostname().equalsIgnoreCase(twitchName + ".tmi.twitch.tv")) {
             return true;
         } else if (authedUser.contains(user.getNick())) {
             int index = authedUser.indexOf(user.getNick() + "!" + user.getLogin() + "@" + user.getHostmask());
@@ -1657,7 +1663,7 @@ public class MyBotX extends ListenerAdapter {
                 }
                 index--;
             }
-            if (userLevel > -1) {
+            if (userLevel < -1) {
                 return true;
             }
         }

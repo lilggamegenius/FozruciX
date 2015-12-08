@@ -19,6 +19,8 @@ public class MyBotXMain {
         String nick = "FozruciX";
         String login = "SmugLeaf";
         String realName = "Lil-Gs Bot";
+        String badnickNET = "irc.badnik.net";
+        String twitch = "199.9.253.119";
 
         Configuration.Builder normal = new Configuration.Builder()
                 .setEncoding(Charset.forName("UTF-8"))
@@ -75,11 +77,11 @@ public class MyBotXMain {
         //Create our bot with the configuration
         MultiBotManager manager = new MultiBotManager();
         if (debug) {
-            manager.addBot(debugConfig.buildForServer("irc.badnik.net", 6697));
-            manager.addBot(twitchDebug.buildForServer("irc.twitch.tv", 6667, setPassword(false)));
+            manager.addBot(debugConfig.buildForServer(badnickNET, 6697));
+            manager.addBot(twitchDebug.buildForServer(twitch, 6667, setPassword(false)));
         } else {
-            manager.addBot(normal.buildForServer("irc.badnik.net", 6697));
-            manager.addBot(twitchNormal.buildForServer("irc.twitch.tv", 6667, setPassword(false)));
+            manager.addBot(normal.buildForServer(badnickNET, 6697));
+            manager.addBot(twitchNormal.buildForServer(twitch, 6667, setPassword(false)));
         }
         //Connect to the server
         manager.start();
