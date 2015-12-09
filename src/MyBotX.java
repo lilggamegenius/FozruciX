@@ -60,7 +60,7 @@ public class MyBotX extends ListenerAdapter {
     boolean jokeCommands = true;
     boolean chngCMDRan = false;
     //boolean spinStarted = false;
-    String[] dictionary = {"i don't know what \"%s\" is, do i look like a dictionary?", "Go look it up yourself.", "Why not use your computer and look \"%s\" up.", "Google it.", "Nope.", "Get someone else to do it.", "Why not get that " + Colors.RED + "Other bot" + Colors.NORMAL + " to do it?", "There appears to be a error between your " + Colors.BOLD + "seat" + Colors.NORMAL + " and the " + Colors.BOLD + "Keyboard" + Colors.NORMAL + " >_>", "Uh oh, there appears to be a User error.", "error: Fuck count too low, Cannot give Fuck."};
+    String[] dictionary = {"i don't know what \"%s\" is, do i look like a dictionary?", "Go look it up yourself.", "Why not use your computer and look \"%s\" up.", "Google it.", "Nope.", "Get someone else to do it.", "Why not get that " + Colors.RED + "Other bot" + Colors.NORMAL + " to do it?", "There appears to be a error between your " + Colors.BOLD + "seat" + Colors.NORMAL + " and the " + Colors.BOLD + "Keyboard" + Colors.NORMAL + " >_>", "Uh oh, there appears to be a User error.", "error: Fuck count too low, Cannot give Fuck.", ">_>"};
     String[] commands = {"HelpMe", " Time", " calcj", " randomNum", " StringToBytes", " Chat", " Temp", " BlockConv", " Hello", " Bot", " GetName", " recycle", " Login", " GetLogin", " GetID", " GetSate", " ChngCMD", " SayThis", " ToSciNo", " Trans", " DebugVar", " RunCmd", " SayRaw", " SayCTCPCommnad", " Leave", " Respawn", " Kill", " ChangeNick", " SayAction", "NoteJ (Mostly fixed)", " jtoggle", " Joke: Splatoon", "Joke: Attempt", " Joke: potato", " Joke: whatIs?", "Joke: getFinger", " Joke: GayDar"};
     String currentNick = "Lil-G";
     String currentUsername = "GameGenuis";
@@ -311,6 +311,77 @@ public class MyBotX extends ListenerAdapter {
                 }
             }
 
+        }
+
+// !8ball - ALL HAIL THE MAGIC 8-BALL
+        if (arg[0].equalsIgnoreCase(prefix + "8Ball")) {
+            int choice = randInt(1, 20);
+            String response = "";
+
+            switch (choice) {
+                case 1:
+                    response = "It is certain";
+                    break;
+                case 2:
+                    response = "It is decidedly so";
+                    break;
+                case 3:
+                    response = "Without a doubt";
+                    break;
+                case 4:
+                    response = "Yes - definitely";
+                    break;
+                case 5:
+                    response = "You may rely on it";
+                    break;
+                case 6:
+                    response = "As I see it, yes";
+                    break;
+                case 7:
+                    response = "Most likely";
+                    break;
+                case 8:
+                    response = "Outlook good";
+                    break;
+                case 9:
+                    response = "Signs point to yes";
+                    break;
+                case 10:
+                    response = "Yes";
+                    break;
+                case 11:
+                    response = "Reply hazy, try again";
+                    break;
+                case 12:
+                    response = "Ask again later";
+                    break;
+                case 13:
+                    response = "Better not tell you now";
+                    break;
+                case 14:
+                    response = "Cannot predict now";
+                    break;
+                case 15:
+                    response = "Concentrate and ask again";
+                    break;
+                case 16:
+                    response = "Don't count on it";
+                    break;
+                case 17:
+                    response = "My reply is no";
+                    break;
+                case 18:
+                    response = "My sources say no";
+                    break;
+                case 19:
+                    response = "Outlook not so good";
+                    break;
+                case 20:
+                    response = "Very doubtful";
+                    break;
+            }
+
+            event.respond(response);
         }
 
 // !setMessage - Sets different message formats

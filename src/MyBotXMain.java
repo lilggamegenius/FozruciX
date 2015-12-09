@@ -20,7 +20,7 @@ public class MyBotXMain {
         String login = "SmugLeaf";
         String realName = "Lil-Gs Bot";
         String badnickNET = "irc.badnik.net";
-        String twitch = "199.9.253.119";
+        String twitch = "irc.twitch.tv";
 
         Configuration.Builder normal = new Configuration.Builder()
                 .setEncoding(Charset.forName("UTF-8"))
