@@ -46,6 +46,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+@SuppressWarnings ("unused")
 enum MessageModes {
     normal, reversed, wordReversed, scrambled, wordScrambled
 }
@@ -86,8 +87,9 @@ public class MyBotX extends ListenerAdapter {
     List<DNDPlayer> DNDList = new ArrayList<>();
     String DNDDungeonMaster = "Null";
     Dungeon DNDDungeon = new Dungeon();
-    DebugWindow debug;
-    int jokeCommandDebugVar = 30;
+	boolean drawDungeon = false;
+	DebugWindow debug;
+	int jokeCommandDebugVar = 30;
     CommandLine terminal;
     boolean nickInUse = false;
     String counter = "";
@@ -98,12 +100,13 @@ public class MyBotX extends ListenerAdapter {
     JFrame frame = new JFrame();
     MessageModes messageMode = MessageModes.normal;
 
-    public MyBotX() {
+	@SuppressWarnings ("unused")
+	public MyBotX(){
+	}
 
-    }
-
-    public MyBotX(boolean Twitch) {
-        if (Twitch) {
+	@SuppressWarnings ("unused")
+	public MyBotX(boolean Twitch){
+		if (Twitch) {
             currentNick = "lilggamegenuis";
             currentUsername = currentNick;
             currentHost = currentUsername + ".tmi.twitch.tv";
@@ -138,13 +141,13 @@ public class MyBotX extends ListenerAdapter {
         return Arrays.toString(Bytes);
     }
 
-    public static String formatFileSize(long size) {
-        String hrSize = null;
+	@SuppressWarnings ("unused")
+	public static String formatFileSize(long size){
+		String hrSize;
 
-        double b = size;
-        double k = size / 1024.0;
-        double m = ((size / 1024.0) / 1024.0);
-        double g = (((size / 1024.0) / 1024.0) / 1024.0);
+		double k = size / 1024.0;
+		double m = ((size / 1024.0) / 1024.0);
+		double g = (((size / 1024.0) / 1024.0) / 1024.0);
         double t = ((((size / 1024.0) / 1024.0) / 1024.0) / 1024.0);
 
         DecimalFormat dec = new DecimalFormat("0.00");
@@ -158,7 +161,7 @@ public class MyBotX extends ListenerAdapter {
         } else if (k > 1) {
             hrSize = dec.format(k).concat(" KB");
         } else {
-            hrSize = dec.format(b).concat(" Bytes");
+	        hrSize = dec.format((double) size).concat(" Bytes");
         }
 
         return hrSize;
@@ -176,9 +179,10 @@ public class MyBotX extends ListenerAdapter {
         int timesRan = 0;
         Object obj = new Object();
         WeakReference ref = new WeakReference<>(obj);
-        obj = null;
-        while (ref.get() != null) {
-            System.gc();
+	    //noinspection UnusedAssignment
+	    obj = null;
+	    while (ref.get() != null){
+		    System.gc();
             timesRan++;
         }
         return timesRan;
@@ -194,9 +198,10 @@ public class MyBotX extends ListenerAdapter {
             currentHost = currentUsername + ".tmi.twitch.tv";
         }
 
-        debug = new DebugWindow(event.getBot().getNick());
-        System.out.println("Debug window created");
-        debug.setCurrentNick(currentNick + "!" + currentUsername + "@" + currentHost);
+	    System.out.println("Creating Debug window");
+	    debug = new DebugWindow(event.getBot());
+	    System.out.println("Debug window created");
+	    debug.setCurrentNick(currentNick + "!" + currentUsername + "@" + currentHost);
 
         if (nickInUse) {
             event.getBot().sendRaw().rawLineNow("ns recover " + event.getBot().getNick() + " " + PASSWORD);
@@ -210,11 +215,13 @@ public class MyBotX extends ListenerAdapter {
         DNDJoined = save.getDNDJoined();
         DNDList = save.getDNDList();
 
-        frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-        frame.setSize(frameWidth, frameHeight);
-        frame.setVisible(true);
-        frame.getContentPane().add(new DrawWindow(DNDDungeon.getMap(), DNDDungeon.getMap_size(), DNDDungeon.getLocation()));
-        frame.paintAll(frame.getGraphics());
+	    if (drawDungeon){
+		    frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+		    frame.setSize(frameWidth, frameHeight);
+		    frame.setVisible(true);
+		    frame.getContentPane().add(new DrawWindow(DNDDungeon.getMap(), DNDDungeon.getMap_size(), DNDDungeon.getLocation()));
+		    frame.paintAll(frame.getGraphics());
+	    }
     }
 
     public void sendMessage(MessageEvent event, String msgToSend, boolean addNick) {
@@ -229,9 +236,9 @@ public class MyBotX extends ListenerAdapter {
         } else if (messageMode == MessageModes.scrambled) {
             char[] msgChars = msgToSend.toCharArray();
             ArrayList<Character> chars = new ArrayList<>();
-            for (int i = 0; i < msgChars.length; i++) {
-                chars.add(msgChars[i]);
-            }
+	        for(char msgChar : msgChars){
+		        chars.add(msgChar);
+	        }
             msgToSend = "";
             while (chars.size() != 0) {
                 int num = randInt(0, chars.size() - 1);
@@ -255,17 +262,20 @@ public class MyBotX extends ListenerAdapter {
         }
     }
 
-    public void sendMessage(Event event, String msgToSend, boolean addNick) {
-        sendMessage((MessageEvent) event, msgToSend, addNick);
+	@SuppressWarnings ("SameParameterValue")
+	public void sendMessage(Event event, String msgToSend, boolean addNick){
+		sendMessage((MessageEvent) event, msgToSend, addNick);
     }
 
-    @Override
-    public void onMessage(MessageEvent event) {
+	@SuppressWarnings ("StatementWithEmptyBody")
+	@Override
+	public void onMessage(MessageEvent event) {
         lastEvent = event;
         String[] arg = splitMessage(event.getMessage());
         debug.setCurrentNick(currentNick + "!" + currentUsername + "@" + currentHost);
 
-        checkIfUserHasANote(event, event.getUser().getNick(), true);
+		//noinspection ConstantConditions
+		checkIfUserHasANote(event, event.getUser().getNick(), true);
 
 // !helpMe
         if (arg[0].equalsIgnoreCase(prefix + "helpme")) {
@@ -312,6 +322,11 @@ public class MyBotX extends ListenerAdapter {
             }
 
         }
+
+// !Connect - joins a channel
+		if (arg[0].equalsIgnoreCase(prefix + "Connect")){
+			event.getBot().send().joinChannel(arg[1]);
+		}
 
 // !8ball - ALL HAIL THE MAGIC 8-BALL
         if (arg[0].equalsIgnoreCase(prefix + "8Ball")) {
@@ -669,8 +684,9 @@ public class MyBotX extends ListenerAdapter {
             // Get the page with title "Hello world".
             String title = arg[1];
             try {
-                Page page = wiki.getPage(title);
-                sendMessage(event, page.getText(), true);
+	            //noinspection ConstantConditions,ConstantConditions
+	            Page page = wiki.getPage(title);
+	            sendMessage(event, page.getText(), true);
             } catch (WikiApiException e) {
                 sendMessage(event, "Page " + title + " does not exist", true);
             } catch (Exception e) {
@@ -1108,121 +1124,121 @@ public class MyBotX extends ListenerAdapter {
                 if (arg[1].equalsIgnoreCase("ListSpecies")) {
                     sendMessage(event, "List of classes: " + Arrays.toString(DNDPlayer.DNDFamiliars.values()), true);
                 }
-                if (arg[1].equalsIgnoreCase("DM")) {
-                    //todo
-                }
+	            //noinspection StatementWithEmptyBody
+	            if (arg[1].equalsIgnoreCase("DM")){
+		            //todo
+	            }
                 if (arg[1].equalsIgnoreCase("Test")) { //testing commands.
-                    if (true) { //checkPerm(event.getUser())
-                        try {
-                            int index = DNDJoined.indexOf(event.getUser().getNick());
-                            if (arg[2].equalsIgnoreCase("addItem")) {
-                                DNDList.get(index).addInventory(arg[3]);
-                                sendMessage(event, "Added " + arg[3] + " to your inventory", true);
-                            }
-                            if (arg[2].equalsIgnoreCase("getItems")) {
-                                sendMessage(event, DNDList.get(index).getInventory(), true);
-                            }
-                            if (arg[2].equalsIgnoreCase("delItem")) {
-                                DNDList.get(index).removeFromInventory(arg[3]);
-                                sendMessage(event, "removed " + arg[3] + " to your inventory", true);
-                            }
-                            if (arg[2].equalsIgnoreCase("addXP")) {
-                                DNDList.get(index).addXP(Integer.parseInt(arg[3]));
-                                sendMessage(event, "Added " + arg[3] + " to your XP", true);
-                            }
-                            if (arg[2].equalsIgnoreCase("addHP")) {
-                                DNDList.get(index).addHP(Integer.parseInt(arg[3]));
-                                sendMessage(event, "Added " + arg[3] + " to your HP", true);
-                            }
-                            if (arg[2].equalsIgnoreCase("subHP")) {
-                                DNDList.get(index).hit(Integer.parseInt(arg[3]));
-                                sendMessage(event, "Subbed " + arg[3] + " from your HP", true);
-                            }
-                            if (arg[2].equalsIgnoreCase("addXPFam")) {
-                                DNDList.get(index).getFamiliar().addXP(Integer.parseInt(arg[3]));
-                                sendMessage(event, "Added " + arg[3] + " to your familiar's XP", true);
-                            }
-                            if (arg[2].equalsIgnoreCase("addHPFam")) {
-                                DNDList.get(index).getFamiliar().addHP(Integer.parseInt(arg[3]));
-                                sendMessage(event, "Added " + arg[3] + " to your familiar's HP", true);
-                            }
-                            if (arg[2].equalsIgnoreCase("subHPFam")) {
-                                DNDList.get(index).getFamiliar().hit(Integer.parseInt(arg[3]));
-                                sendMessage(event, "Subbed " + arg[3] + " from your familiar's HP", true);
-                            }
-                            if (arg[2].equalsIgnoreCase("getFamiliar")) {
-                                sendMessage(event, DNDList.get(index).getFamiliar().toString(), true);
-                            }
+	                //checkPerm(event.getUser())
+	                try{
+		                int index = DNDJoined.indexOf(event.getUser().getNick());
+		                if (arg[2].equalsIgnoreCase("addItem")){
+			                DNDList.get(index).addInventory(arg[3]);
+			                sendMessage(event, "Added " + arg[3] + " to your inventory", true);
+		                }
+		                if (arg[2].equalsIgnoreCase("getItems")){
+			                sendMessage(event, DNDList.get(index).getInventory(), true);
+		                }
+		                if (arg[2].equalsIgnoreCase("delItem")){
+			                DNDList.get(index).removeFromInventory(arg[3]);
+			                sendMessage(event, "removed " + arg[3] + " to your inventory", true);
+		                }
+		                if (arg[2].equalsIgnoreCase("addXP")){
+			                DNDList.get(index).addXP(Integer.parseInt(arg[3]));
+			                sendMessage(event, "Added " + arg[3] + " to your XP", true);
+		                }
+		                if (arg[2].equalsIgnoreCase("addHP")){
+			                DNDList.get(index).addHP(Integer.parseInt(arg[3]));
+			                sendMessage(event, "Added " + arg[3] + " to your HP", true);
+		                }
+		                if (arg[2].equalsIgnoreCase("subHP")){
+			                DNDList.get(index).hit(Integer.parseInt(arg[3]));
+			                sendMessage(event, "Subbed " + arg[3] + " from your HP", true);
+		                }
+		                if (arg[2].equalsIgnoreCase("addXPFam")){
+			                DNDList.get(index).getFamiliar().addXP(Integer.parseInt(arg[3]));
+			                sendMessage(event, "Added " + arg[3] + " to your familiar's XP", true);
+		                }
+		                if (arg[2].equalsIgnoreCase("addHPFam")){
+			                DNDList.get(index).getFamiliar().addHP(Integer.parseInt(arg[3]));
+			                sendMessage(event, "Added " + arg[3] + " to your familiar's HP", true);
+		                }
+		                if (arg[2].equalsIgnoreCase("subHPFam")){
+			                DNDList.get(index).getFamiliar().hit(Integer.parseInt(arg[3]));
+			                sendMessage(event, "Subbed " + arg[3] + " from your familiar's HP", true);
+		                }
+		                if (arg[2].equalsIgnoreCase("getFamiliar")){
+			                sendMessage(event, DNDList.get(index).getFamiliar().toString(), true);
+		                }
 
-                            if (arg[2].equalsIgnoreCase("clearList")) {
-                                if (checkPerm(event.getUser(), 3)) {
-                                    DNDJoined.clear();
-                                    DNDList.clear();
-                                    sendMessage(event, "DND Player lists cleared", false);
-                                }
-                            }
+		                if (arg[2].equalsIgnoreCase("clearList")){
+			                if (checkPerm(event.getUser(), 3)){
+				                DNDJoined.clear();
+				                DNDList.clear();
+				                sendMessage(event, "DND Player lists cleared", false);
+			                }
+		                }
 
-                            if (arg[2].equalsIgnoreCase("DelChar")) {
-                                if (checkPerm(event.getUser(), 5)) {
-                                    if (DNDJoined.contains(arg[3])) {
-                                        DNDJoined.remove(index);
-                                    }
-                                }
-                            }
+		                if (arg[2].equalsIgnoreCase("DelChar")){
+			                if (checkPerm(event.getUser(), 5)){
+				                if (DNDJoined.contains(arg[3])){
+					                DNDJoined.remove(index);
+				                }
+			                }
+		                }
 
-                            if (arg[2].equalsIgnoreCase("setPos")) {
-                                DNDDungeon.setLocation(Integer.parseInt(arg[3]), Integer.parseInt(arg[4]));
-                                sendMessage(event, "Pos is now: " + DNDDungeon.toString(), true);
+		                if (arg[2].equalsIgnoreCase("setPos")){
+			                DNDDungeon.setLocation(Integer.parseInt(arg[3]), Integer.parseInt(arg[4]));
+			                sendMessage(event, "Pos is now: " + DNDDungeon.toString(), true);
 
-                            }
+		                }
 
-                            if (arg[2].equalsIgnoreCase("getPos")) {
-                                Point temp = DNDDungeon.getLocation();
-                                sendMessage(event, "Current location: (" + temp.x + "," + temp.y + ")", true);
-                            }
+		                if (arg[2].equalsIgnoreCase("getPos")){
+			                Point temp = DNDDungeon.getLocation();
+			                sendMessage(event, "Current location: (" + temp.x + "," + temp.y + ")", true);
+		                }
 
-                            if (arg[2].equalsIgnoreCase("movePos")) {
-                                DNDDungeon.move(Integer.parseInt(arg[3]), Integer.parseInt(arg[4]));
-                                Point temp = DNDDungeon.getLocation();
-                                sendMessage(event, "New location: (" + temp.x + "," + temp.y + ")", true);
-                            }
+		                if (arg[2].equalsIgnoreCase("movePos")){
+			                DNDDungeon.move(Integer.parseInt(arg[3]), Integer.parseInt(arg[4]));
+			                Point temp = DNDDungeon.getLocation();
+			                sendMessage(event, "New location: (" + temp.x + "," + temp.y + ")", true);
+		                }
 
-                            if (arg[2].equalsIgnoreCase("getSurroundings")) {
-                                int[] tiles = DNDDungeon.getSurrounding();
-                                sendMessage(event, " | " + tiles[7] + " | " + tiles[0] + " | " + tiles[1] + " | ", true);
-                                sendMessage(event, " | " + tiles[6] + " | " + tiles[8] + " | " + tiles[2] + " | ", true);
-                                sendMessage(event, " | " + tiles[5] + " | " + tiles[4] + " | " + tiles[3] + " | ", true);
-                            }
+		                if (arg[2].equalsIgnoreCase("getSurroundings")){
+			                int[] tiles = DNDDungeon.getSurrounding();
+			                sendMessage(event, " | " + tiles[7] + " | " + tiles[0] + " | " + tiles[1] + " | ", true);
+			                sendMessage(event, " | " + tiles[6] + " | " + tiles[8] + " | " + tiles[2] + " | ", true);
+			                sendMessage(event, " | " + tiles[5] + " | " + tiles[4] + " | " + tiles[3] + " | ", true);
+		                }
 
-                            if (arg[2].equalsIgnoreCase("genDungeon")) {
-                                DNDDungeon = new Dungeon();
-                                sendMessage(event, "Generated new dungeon", true);
-                                frame.dispose();
-                                frame = new JFrame();
-                                frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-                                frame.setAlwaysOnTop(true);
-                                frame.setSize(frameWidth, frameHeight);
-                                frame.setVisible(true);
-                                frame.getContentPane().add(new DrawWindow(DNDDungeon.getMap(), DNDDungeon.getMap_size(), DNDDungeon.getLocation()));
-                                frame.paintAll(frame.getGraphics());
-                            }
+		                if (arg[2].equalsIgnoreCase("genDungeon")){
+			                DNDDungeon = new Dungeon();
+			                sendMessage(event, "Generated new dungeon", true);
+			                frame.dispose();
+			                frame = new JFrame();
+			                frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+			                frame.setAlwaysOnTop(true);
+			                frame.setSize(frameWidth, frameHeight);
+			                frame.setVisible(true);
+			                frame.getContentPane().add(new DrawWindow(DNDDungeon.getMap(), DNDDungeon.getMap_size(), DNDDungeon.getLocation()));
+			                frame.paintAll(frame.getGraphics());
+		                }
 
-                            if (arg[2].equalsIgnoreCase("draw")) {
-                                frame.dispose();
-                                frame = new JFrame();
-                                frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-                                frame.setAlwaysOnTop(true);
-                                frame.setSize(frameWidth, frameHeight);
-                                frame.setVisible(true);
-                                frame.getContentPane().add(new DrawWindow(DNDDungeon.getMap(), DNDDungeon.getMap_size(), DNDDungeon.getLocation()));
-                                frame.paintAll(frame.getGraphics());
-                            }
-                        } catch (NullPointerException e) {
-                            sendMessage(event, "You have to join first! (Null pointer)", true);
-                        } catch (Exception e) {
-                            sendError(event, e);
-                        }
-                    }
+		                if (arg[2].equalsIgnoreCase("draw")){
+			                frame.dispose();
+			                frame = new JFrame();
+			                frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+			                frame.setAlwaysOnTop(true);
+			                frame.setSize(frameWidth, frameHeight);
+			                frame.setVisible(true);
+			                frame.getContentPane().add(new DrawWindow(DNDDungeon.getMap(), DNDDungeon.getMap_size(), DNDDungeon.getLocation()));
+			                frame.paintAll(frame.getGraphics());
+		                }
+	                } catch (NullPointerException e){
+		                sendMessage(event, "You have to join first! (Null pointer)", true);
+	                } catch (Exception e){
+		                sendError(event, e);
+	                }
                 }
                 setDebugInfo(event);
             }
@@ -1231,9 +1247,9 @@ public class MyBotX extends ListenerAdapter {
 // !Trans - Translate from 1 language to another
         if (arg[0].equalsIgnoreCase(prefix + "trans")) {
             if (checkPerm(event.getUser(), 0)) {
-                String text = "I think there was a error";
-                System.out.println("Setting key");
-                YandexTranslatorAPI.setKey("trnsl.1.1.20150924T011621Z.e06050bb431b7175.e5452b78ee8d11e4b736035e5f99f2831a57d0e2");
+	            String text;
+	            System.out.println("Setting key");
+	            YandexTranslatorAPI.setKey("trnsl.1.1.20150924T011621Z.e06050bb431b7175.e5452b78ee8d11e4b736035e5f99f2831a57d0e2");
                 try {
                     if (arg[1].equalsIgnoreCase("\\detect")) {
                         sendMessage(event, fullNameToString(Detect.execute(arg[2])), true);
@@ -1386,10 +1402,9 @@ public class MyBotX extends ListenerAdapter {
         }
 // !revoice - gives everyone voice if they didn't get it
         if (arg[0].equalsIgnoreCase(prefix + "revoice")) {
-            Iterator<User> user = event.getChannel().getUsers().iterator();
-            while (user.hasNext()) {
-                event.getBot().sendRaw().rawLineNow("mode " + event.getChannel().getName() + " +v " + user.next().getNick());
-            }
+	        for(User user1 : event.getChannel().getUsers()){
+		        event.getBot().sendRaw().rawLineNow("mode " + event.getChannel().getName() + " +v " + user1.getNick());
+	        }
         }
 
 // !kill - Tells the bot to disconnect from server
@@ -1565,10 +1580,12 @@ public class MyBotX extends ListenerAdapter {
         String[] arg = splitMessage(PM.getMessage());
 
         if (PM.getMessage().equals("\u0001AVATAR\u0001")) {
-            PM.getUser().send().notice("\u0001AVATAR http://puu.sh/kA75A.jpg 19117\u0001");
+	        //noinspection ConstantConditions
+	        PM.getUser().send().notice("\u0001AVATAR http://puu.sh/kA75A.jpg 19117\u0001");
         }
         if (PM.getMessage().contains("\u0001A")) {
-            PM.getUser().send().notice("\u0001AVATAR http://puu.sh/kA75A.jpg 19117\u0001");
+	        //noinspection ConstantConditions
+	        PM.getUser().send().notice("\u0001AVATAR http://puu.sh/kA75A.jpg 19117\u0001");
         }
 
 // !login - Sets the authed named to the new name ...if the password is right
@@ -1624,8 +1641,9 @@ public class MyBotX extends ListenerAdapter {
             permError(PM.getUser(), "can use PM commands");
             PM.getBot().sendIRC().notice(currentNick, "Attempted use of PM commands by " + PM.getUser().getNick() + ". The command used was \"" + PM.getMessage() + "\"");
         }
-        checkIfUserHasANote(PM, PM.getUser().getNick(), false);
-        debug.setCurrentNick(currentNick + "!" + currentUsername + "@" + currentHost);
+	    debug.updateBot(PM.getBot());
+	    checkIfUserHasANote(PM, PM.getUser().getNick(), false);
+	    debug.setCurrentNick(currentNick + "!" + currentUsername + "@" + currentHost);
     }
 
     public void onJoin(JoinEvent join) {
@@ -1633,16 +1651,20 @@ public class MyBotX extends ListenerAdapter {
         if (join.getChannel().getName().equalsIgnoreCase("#Lil-G|Bot") || join.getChannel().getName().equalsIgnoreCase("#SSB")) {
             join.getChannel().send().voice(join.getUserHostmask());
         }
-        checkIfUserHasANote(join, join.getUser().getNick(), true);
-        debug.setCurrentNick(currentNick + "!" + currentUsername + "@" + currentHost);
+	    //noinspection ConstantConditions
+	    checkIfUserHasANote(join, join.getUser().getNick(), true);
+	    debug.updateBot(join.getBot());
+	    debug.setCurrentNick(currentNick + "!" + currentUsername + "@" + currentHost);
     }
 
     public void onNotice(NoticeEvent event) {
         String message = event.getMessage();
-        if (!event.getUser().getNick().equalsIgnoreCase("NickServ") || !event.getUser().getNick().equalsIgnoreCase("irc.badnik.net")) {
-            if (message.contains("*** Found your hostname") ||
-                    message.contains("Password accepted - you are now recognized.") ||
-                    message.contains("This nickname is registered and protected.  If it is your") ||
+	    //noinspection ConstantConditions
+	    if (!event.getUser().getNick().equalsIgnoreCase("NickServ") || !event.getUser().getNick().equalsIgnoreCase("irc.badnik.net")){
+		    //noinspection StatementWithEmptyBody
+		    if (message.contains("*** Found your hostname") ||
+				    message.contains("Password accepted - you are now recognized.") ||
+				    message.contains("This nickname is registered and protected.  If it is your") ||
                     message.contains("*** You are connected using SSL cipher") ||
                     message.contains("please choose a different nick.") ||
                     message.contains("nick, type /msg NickServ IDENTIFY password.  Otherwise,")) {
@@ -1655,8 +1677,9 @@ public class MyBotX extends ListenerAdapter {
         }
         checkIfUserHasANote(event, event.getUser().getNick(), false);
         if (event.getBot().isConnected()) {
-            //debug.setCurrentNick(currentNick + "!" + currentUsername + "@" + currentHost);
+	        debug.setCurrentNick(currentNick + "!" + currentUsername + "@" + currentHost);
         }
+	    debug.updateBot(event.getBot());
     }
 
     public void onNickChange(NickChangeEvent nick) {
@@ -1670,11 +1693,13 @@ public class MyBotX extends ListenerAdapter {
 
         if (nick.getOldNick().equalsIgnoreCase(currentNick)) {
             currentNick = nick.getNewNick();
-            currentUsername = nick.getUser().getLogin();
-            currentHost = nick.getUser().getHostmask();
-            System.out.print("setting Authed nick as " + nick.getNewNick() + "!" + nick.getUser().getLogin() + "@" + nick.getUser().getHostmask());
+	        //noinspection ConstantConditions
+	        currentUsername = nick.getUser().getLogin();
+	        currentHost = nick.getUser().getHostmask();
+	        System.out.print("setting Authed nick as " + nick.getNewNick() + "!" + nick.getUser().getLogin() + "@" + nick.getUser().getHostmask());
             debug.setCurrentNick(currentNick + "!" + currentUsername + "@" + currentHost);
         }
+	    debug.updateBot(nick.getBot());
     }
 
     public void onNickAlreadyInUse(NickAlreadyInUseEvent nick) {
@@ -1685,7 +1710,8 @@ public class MyBotX extends ListenerAdapter {
     public void onUnknown(UnknownEvent event) {
 
         if (event.getLine().contains("AVATAR")) {
-            event.getBot().sendRaw().rawLineNow("notice " + lastEvent.getUser().getNick() + " AVATAR http://puu.sh/kA75A.jpg");
+	        //noinspection ConstantConditions
+	        event.getBot().sendRaw().rawLineNow("notice " + lastEvent.getUser().getNick() + " AVATAR http://puu.sh/kA75A.jpg");
         }
         System.out.println("Recieved unknown");
         debug.setCurrentNick(currentNick + "!" + currentUsername + "@" + currentHost);
@@ -1718,10 +1744,7 @@ public class MyBotX extends ListenerAdapter {
      * @return Boolean true if allowed, false if not
      */
     public boolean checkPerm(User user, int userLevel) {
-        String twitchName = "lilggamegenuis";
         if (user.getNick().equalsIgnoreCase(currentNick) && user.getLogin().equalsIgnoreCase(currentUsername) && user.getHostname().equalsIgnoreCase(currentHost)) {
-            return true;
-        } else if (user.getNick().equalsIgnoreCase(twitchName) && user.getLogin().equalsIgnoreCase(twitchName) && user.getHostname().equalsIgnoreCase(twitchName + ".tmi.twitch.tv")) {
             return true;
         } else if (authedUser.contains(user.getNick())) {
             int index = authedUser.indexOf(user.getNick() + "!" + user.getLogin() + "@" + user.getHostmask());
@@ -1840,9 +1863,10 @@ public class MyBotX extends ListenerAdapter {
     public void setDebugInfo(MessageEvent event) {
         int index = DNDJoined.indexOf(currentNick);
 
-        if (event.getUser().getNick().equalsIgnoreCase(currentNick)) {
-            debug.setPlayerName(DNDList.get(index).getPlayerName());
-            debug.setPlayerHP(DNDList.get(index).getHPAmounts());
+	    //noinspection ConstantConditions
+	    if (event.getUser().getNick().equalsIgnoreCase(currentNick)){
+		    debug.setPlayerName(DNDList.get(index).getPlayerName());
+		    debug.setPlayerHP(DNDList.get(index).getHPAmounts());
             debug.setPlayerXP(DNDList.get(index).getXPAmounts());
 
             debug.setFamiliar(DNDList.get(index).getFamiliar().getName());
@@ -1850,7 +1874,8 @@ public class MyBotX extends ListenerAdapter {
             debug.setFamiliarXP(DNDList.get(index).getFamiliar().getXPAmounts());
         }
 
-        debug.setCurrentNick(currentNick + "!" + currentUsername + "@" + currentHost);
+	    debug.updateBot(event.getBot());
+	    debug.setCurrentNick(currentNick + "!" + currentUsername + "@" + currentHost);
     }
 
     public String fullNameToString(Language language) {
@@ -2054,9 +2079,10 @@ public class MyBotX extends ListenerAdapter {
             byte fileContent[] = new byte[(int) file.length()];
 
             // Reads up to certain bytes of data from this input stream into an array of bytes.
-            fin.read(fileContent);
-            //create string from byte array
-            ret = new String(fileContent);
+	        //noinspection ResultOfMethodCallIgnored
+	        fin.read(fileContent);
+	        //create string from byte array
+	        ret = new String(fileContent);
         } catch (FileNotFoundException e) {
             System.out.println("File not found" + e);
         } catch (IOException ioe) {

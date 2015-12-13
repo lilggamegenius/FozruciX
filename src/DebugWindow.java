@@ -1,5 +1,14 @@
+import com.google.common.collect.ImmutableSortedSet;
+import org.pircbotx.Channel;
+import org.pircbotx.PircBotX;
+
 import javax.swing.*;
+import javax.swing.event.ListDataEvent;
+import javax.swing.event.ListDataListener;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.util.ArrayList;
+import java.util.Iterator;
 
 /**
  * Created by ggonz on 11/4/2015.
@@ -8,15 +17,22 @@ import java.awt.*;
 public class DebugWindow extends JFrame {
     // Define constants, variables, and labels
     private static final int WIDTH = 0x2CC;
-    private static final int HEIGHT = 0xA0;
-    private JTextField currentNickTF, messageLabelTF, currDMTF, myPlayerNameTF, myPlayerHPTF, myPlayerXPTF, myFamiliarTF, myFamiliarHPTF, myFamiliarXPTF;
+    private static final int HEIGHT = 0xB0;
+    PircBotX bot;
+    String[] channels = {"#null"};
+    String selectedChannel = "#null";
+    DefaultComboBoxModel<String> comboBox;
+    private JTextField currentNickTF, lastMessageTF, currDMTF, myPlayerNameTF, myPlayerHPTF, myPlayerXPTF, myFamiliarTF, myFamiliarHPTF, myFamiliarXPTF, messageTF;
 
-    public DebugWindow(String botNick) {
-        JLabel currentNickL, messageLabelL, currDML, myPlayerNameL, myPlayerHPL, myPlayerXPL, myFamiliarL, myFamiliarHPL, myFamiliarXPL;
-        setTitle(botNick);
+    public DebugWindow(PircBotX bot){
+        JLabel currentNickL, lastMessageL, currDML, myPlayerNameL, myPlayerHPL, myPlayerXPL, myFamiliarL, myFamiliarHPL, myFamiliarXPL;
+        setTitle(bot.getNick());
+        this.bot = bot;
+        channels = getChannels(bot.getUserBot().getChannels());
+
 
         currentNickL = new JLabel("Currently Registered User", SwingConstants.LEFT);
-        messageLabelL = new JLabel("Last message", SwingConstants.LEFT);
+        lastMessageL = new JLabel("Last message", SwingConstants.LEFT);
         currDML = new JLabel("Current Dungeon master", SwingConstants.LEFT);
         myPlayerNameL = new JLabel("My username", SwingConstants.LEFT);
         myPlayerHPL = new JLabel("HP", SwingConstants.LEFT);
@@ -26,7 +42,7 @@ public class DebugWindow extends JFrame {
         myFamiliarXPL = new JLabel("Familiar XP", SwingConstants.LEFT);
 
         currentNickTF = new JTextField(10);
-        messageLabelTF = new JTextField(10);
+        lastMessageTF = new JTextField(10);
         currDMTF = new JTextField(10);
         myPlayerNameTF = new JTextField(10);
         myPlayerHPTF = new JTextField(10);
@@ -34,18 +50,30 @@ public class DebugWindow extends JFrame {
         myFamiliarTF = new JTextField(10);
         myFamiliarHPTF = new JTextField(10);
         myFamiliarXPTF = new JTextField(10);
+        messageTF = new JTextField(512);
+        Action action = new AbstractAction(){
+            @Override
+            public void actionPerformed(ActionEvent e){
+                sendMessage();
+                for(int i = 0; i > channels.length; i++){
+                    comboBox.addElement(channels[i]);
+                }
+            }
+        };
+        messageTF.addActionListener(action);
 
         //Create Grid layout for window
         Container pane = getContentPane();
-        pane.setLayout(new GridLayout(9, 2));
+        pane.setLayout(new GridLayout(10, 2));
+
 
         super.setAlwaysOnTop(true);
 
         pane.add(currentNickL);
         pane.add(currentNickTF);
 
-        pane.add(messageLabelL);
-        pane.add(messageLabelTF);
+        pane.add(lastMessageL);
+        pane.add(lastMessageTF);
 
         pane.add(currDML);
         pane.add(currDMTF);
@@ -68,12 +96,53 @@ public class DebugWindow extends JFrame {
         pane.add(myFamiliarXPL);
         pane.add(myFamiliarXPTF);
 
+        comboBox = new DefaultComboBoxModel<>(channels);
+        comboBox.addListDataListener(new ListDataListener(){
+            @Override
+            public void intervalAdded(ListDataEvent e){
+                selectedChannel = (String) comboBox.getSelectedItem();
+            }
+
+            @Override
+            public void intervalRemoved(ListDataEvent e){
+                selectedChannel = (String) comboBox.getSelectedItem();
+            }
+
+            @Override
+            public void contentsChanged(ListDataEvent e){
+                selectedChannel = (String) comboBox.getSelectedItem();
+            }
+        });
+        pane.add(new JComboBox<>(comboBox));
+        pane.add(messageTF);
+
         setSize(WIDTH, HEIGHT);
 
         setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         setVisible(true);
 
+        selectedChannel = (String) comboBox.getSelectedItem();
+    }
 
+    private String[] getChannels(ImmutableSortedSet<Channel> channel){
+        Iterator<Channel> channels = channel.iterator();
+        ArrayList<String> channelList = new ArrayList<>();
+        while (channels.hasNext()){
+            channelList.add(channels.next().getName());
+        }
+        return channelList.toArray(new String[channelList.size()]);
+    }
+
+    public void sendMessage(){
+        selectedChannel = (String) comboBox.getSelectedItem();
+        bot.send().message(selectedChannel, messageTF.getText());
+        messageTF.setText("");
+    }
+
+    public void updateBot(PircBotX bot){
+        this.bot = bot;
+        channels = getChannels(bot.getUserBot().getChannels());
+        selectedChannel = (String) comboBox.getSelectedItem();
     }
 
     public void setCurrentNick(String nick) {
@@ -81,7 +150,7 @@ public class DebugWindow extends JFrame {
     }
 
     public void setMessage(String message) {
-        messageLabelTF.setText(message);
+        lastMessageTF.setText(message);
     }
 
     public void setCurrDM(String DM) {
