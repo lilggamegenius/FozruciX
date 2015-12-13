@@ -16,8 +16,8 @@ import java.util.Iterator;
  */
 class DebugWindow extends JFrame{
     // Define constants, variables, and labels
-    private static final int WIDTH = 0x2CC;
-    private static final int HEIGHT = 0xB0;
+    private static final int WIDTH = 700;
+	private static final int HEIGHT = 200;
 	private final JTextField currentNickTF;
 	private final JTextField lastMessageTF;
 	private final JTextField currDMTF;

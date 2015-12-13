@@ -4,15 +4,16 @@ import java.util.List;
 
 /**
  * Created by ggonz on 11/25/2015.
+ * Simple data class
  */
-public class SaveDataStore {
-    List<Note> noteList = new ArrayList<>();
+class SaveDataStore{
+	private List<Note> noteList = new ArrayList<>();
 
-    List<String> authedUser = new ArrayList<>();
-    List<Integer> authedUserLevel = new ArrayList<>();
+	private List<String> authedUser = new ArrayList<>();
+	private List<Integer> authedUserLevel = new ArrayList<>();
 
-    List<String> DNDJoined = new ArrayList<>();
-    List<DNDPlayer> DNDList = new ArrayList<>();
+	private List<String> DNDJoined = new ArrayList<>();
+	private List<DNDPlayer> DNDList = new ArrayList<>();
 
 
     public SaveDataStore(List<Note> noteList, List<String> authedUser, List<Integer> authedUserLevel, List<String> DNDJoined, List<DNDPlayer> DNDList) {

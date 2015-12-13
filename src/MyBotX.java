@@ -1705,9 +1705,9 @@ class MyBotX extends ListenerAdapter{
             currentNick = nick.getNewNick();
 	        //noinspection ConstantConditions
 	        currentUsername = nick.getUser().getLogin();
-	        currentHost = nick.getUser().getHostmask();
-	        System.out.print("setting Authed nick as " + nick.getNewNick() + "!" + nick.getUser().getLogin() + "@" + nick.getUser().getHostmask());
-            debug.setCurrentNick(currentNick + "!" + currentUsername + "@" + currentHost);
+	        currentHost = nick.getUser().getHostname();
+	        System.out.print("setting Authed nick as " + nick.getNewNick() + "!" + nick.getUser().getLogin() + "@" + nick.getUser().getHostname());
+	        debug.setCurrentNick(currentNick + "!" + currentUsername + "@" + currentHost);
         }
 	    debug.updateBot(nick.getBot());
     }
@@ -1757,8 +1757,8 @@ class MyBotX extends ListenerAdapter{
         if (user.getNick().equalsIgnoreCase(currentNick) && user.getLogin().equalsIgnoreCase(currentUsername) && user.getHostname().equalsIgnoreCase(currentHost)) {
             return true;
         } else if (authedUser.contains(user.getNick())) {
-            int index = authedUser.indexOf(user.getNick() + "!" + user.getLogin() + "@" + user.getHostmask());
-            if (index > -1) {
+	        int index = authedUser.indexOf(user.getNick() + "!" + user.getLogin() + "@" + user.getHostname());
+	        if (index > -1) {
                 if (authedUserLevel.get(index) >= userLevel) {
                     return true;
                 }
@@ -1769,11 +1769,11 @@ class MyBotX extends ListenerAdapter{
                 String ident = authedUser.get(index);
                 String nick = ident.substring(0, ident.indexOf("!"));
                 String userName = ident.substring(ident.indexOf("!") + 1, ident.indexOf("@"));
-                String hostMask = ident.substring(ident.indexOf("@") + 1);
-                if (nick.equalsIgnoreCase(user.getNick()) || nick.equalsIgnoreCase("*")) {
+	            String Hostname = ident.substring(ident.indexOf("@") + 1);
+	            if (nick.equalsIgnoreCase(user.getNick()) || nick.equalsIgnoreCase("*")) {
                     if (userName.equalsIgnoreCase(user.getLogin()) || userName.equalsIgnoreCase("*")) {
-                        if (hostMask.equalsIgnoreCase(user.getHostmask()) || hostMask.equalsIgnoreCase("*")) {
-                            return authedUserLevel.get(index) >= userLevel;
+	                    if (Hostname.equalsIgnoreCase(user.getHostname()) || Hostname.equalsIgnoreCase("*")){
+		                    return authedUserLevel.get(index) >= userLevel;
                         }
                     }
                 }

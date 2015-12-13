@@ -16,8 +16,8 @@ import java.nio.charset.Charset;
 class MyBotXMain{
     public static void main(String[] args) throws Exception {
         //Configure what we want our bot to do
-        boolean debug = true;
-        String nick = "FozruciX";
+	    boolean debug = false;
+	    String nick = "FozruciX";
         String login = "SmugLeaf";
         String realName = "Lil-Gs Bot";
         String badnickNET = "irc.badnik.net";
