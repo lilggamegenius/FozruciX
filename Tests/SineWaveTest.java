@@ -4,7 +4,7 @@ import com.google.common.primitives.Doubles;
  * Created by ggonz on 11/11/2015.
  */
 
-public class SineWaveTest {
+class SineWaveTest{
 
     public static void main(String[] args) {
         final int CHARS = 20;

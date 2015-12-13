@@ -14,15 +14,24 @@ import java.util.Iterator;
  * Created by ggonz on 11/4/2015.
  * A debug window to monitor certain variables
  */
-public class DebugWindow extends JFrame {
+class DebugWindow extends JFrame{
     // Define constants, variables, and labels
     private static final int WIDTH = 0x2CC;
     private static final int HEIGHT = 0xB0;
-    PircBotX bot;
-    String[] channels = {"#null"};
-    String selectedChannel = "#null";
-    DefaultComboBoxModel<String> comboBox;
-    private JTextField currentNickTF, lastMessageTF, currDMTF, myPlayerNameTF, myPlayerHPTF, myPlayerXPTF, myFamiliarTF, myFamiliarHPTF, myFamiliarXPTF, messageTF;
+	private final JTextField currentNickTF;
+	private final JTextField lastMessageTF;
+	private final JTextField currDMTF;
+	private final JTextField myPlayerNameTF;
+	private final JTextField myPlayerHPTF;
+	private final JTextField myPlayerXPTF;
+	private final JTextField myFamiliarTF;
+	private final JTextField myFamiliarHPTF;
+	private final JTextField myFamiliarXPTF;
+	private final JTextField messageTF;
+	private PircBotX bot;
+	private String[] channels = {"#null"};
+	private String selectedChannel = "#null";
+	private DefaultComboBoxModel<String> comboBox;
 
     public DebugWindow(PircBotX bot){
         JLabel currentNickL, lastMessageL, currDML, myPlayerNameL, myPlayerHPL, myPlayerXPL, myFamiliarL, myFamiliarHPL, myFamiliarXPL;
@@ -133,8 +142,8 @@ public class DebugWindow extends JFrame {
         return channelList.toArray(new String[channelList.size()]);
     }
 
-    public void sendMessage(){
-        selectedChannel = (String) comboBox.getSelectedItem();
+	private void sendMessage(){
+		selectedChannel = (String) comboBox.getSelectedItem();
         bot.send().message(selectedChannel, messageTF.getText());
         messageTF.setText("");
     }
@@ -142,8 +151,16 @@ public class DebugWindow extends JFrame {
     public void updateBot(PircBotX bot){
         this.bot = bot;
         channels = getChannels(bot.getUserBot().getChannels());
-        selectedChannel = (String) comboBox.getSelectedItem();
+	    updateChannels();
+	    selectedChannel = (String) comboBox.getSelectedItem();
     }
+
+	private void updateChannels(){
+		comboBox.removeAllElements();
+		for(String channel : channels){
+			comboBox.addElement(channel);
+		}
+	}
 
     public void setCurrentNick(String nick) {
         currentNickTF.setText(nick);
@@ -188,9 +205,9 @@ public class DebugWindow extends JFrame {
 }
 
 class DrawWindow extends Component {
-    int map_size;
-    int[][] map;
-    Point currentPoint;
+	private final int map_size;
+	private final int[][] map;
+	private final Point currentPoint;
 
     public DrawWindow(int[][] map, int map_size, Point currentPoint) {
         this.map_size = map_size;

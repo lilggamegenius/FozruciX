@@ -13,7 +13,7 @@ import java.nio.charset.Charset;
  * Created by ggonz on 10/12/2015.
  * The Main file with all of the configs
  */
-public class MyBotXMain {
+class MyBotXMain{
     public static void main(String[] args) throws Exception {
         //Configure what we want our bot to do
         boolean debug = true;
@@ -90,8 +90,8 @@ public class MyBotXMain {
 
     }
 
-    public static String setPassword(boolean password) {
-        File file;
+	private static String setPassword(boolean password){
+		File file;
         if (password) {
             file = new File("pass.bin");
         } else {

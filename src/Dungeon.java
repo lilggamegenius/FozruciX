@@ -7,19 +7,19 @@ import java.util.List;
  * The Dungeon! (Dun dun duuuuuuun!)
  */
 
-public class Dungeon {
-    int map_size = 64;
-    boolean currentPointSet = false;
-    Point currentPoint;
-    int[][] map = new int[map_size][map_size];
-    List<int[]> rooms = new ArrayList<>();
+class Dungeon{
+	private final List<int[]> rooms = new ArrayList<>();
+	private int map_size = 64;
+	private final int[][] map = new int[map_size][map_size];
+	private boolean currentPointSet = false;
+	private Point currentPoint;
 
 
     public Dungeon() {
         generate();
     }
 
-	public void generate(){
+	private void generate(){
 
 		for(int x = 0; x < map_size; x++){
 			for(int y = 0; y < map_size; y++){
@@ -105,7 +105,7 @@ public class Dungeon {
 		}
 	}
 
-	public boolean DoesCollide(int[] room, int ignore){
+	private boolean DoesCollide(int[] room, int ignore){
 		for(int i = 0; i < rooms.size(); i++){
 			if (i == ignore) continue;
 			int[] check = rooms.get(i);
@@ -116,7 +116,7 @@ public class Dungeon {
 		return false;
 	}
 
-	public void SquashRooms(){
+	private void SquashRooms(){
 		for(int i = 0; i < 10; i++){
 			for(int j = 0; j < rooms.size(); j++){
 				int[] room = rooms.get(j);
@@ -138,8 +138,8 @@ public class Dungeon {
         }
     }
 
-    public int[] FindClosestRoom(int[] room) {
-        int[] mid = {
+	private int[] FindClosestRoom(int[] room){
+		int[] mid = {
                 room[0] + (room[2] / 2),
                 room[1] + (room[3] / 2)
         };
@@ -161,17 +161,8 @@ public class Dungeon {
         return closest;
     }
 
-	public Dungeon(int map_size){
-		if (map_size % 2 == 0){
-			this.map_size = map_size;
-		} else{
-			this.map_size = map_size * 2;
-		}
-		generate();
-	}
-
-    public void setLocation(int x, int y) {
-        currentPoint.move(x, y);
+	public void setLocation(int x, int y){
+		currentPoint.move(x, y);
     }
 
     public Point getLocation() {

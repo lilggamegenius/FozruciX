@@ -8,11 +8,11 @@ import java.util.Iterator;
 /**
  * A subclass of DoubleEvaluator that supports SQRT function.
  */
-public class ExtendedDoubleEvaluator extends DoubleEvaluator {
+class ExtendedDoubleEvaluator extends DoubleEvaluator{
     /**
      * The logical OR operator.
      */
-    public final static Operator OR = new Operator("|", 2, Operator.Associativity.LEFT, 1);
+    private final static Operator OR = new Operator("|", 2, Operator.Associativity.LEFT, 1);
     /**
      * The logical AND operator.
      */
@@ -44,24 +44,6 @@ public class ExtendedDoubleEvaluator extends DoubleEvaluator {
 
     public ExtendedDoubleEvaluator() {
         super(PARAMS);
-    }
-
-    protected Double eveluate(Operator operator, Iterator<Double> operands, Object evaluationContext) {
-        if (operator == AND) {
-            int num1 = operands.next().intValue();
-            int num2 = operands.next().intValue();
-            return (double) (num1 & num2);
-        } else if (operator == OR) {
-            int num1 = operands.next().intValue();
-            int num2 = operands.next().intValue();
-            return (double) (num1 | num2);
-        } else if (operator == XOR) {
-            int num1 = operands.next().intValue();
-            int num2 = operands.next().intValue();
-            return (double) (num1 ^ num2);
-        } else {
-            return super.evaluate(operator, operands, evaluationContext);
-        }
     }
 
     @Override

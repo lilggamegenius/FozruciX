@@ -7,11 +7,11 @@ import java.util.Scanner;
 /**
  * Created by ggonz on 10/16/2015.
  */
-public class runCMD extends Thread {
-    String termStr = "bash -c ";
-    String console = "cmd.exe";
-    MessageEvent event;
-    String[] arg;
+class runCMD extends Thread{
+    private final String termStr = "bash -c ";
+    private final MessageEvent event;
+    private final String[] arg;
+    private String console = "cmd.exe";
 
     public runCMD(MessageEvent event, String[] arg) {
         this.event = event;
@@ -41,17 +41,16 @@ public class runCMD extends Thread {
         BufferedWriter p_stdin = new BufferedWriter(new OutputStreamWriter(p.getOutputStream()));
 
         //single execution
-        if (term) {
-            try {
-                p_stdin.write(termStr + arg[2]);
-            } catch (Exception e) {
-                System.out.println(e);
-            }
-        } else {
+        if (term) try{
+            p_stdin.write(termStr + arg[2]);
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+        else{
             try {
                 p_stdin.write(arg[2]);
             } catch (Exception e) {
-                System.out.println(e);
+                e.printStackTrace();
             }
         }
         try {
@@ -62,7 +61,7 @@ public class runCMD extends Thread {
             p_stdin.newLine();
             p_stdin.flush();
         } catch (Exception e) {
-            System.out.println(e);
+            e.printStackTrace();
         }
 
         // write stdout of shell (=output of all commands)

@@ -51,54 +51,54 @@ enum MessageModes {
     normal, reversed, wordReversed, scrambled, wordScrambled
 }
 
-public class MyBotX extends ListenerAdapter {
-    final static File WIKTIONARY_DIRECTORY = new File("Data\\Wiktionary");
-    final int BLOCKS = 128;
-    final int BLOCKSMB = 8 * BLOCKS;
-    final int BLOCKSGB = 8192 * BLOCKS;
-    String prefix = "!";
-    String consolePrefix = "\\";
-    boolean jokeCommands = true;
-    boolean chngCMDRan = false;
-    //boolean spinStarted = false;
-    String[] dictionary = {"i don't know what \"%s\" is, do i look like a dictionary?", "Go look it up yourself.", "Why not use your computer and look \"%s\" up.", "Google it.", "Nope.", "Get someone else to do it.", "Why not get that " + Colors.RED + "Other bot" + Colors.NORMAL + " to do it?", "There appears to be a error between your " + Colors.BOLD + "seat" + Colors.NORMAL + " and the " + Colors.BOLD + "Keyboard" + Colors.NORMAL + " >_>", "Uh oh, there appears to be a User error.", "error: Fuck count too low, Cannot give Fuck.", ">_>"};
-    String[] commands = {"HelpMe", " Time", " calcj", " randomNum", " StringToBytes", " Chat", " Temp", " BlockConv", " Hello", " Bot", " GetName", " recycle", " Login", " GetLogin", " GetID", " GetSate", " ChngCMD", " SayThis", " ToSciNo", " Trans", " DebugVar", " RunCmd", " SayRaw", " SayCTCPCommnad", " Leave", " Respawn", " Kill", " ChangeNick", " SayAction", "NoteJ (Mostly fixed)", " jtoggle", " Joke: Splatoon", "Joke: Attempt", " Joke: potato", " Joke: whatIs?", "Joke: getFinger", " Joke: GayDar"};
-    String currentNick = "Lil-G";
-    String currentUsername = "GameGenuis";
-    String currentHost = "friendly.local.noob";
-    String PASSWORD = setPassword();
-    int i = 0;
-    ChatterBotFactory factory = new ChatterBotFactory();
-    ChatterBot cleverBot;
-    ChatterBotSession cleverBotsession;
-    boolean cleverBotInt;
-    ChatterBot pandoraBot;
-    ChatterBotSession pandoraBotsession;
-    boolean pandoraBotInt;
-    String VERSION = "PircBotX: 2.1-20151112.042241-148. BotVersion: 2.0";
-    MessageEvent lastEvent;
-    ExtendedDoubleEvaluator calc = new ExtendedDoubleEvaluator();
-    StaticVariableSet<Double> variables = new StaticVariableSet<>();
-    runCMD singleCMD = null;
-    List<Note> noteList = new ArrayList<>();
-    List<String> authedUser = new ArrayList<>();
-    List<Integer> authedUserLevel = new ArrayList<>();
-    List<String> DNDJoined = new ArrayList<>();
-    List<DNDPlayer> DNDList = new ArrayList<>();
-    String DNDDungeonMaster = "Null";
-    Dungeon DNDDungeon = new Dungeon();
-	boolean drawDungeon = false;
-	DebugWindow debug;
-	int jokeCommandDebugVar = 30;
-    CommandLine terminal;
-    boolean nickInUse = false;
-    String counter = "";
-    int countercount = 0;
-    Gson gson = new GsonBuilder().setPrettyPrinting().create();
-    int frameWidth = 300;
-    int frameHeight = 300;
-    JFrame frame = new JFrame();
-    MessageModes messageMode = MessageModes.normal;
+class MyBotX extends ListenerAdapter{
+	private final static File WIKTIONARY_DIRECTORY = new File("Data\\Wiktionary");
+	private final int BLOCKS = 128;
+	private final int BLOCKSMB = 8 * BLOCKS;
+	private final int BLOCKSGB = 8192 * BLOCKS;
+	private final String consolePrefix = "\\";
+	//boolean spinStarted = false;
+	private final String[] dictionary = {"i don't know what \"%s\" is, do i look like a dictionary?", "Go look it up yourself.", "Why not use your computer and look \"%s\" up.", "Google it.", "Nope.", "Get someone else to do it.", "Why not get that " + Colors.RED + "Other bot" + Colors.NORMAL + " to do it?", "There appears to be a error between your " + Colors.BOLD + "seat" + Colors.NORMAL + " and the " + Colors.BOLD + "Keyboard" + Colors.NORMAL + " >_>", "Uh oh, there appears to be a User error.", "error: Fuck count too low, Cannot give Fuck.", ">_>"};
+	private final String[] commands = {"HelpMe", " Time", " calcj", " randomNum", " StringToBytes", " Chat", " Temp", " BlockConv", " Hello", " Bot", " GetName", " recycle", " Login", " GetLogin", " GetID", " GetSate", " ChngCMD", " SayThis", " ToSciNo", " Trans", " DebugVar", " RunCmd", " SayRaw", " SayCTCPCommnad", " Leave", " Respawn", " Kill", " ChangeNick", " SayAction", "NoteJ (Mostly fixed)", " jtoggle", " Joke: Splatoon", "Joke: Attempt", " Joke: potato", " Joke: whatIs?", "Joke: getFinger", " Joke: GayDar"};
+	private final String PASSWORD = setPassword();
+	private final ChatterBotFactory factory = new ChatterBotFactory();
+	private final String VERSION = "PircBotX: 2.1-20151112.042241-148. BotVersion: 2.0";
+	private final ExtendedDoubleEvaluator calc = new ExtendedDoubleEvaluator();
+	private final StaticVariableSet<Double> variables = new StaticVariableSet<>();
+	private final String DNDDungeonMaster = "Null";
+	private final boolean drawDungeon = false;
+	private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
+	private final int frameWidth = 300;
+	private final int frameHeight = 300;
+	private String prefix = "!";
+	private boolean jokeCommands = true;
+	private boolean chngCMDRan = false;
+	private String currentNick = "Lil-G";
+	private String currentUsername = "GameGenuis";
+	private String currentHost = "friendly.local.noob";
+	private int i = 0;
+	private ChatterBot cleverBot;
+	private ChatterBotSession cleverBotsession;
+	private boolean cleverBotInt;
+	private ChatterBot pandoraBot;
+	private ChatterBotSession pandoraBotsession;
+	private boolean pandoraBotInt;
+	private MessageEvent lastEvent;
+	private runCMD singleCMD = null;
+	private List<Note> noteList = new ArrayList<>();
+	private List<String> authedUser = new ArrayList<>();
+	private List<Integer> authedUserLevel = new ArrayList<>();
+	private List<String> DNDJoined = new ArrayList<>();
+	private List<DNDPlayer> DNDList = new ArrayList<>();
+	private Dungeon DNDDungeon = new Dungeon();
+	private DebugWindow debug;
+	private int jokeCommandDebugVar = 30;
+	private CommandLine terminal;
+	private boolean nickInUse = false;
+	private String counter = "";
+	private int countercount = 0;
+	private JFrame frame = new JFrame();
+	private MessageModes messageMode = MessageModes.normal;
 
 	@SuppressWarnings ("unused")
 	public MyBotX(){
@@ -136,8 +136,8 @@ public class MyBotX extends ListenerAdapter {
         return rand.nextInt((max - min) + 1) + min;
     }
 
-    public static String getBytes(String bytes) {
-        byte[] Bytes = bytes.getBytes();
+	private static String getBytes(String bytes){
+		byte[] Bytes = bytes.getBytes();
         return Arrays.toString(Bytes);
     }
 
@@ -167,15 +167,15 @@ public class MyBotX extends ListenerAdapter {
         return hrSize;
     }
 
-    public static boolean isNumeric(String str) {
-        return str.matches("-?\\d+(\\.\\d+)?");  //match a number with optional '-' and decimal.
+	private static boolean isNumeric(String str){
+		return str.matches("-?\\d+(\\.\\d+)?");  //match a number with optional '-' and decimal.
     }
 
     /**
      * This method guarantees that garbage collection is
      * done unlike <code>{@link System#gc()}</code>
      */
-    public static int gc() {
+    private static int gc(){
         int timesRan = 0;
         Object obj = new Object();
         WeakReference ref = new WeakReference<>(obj);
@@ -192,14 +192,18 @@ public class MyBotX extends ListenerAdapter {
 
         event.getBot().sendIRC().mode(event.getBot().getNick(), "+B");
 
-        if (event.getBot().getLocalAddress().getHostAddress().equalsIgnoreCase("irc.twitch.tv")) {
-            currentNick = "lilggamegenuis";
+	    if (event.getBot().getServerHostname().equalsIgnoreCase("irc.twitch.tv")){
+		    currentNick = "lilggamegenuis";
             currentUsername = currentNick;
             currentHost = currentUsername + ".tmi.twitch.tv";
         }
 
 	    System.out.println("Creating Debug window");
-	    debug = new DebugWindow(event.getBot());
+	    SwingUtilities.invokeLater(new Runnable(){
+		    public void run(){
+			    debug = new DebugWindow(event.getBot());
+		    }
+	    });
 	    System.out.println("Debug window created");
 	    debug.setCurrentNick(currentNick + "!" + currentUsername + "@" + currentHost);
 
@@ -216,16 +220,20 @@ public class MyBotX extends ListenerAdapter {
         DNDList = save.getDNDList();
 
 	    if (drawDungeon){
-		    frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-		    frame.setSize(frameWidth, frameHeight);
-		    frame.setVisible(true);
-		    frame.getContentPane().add(new DrawWindow(DNDDungeon.getMap(), DNDDungeon.getMap_size(), DNDDungeon.getLocation()));
-		    frame.paintAll(frame.getGraphics());
+		    SwingUtilities.invokeLater(new Runnable(){
+			    public void run(){
+				    frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+				    frame.setSize(frameWidth, frameHeight);
+				    frame.setVisible(true);
+				    frame.getContentPane().add(new DrawWindow(DNDDungeon.getMap(), DNDDungeon.getMap_size(), DNDDungeon.getLocation()));
+				    frame.paintAll(frame.getGraphics());
+			    }
+		    });
 	    }
     }
 
-    public void sendMessage(MessageEvent event, String msgToSend, boolean addNick) {
-        if (messageMode == MessageModes.reversed) {
+	private void sendMessage(MessageEvent event, String msgToSend, boolean addNick){
+		if (messageMode == MessageModes.reversed) {
             msgToSend = new StringBuilder(msgToSend).reverse().toString();
         } else if (messageMode == MessageModes.wordReversed) {
             List<String> message = new ArrayList<>(Arrays.asList(msgToSend.split("\\s+")));
@@ -263,7 +271,7 @@ public class MyBotX extends ListenerAdapter {
     }
 
 	@SuppressWarnings ("SameParameterValue")
-	public void sendMessage(Event event, String msgToSend, boolean addNick){
+	private void sendMessage(Event event, String msgToSend, boolean addNick){
 		sendMessage((MessageEvent) event, msgToSend, addNick);
     }
 
@@ -325,7 +333,9 @@ public class MyBotX extends ListenerAdapter {
 
 // !Connect - joins a channel
 		if (arg[0].equalsIgnoreCase(prefix + "Connect")){
-			event.getBot().send().joinChannel(arg[1]);
+			if (checkPerm(event.getUser(), 5)){
+				event.getBot().send().joinChannel(arg[1]);
+			}
 		}
 
 // !8ball - ALL HAIL THE MAGIC 8-BALL
@@ -1723,7 +1733,7 @@ public class MyBotX extends ListenerAdapter {
      * @param user User trying to use command
      * @param e    String to send back
      */
-    public void permError(User user, String e) {
+    private void permError(User user, String e){
         user.send().notice("Sorry, only Authed users " + e);
     }
 
@@ -1733,7 +1743,7 @@ public class MyBotX extends ListenerAdapter {
      * @param event Channel that the user used the command in
      * @param e     String to send back
      */
-    public void permErrorchn(MessageEvent event, String e) {
+    private void permErrorchn(MessageEvent event, String e){
         sendMessage(event, "Sorry, only Authed users " + e, true);
     }
 
@@ -1743,7 +1753,7 @@ public class MyBotX extends ListenerAdapter {
      * @param user User trying to use command
      * @return Boolean true if allowed, false if not
      */
-    public boolean checkPerm(User user, int userLevel) {
+    private boolean checkPerm(User user, int userLevel){
         if (user.getNick().equalsIgnoreCase(currentNick) && user.getLogin().equalsIgnoreCase(currentUsername) && user.getHostname().equalsIgnoreCase(currentHost)) {
             return true;
         } else if (authedUser.contains(user.getNick())) {
@@ -1777,8 +1787,8 @@ public class MyBotX extends ListenerAdapter {
         return false;
     }
 
-    public String[] splitMessage(String stringToSplit) {
-        if (stringToSplit == null)
+	private String[] splitMessage(String stringToSplit){
+		if (stringToSplit == null)
             return new String[0];
 
         List<String> list = new ArrayList<>();
@@ -1795,12 +1805,12 @@ public class MyBotX extends ListenerAdapter {
     }
 
 
-    public void sendError(MessageEvent event, Exception e) {
-        sendMessage(event, Colors.RED + "Error: " + e.getCause() + ". From " + e, false);
+	private void sendError(MessageEvent event, Exception e){
+		sendMessage(event, Colors.RED + "Error: " + e.getCause() + ". From " + e, false);
     }
 
-    public String botTalk(String bot, String message) throws Exception {
-        if (bot.equalsIgnoreCase("clever")) {
+	private String botTalk(String bot, String message) throws Exception{
+		if (bot.equalsIgnoreCase("clever")) {
             return cleverBotsession.think(message);
         } else if (bot.equalsIgnoreCase("pandora")) {
             return pandoraBotsession.think(message);
@@ -1811,8 +1821,8 @@ public class MyBotX extends ListenerAdapter {
         }
     }
 
-    public void saveData(MessageEvent event) {
-        try {
+	private void saveData(MessageEvent event){
+		try {
             SaveDataStore save = new SaveDataStore(noteList, authedUser, authedUserLevel, DNDJoined, DNDList);
             FileWriter writer = new FileWriter("Data/Data.json");
             writer.write(gson.toJson(save));
@@ -1824,8 +1834,8 @@ public class MyBotX extends ListenerAdapter {
         }
     }
 
-    public void checkIfUserHasANote(Event event, String user, boolean inChannel) {
-        int i = 0;
+	private void checkIfUserHasANote(Event event, String user, boolean inChannel){
+		int i = 0;
         List<Integer> indexList = new ArrayList<>();
         while (i < noteList.size()) {
             if (noteList.get(i).getReceiver().equalsIgnoreCase(user)) {
@@ -1860,8 +1870,8 @@ public class MyBotX extends ListenerAdapter {
 
     }
 
-    public void setDebugInfo(MessageEvent event) {
-        int index = DNDJoined.indexOf(currentNick);
+	private void setDebugInfo(MessageEvent event){
+		int index = DNDJoined.indexOf(currentNick);
 
 	    //noinspection ConstantConditions
 	    if (event.getUser().getNick().equalsIgnoreCase(currentNick)){
@@ -1878,8 +1888,8 @@ public class MyBotX extends ListenerAdapter {
 	    debug.setCurrentNick(currentNick + "!" + currentUsername + "@" + currentHost);
     }
 
-    public String fullNameToString(Language language) {
-        String lang = "Null".toLowerCase();
+	private String fullNameToString(Language language){
+		String lang = "Null".toLowerCase();
         switch (language) {
             case ALBANIAN:
                 lang = "ALBANIAN".toLowerCase();
@@ -2068,8 +2078,8 @@ public class MyBotX extends ListenerAdapter {
         return lang;
     }
 
-    public String setPassword() {
-        File file = new File("pass.bin");
+	private String setPassword(){
+		File file = new File("pass.bin");
         FileInputStream fin = null;
         String ret = " ";
         try {

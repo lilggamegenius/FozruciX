@@ -9,20 +9,18 @@ import java.util.Scanner;
  * this class is meant to interface with the systems command processor to allow the bot to run system commands
  * this version does not close after it has run allowing it to have the same environment without having to set it again
  */
-public class CommandLine extends Thread {
-    String termStr = "cd C:\\cygwin64\\bin && bash -c ";
-    String console = "cmd.exe";
-    MessageEvent event;
-    String[] arg;
-    String command;
-    boolean term;
-    Process p;
-    ProcessBuilder builder;
-    BufferedWriter p_stdin;
+class CommandLine extends Thread{
+    private final String termStr = "cd C:\\cygwin64\\bin && bash -c ";
+    private final boolean term;
+    private final ProcessBuilder builder;
+    private String console = "cmd.exe";
+    private MessageEvent event;
+    private String command;
+    private Process p;
+    private BufferedWriter p_stdin;
 
     public CommandLine(MessageEvent event, String[] arg) {
         this.event = event;
-        this.arg = arg;
 
         if (arg[1].equalsIgnoreCase("cmd") || arg[1].equalsIgnoreCase("command"))
             term = false;
@@ -51,6 +49,10 @@ public class CommandLine extends Thread {
                 sendError(event, e);
             }
         }
+    }
+
+    private void sendError(MessageEvent event, Exception e){
+        event.getChannel().send().message("Error: " + e.getCause() + ". From " + e);
     }
 
     public void doCommand(MessageEvent event, String command) {
@@ -99,9 +101,5 @@ public class CommandLine extends Thread {
         } catch (Exception e) {
             sendError(event, e);
         }
-    }
-
-    public void sendError(MessageEvent event, Exception e) {
-        event.getChannel().send().message("Error: " + e.getCause() + ". From " + e);
     }
 }
