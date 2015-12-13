@@ -1,13 +1,13 @@
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Created by ggonz on 10/28/2015.
+ * The Class the holds and handles all of the Players info
  */
 
 
-public class DNDPlayer implements Serializable {
+public class DNDPlayer{
 
     final int XPLevelDivider = 24;
     String playerName;
@@ -41,6 +41,10 @@ public class DNDPlayer implements Serializable {
         this.Class = getClassFromString(Class);
         //this.passives = passives;
     }
+
+	public DNDClasses getClassFromString(String stat){
+		return DNDClasses.valueOf(stat);
+	}
 
     public DNDPlayer(String playerName, String race, String Class, String usersName, String familiarName, String familiar) {
         this.playerName = playerName;
@@ -90,6 +94,10 @@ public class DNDPlayer implements Serializable {
         return getClassName(Class);
     }
 
+	public String getClassName(DNDClasses stat){
+		return stat.name();
+	}
+
     public int getMaxHP() {
         return maxHP;
     }
@@ -103,10 +111,6 @@ public class DNDPlayer implements Serializable {
         if (this.HP > maxHP) {
             this.HP = maxHP;
         }
-    }
-
-    public String getHPAmounts() {
-        return HP + "/" + maxHP;
     }
 
     public void hit(int hitAmount) {
@@ -150,10 +154,6 @@ public class DNDPlayer implements Serializable {
             maxHP += MyBotX.randInt(10, 25);
             HP = maxHP;
         }
-    }
-
-    public String getXPAmounts() {
-        return XP + "/" + XPLevelDivider * level;
     }
 
     public int getLevel() {
@@ -203,10 +203,7 @@ public class DNDPlayer implements Serializable {
     }
 
     public boolean isInInventory(String item) {
-        if (inventory.contains(item)) {
-            return true;
-        }
-        return false;
+	    return inventory.contains(item);
     }
 
     public int findInIventory(String item) {
@@ -233,40 +230,40 @@ public class DNDPlayer implements Serializable {
         }
     }
 
-    public String getStatName(DNDStats stat) {
-        return stat.name();
-    }
+	public String getHPAmounts(){
+		return HP + "/" + maxHP;
+	}
 
-    public int getStatIndex(DNDStats stat) {
-        return stat.ordinal();
-    }
+	public String getXPAmounts(){
+		return XP + "/" + XPLevelDivider * level;
+	}
 
-    public DNDStats getStatFromString(String stat) {
-        return DNDStats.valueOf(stat);
-    }
+	public String getStatName(DNDStats stat){
+		return stat.name();
+	}
 
-    public String getClassName(DNDClasses stat) {
-        return stat.name();
-    }
+	public int getStatIndex(DNDStats stat){
+		return stat.ordinal();
+	}
+
+	public DNDStats getStatFromString(String stat){
+		return DNDStats.valueOf(stat);
+	}
 
     public int getClassIndex(DNDStats stat) {
         return stat.ordinal();
     }
 
-    public DNDClasses getClassFromString(String stat) {
-        return DNDClasses.valueOf(stat);
-    }
-
     public enum DNDStats {
-        Strength, Dexterity, Constitution, Intelligence, Wisdom, Charisma;
+	    Strength, Dexterity, Constitution, Intelligence, Wisdom, Charisma
     }
 
     public enum DNDClasses {
-        Barbarian, Bard, Cleric, Druid, Wizard_Mage, Monk_Mystic, Paladin, Ranger, Sorcerer, Thief_Rogue, Warlock;
+	    Barbarian, Bard, Cleric, Druid, Wizard_Mage, Monk_Mystic, Paladin, Ranger, Sorcerer, Thief_Rogue, Warlock
     }
 
     public enum DNDFamiliars {
-        Bat, Cat, Hawk, Lizard, Owl, Rat, Raven, Toad, Weasel, Ferret, Hedgehog, Mouse, Thrush, Leopard, Wolverine, Albatross, Parrot, SeaSnake, ArcticFox, Fox, Dog, Monkey, Platypus, Rabbit, Squirrel, Badger, Chipmunk, Eagle, Groundhog, Otter, Pokemon;
+	    Bat, Cat, Hawk, Lizard, Owl, Rat, Raven, Toad, Weasel, Ferret, Hedgehog, Mouse, Thrush, Leopard, Wolverine, Albatross, Parrot, SeaSnake, ArcticFox, Fox, Dog, Monkey, Platypus, Rabbit, Squirrel, Badger, Chipmunk, Eagle, Groundhog, Otter, Pokemon
     }
 
 }

@@ -11,6 +11,7 @@ import java.nio.charset.Charset;
 
 /**
  * Created by ggonz on 10/12/2015.
+ * The Main file with all of the configs
  */
 public class MyBotXMain {
     public static void main(String[] args) throws Exception {
