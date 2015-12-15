@@ -54,7 +54,6 @@ enum MessageModes {
 class MyBotX extends ListenerAdapter{
 	private final static File WIKTIONARY_DIRECTORY = new File("Data\\Wiktionary");
 	private final int BLOCKS = 128;
-	private final int BLOCKSMB = 8 * BLOCKS;
 	private final int BLOCKSGB = 8192 * BLOCKS;
 	private final String consolePrefix = "\\";
 	//boolean spinStarted = false;
@@ -66,7 +65,6 @@ class MyBotX extends ListenerAdapter{
 	private final ExtendedDoubleEvaluator calc = new ExtendedDoubleEvaluator();
 	private final StaticVariableSet<Double> variables = new StaticVariableSet<>();
 	private final String DNDDungeonMaster = "Null";
-	private final boolean drawDungeon = false;
 	private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
 	private final int frameWidth = 300;
 	private final int frameHeight = 300;
@@ -77,7 +75,6 @@ class MyBotX extends ListenerAdapter{
 	private String currentUsername = "GameGenuis";
 	private String currentHost = "friendly.local.noob";
 	private int i = 0;
-	private ChatterBot cleverBot;
 	private ChatterBotSession cleverBotsession;
 	private boolean cleverBotInt;
 	private ChatterBot pandoraBot;
@@ -99,6 +96,7 @@ class MyBotX extends ListenerAdapter{
 	private int countercount = 0;
 	private JFrame frame = new JFrame();
 	private MessageModes messageMode = MessageModes.normal;
+	private List<RPSGame> rpsGames = new ArrayList<>();
 
 	@SuppressWarnings ("unused")
 	public MyBotX(){
@@ -177,14 +175,14 @@ class MyBotX extends ListenerAdapter{
      */
     private static int gc(){
         int timesRan = 0;
-        Object obj = new Object();
-        WeakReference ref = new WeakReference<>(obj);
+	    Object obj = new Object();
+	    WeakReference ref = new WeakReference<>(obj);
 	    //noinspection UnusedAssignment
 	    obj = null;
 	    while (ref.get() != null){
 		    System.gc();
-            timesRan++;
-        }
+		    timesRan++;
+	    }
         return timesRan;
     }
 
@@ -199,11 +197,7 @@ class MyBotX extends ListenerAdapter{
         }
 
 	    System.out.println("Creating Debug window");
-	    SwingUtilities.invokeLater(new Runnable(){
-		    public void run(){
-			    debug = new DebugWindow(event.getBot());
-		    }
-	    });
+	    SwingUtilities.invokeLater(() -> debug = new DebugWindow(event.getBot()));
 	    System.out.println("Debug window created");
 	    debug.setCurrentNick(currentNick + "!" + currentUsername + "@" + currentHost);
 
@@ -219,15 +213,14 @@ class MyBotX extends ListenerAdapter{
         DNDJoined = save.getDNDJoined();
         DNDList = save.getDNDList();
 
+	    boolean drawDungeon = false;
 	    if (drawDungeon){
-		    SwingUtilities.invokeLater(new Runnable(){
-			    public void run(){
-				    frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-				    frame.setSize(frameWidth, frameHeight);
-				    frame.setVisible(true);
-				    frame.getContentPane().add(new DrawWindow(DNDDungeon.getMap(), DNDDungeon.getMap_size(), DNDDungeon.getLocation()));
-				    frame.paintAll(frame.getGraphics());
-			    }
+		    SwingUtilities.invokeLater(() -> {
+			    frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+			    frame.setSize(frameWidth, frameHeight);
+			    frame.setVisible(true);
+			    frame.getContentPane().add(new DrawWindow(DNDDungeon.getMap(), DNDDungeon.getMap_size(), DNDDungeon.getLocation()));
+			    frame.paintAll(frame.getGraphics());
 		    });
 	    }
     }
@@ -335,6 +328,13 @@ class MyBotX extends ListenerAdapter{
 		if (arg[0].equalsIgnoreCase(prefix + "Connect")){
 			if (checkPerm(event.getUser(), 5)){
 				event.getBot().send().joinChannel(arg[1]);
+			}
+		}
+
+// !rps - Rock! Paper! ehh you know the rest
+		if (arg[0].equalsIgnoreCase(prefix + "rps")){
+			if (checkPerm(event.getUser(), 0)){
+
 			}
 		}
 
@@ -710,9 +710,8 @@ class MyBotX extends ListenerAdapter{
                 if (arg[1].equalsIgnoreCase("clever")) {
                     if (arg[2].equalsIgnoreCase("\\setup")) {
                         try {
-                            cleverBot = factory.create(ChatterBotType.CLEVERBOT);
-                            cleverBotsession = cleverBot.createSession();
-                            cleverBotInt = true;
+	                        cleverBotsession = factory.create(ChatterBotType.CLEVERBOT).createSession();
+	                        cleverBotInt = true;
                             event.getUser().send().notice("CleverBot started");
                         } catch (Exception e) {
                             sendMessage(event, "Error: Could not create clever bot session. Error was: " + e, true);
@@ -817,8 +816,9 @@ class MyBotX extends ListenerAdapter{
                     }
                 } else if (arg[1].equalsIgnoreCase("mb")) {
                     if (arg[2].equalsIgnoreCase("blocks")) {
-                        ans = data / BLOCKSMB;
-                        unit = "Blocks";
+	                    int BLOCKSMB = 8 * BLOCKS;
+	                    ans = data / BLOCKSMB;
+	                    unit = "Blocks";
                     }
                 } else if (arg[1].equalsIgnoreCase("gb")) {
                     if (arg[2].equalsIgnoreCase("blocks")) {
@@ -1598,6 +1598,41 @@ class MyBotX extends ListenerAdapter{
 	        PM.getUser().send().notice("\u0001AVATAR http://puu.sh/kA75A.jpg 19117\u0001");
         }
 
+// !rps - Rock! Paper! ehh you know the rest
+	    if (arg[0].equalsIgnoreCase(prefix + "rps")){
+		    String nick = PM.getUser().getNick();
+		    if (checkPerm(PM.getUser(), 0)){
+			    boolean found = false;
+			    boolean isFirstPlayer = true;
+			    RPSGame game = null;
+			    int i = 0;
+			    for(; i > rpsGames.size() || found; i++){
+				    if (rpsGames.get(i).isInGame(nick)){
+					    found = true;
+					    game = rpsGames.get(i);
+					    isFirstPlayer = game.isFirstPlayer(nick);
+				    }
+			    }
+			    if (found){
+				    if (arg.length > 1){
+					    switch (arg[1]){
+						    case "r":
+							    if (isFirstPlayer){
+								    game.setP1Choice(1);
+							    } else{
+								    game.setP2Choice(1);
+							    }
+					    }
+				    }
+			    } else if (arg.length > 1 && !(arg[1].equalsIgnoreCase("r") || arg[1].equalsIgnoreCase("p") || arg[1].equalsIgnoreCase("s"))){
+				    rpsGames.add(new RPSGame(PM.getUser().getNick(), arg[1]));
+				    PM.getUser().send().notice("Created a game with " + arg[1]);
+			    } else{
+				    PM.getUser().send().notice("You aren't in a game!");
+			    }
+		    }
+	    }
+
 // !login - Sets the authed named to the new name ...if the password is right
         if (arg[0].equalsIgnoreCase(prefix + "login")) {
             if (arg[1].equals(PASSWORD)) {
@@ -1608,7 +1643,10 @@ class MyBotX extends ListenerAdapter{
                 PM.getUser().send().message("password is incorrect.");
         }
         //Only allow me (Lil-G) to use PM commands except for the login command
-        else if (checkPerm(PM.getUser(), 5) && !arg[0].equalsIgnoreCase(prefix + "login") && arg[0].contains(prefix)) {
+        else if (checkPerm(PM.getUser(), 5) &&
+		        !arg[0].equalsIgnoreCase(prefix + "login") &&
+		        !arg[0].equalsIgnoreCase(prefix + "rps") &&
+		        arg[0].contains(prefix)){
 
 
 // !SendTo - Tells the bot to say someting on a channel
@@ -1779,8 +1817,8 @@ class MyBotX extends ListenerAdapter{
                 }
                 index--;
             }
-            if (userLevel < -1) {
-                return true;
+	        if (userLevel <= 0){
+		        return true;
             }
         }
 
