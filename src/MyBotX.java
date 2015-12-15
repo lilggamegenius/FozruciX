@@ -1523,6 +1523,7 @@ class MyBotX extends ListenerAdapter{
             }
         }
 
+
 // !potato - Joke command - say "i am potato" in Japanese
         if (event.getMessage().equalsIgnoreCase(prefix + "potato")) {
             if (checkPerm(event.getUser(), 0)) {
