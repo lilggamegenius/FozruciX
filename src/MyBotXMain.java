@@ -22,10 +22,12 @@ class MyBotXMain{
         String realName = "Lil-Gs Bot";
         String badnickNET = "irc.badnik.net";
         String twitch = "irc.twitch.tv";
+        int attempts = 25;
 
         Configuration.Builder normal = new Configuration.Builder()
                 .setEncoding(Charset.forName("UTF-8"))
                 .setAutoReconnect(true)
+                .setAutoReconnectAttempts(attempts)
                 .setNickservPassword(setPassword(true))
                 .setName(nick) //Set the nick of the bot.
                 .setLogin(login)
@@ -43,6 +45,7 @@ class MyBotXMain{
         Configuration.Builder debugConfig = new Configuration.Builder()
                 .setEncoding(Charset.forName("UTF-8"))
                 .setAutoReconnect(true)
+                .setAutoReconnectAttempts(attempts)
                 .setNickservPassword(setPassword(true))
                 .setName(nick) //Set the nick of the bot.
                 .setLogin(login)
@@ -54,6 +57,9 @@ class MyBotXMain{
                 .addListener(new MyBotX()); //Add our listener that will be called on Events
 
         Configuration.Builder twitchNormal = new Configuration.Builder()
+                .setEncoding(Charset.forName("UTF-8"))
+                .setAutoReconnect(true)
+                .setAutoReconnectAttempts(attempts)
                 .setAutoNickChange(false) //Twitch doesn't support multiple users
                 .setOnJoinWhoEnabled(false) //Twitch doesn't support WHO command
                 .setCapEnabled(true)
@@ -68,6 +74,8 @@ class MyBotXMain{
 
 
         Configuration.Builder twitchDebug = new Configuration.Builder()
+                .setAutoReconnect(true)
+                .setAutoReconnectAttempts(attempts)
                 .setEncoding(Charset.forName("UTF-8"))
                 .setAutoReconnect(true)
                 .setName(nick.toLowerCase()) //Set the nick of the bot.

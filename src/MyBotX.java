@@ -46,10 +46,6 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-@SuppressWarnings ("unused")
-enum MessageModes {
-    normal, reversed, wordReversed, scrambled, wordScrambled
-}
 
 class MyBotX extends ListenerAdapter{
 	private final static File WIKTIONARY_DIRECTORY = new File("Data\\Wiktionary");
@@ -98,9 +94,9 @@ class MyBotX extends ListenerAdapter{
 	private MessageModes messageMode = MessageModes.normal;
 	private List<RPSGame> rpsGames = new ArrayList<>();
 
-	@SuppressWarnings ("unused")
-	public MyBotX(){
-	}
+    @SuppressWarnings("unused")
+    public MyBotX() {
+    }
 
 	@SuppressWarnings ("unused")
 	public MyBotX(boolean Twitch){
@@ -110,7 +106,6 @@ class MyBotX extends ListenerAdapter{
             currentHost = currentUsername + ".tmi.twitch.tv";
         }
     }
-
 
     /**
      * Returns a pseudo-random number between min and max, inclusive.
@@ -189,12 +184,6 @@ class MyBotX extends ListenerAdapter{
     public void onConnect(ConnectEvent event) throws Exception {
 
         event.getBot().sendIRC().mode(event.getBot().getNick(), "+B");
-
-	    if (event.getBot().getServerHostname().equalsIgnoreCase("irc.twitch.tv")){
-		    currentNick = "lilggamegenuis";
-            currentUsername = currentNick;
-            currentHost = currentUsername + ".tmi.twitch.tv";
-        }
 
 	    System.out.println("Creating Debug window");
 	    SwingUtilities.invokeLater(() -> debug = new DebugWindow(event.getBot()));
@@ -1385,7 +1374,7 @@ class MyBotX extends ListenerAdapter{
                 } else {
                     event.getChannel().send().part();
                 }
-            } else {
+            } else if (!event.getBot().getServerHostname().equalsIgnoreCase("irc.twitch.tv")) {
                 permErrorchn(event, "can use this command");
             }
         }
@@ -1772,7 +1761,7 @@ class MyBotX extends ListenerAdapter{
      * @param user User trying to use command
      * @param e    String to send back
      */
-    private void permError(User user, String e){
+    private void permError(User user, String e) {
         user.send().notice("Sorry, only Authed users " + e);
     }
 
@@ -1782,7 +1771,7 @@ class MyBotX extends ListenerAdapter{
      * @param event Channel that the user used the command in
      * @param e     String to send back
      */
-    private void permErrorchn(MessageEvent event, String e){
+    private void permErrorchn(MessageEvent event, String e) {
         sendMessage(event, "Sorry, only Authed users " + e, true);
     }
 
@@ -1842,7 +1831,6 @@ class MyBotX extends ListenerAdapter{
         }
         return list.toArray(new String[list.size()]);
     }
-
 
 	private void sendError(MessageEvent event, Exception e){
 		sendMessage(event, Colors.RED + "Error: " + e.getCause() + ". From " + e, false);
@@ -2147,6 +2135,10 @@ class MyBotX extends ListenerAdapter{
             }
         }
         return ret;
+    }
+
+    private enum MessageModes {
+        normal, reversed, wordReversed, scrambled, wordScrambled
     }
 
 
