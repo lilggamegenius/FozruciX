@@ -8,7 +8,6 @@ import java.util.Scanner;
  * Created by ggonz on 10/16/2015.
  */
 class runCMD extends Thread{
-    private final String termStr = "bash -c ";
     private final MessageEvent event;
     private final String[] arg;
     private String console = "cmd.exe";
@@ -42,6 +41,7 @@ class runCMD extends Thread{
 
         //single execution
         if (term) try{
+            String termStr = "bash -c ";
             p_stdin.write(termStr + arg[2]);
         } catch (Exception e){
             e.printStackTrace();

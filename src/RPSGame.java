@@ -1,12 +1,12 @@
 /**
  * Created by ggonz on 12/13/2015.
  */
-public class RPSGame{
-	String player1;
-	String player2;
+class RPSGame {
+	private String player1;
+	private String player2;
 
-	int choice1 = 0;
-	int choice2 = 0;
+	private int choice1 = 0;
+	private int choice2 = 0;
 
 	public RPSGame(String player1, String player2){
 		this.player1 = player1;

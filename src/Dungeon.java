@@ -9,7 +9,7 @@ import java.util.List;
 
 class Dungeon{
 	private final List<int[]> rooms = new ArrayList<>();
-	private int map_size = 64;
+	private final int map_size = 64;
 	private final int[][] map = new int[map_size][map_size];
 	private boolean currentPointSet = false;
 	private Point currentPoint;

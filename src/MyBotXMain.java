@@ -22,7 +22,7 @@ class MyBotXMain{
         String realName = "Lil-Gs Bot";
         String badnickNET = "irc.badnik.net";
         String twitch = "irc.twitch.tv";
-        int attempts = 25;
+        int attempts = Integer.MAX_VALUE;
 
         Configuration.Builder normal = new Configuration.Builder()
                 .setEncoding(Charset.forName("UTF-8"))

@@ -10,10 +10,6 @@ import java.util.Scanner;
  * this version does not close after it has run allowing it to have the same environment without having to set it again
  */
 class CommandLine extends Thread{
-    private final String termStr = "cd C:\\cygwin64\\bin && bash -c ";
-    private final boolean term;
-    private final ProcessBuilder builder;
-    private String console = "cmd.exe";
     private MessageEvent event;
     private String command;
     private Process p;
@@ -22,6 +18,8 @@ class CommandLine extends Thread{
     public CommandLine(MessageEvent event, String[] arg) {
         this.event = event;
 
+        boolean term;
+        String console = "cmd.exe";
         if (arg[1].equalsIgnoreCase("cmd") || arg[1].equalsIgnoreCase("command"))
             term = false;
         else if (arg[1].equalsIgnoreCase("term") || arg[1].equalsIgnoreCase("terminal"))
@@ -30,7 +28,7 @@ class CommandLine extends Thread{
             console = arg[1];
             term = false;
         }
-        builder = new ProcessBuilder(console);
+        ProcessBuilder builder = new ProcessBuilder(console);
         try {
             p = builder.start();
         } catch (Exception e) {
@@ -44,6 +42,7 @@ class CommandLine extends Thread{
 
         if (term) {
             try {
+                String termStr = "cd C:\\cygwin64\\bin && bash -c ";
                 p_stdin.write(termStr);
             } catch (Exception e) {
                 sendError(event, e);

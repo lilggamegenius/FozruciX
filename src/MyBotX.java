@@ -50,19 +50,16 @@ import java.util.regex.Pattern;
 class MyBotX extends ListenerAdapter{
 	private final static File WIKTIONARY_DIRECTORY = new File("Data\\Wiktionary");
 	private final int BLOCKS = 128;
-	private final int BLOCKSGB = 8192 * BLOCKS;
-	private final String consolePrefix = "\\";
-	//boolean spinStarted = false;
-	private final String[] dictionary = {"i don't know what \"%s\" is, do i look like a dictionary?", "Go look it up yourself.", "Why not use your computer and look \"%s\" up.", "Google it.", "Nope.", "Get someone else to do it.", "Why not get that " + Colors.RED + "Other bot" + Colors.NORMAL + " to do it?", "There appears to be a error between your " + Colors.BOLD + "seat" + Colors.NORMAL + " and the " + Colors.BOLD + "Keyboard" + Colors.NORMAL + " >_>", "Uh oh, there appears to be a User error.", "error: Fuck count too low, Cannot give Fuck.", ">_>"};
-	private final String[] commands = {"HelpMe", " Time", " calcj", " randomNum", " StringToBytes", " Chat", " Temp", " BlockConv", " Hello", " Bot", " GetName", " recycle", " Login", " GetLogin", " GetID", " GetSate", " ChngCMD", " SayThis", " ToSciNo", " Trans", " DebugVar", " RunCmd", " SayRaw", " SayCTCPCommnad", " Leave", " Respawn", " Kill", " ChangeNick", " SayAction", "NoteJ (Mostly fixed)", " jtoggle", " Joke: Splatoon", "Joke: Attempt", " Joke: potato", " Joke: whatIs?", "Joke: getFinger", " Joke: GayDar"};
+    //boolean spinStarted = false;
+    private final String[] dictionary = {"i don't know what \"%s\" is, do i look like a dictionary?", "Go look it up yourself.", "Why not use your computer and look \"%s\" up.", "Google it.", "Nope.", "Get someone else to do it.", "Why not get that " + Colors.RED + "Other bot" + Colors.NORMAL + " to do it?", "There appears to be a error between your " + Colors.BOLD + "seat" + Colors.NORMAL + " and the " + Colors.BOLD + "Keyboard" + Colors.NORMAL + " >_>", "Uh oh, there appears to be a User error.", "error: Fuck count too low, Cannot give Fuck.", ">_>"};
+    private final String[] listOfNoes = {" It’s not a priority for me at this time.", "I’d rather stick needles in my eyes.", "My schedule is up in the air right now. SEE IT WAFTING GENTLY DOWN THE CORRIDOR.", "I don’t love it, which means I’m not the right person for it.", "I would prefer another option.", "I would be the absolute worst person to execute, are you on crack?!", "Life is too short TO DO THINGS YOU don’t LOVE.", "I no longer do things that make me want to kill myself", "You should do this yourself, you would be awesome sauce.", "I would love to say yes to everything, but that would be stupid", "Fuck no.", "Some things have come up that need my attention.", "There is a person who totally kicks ass at this. I AM NOT THAT PERSON.", "Shoot me now...", "It would cause the slow withering death of my soul.", "I’d rather remove my own gallbladder with an oyster fork.", "I'd love to but I did my own thing and now I've got to undo it."};
+    private final String[] commands = {"HelpMe", " Time", " calcj", " randomNum", " StringToBytes", " Chat", " Temp", " BlockConv", " Hello", " Bot", " GetName", " recycle", " Login", " GetLogin", " GetID", " GetSate", " ChngCMD", " SayThis", " ToSciNo", " Trans", " DebugVar", " RunCmd", " SayRaw", " SayCTCPCommnad", " Leave", " Respawn", " Kill", " ChangeNick", " SayAction", "NoteJ (Mostly fixed)", " jtoggle", " Joke: Splatoon", "Joke: Attempt", " Joke: potato", " Joke: whatIs?", "Joke: getFinger", " Joke: GayDar"};
 	private final String PASSWORD = setPassword();
 	private final ChatterBotFactory factory = new ChatterBotFactory();
-	private final String VERSION = "PircBotX: 2.1-20151112.042241-148. BotVersion: 2.0";
-	private final ExtendedDoubleEvaluator calc = new ExtendedDoubleEvaluator();
-	private final StaticVariableSet<Double> variables = new StaticVariableSet<>();
-	private final String DNDDungeonMaster = "Null";
-	private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
-	private final int frameWidth = 300;
+    private final ExtendedDoubleEvaluator calc = new ExtendedDoubleEvaluator();
+    private final StaticVariableSet<Double> variables = new StaticVariableSet<>();
+    private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
+    private final int frameWidth = 300;
 	private final int frameHeight = 300;
 	private String prefix = "!";
 	private boolean jokeCommands = true;
@@ -70,12 +67,10 @@ class MyBotX extends ListenerAdapter{
 	private String currentNick = "Lil-G";
 	private String currentUsername = "GameGenuis";
 	private String currentHost = "friendly.local.noob";
-	private int i = 0;
-	private ChatterBotSession cleverBotsession;
-	private boolean cleverBotInt;
-	private ChatterBot pandoraBot;
-	private ChatterBotSession pandoraBotsession;
-	private boolean pandoraBotInt;
+    private ChatterBotSession cleverBotsession;
+    private boolean cleverBotInt;
+    private ChatterBotSession pandoraBotsession;
+    private boolean pandoraBotInt;
 	private MessageEvent lastEvent;
 	private runCMD singleCMD = null;
 	private List<Note> noteList = new ArrayList<>();
@@ -181,14 +176,18 @@ class MyBotX extends ListenerAdapter{
         return timesRan;
     }
 
+    private void makeDebug(Event event) {
+        System.out.println("Creating Debug window");
+        SwingUtilities.invokeLater(() -> debug = new DebugWindow(event.getBot()));
+        System.out.println("Debug window created");
+        debug.setCurrentNick(currentNick + "!" + currentUsername + "@" + currentHost);
+    }
+
     public void onConnect(ConnectEvent event) throws Exception {
 
         event.getBot().sendIRC().mode(event.getBot().getNick(), "+B");
 
-	    System.out.println("Creating Debug window");
-	    SwingUtilities.invokeLater(() -> debug = new DebugWindow(event.getBot()));
-	    System.out.println("Debug window created");
-	    debug.setCurrentNick(currentNick + "!" + currentUsername + "@" + currentHost);
+        makeDebug(event);
 
         if (nickInUse) {
             event.getBot().sendRaw().rawLineNow("ns recover " + event.getBot().getNick() + " " + PASSWORD);
@@ -214,8 +213,8 @@ class MyBotX extends ListenerAdapter{
 	    }
     }
 
-	private void sendMessage(MessageEvent event, String msgToSend, boolean addNick){
-		if (messageMode == MessageModes.reversed) {
+    private String getScramble(String msgToSend) {
+        if (messageMode == MessageModes.reversed) {
             msgToSend = new StringBuilder(msgToSend).reverse().toString();
         } else if (messageMode == MessageModes.wordReversed) {
             List<String> message = new ArrayList<>(Arrays.asList(msgToSend.split("\\s+")));
@@ -226,9 +225,9 @@ class MyBotX extends ListenerAdapter{
         } else if (messageMode == MessageModes.scrambled) {
             char[] msgChars = msgToSend.toCharArray();
             ArrayList<Character> chars = new ArrayList<>();
-	        for(char msgChar : msgChars){
-		        chars.add(msgChar);
-	        }
+            for (char msgChar : msgChars) {
+                chars.add(msgChar);
+            }
             msgToSend = "";
             while (chars.size() != 0) {
                 int num = randInt(0, chars.size() - 1);
@@ -244,6 +243,11 @@ class MyBotX extends ListenerAdapter{
                 message.remove(num);
             }
         }
+        return msgToSend;
+    }
+
+	private void sendMessage(MessageEvent event, String msgToSend, boolean addNick){
+        msgToSend = getScramble(msgToSend);
 
         if (addNick) {
             event.respond(msgToSend);
@@ -253,8 +257,9 @@ class MyBotX extends ListenerAdapter{
     }
 
 	@SuppressWarnings ("SameParameterValue")
-	private void sendMessage(Event event, String msgToSend, boolean addNick){
-		sendMessage((MessageEvent) event, msgToSend, addNick);
+    private void sendMessage(String userToSendTo, String msgToSend) {
+        msgToSend = getScramble(msgToSend);
+        lastEvent.getBot().send().message(userToSendTo, msgToSend);
     }
 
 	@SuppressWarnings ("StatementWithEmptyBody")
@@ -264,8 +269,8 @@ class MyBotX extends ListenerAdapter{
         String[] arg = splitMessage(event.getMessage());
         debug.setCurrentNick(currentNick + "!" + currentUsername + "@" + currentHost);
 
-		//noinspection ConstantConditions
-		checkIfUserHasANote(event, event.getUser().getNick(), true);
+        //noinspection ConstantConditions
+        checkIfUserHasANote(event, event.getUser().getNick(), event.getChannel().toString());
 
 // !helpMe
         if (arg[0].equalsIgnoreCase(prefix + "helpme")) {
@@ -314,18 +319,18 @@ class MyBotX extends ListenerAdapter{
         }
 
 // !Connect - joins a channel
-		if (arg[0].equalsIgnoreCase(prefix + "Connect")){
-			if (checkPerm(event.getUser(), 5)){
-				event.getBot().send().joinChannel(arg[1]);
-			}
-		}
+        if (arg[0].equalsIgnoreCase(prefix + "Connect")) {
+            if (checkPerm(event.getUser(), 5)) {
+                event.getBot().send().joinChannel(arg[1]);
+            }
+        }
 
 // !rps - Rock! Paper! ehh you know the rest
-		if (arg[0].equalsIgnoreCase(prefix + "rps")){
-			if (checkPerm(event.getUser(), 0)){
+        if (arg[0].equalsIgnoreCase(prefix + "rps")) {
+            if (checkPerm(event.getUser(), 0)) {
 
-			}
-		}
+            }
+        }
 
 // !8ball - ALL HAIL THE MAGIC 8-BALL
         if (arg[0].equalsIgnoreCase(prefix + "8Ball")) {
@@ -434,6 +439,14 @@ class MyBotX extends ListenerAdapter{
                 sendMessage(event, event.getChannel().getName(), true);
             }
         }
+
+// !testPermError - gets one of the permission error statements
+        if (event.getMessage().equalsIgnoreCase(prefix + "testPermError")) {
+            if (checkPerm(event.getUser(), 5)) {
+                permErrorchn(event, "Test");
+            }
+        }
+
 
 // !Time - Tell the time
         if (event.getMessage().equalsIgnoreCase(prefix + "time")) {
@@ -720,7 +733,7 @@ class MyBotX extends ListenerAdapter{
                 } else if (arg[1].equalsIgnoreCase("pandora")) {
                     if (arg[2].equalsIgnoreCase("\\setup")) {
                         try {
-                            pandoraBot = factory.create(ChatterBotType.PANDORABOTS, "b0dafd24ee35a477");
+                            ChatterBot pandoraBot = factory.create(ChatterBotType.PANDORABOTS, "b0dafd24ee35a477");
                             pandoraBotsession = pandoraBot.createSession();
                             pandoraBotInt = true;
                             event.getUser().send().notice("PandoraBot started");
@@ -811,6 +824,7 @@ class MyBotX extends ListenerAdapter{
                     }
                 } else if (arg[1].equalsIgnoreCase("gb")) {
                     if (arg[2].equalsIgnoreCase("blocks")) {
+                        int BLOCKSGB = 8192 * BLOCKS;
                         ans = data / BLOCKSGB;
                         unit = "Blocks";
                     }
@@ -909,6 +923,7 @@ class MyBotX extends ListenerAdapter{
 // !version - gets the version of the bot
         if (event.getMessage().equalsIgnoreCase(prefix + "version")) {
             if (checkPerm(event.getUser(), 0)) {
+                String VERSION = "PircBotX: 2.1-20151112.042241-148. BotVersion: 2.0";
                 sendMessage(event, "Version: " + VERSION, true);
             }
         }
@@ -1276,7 +1291,7 @@ class MyBotX extends ListenerAdapter{
             if (checkPerm(event.getUser(), 5)) {
                 switch (arg[1].toLowerCase()) { //Make sure strings are lowercsae
                     case "i":
-                        i = Integer.parseInt(arg[2]);
+                        int i = Integer.parseInt(arg[2]);
                         sendMessage(event, "DEBUG: Var \"i\" is now \"" + i + "\"", true);
                         break;
                     case "jokenum":
@@ -1313,6 +1328,7 @@ class MyBotX extends ListenerAdapter{
         }
 
 // \ - runs commands without closing at the end
+        String consolePrefix = "\\";
         if (arg[0].startsWith(consolePrefix)) {
             if (checkPerm(event.getUser(), 5)) {
                 if (arg[0].substring(1).equalsIgnoreCase("\\start")) {
@@ -1571,6 +1587,7 @@ class MyBotX extends ListenerAdapter{
 
         saveData(lastEvent);
         debug.setCurrentNick(currentNick + "!" + currentUsername + "@" + currentHost);
+        String DNDDungeonMaster = "Null";
         debug.setCurrDM(DNDDungeonMaster);
         debug.setMessage(event.getUser().getNick() + ": " + event.getMessage());
     }
@@ -1680,8 +1697,8 @@ class MyBotX extends ListenerAdapter{
             PM.getBot().sendIRC().notice(currentNick, "Attempted use of PM commands by " + PM.getUser().getNick() + ". The command used was \"" + PM.getMessage() + "\"");
         }
 	    debug.updateBot(PM.getBot());
-	    checkIfUserHasANote(PM, PM.getUser().getNick(), false);
-	    debug.setCurrentNick(currentNick + "!" + currentUsername + "@" + currentHost);
+        checkIfUserHasANote(PM, PM.getUser().getNick(), null);
+        debug.setCurrentNick(currentNick + "!" + currentUsername + "@" + currentHost);
     }
 
     public void onJoin(JoinEvent join) {
@@ -1690,8 +1707,8 @@ class MyBotX extends ListenerAdapter{
             join.getChannel().send().voice(join.getUserHostmask());
         }
 	    //noinspection ConstantConditions
-	    checkIfUserHasANote(join, join.getUser().getNick(), true);
-	    debug.updateBot(join.getBot());
+        checkIfUserHasANote(join, join.getUser().getNick(), join.getChannel().toString());
+        debug.updateBot(join.getBot());
 	    debug.setCurrentNick(currentNick + "!" + currentUsername + "@" + currentHost);
     }
 
@@ -1713,7 +1730,7 @@ class MyBotX extends ListenerAdapter{
                 event.getBot().sendIRC().notice(currentNick, "Got notice from " + event.getUser().getNick() + ". Notice was : " + event.getMessage());
             }
         }
-        checkIfUserHasANote(event, event.getUser().getNick(), false);
+        checkIfUserHasANote(event, event.getUser().getNick(), null);
         if (event.getBot().isConnected()) {
 	        debug.setCurrentNick(currentNick + "!" + currentUsername + "@" + currentHost);
         }
@@ -1762,7 +1779,9 @@ class MyBotX extends ListenerAdapter{
      * @param e    String to send back
      */
     private void permError(User user, String e) {
-        user.send().notice("Sorry, only Authed users " + e);
+        int num = randInt(0, listOfNoes.length - 1);
+        String comeback = listOfNoes[num];
+        user.send().notice(comeback);
     }
 
     /**
@@ -1772,7 +1791,9 @@ class MyBotX extends ListenerAdapter{
      * @param e     String to send back
      */
     private void permErrorchn(MessageEvent event, String e) {
-        sendMessage(event, "Sorry, only Authed users " + e, true);
+        int num = randInt(0, listOfNoes.length - 1);
+        String comeback = listOfNoes[num];
+        sendMessage(event, comeback, true);
     }
 
     /**
@@ -1861,8 +1882,8 @@ class MyBotX extends ListenerAdapter{
         }
     }
 
-	private void checkIfUserHasANote(Event event, String user, boolean inChannel){
-		int i = 0;
+    private void checkIfUserHasANote(Event event, String user, String channel) {
+        int i = 0;
         List<Integer> indexList = new ArrayList<>();
         while (i < noteList.size()) {
             if (noteList.get(i).getReceiver().equalsIgnoreCase(user)) {
@@ -1880,8 +1901,8 @@ class MyBotX extends ListenerAdapter{
                     System.out.print(receiver + " ");
                     String message = noteList.get(index).displayMessage();
                     System.out.print(message);
-                    if (inChannel) {
-                        sendMessage(event, message, true);
+                    if (channel != null) {
+                        sendMessage(channel, message);
                     } else {
                         event.getBot().sendIRC().notice(receiver, message);
                     }

@@ -4,5 +4,5 @@
  * Used for Interactions, battles, ect
  */
 class DNDEvent{
-
+    //ToDo
 }
