@@ -22,6 +22,7 @@ class MyBotXMain{
         String realName = "Lil-Gs Bot";
         String badnickNET = "irc.badnik.net";
         String twitch = "irc.twitch.tv";
+        String caffie = "irc.caffie.net";
         int attempts = Integer.MAX_VALUE;
 
         Configuration.Builder normal = new Configuration.Builder()
@@ -83,13 +84,41 @@ class MyBotXMain{
                 .addAutoJoinChannel("#lilggamegenuis") //Join lilggamegenuis's twitch chat
                 .addListener(new MyBotX(true)); //Add our listener that will be called on Events
 
+        Configuration.Builder normalSmwc = new Configuration.Builder()
+                .setEncoding(Charset.forName("UTF-8"))
+                .setAutoReconnect(true)
+                .setAutoReconnectAttempts(attempts)
+                .setNickservPassword(setPassword(true))
+                .setName(nick) //Set the nick of the bot.
+                .setLogin(login)
+                .setRealName(realName)
+                .setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates())
+                .addAutoJoinChannel("#sm64")
+                .addAutoJoinChannel("#smwc")
+                .addListener(new MyBotX()); //Add our listener that will be called on Events
+
+
+        Configuration.Builder debugConfigSmwc = new Configuration.Builder()
+                .setEncoding(Charset.forName("UTF-8"))
+                .setAutoReconnect(true)
+                .setAutoReconnectAttempts(attempts)
+                .setNickservPassword(setPassword(true))
+                .setName(nick) //Set the nick of the bot.
+                .setLogin(login)
+                .setRealName(realName)
+                .setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates())
+                .addAutoJoinChannel("#sm64") //Join the official #Lil-G|Bot channel
+                .addListener(new MyBotX()); //Add our listener that will be called on Events
+
         //Create our bot with the configuration
         MultiBotManager manager = new MultiBotManager();
         if (debug) {
             manager.addBot(debugConfig.buildForServer(badnickNET, 6697));
+            manager.addBot(debugConfigSmwc.buildForServer(caffie, 6697));
             manager.addBot(twitchDebug.buildForServer(twitch, 6667, setPassword(false)));
         } else {
             manager.addBot(normal.buildForServer(badnickNET, 6697));
+            manager.addBot(normalSmwc.buildForServer(caffie, 6697));
             manager.addBot(twitchNormal.buildForServer(twitch, 6667, setPassword(false)));
         }
         //Connect to the server

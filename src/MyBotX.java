@@ -19,12 +19,9 @@ import de.tudarmstadt.ukp.jwktl.api.IWiktionaryEdition;
 import de.tudarmstadt.ukp.jwktl.api.IWiktionaryEntry;
 import de.tudarmstadt.ukp.jwktl.api.IWiktionaryPage;
 import de.tudarmstadt.ukp.jwktl.api.IWiktionarySense;
-import de.tudarmstadt.ukp.wikipedia.api.DatabaseConfiguration;
-import de.tudarmstadt.ukp.wikipedia.api.Page;
-import de.tudarmstadt.ukp.wikipedia.api.WikiConstants;
-import de.tudarmstadt.ukp.wikipedia.api.Wikipedia;
-import de.tudarmstadt.ukp.wikipedia.api.exception.WikiApiException;
-import de.tudarmstadt.ukp.wikipedia.api.exception.WikiInitializationException;
+import info.bliki.api.Page;
+import info.bliki.wiki.filter.PlainTextConverter;
+import info.bliki.wiki.model.WikiModel;
 import org.apache.commons.lang3.StringUtils;
 import org.pircbotx.Colors;
 import org.pircbotx.User;
@@ -53,8 +50,8 @@ class MyBotX extends ListenerAdapter{
     //boolean spinStarted = false;
     private final String[] dictionary = {"i don't know what \"%s\" is, do i look like a dictionary?", "Go look it up yourself.", "Why not use your computer and look \"%s\" up.", "Google it.", "Nope.", "Get someone else to do it.", "Why not get that " + Colors.RED + "Other bot" + Colors.NORMAL + " to do it?", "There appears to be a error between your " + Colors.BOLD + "seat" + Colors.NORMAL + " and the " + Colors.BOLD + "Keyboard" + Colors.NORMAL + " >_>", "Uh oh, there appears to be a User error.", "error: Fuck count too low, Cannot give Fuck.", ">_>"};
     private final String[] listOfNoes = {" It’s not a priority for me at this time.", "I’d rather stick needles in my eyes.", "My schedule is up in the air right now. SEE IT WAFTING GENTLY DOWN THE CORRIDOR.", "I don’t love it, which means I’m not the right person for it.", "I would prefer another option.", "I would be the absolute worst person to execute, are you on crack?!", "Life is too short TO DO THINGS YOU don’t LOVE.", "I no longer do things that make me want to kill myself", "You should do this yourself, you would be awesome sauce.", "I would love to say yes to everything, but that would be stupid", "Fuck no.", "Some things have come up that need my attention.", "There is a person who totally kicks ass at this. I AM NOT THAT PERSON.", "Shoot me now...", "It would cause the slow withering death of my soul.", "I’d rather remove my own gallbladder with an oyster fork.", "I'd love to but I did my own thing and now I've got to undo it."};
-    private final String[] commands = {"HelpMe", " Time", " calcj", " randomNum", " StringToBytes", " Chat", " Temp", " BlockConv", " Hello", " Bot", " GetName", " recycle", " Login", " GetLogin", " GetID", " GetSate", " ChngCMD", " SayThis", " ToSciNo", " Trans", " DebugVar", " RunCmd", " SayRaw", " SayCTCPCommnad", " Leave", " Respawn", " Kill", " ChangeNick", " SayAction", "NoteJ (Mostly fixed)", " jtoggle", " Joke: Splatoon", "Joke: Attempt", " Joke: potato", " Joke: whatIs?", "Joke: getFinger", " Joke: GayDar"};
-	private final String PASSWORD = setPassword();
+    private final String[] commands = {"HelpMe", " Time", " calcj", " randomNum", " StringToBytes", " Chat", " Temp", " BlockConv", " Hello", " Bot", " GetName", " recycle", " Login", " GetLogin", " GetID", " GetSate", " ChngCMD", " SayThis", " ToSciNo", " Trans", " DebugVar", " RunCmd", " SayRaw", " SayCTCPCommnad", " Leave", " Respawn", " Kill", " ChangeNick", " SayAction", " NoteJ", " jtoggle", " Joke: Splatoon", "Joke: Attempt", " Joke: potato", " Joke: whatIs?", "Joke: getFinger", " Joke: GayDar"};
+    private final String PASSWORD = setPassword();
 	private final ChatterBotFactory factory = new ChatterBotFactory();
     private final ExtendedDoubleEvaluator calc = new ExtendedDoubleEvaluator();
     private final StaticVariableSet<Double> variables = new StaticVariableSet<>();
@@ -399,7 +396,6 @@ class MyBotX extends ListenerAdapter{
                     response = "Very doubtful";
                     break;
             }
-
             event.respond(response);
         }
 
@@ -551,14 +547,14 @@ class MyBotX extends ListenerAdapter{
             if (checkPerm(event.getUser(), 0)) {
                 ScriptEngine engine = new ScriptEngineManager().getEngineByName("JavaScript");
                 String factorialFunct =
-                        "function factorial(num) {  if (num < 0) {    return -1;  } else if (num == 0) {    return 1;  }  var tmp = num;  while (num-- > 2) {    tmp *= num;  }  return tmp;} function getBit(num, bit) {  var result = (num >> bit) & 1; return result == 1} function offset(array, offsetNum){array = eval(\"\" + array + \"\");var size = array.length * offsetNum;var result = [];for(var i = 0; i < array.length; i++){result[i] = parseInt(array[i], 16) + size} return result;}  var life = 42; ";
+                        "function factorial(num) {  if (num < 0) {    return -1;  } else if (num == 0) {    return 1;  }  var tmp = num;  while (num-- > 2) {    tmp *= num;  }  return tmp;} function getBit(num, bit) {  var result = (num >> bit) & 1; return result == 1} function offset(array, offsetNum){array = eval(\"\" + array + \"\");var size = array.length * offsetNum;var result = [];for(var i = 0; i < array.length; i++){result[i] = parseInt(array[i], 16) + size} return result;}  var life = 42; Packages = \"nah fam\"; JavaImporter = \"tbh smh fam\"; Java = null;";
                 String eval;
                 try {
                     if (arg[1].contains(";")) {
                         if (!checkPerm(event.getUser(), 2)) {
                             sendMessage(event, "Sorry, only Privileged users can use ;", true);
                         } else {
-                            eval = engine.eval(factorialFunct + arg[1]) + "";
+                            eval = engine.eval(factorialFunct + arg[1]).toString();
                             if (isNumeric(eval)) {
                                 if (arg.length < 3) {
                                     sendMessage(event, eval, true);
@@ -684,25 +680,20 @@ class MyBotX extends ListenerAdapter{
 
 //lookup - Looks up something in Wikipedia
         if (arg[0].equalsIgnoreCase(prefix + "Lookup")) {
-            DatabaseConfiguration dbConfig = new DatabaseConfiguration("localhost:63342/FozruciX/Data/Wiktionary", "Wikipedia", "lilggamegenuis", setPassword(), WikiConstants.Language.english);
+            if (checkPerm(event.getUser(), 5)) {
+                String[] listOfTitleStrings = {arg[1]};
+                info.bliki.api.User user = new info.bliki.api.User("", "", "http://en.wikipedia.org/w/api.php");
+                user.login();
+                List<Page> listOfPages = user.queryContent(listOfTitleStrings);
+                WikiModel wikiModel = new WikiModel("${image}", "${title}");
+                System.out.print(listOfPages.get(0).toString());
+                String plainStr = wikiModel.render(new PlainTextConverter(), listOfPages.get(0).getCurrentContent()).replace("\r", "").replace("\n", "");
+                Pattern pattern = Pattern.compile("[^.]*");
+                Matcher matcher = pattern.matcher(plainStr);
+                if (matcher.find()) {
+                    sendMessage(event, matcher.group(0).replaceAll("\\{\\{[^\\}]+\\}\\}", "") + ". ", true);
+                }
 
-            Wikipedia wiki = null;
-            try {
-                wiki = new Wikipedia(dbConfig);
-            } catch (WikiInitializationException e1) {
-                sendMessage(event, "Could not initialize Wikipedia.", true);
-            }
-
-            // Get the page with title "Hello world".
-            String title = arg[1];
-            try {
-	            //noinspection ConstantConditions,ConstantConditions
-	            Page page = wiki.getPage(title);
-	            sendMessage(event, page.getText(), true);
-            } catch (WikiApiException e) {
-                sendMessage(event, "Page " + title + " does not exist", true);
-            } catch (Exception e) {
-                sendError(event, e);
             }
         }
 
@@ -1517,7 +1508,7 @@ class MyBotX extends ListenerAdapter{
         if (event.getMessage().equalsIgnoreCase(prefix + "myDickSize")) {
             if (checkPerm(event.getUser(), 0)) {
                 if (jokeCommands || checkPerm(event.getUser(), 1))
-                    if (event.getChannel().getName().equalsIgnoreCase("#origami64") || event.getChannel().getName().equalsIgnoreCase("#Lil-G|bot") || event.getChannel().getName().equalsIgnoreCase("#SSB")) {
+                    if (event.getChannel().getName().equalsIgnoreCase("#origami64") || event.getChannel().getName().equalsIgnoreCase("#sm64") || event.getChannel().getName().equalsIgnoreCase("#Lil-G|bot") || event.getChannel().getName().equalsIgnoreCase("#SSB")) {
                         if (event.getUser().getNick().equalsIgnoreCase(currentNick)) {
                             sendMessage(event, "Error: IntegerOutOfBoundsException: Greater than Integer.MAX_VALUE", false);
                         } else {
@@ -1854,7 +1845,18 @@ class MyBotX extends ListenerAdapter{
     }
 
 	private void sendError(MessageEvent event, Exception e){
-		sendMessage(event, Colors.RED + "Error: " + e.getCause() + ". From " + e, false);
+        System.out.print("Error: " + e.getCause());
+        String cause = Colors.RED + "Error: " + e.getCause();
+        String from = ". From " + e;
+        if (cause.contains("jdk.nashorn.internal.runtime.ParserException") || from.contains("javax.script.ScriptException")) {
+            if (cause.contains("Expected an operand but found eof")) {
+                sendMessage(event, "Your expression has spaces so it needs to be enclosed in quotes", false);
+            } else {
+                sendMessage(event, cause, false);
+            }
+        } else {
+            sendMessage(event, cause + from, false);
+        }
     }
 
 	private String botTalk(String bot, String message) throws Exception{

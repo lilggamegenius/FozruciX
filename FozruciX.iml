@@ -16,5 +16,6 @@
     <orderEntry type="library" name="de.tudarmstadt.ukp.wikipedia:de.tudarmstadt.ukp.wikipedia.api:1.0.0" level="project" />
     <orderEntry type="library" name="org.pircbotx:pircbotx:2.0.1" level="project" />
     <orderEntry type="library" name="org.slf4j:slf4j-log4j12:1.7.5" level="project" />
+    <orderEntry type="library" name="info.bliki.wiki:bliki-core:3.0.19" level="project" />
   </component>
 </module>
