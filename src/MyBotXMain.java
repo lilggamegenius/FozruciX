@@ -19,7 +19,7 @@ class MyBotXMain{
 	    boolean debug = false;
 	    String nick = "FozruciX";
         String login = "SmugLeaf";
-        String realName = "\u00030Lil-Gs Bot";
+        String realName = "\u00034\u000FLil-Gs Bot";
         String badnickNET = "irc.badnik.net";
         String twitch = "irc.twitch.tv";
         String caffie = "irc.caffie.net";

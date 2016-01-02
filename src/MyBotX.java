@@ -23,6 +23,7 @@ import info.bliki.api.Page;
 import info.bliki.wiki.filter.PlainTextConverter;
 import info.bliki.wiki.model.WikiModel;
 import org.apache.commons.lang3.StringUtils;
+import org.pircbotx.Channel;
 import org.pircbotx.Colors;
 import org.pircbotx.User;
 import org.pircbotx.hooks.Event;
@@ -85,6 +86,7 @@ class MyBotX extends ListenerAdapter {
     private JFrame frame = new JFrame();
     private MessageModes messageMode = MessageModes.normal;
     private List<RPSGame> rpsGames = new ArrayList<>();
+    private String avatar;
 
     @SuppressWarnings("unused")
     public MyBotX() {
@@ -197,6 +199,7 @@ class MyBotX extends ListenerAdapter {
         authedUserLevel = save.getAuthedUserLevel();
         DNDJoined = save.getDNDJoined();
         DNDList = save.getDNDList();
+        avatar = save.getAvatarLink();
 
         boolean drawDungeon = false;
         if (drawDungeon) {
@@ -319,6 +322,27 @@ class MyBotX extends ListenerAdapter {
         if (arg[0].equalsIgnoreCase(prefix + "Connect")) {
             if (checkPerm(event.getUser(), 5)) {
                 event.getBot().send().joinChannel(arg[1]);
+            }
+        }
+
+// !setAvatar - sets the avatar of the bot
+        if (arg[0].equalsIgnoreCase(prefix + "setAvatar")) {
+            if (checkPerm(event.getUser(), 5)) {
+                avatar = arg[1];
+                sendMessage(event, "Avatar set", false);
+                Iterator<Channel> channels = event.getBot().getUserBot().getChannels().iterator();
+                while (channels.hasNext()) {
+                    Channel channel = channels.next();
+                    Iterator<User> user = channel.getUsers().iterator();
+                    while (user.hasNext()) {
+                        User curUser = user.next();
+                        if (curUser.getRealName().startsWith("\u0003")) {
+
+                        }
+                    }
+                }
+            } else {
+                permErrorchn(event, "nah fam");
             }
         }
 
@@ -1599,15 +1623,6 @@ class MyBotX extends ListenerAdapter {
 
         String[] arg = splitMessage(PM.getMessage());
 
-        if (PM.getMessage().equals("\u0001AVATAR\u0001")) {
-            //noinspection ConstantConditions
-            PM.getUser().send().notice("\u0001AVATAR http://puu.sh/kA75A.jpg 19117\u0001");
-        }
-        if (PM.getMessage().contains("\u0001A")) {
-            //noinspection ConstantConditions
-            PM.getUser().send().notice("\u0001AVATAR http://puu.sh/kA75A.jpg 19117\u0001");
-        }
-
 // !rps - Rock! Paper! ehh you know the rest
         if (arg[0].equalsIgnoreCase(prefix + "rps")) {
             String nick = PM.getUser().getNick();
@@ -1694,6 +1709,7 @@ class MyBotX extends ListenerAdapter {
             if (PM.getMessage().equalsIgnoreCase(prefix + "quitserv")) {
                 PM.getUser().send().notice("Disconnecting from server");
                 PM.getBot().sendIRC().quitServer();
+                System.exit(0);
             }
 
 // !rejoin - Rejoins all channels
@@ -1738,7 +1754,7 @@ class MyBotX extends ListenerAdapter {
                     message.contains("nick, type /msg NickServ IDENTIFY password.  Otherwise,")) {
 
             } else if (message.contains("\u0001AVATAR")) {
-                event.getUser().send().notice("\u0001AVATAR http://puu.sh/kA75A.jpg\u0001");
+                event.getUser().send().notice("\u0001AVATAR " + avatar + "\u0001");
             } else {
                 event.getBot().sendIRC().notice(currentNick, "Got notice from " + event.getUser().getNick() + ". Notice was : " + event.getMessage());
             }
@@ -1776,12 +1792,13 @@ class MyBotX extends ListenerAdapter {
     }
 
     public void onUnknown(UnknownEvent event) {
-
-        if (event.getLine().contains("AVATAR")) {
+        String line = event.getLine();
+        if (line.contains("\u0001AVATAR\u0001")) {
             //noinspection ConstantConditions
-            event.getBot().sendRaw().rawLineNow("notice " + lastEvent.getUser().getNick() + " AVATAR http://puu.sh/kA75A.jpg");
+            line = line.substring(line.indexOf(":") + 1, line.indexOf("!"));
+            event.getBot().send().notice(line, "\u0001AVATAR " + avatar + "\u0001");
         }
-        System.out.println("Recieved unknown");
+        System.out.println("Recieved unknown: " + event.getLine());
         debug.setCurrentNick(currentNick + "!" + currentUsername + "@" + currentHost);
     }
 
@@ -1901,7 +1918,7 @@ class MyBotX extends ListenerAdapter {
 
     private void saveData(MessageEvent event) {
         try {
-            SaveDataStore save = new SaveDataStore(noteList, authedUser, authedUserLevel, DNDJoined, DNDList);
+            SaveDataStore save = new SaveDataStore(noteList, authedUser, authedUserLevel, DNDJoined, DNDList, avatar);
             FileWriter writer = new FileWriter("Data/Data.json");
             writer.write(gson.toJson(save));
             writer.close();

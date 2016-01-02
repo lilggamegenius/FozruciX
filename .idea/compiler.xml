@@ -38,9 +38,7 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="chatter-bot-api" target="1.5" />
       <module name="FozruciX" target="" />
-      <module name="json-io" target="1.6" />
     </bytecodeTargetLevel>
   </component>
   <component name="EclipseCompilerSettings">

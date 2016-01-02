@@ -15,13 +15,16 @@ class SaveDataStore{
 	private List<String> DNDJoined = new ArrayList<>();
 	private List<DNDPlayer> DNDList = new ArrayList<>();
 
+    private String avatarLink = "http://puu.sh/kA75A.jpg";
 
-    public SaveDataStore(List<Note> noteList, List<String> authedUser, List<Integer> authedUserLevel, List<String> DNDJoined, List<DNDPlayer> DNDList) {
+
+    public SaveDataStore(List<Note> noteList, List<String> authedUser, List<Integer> authedUserLevel, List<String> DNDJoined, List<DNDPlayer> DNDList, String avatarLink) {
         this.noteList = noteList;
         this.authedUser = authedUser;
         this.authedUserLevel = authedUserLevel;
         this.DNDJoined = DNDJoined;
         this.DNDList = DNDList;
+        this.avatarLink = avatarLink;
     }
 
     public List<Note> getNoteList() {
@@ -42,5 +45,9 @@ class SaveDataStore{
 
     public List<DNDPlayer> getDNDList() {
         return DNDList;
+    }
+
+    public String getAvatarLink() {
+        return avatarLink;
     }
 }
