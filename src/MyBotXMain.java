@@ -19,7 +19,7 @@ class MyBotXMain{
 	    boolean debug = false;
 	    String nick = "FozruciX";
         String login = "SmugLeaf";
-        String realName = "Lil-Gs Bot";
+        String realName = "\u00030Lil-Gs Bot";
         String badnickNET = "irc.badnik.net";
         String twitch = "irc.twitch.tv";
         String caffie = "irc.caffie.net";
@@ -94,7 +94,6 @@ class MyBotXMain{
                 .setRealName(realName)
                 .setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates())
                 .addAutoJoinChannel("#sm64")
-                .addAutoJoinChannel("#smwc")
                 .addListener(new MyBotX()); //Add our listener that will be called on Events
 
 
