@@ -15,7 +15,7 @@ class SaveDataStore{
 	private List<String> DNDJoined = new ArrayList<>();
 	private List<DNDPlayer> DNDList = new ArrayList<>();
 
-    private String avatarLink = "http://puu.sh/kA75A.jpg";
+    private String avatarLink = "http://puu.sh/mh1mu.png";
 
 
     public SaveDataStore(List<Note> noteList, List<String> authedUser, List<Integer> authedUserLevel, List<String> DNDJoined, List<DNDPlayer> DNDList, String avatarLink) {

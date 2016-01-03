@@ -86,7 +86,7 @@ class MyBotX extends ListenerAdapter {
     private JFrame frame = new JFrame();
     private MessageModes messageMode = MessageModes.normal;
     private List<RPSGame> rpsGames = new ArrayList<>();
-    private String avatar;
+    private String avatar = "http://puu.sh/mh1mu.png";
 
     @SuppressWarnings("unused")
     public MyBotX() {
@@ -188,7 +188,7 @@ class MyBotX extends ListenerAdapter {
 
         makeDebug(event);
 
-        if (nickInUse) {
+        if (nickInUse || event.getBot().getUserBot().getNick().equalsIgnoreCase("FozruciX1")) {
             event.getBot().sendRaw().rawLineNow("ns recover " + event.getBot().getNick() + " " + PASSWORD);
         }
 
@@ -199,7 +199,9 @@ class MyBotX extends ListenerAdapter {
         authedUserLevel = save.getAuthedUserLevel();
         DNDJoined = save.getDNDJoined();
         DNDList = save.getDNDList();
-        avatar = save.getAvatarLink();
+        if (save.getAvatarLink() != null) {
+            avatar = save.getAvatarLink();
+        }
 
         boolean drawDungeon = false;
         if (drawDungeon) {
@@ -330,17 +332,20 @@ class MyBotX extends ListenerAdapter {
             if (checkPerm(event.getUser(), 5)) {
                 avatar = arg[1];
                 sendMessage(event, "Avatar set", false);
-                Iterator<Channel> channels = event.getBot().getUserBot().getChannels().iterator();
-                while (channels.hasNext()) {
-                    Channel channel = channels.next();
-                    Iterator<User> user = channel.getUsers().iterator();
-                    while (user.hasNext()) {
-                        User curUser = user.next();
-                        if (curUser.getRealName().startsWith("\u0003")) {
-
+                List<User> users = new ArrayList<>();
+                for (Channel channel : event.getBot().getUserBot().getChannels()) {
+                    for (User curUser : channel.getUsers()) {
+                        if (users.indexOf(curUser) == -1 && !curUser.getNick().equalsIgnoreCase(event.getBot().getNick())) {
+                            users.add(curUser);
                         }
                     }
                 }
+                for (int i = 0; users.size() >= i; i++) {
+                    if (users.get(i).getRealName().startsWith("\u0003")) {
+                        event.getBot().send().notice(users.get(i).getNick(), "\u0001AVATAR " + avatar + "\u0001");
+                    }
+                }
+
             } else {
                 permErrorchn(event, "nah fam");
             }
