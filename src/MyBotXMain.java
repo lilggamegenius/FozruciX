@@ -94,6 +94,7 @@ class MyBotXMain{
                 .setRealName(realName)
                 .setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates())
                 .addAutoJoinChannel("#sm64")
+                .addAutoJoinChannel("#botTest")
                 .addListener(new MyBotX()); //Add our listener that will be called on Events
 
 
@@ -106,7 +107,8 @@ class MyBotXMain{
                 .setLogin(login)
                 .setRealName(realName)
                 .setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates())
-                .addAutoJoinChannel("#sm64") //Join the official #Lil-G|Bot channel
+                .addAutoJoinChannel("#sm64")
+                .addAutoJoinChannel("#botTest")
                 .addListener(new MyBotX()); //Add our listener that will be called on Events
 
         //Create our bot with the configuration

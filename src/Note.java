@@ -48,6 +48,7 @@ class Note implements Serializable{
         return "to: " + receiver + "| UUID: " + id;
     }
 
+
     public String toString() {
         return "Sender: " + sender + ". Receiver: " + receiver + ". Date: " + date + ". Channel: " + channel + ". Message: " + message + ".";
     }

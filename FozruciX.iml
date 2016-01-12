@@ -17,5 +17,14 @@
     <orderEntry type="library" name="org.pircbotx:pircbotx:2.0.1" level="project" />
     <orderEntry type="library" name="org.slf4j:slf4j-log4j12:1.7.5" level="project" />
     <orderEntry type="library" name="info.bliki.wiki:bliki-core:3.0.19" level="project" />
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/lib/nodyn-0.1.1-20141121.193443-283.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
   </component>
 </module>

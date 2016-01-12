@@ -69,9 +69,9 @@ class runCMD extends Thread{
         String output;
         while (s.hasNextLine() && !Thread.interrupted()) {
             output = s.nextLine();
-            if (!output.contains("C:\\Users\\ggonz\\workspace\\pircbotx-master")
-                    && !output.equals("Microsoft Windows [Version 10.0.10240]")
-                    && !output.equals("(c) 2015 Microsoft Corporation. All rights reserved.")
+            if (!output.contains("C:\\Users\\FozruciX\\workspace\\FozruciX>")
+                    && !output.contains("Microsoft Windows [Version")
+                    && !output.contains("Microsoft Corporation. All rights reserved.")
                     && !output.contains("Directory of")
                     && !output.contains("<DIR>          .")
                     && !output.contains("bytes free")
