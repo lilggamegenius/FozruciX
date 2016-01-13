@@ -1037,7 +1037,7 @@ class MyBotX extends ListenerAdapter {
         }
 
 // !version - gets the version of the bot
-        if (event.getMessage().equalsIgnoreCase(prefix + "version")) {
+        if (event.getMessage().equalsIgnoreCase(prefix + "version") && event.getChannel().getName().equalsIgnoreCase("#deltasmash")) {
             if (checkPerm(event.getUser(), 0)) {
                 String VERSION = "PircBotX: 2.1-20151112.042241-148. BotVersion: 2.0";
                 sendMessage(event, "Version: " + VERSION, true);
