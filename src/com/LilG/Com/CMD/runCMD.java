@@ -1,3 +1,5 @@
+package com.LilG.Com.CMD;
+
 import org.pircbotx.hooks.events.MessageEvent;
 
 import java.io.BufferedWriter;
@@ -7,7 +9,7 @@ import java.util.Scanner;
 /**
  * Created by ggonz on 10/16/2015.
  */
-class runCMD extends Thread{
+public class runCMD extends Thread {
     private final MessageEvent event;
     private final String[] arg;
     private String console = "cmd.exe";

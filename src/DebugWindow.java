@@ -42,7 +42,7 @@ class DebugWindow extends JFrame{
 
         currentNickL = new JLabel("Currently Registered User", SwingConstants.LEFT);
         lastMessageL = new JLabel("Last message", SwingConstants.LEFT);
-        currDML = new JLabel("Current Dungeon master", SwingConstants.LEFT);
+        currDML = new JLabel("Current com.LilG.Com.DND.Dungeon master", SwingConstants.LEFT);
         myPlayerNameL = new JLabel("My username", SwingConstants.LEFT);
         myPlayerHPL = new JLabel("HP", SwingConstants.LEFT);
         myPlayerXPL = new JLabel("XP", SwingConstants.LEFT);

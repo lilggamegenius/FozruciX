@@ -1,14 +1,17 @@
+package com.LilG.Com.DND;
+
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 /**
  * Created by ggonz on 11/18/2015.
- * The Dungeon! (Dun dun duuuuuuun!)
+ * The com.LilG.Com.DND.Dungeon! (Dun dun duuuuuuun!)
  */
 
-class Dungeon{
-	private final List<int[]> rooms = new ArrayList<>();
+public class Dungeon {
+    private final List<int[]> rooms = new ArrayList<>();
 	private final int map_size = 64;
 	private final int[][] map = new int[map_size][map_size];
 	private boolean currentPointSet = false;
@@ -17,6 +20,28 @@ class Dungeon{
 
     public Dungeon() {
         generate();
+    }
+
+    /**
+     * Returns a pseudo-random number between min and max, inclusive.
+     * The difference between min and max can be at most
+     * <code>Integer.MAX_VALUE - 1</code>.
+     *
+     * @param min Minimum value
+     * @param max Maximum value.  Must be greater than min.
+     * @return Integer between min and max, inclusive.
+     * @see java.util.Random#nextInt(int)
+     */
+    public static int randInt(int min, int max) {
+
+        // NOTE: Usually this should be a field rather than a method
+        // variable so that it is not re-seeded every call.
+        Random rand = new Random();
+
+        // nextInt is normally exclusive of the top value,
+        // so add 1 to make it inclusive
+
+        return rand.nextInt((max - min) + 1) + min;
     }
 
 	private void generate(){
@@ -28,16 +53,16 @@ class Dungeon{
 		}
 
 		int min_size = 5;
-		int max_size = 15;
-		int room_count = MyBotX.randInt(10, 20);
+        int max_size = 15;
+        int room_count = randInt(10, 20);
 
 		for(int i = 0; i < room_count; i++){
-			int room[] = new int[4];
+            int room[] = new int[4];
 
-			room[0] = MyBotX.randInt(1, map_size - max_size - 1); //x
-			room[1] = MyBotX.randInt(1, map_size - max_size - 1); //y
-			room[2] = MyBotX.randInt(min_size, max_size); //w
-			room[3] = MyBotX.randInt(min_size, max_size); //h
+            room[0] = randInt(1, map_size - max_size - 1); //x
+            room[1] = randInt(1, map_size - max_size - 1); //y
+            room[2] = randInt(min_size, max_size); //w
+            room[3] = randInt(min_size, max_size); //h
 
 			if (DoesCollide(room, i)){
 				i--;
@@ -60,12 +85,12 @@ class Dungeon{
 				roomB = FindClosestRoom(roomA);
 			}
 
-			Point pointA = new Point(
-					MyBotX.randInt(roomA[0], roomA[0] + roomA[2]),
-					MyBotX.randInt(roomA[1], roomA[1] + roomA[3]));
-			Point pointB = new Point(
-					MyBotX.randInt(roomB[0], roomB[0] + roomB[2]),
-					MyBotX.randInt(roomB[1], roomB[1] + roomB[3]));
+            Point pointA = new Point(
+                    randInt(roomA[0], roomA[0] + roomA[2]),
+                    randInt(roomA[1], roomA[1] + roomA[3]));
+            Point pointB = new Point(
+                    randInt(roomB[0], roomB[0] + roomB[2]),
+                    randInt(roomB[1], roomB[1] + roomB[3]));
 
 			while ((pointB.x != pointA.x) || (pointB.y != pointA.y)){
 				if (pointB.x != pointA.x){
@@ -145,8 +170,7 @@ class Dungeon{
         };
         int[] closest = null;
         int closest_distance = 1000;
-        for (int i = 0; i < rooms.size(); i++) {
-            int[] check = rooms.get(i);
+        for (int[] check : rooms) {
             if (check == room) continue;
             int[] check_mid = {
                     check[0] + (check[2] / 2),

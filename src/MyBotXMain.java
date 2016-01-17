@@ -94,6 +94,7 @@ class MyBotXMain{
                 .setRealName(realName)
                 .setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates())
                 .addAutoJoinChannel("#sm64")
+                .addAutoJoinChannel("#pmd")
                 .addAutoJoinChannel("#botTest")
                 .addListener(new MyBotX()); //Add our listener that will be called on Events
 
@@ -108,6 +109,7 @@ class MyBotXMain{
                 .setRealName(realName)
                 .setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates())
                 .addAutoJoinChannel("#sm64")
+                .addAutoJoinChannel("#pmd")
                 .addAutoJoinChannel("#botTest")
                 .addListener(new MyBotX()); //Add our listener that will be called on Events
 

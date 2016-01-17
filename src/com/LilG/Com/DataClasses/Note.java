@@ -1,3 +1,5 @@
+package com.LilG.Com.DataClasses;
+
 import java.io.Serializable;
 import java.util.Date;
 import java.util.UUID;
@@ -5,7 +7,7 @@ import java.util.UUID;
 /**
  * Created by ggonz on 10/31/2015.
  */
-class Note implements Serializable{
+public class Note implements Serializable {
     final String sender;
     private final String receiver;
     private final String message;

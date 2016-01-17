@@ -1,3 +1,5 @@
+package com.LilG.Com.CMD;
+
 import org.pircbotx.hooks.events.MessageEvent;
 
 import java.io.BufferedWriter;
@@ -9,7 +11,7 @@ import java.util.Scanner;
  * this class is meant to interface with the systems command processor to allow the bot to run system commands
  * this version does not close after it has run allowing it to have the same environment without having to set it again
  */
-class CommandLine extends Thread{
+public class CommandLine extends Thread {
     private MessageEvent event;
     private String command;
     private Process p;

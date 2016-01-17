@@ -3,6 +3,12 @@
  * Main bot class
  */
 
+import com.LilG.Com.CMD.CommandLine;
+import com.LilG.Com.CMD.runCMD;
+import com.LilG.Com.DND.DNDPlayer;
+import com.LilG.Com.DND.Dungeon;
+import com.LilG.Com.DataClasses.Note;
+import com.LilG.Com.DataClasses.SaveDataStore;
 import com.fathzer.soft.javaluator.StaticVariableSet;
 import com.google.code.chatterbotapi.ChatterBot;
 import com.google.code.chatterbotapi.ChatterBotFactory;
@@ -50,7 +56,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 
-class MyBotX extends ListenerAdapter {
+public class MyBotX extends ListenerAdapter {
     private final static File WIKTIONARY_DIRECTORY = new File("Data\\Wiktionary");
     //boolean spinStarted = false;
     private final String[] dictionary = {"i don't know what \"%s\" is, do i look like a dictionary?", "Go look it up yourself.", "Why not use your computer and look \"%s\" up.", "Google it.", "Nope.", "Get someone else to do it.", "Why not get that " + Colors.RED + "Other bot" + Colors.NORMAL + " to do it?", "There appears to be a error between your " + Colors.BOLD + "seat" + Colors.NORMAL + " and the " + Colors.BOLD + "Keyboard" + Colors.NORMAL + " >_>", "Uh oh, there appears to be a User error.", "error: Fuck count too low, Cannot give Fuck.", ">_>"};
@@ -90,6 +96,7 @@ class MyBotX extends ListenerAdapter {
     private List<RPSGame> rpsGames = new ArrayList<>();
     private String avatar = "http://puu.sh/mhwsr.gif";
     private boolean color = true;
+    private HashMap<String, String> memes = new HashMap<>();
 
     @SuppressWarnings("unused")
     public MyBotX() {
@@ -192,7 +199,7 @@ class MyBotX extends ListenerAdapter {
         makeDebug(event);
 
         if (nickInUse || event.getBot().getUserBot().getNick().equalsIgnoreCase("FozruciX1")) {
-            event.getBot().sendRaw().rawLineNow("ns recover " + event.getBot().getNick() + " " + PASSWORD);
+            event.getBot().sendRaw().rawLineNow("ns recover " + event.getBot().getConfiguration().getName() + " " + PASSWORD);
         }
 
         BufferedReader br = new BufferedReader(new FileReader("Data/Data.json"));
@@ -205,6 +212,8 @@ class MyBotX extends ListenerAdapter {
         if (save.getAvatarLink() != null) {
             avatar = save.getAvatarLink();
         }
+        memes = save.getMemes();
+
 
         /*boolean drawDungeon = false;
         if (drawDungeon) {
@@ -271,7 +280,7 @@ class MyBotX extends ListenerAdapter {
         lastEvent.getBot().send().message(userToSendTo, msgToSend);
     }
 
-    @SuppressWarnings("StatementWithEmptyBody")
+    @SuppressWarnings({"StatementWithEmptyBody", "ConstantConditions"})
     @Override
     public void onMessage(MessageEvent event) {
         lastEvent = event;
@@ -642,6 +651,11 @@ class MyBotX extends ListenerAdapter {
             sendMessage(event, "Link to source code: https://github.com/lilggamegenuis/FozruciX", true);
         }
 
+// !vgm - links to my New mixtapes :V
+        if (arg[0].equalsIgnoreCase(prefix + "vgm")) {
+            sendMessage(event, "Link to My smps music: https://drive.google.com/open?id=0B3aju_x5_V--ZjAyLWZEUnV1aHc", true);
+        }
+
 // !GC - Runs the garbage collector
         if (arg[0].equalsIgnoreCase(prefix + "GC")) {
             int num = gc();
@@ -955,6 +969,20 @@ class MyBotX extends ListenerAdapter {
             }
         }
 
+// !memes - Got all dem memes
+        if (arg[0].equalsIgnoreCase(prefix + "memes")) {
+            if (checkPerm(event.getUser(), 0)) {
+                if (arg[1].equalsIgnoreCase("set")) {
+                    //todo
+                }
+                if (arg[1].equalsIgnoreCase("del")) {
+                    //todo
+                } else {
+                    //todo
+                }
+            }
+        }
+
 // !notej - Leaves notes
         if (arg[0].equalsIgnoreCase(prefix + "notej")) {
             if (checkPerm(event.getUser(), 0)) {
@@ -972,9 +1000,9 @@ class MyBotX extends ListenerAdapter {
                             }
                         }
                         if (found) {
-                            if (event.getUser().getNick().equalsIgnoreCase(noteList.get(index).sender)) {
+                            if (event.getUser().getNick().equalsIgnoreCase(noteList.get(index).getSender())) {
                                 noteList.remove(index);
-                                sendMessage(event, "Note " + arg[2] + " Deleted", true);
+                                sendMessage(event, "com.LilG.Com.DataClasses.Note " + arg[2] + " Deleted", true);
                             } else {
                                 sendMessage(event, "Nick didn't match nick that left note, as of right now there is no alias system so if you did leave this note; switch to the nick you used when you left it", true);
                             }
@@ -1995,6 +2023,10 @@ class MyBotX extends ListenerAdapter {
     }
 
     private String[] splitMessage(String stringToSplit) {
+        return splitMessage(stringToSplit, 0);
+    }
+
+    private String[] splitMessage(String stringToSplit, int amountToSplit) {
         if (stringToSplit == null)
             return new String[0];
 
@@ -2003,10 +2035,18 @@ class MyBotX extends ListenerAdapter {
         while (argSep.find())
             list.add(argSep.group(1));
 
-        for (int i = 0; list.size() > i; i++) { // go through all of the
-            list.set(i, list.get(i).replaceAll("\"", "")); // remove quotes left in the string
-            list.set(i, list.get(i).replaceAll("''", "\"")); // replace double ' to quotes
-            // go to next string
+        if (amountToSplit != 0) {
+            for (int i = 0; list.size() > i; i++) { // go through all of the
+                list.set(i, list.get(i).replaceAll("\"", "")); // remove quotes left in the string
+                list.set(i, list.get(i).replaceAll("''", "\"")); // replace double ' to quotes
+                // go to next string
+            }
+        } else {
+            for (int i = 0; list.size() > i || amountToSplit > i; i++) { // go through all of the
+                list.set(i, list.get(i).replaceAll("\"", "")); // remove quotes left in the string
+                list.set(i, list.get(i).replaceAll("''", "\"")); // replace double ' to quotes
+                // go to next string
+            }
         }
         return list.toArray(new String[list.size()]);
     }
@@ -2053,7 +2093,7 @@ class MyBotX extends ListenerAdapter {
 
     private void saveData(MessageEvent event) {
         try {
-            SaveDataStore save = new SaveDataStore(noteList, authedUser, authedUserLevel, DNDJoined, DNDList, avatar);
+            SaveDataStore save = new SaveDataStore(noteList, authedUser, authedUserLevel, DNDJoined, DNDList, avatar, memes);
             FileWriter writer = new FileWriter("Data/Data.json");
             writer.write(gson.toJson(save));
             writer.close();
@@ -2076,7 +2116,7 @@ class MyBotX extends ListenerAdapter {
         try {
             if (i != -1) {
                 while (!indexList.isEmpty()) {
-                    System.out.println("Note Loop Start");
+                    System.out.println("com.LilG.Com.DataClasses.Note Loop Start");
                     int index = indexList.size() - 1;
                     System.out.println("Index " + index);
                     String receiver = noteList.get(index).getReceiver();
@@ -2090,7 +2130,7 @@ class MyBotX extends ListenerAdapter {
                     }
                     noteList.remove(index);
                     indexList.remove(index);
-                    System.out.println(" Note Loop End");
+                    System.out.println(" com.LilG.Com.DataClasses.Note Loop End");
 
                 }
             }
@@ -2116,6 +2156,15 @@ class MyBotX extends ListenerAdapter {
 
         debug.updateBot(event.getBot());
         debug.setCurrentNick(currentNick + "!" + currentUsername + "@" + currentHost);
+    }
+
+    private String argJoiner(String[] args, int argToStartFrom) throws ArrayIndexOutOfBoundsException {
+        int length = args.length;
+        String strToReturn = "";
+        for (; length < argToStartFrom; argToStartFrom++) {
+            strToReturn += " " + args[argToStartFrom];
+        }
+        return strToReturn;
     }
 
     private String fullNameToString(Language language) {
