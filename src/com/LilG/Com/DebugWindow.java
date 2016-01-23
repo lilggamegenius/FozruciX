@@ -1,3 +1,5 @@
+package com.LilG.Com;
+
 import com.google.common.collect.ImmutableSortedSet;
 import org.pircbotx.Channel;
 import org.pircbotx.PircBotX;

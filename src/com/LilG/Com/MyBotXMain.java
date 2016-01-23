@@ -1,3 +1,5 @@
+package com.LilG.Com;
+
 import org.pircbotx.Configuration;
 import org.pircbotx.MultiBotManager;
 import org.pircbotx.UtilSSLSocketFactory;
@@ -40,6 +42,7 @@ class MyBotXMain{
                 .addAutoJoinChannel("#retrotech")
                 .addAutoJoinChannel("#SSB")
                 .addAutoJoinChannel("#origami64")
+                .addAutoJoinChannel("#firemario_sucks")
                 .addListener(new MyBotX()); //Add our listener that will be called on Events
 
 
@@ -55,6 +58,7 @@ class MyBotXMain{
                 .addAutoJoinChannel("#Lil-G|bot") //Join the official #Lil-G|Bot channel
                 .addAutoJoinChannel("#SSB")
                 .addAutoJoinChannel("#origami64")
+                .addAutoJoinChannel("#firemario_sucks")
                 .addListener(new MyBotX()); //Add our listener that will be called on Events
 
         Configuration.Builder twitchNormal = new Configuration.Builder()

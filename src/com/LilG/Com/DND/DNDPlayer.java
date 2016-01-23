@@ -167,7 +167,7 @@ public class DNDPlayer{
 	}
 
     public enum DNDClasses {
-	    Barbarian, Bard, Cleric, Druid, Wizard_Mage, Monk_Mystic, Paladin, Ranger, Sorcerer, Thief_Rogue, Warlock
+        Barbarian, Bard, Cleric, Druid, Wizard, Mage, Monk_Mystic, Paladin, Ranger, Sorcerer, Thief_Rogue, Warlock
     }
 
     public enum DNDFamiliars {

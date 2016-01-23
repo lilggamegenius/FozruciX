@@ -1,4 +1,4 @@
-/**
+package com.LilG.Com; /**
  * Created by Lil-G on 10/11/2015.
  * Main bot class
  */
@@ -7,6 +7,7 @@ import com.LilG.Com.CMD.CommandLine;
 import com.LilG.Com.CMD.runCMD;
 import com.LilG.Com.DND.DNDPlayer;
 import com.LilG.Com.DND.Dungeon;
+import com.LilG.Com.DataClasses.Meme;
 import com.LilG.Com.DataClasses.Note;
 import com.LilG.Com.DataClasses.SaveDataStore;
 import com.fathzer.soft.javaluator.StaticVariableSet;
@@ -14,6 +15,7 @@ import com.google.code.chatterbotapi.ChatterBot;
 import com.google.code.chatterbotapi.ChatterBotFactory;
 import com.google.code.chatterbotapi.ChatterBotSession;
 import com.google.code.chatterbotapi.ChatterBotType;
+import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.rmtheis.yandtran.YandexTranslatorAPI;
@@ -33,12 +35,16 @@ import io.nodyn.Nodyn;
 import io.nodyn.runtime.NodynConfig;
 import io.nodyn.runtime.RuntimeFactory;
 import org.apache.commons.lang3.StringUtils;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 import org.pircbotx.Channel;
 import org.pircbotx.Colors;
+import org.pircbotx.PircBotX;
 import org.pircbotx.User;
 import org.pircbotx.hooks.Event;
 import org.pircbotx.hooks.ListenerAdapter;
 import org.pircbotx.hooks.events.*;
+import sun.misc.Unsafe;
 
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
@@ -61,7 +67,7 @@ public class MyBotX extends ListenerAdapter {
     //boolean spinStarted = false;
     private final String[] dictionary = {"i don't know what \"%s\" is, do i look like a dictionary?", "Go look it up yourself.", "Why not use your computer and look \"%s\" up.", "Google it.", "Nope.", "Get someone else to do it.", "Why not get that " + Colors.RED + "Other bot" + Colors.NORMAL + " to do it?", "There appears to be a error between your " + Colors.BOLD + "seat" + Colors.NORMAL + " and the " + Colors.BOLD + "Keyboard" + Colors.NORMAL + " >_>", "Uh oh, there appears to be a User error.", "error: Fuck count too low, Cannot give Fuck.", ">_>"};
     private final String[] listOfNoes = {" It’s not a priority for me at this time.", "I’d rather stick needles in my eyes.", "My schedule is up in the air right now. SEE IT WAFTING GENTLY DOWN THE CORRIDOR.", "I don’t love it, which means I’m not the right person for it.", "I would prefer another option.", "I would be the absolute worst person to execute, are you on crack?!", "Life is too short TO DO THINGS YOU don’t LOVE.", "I no longer do things that make me want to kill myself", "You should do this yourself, you would be awesome sauce.", "I would love to say yes to everything, but that would be stupid", "Fuck no.", "Some things have come up that need my attention.", "There is a person who totally kicks ass at this. I AM NOT THAT PERSON.", "Shoot me now...", "It would cause the slow withering death of my soul.", "I’d rather remove my own gallbladder with an oyster fork.", "I'd love to but I did my own thing and now I've got to undo it."};
-    private final String[] commands = {"HelpMe", " Time", " calcj", " randomNum", " StringToBytes", " Chat", " Temp", " BlockConv", " Hello", " Bot", " GetName", " recycle", " Login", " GetLogin", " GetID", " GetSate", " ChngCMD", " SayThis", " ToSciNo", " Trans", " DebugVar", " RunCmd", " SayRaw", " SayCTCPCommnad", " Leave", " Respawn", " Kill", " ChangeNick", " SayAction", " NoteJ", " jtoggle", " Joke: Splatoon", "Joke: Attempt", " Joke: potato", " Joke: whatIs?", "Joke: getFinger", " Joke: GayDar"};
+    private final String[] commands = {"HelpMe", " Time", " calcj", " randomNum", " StringToBytes", " Chat", " Temp", " BlockConv", " Hello", " Bot", " GetName", " recycle", " Login", " GetLogin", " GetID", " GetSate", " ChngCMD", " SayThis", " ToSciNo", " Trans", " DebugVar", " RunCmd", " SayRaw", " SayCTCPCommnad", " Leave", " Respawn", " Kill", " ChangeNick", " SayAction", " NoteJ", "Memes", " jtoggle", " Joke: Splatoon", "Joke: Attempt", " Joke: potato", " Joke: whatIs?", "Joke: getFinger", " Joke: GayDar"};
     private final String PASSWORD = setPassword();
     private final ChatterBotFactory factory = new ChatterBotFactory();
     private final ExtendedDoubleEvaluator calc = new ExtendedDoubleEvaluator();
@@ -77,6 +83,8 @@ public class MyBotX extends ListenerAdapter {
     private boolean cleverBotInt;
     private ChatterBotSession pandoraBotsession;
     private boolean pandoraBotInt;
+    private ChatterBotSession jabberBotsession;
+    private boolean jabberBotInt;
     private MessageEvent lastEvent;
     private runCMD singleCMD = null;
     private List<Note> noteList = new ArrayList<>();
@@ -96,7 +104,7 @@ public class MyBotX extends ListenerAdapter {
     private List<RPSGame> rpsGames = new ArrayList<>();
     private String avatar = "http://puu.sh/mhwsr.gif";
     private boolean color = true;
-    private HashMap<String, String> memes = new HashMap<>();
+    private HashMap<String, Meme> memes = new HashMap<>();
 
     @SuppressWarnings("unused")
     public MyBotX() {
@@ -185,6 +193,10 @@ public class MyBotX extends ListenerAdapter {
         return timesRan;
     }
 
+    public static Unsafe getUnsafe() throws SecurityException {
+        return Unsafe.getUnsafe();
+    }
+
     private void makeDebug(Event event) {
         System.out.println("Creating Debug window");
         SwingUtilities.invokeLater(() -> debug = new DebugWindow(event.getBot()));
@@ -193,16 +205,16 @@ public class MyBotX extends ListenerAdapter {
     }
 
     public void onConnect(ConnectEvent event) throws Exception {
-
-        event.getBot().sendIRC().mode(event.getBot().getNick(), "+B");
+        PircBotX bot = event.getBot();
+        bot.sendIRC().mode(event.getBot().getNick(), "+B");
 
         makeDebug(event);
 
         if (nickInUse || event.getBot().getUserBot().getNick().equalsIgnoreCase("FozruciX1")) {
-            event.getBot().sendRaw().rawLineNow("ns recover " + event.getBot().getConfiguration().getName() + " " + PASSWORD);
+            bot.sendRaw().rawLineNow("ns recover " + event.getBot().getConfiguration().getName() + " " + PASSWORD);
         }
 
-        BufferedReader br = new BufferedReader(new FileReader("Data/Data.json"));
+        BufferedReader br = new BufferedReader(new FileReader("Data/" + bot.getServerInfo().getNetwork() + "-Data.json"));
         SaveDataStore save = gson.fromJson(br, SaveDataStore.class);
         noteList = save.getNoteList();
         authedUser = save.getAuthedUser();
@@ -221,7 +233,7 @@ public class MyBotX extends ListenerAdapter {
                 frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
                 frame.setSize(frameWidth, frameHeight);
                 frame.setVisible(true);
-                frame.getContentPane().add(new DrawWindow(DNDDungeon.getMap(), DNDDungeon.getMap_size(), DNDDungeon.getLocation()));
+                frame.getContentPane().add(new com.LilG.Com.DrawWindow(DNDDungeon.getMap(), DNDDungeon.getMap_size(), DNDDungeon.getLocation()));
                 frame.paintAll(frame.getGraphics());
             });
         }*/
@@ -267,11 +279,16 @@ public class MyBotX extends ListenerAdapter {
         msgToSend = getScramble(msgToSend);
 
         if (addNick) {
-
             event.respond(msgToSend);
         } else {
             event.getChannel().send().message(msgToSend);
         }
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    private void sendNotice(String userToSendTo, String msgToSend) {
+        msgToSend = getScramble(msgToSend);
+        lastEvent.getBot().send().notice(userToSendTo, msgToSend);
     }
 
     @SuppressWarnings("SameParameterValue")
@@ -303,49 +320,58 @@ public class MyBotX extends ListenerAdapter {
 // !helpMe
         if (arg[0].equalsIgnoreCase(prefix + "helpme")) {
             if (checkPerm(event.getUser(), 0)) {
-
                 if (event.getMessage().equalsIgnoreCase(prefix + "helpme")) {
-                    sendMessage(event, "List of commands so far. for more info on these commands do " + prefix + "helpme. commands with \"Joke: \" are joke commands that can be disabled", true);
-                    sendMessage(event, Arrays.asList(commands).toString(), true);
+                    sendNotice(event.getUser().getNick(), "List of commands so far. for more info on these commands do " + prefix + "helpme. commands with \"Joke: \" are joke commands that can be disabled");
+                    sendNotice(event.getUser().getNick(), Arrays.asList(commands).toString());
                 } else if (arg[1].equalsIgnoreCase("Helpme")) {
-                    sendMessage(event, "Really? ಠ_ಠ", true);
+                    sendNotice(event.getUser().getNick(), "Really? ಠ_ಠ");
                 } else if (arg[1].equalsIgnoreCase("time")) {
-                    sendMessage(event, "Displays info from the Date class", true);
+                    sendNotice(event.getUser().getNick(), "Displays info from the Date class");
                 } else if (arg[1].equalsIgnoreCase("Hello")) {
-                    sendMessage(event, "Just your average \"hello world!\" program", true);
+                    sendNotice(event.getUser().getNick(), "Just your average \"hello world!\" program");
                 } else if (arg[1].equalsIgnoreCase("Attempt")) {
-                    sendMessage(event, "Its a inside-joke to my friends in school. If i'm not away, ask me and i'll tell you about it.", true);
+                    sendNotice(event.getUser().getNick(), "Its a inside-joke to my friends in school. If i'm not away, ask me and i'll tell you about it.");
                 } else if (arg[1].equalsIgnoreCase("RandomNum")) {
-                    sendMessage(event, "Creates a random number between the 2 integers", true);
-                    sendMessage(event, "Usage: first number sets the minimum number, second sets the maximum", true);
+                    sendNotice(event.getUser().getNick(), "Creates a random number between the 2 integers");
+                    sendNotice(event.getUser().getNick(), "Usage: first number sets the minimum number, second sets the maximum");
                 } else if (arg[1].equalsIgnoreCase("version")) {
-                    sendMessage(event, "Displays the version of the bot", true);
+                    sendNotice(event.getUser().getNick(), "Displays the version of the bot");
                 } else if (arg[1].equalsIgnoreCase("StringToBytes")) {
-                    sendMessage(event, "Converts a String into a Byte array", true);
+                    sendNotice(event.getUser().getNick(), "Converts a String into a Byte array");
                 } else if (arg[1].equalsIgnoreCase("temp")) {
-                    sendMessage(event, "Converts a temperature unit to another unit.", true);
-                    sendMessage(event, "Usage: First parameter is the unit its in. Second parameter is the unit to convert to. Third parameter is the number to convert to.", true);
+                    sendNotice(event.getUser().getNick(), "Converts a temperature unit to another unit.");
+                    sendNotice(event.getUser().getNick(), "Usage: First parameter is the unit its in. Second parameter is the unit to convert to. Third parameter is the number to convert to.");
                 } else if (arg[1].equalsIgnoreCase("chat")) {
-                    sendMessage(event, "This command functions like ELIZA. Talk to it and it talks back.", true);
-                    sendMessage(event, "Usage: First parameter defines what service to use. it supports CleverBot, PandoraBot, and JabberWacky (JabberWacky not yet implemented). Second parameter is the PM.getMessage() to send. Could also be the special param \"\\setup\" to actually start the bot.", true);
+                    sendNotice(event.getUser().getNick(), "This command functions like ELIZA. Talk to it and it talks back.");
+                    sendNotice(event.getUser().getNick(), "Usage: First parameter defines what service to use. it supports CleverBot, PandoraBot, and JabberWacky. Second parameter is the Message to send. Could also be the special param \"\\setup\" to actually start the bot.");
                 } else if (arg[1].equalsIgnoreCase("calcj")) {
-                    sendMessage(event, "This command takes a expression and evaluates it. There are 2 different functions. Currently the only variable is \"x\"", true);
-                    sendMessage(event, "Usage 1: The simple way is to type out the expression without any variables. Usage 2: 1st param is what to start x at. 2nd is what to increment x by. 3rd is amount of times to increment x. last is the expression.", true);
+                    sendNotice(event.getUser().getNick(), "This command takes a expression and evaluates it. There are 2 different functions. Currently the only variable is \"x\"");
+                    sendNotice(event.getUser().getNick(), "Usage 1: The simple way is to type out the expression without any variables. Usage 2: 1st param is what to start x at. 2nd is what to increment x by. 3rd is amount of times to increment x. last is the expression.");
                 } else if (arg[1].equalsIgnoreCase("CalcJS")) {
-                    sendMessage(event, "Renamed to just \"JS\"", true);
+                    sendNotice(event.getUser().getNick(), "Renamed to just \"JS\"");
                 } else if (arg[1].equalsIgnoreCase("JS")) {
-                    sendMessage(event, "This command takes a expression and evaluates it using JavaScript's eval() function. that means that it can also run native JS Code as well.", true);
-                    sendMessage(event, "Usage: simply enter a expression and it will evaluate it. if it contains spaces, enclose in quotes. After the expression you may also specify which radix to output to (default is 10)", true);
+                    sendNotice(event.getUser().getNick(), "This command takes a expression and evaluates it using JavaScript's eval() function. that means that it can also run native JS Code as well.");
+                    sendNotice(event.getUser().getNick(), "Usage: simply enter a expression and it will evaluate it. if it contains spaces, enclose in quotes. After the expression you may also specify which radix to output to (default is 10)");
                 } else if (arg[1].equalsIgnoreCase("StringToBytes")) {
-                    sendMessage(event, "Converts a String into a Byte array", true);
+                    sendNotice(event.getUser().getNick(), "Converts a String into a Byte array");
                 } else if (arg[1].equalsIgnoreCase("NoteJ")) {
-                    sendMessage(event, "Allows the user to leave notes", true);
-                    sendMessage(event, "Subcommand add: adds a note. Usage: add <Nick to leave note to> <message>. Subcommand del: Deletes a set note Usage: del <Given ID>. Subcommand list: Lists notes you've left", true);
+                    sendNotice(event.getUser().getNick(), "Allows the user to leave notes");
+                    sendNotice(event.getUser().getNick(), "SubCommand add <Nick to leave note to> <message>: adds a note. Subcommand del <Given ID>: Deletes a set note Usage: . Subcommand list: Lists notes you've left");
+                } else if (arg[1].equalsIgnoreCase("Memes")) {
+                    sendNotice(event.getUser().getNick(), "Meme database. To get a meme you simply have to do \"Memes <meme name>\"");
+                    sendNotice(event.getUser().getNick(), "Subcommand set <Meme Name> <The Meme>: Sets up a meme. Note, When Seting a meme that already exists, you have to be the creator to edit it.  Subcommand list: Lists all the memes in the database");
                 } else {
-                    sendMessage(event, "That either isn't a command, or " + currentNick + " hasn't add that to the help yet.", true);
+                    sendNotice(event.getUser().getNick(), "That either isn't a command, or " + currentNick + " hasn't add that to the help yet.");
                 }
             }
 
+        }
+
+// !serverHostName - Gets the Server Host Name
+        if (arg[0].equalsIgnoreCase(prefix + "serverHostName")) {
+            if (checkPerm(event.getUser(), 5)) {
+                sendMessage(event, event.getBot().getServerHostname(), false);
+            }
         }
 
 // !Connect - joins a channel
@@ -530,8 +556,14 @@ public class MyBotX extends ListenerAdapter {
         if (arg[0].equalsIgnoreCase(prefix + "CheckLink")) {
             if (checkPerm(event.getUser(), 0)) {
                 try {
-                    URI url = new URI(arg[1]);
-                    sendMessage(event, "Title: " + url.getHost(), false);
+                    Matcher match = Pattern.compile("/(?:(https*):\\/\\/)?((?:(?:[a-z\\d\\.-]+)\\.[a-z]{2,6})|(?:\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}))(\\/.*?)?(?:\\s|$)/ig").matcher(event.getMessage());
+                    if (match.find()) {
+                        for (int i = 0; i < match.groupCount(); i++) {
+                            System.out.println("Found value: " + match.group(i));
+                        }
+                        Document doc = Jsoup.connect("http://example.com/").get();
+                        sendMessage(event, "Title: " + doc.title(), false);
+                    }
                 } catch (Exception e) {
                     sendError(event, e);
                 }
@@ -725,7 +757,7 @@ public class MyBotX extends ListenerAdapter {
         }
 
 // if someone tells the bot to "Go to hell" do this
-        if (event.getMessage().contains(event.getBot().getNick()) && event.getMessage().contains("Go to hell")) {
+        if (event.getMessage().contains(event.getBot().getNick()) && event.getMessage().toLowerCase().contains("Go to hell".toLowerCase())) {
             if (checkPerm(event.getUser(), 0) && !checkPerm(event.getUser(), 5)) {
                 sendMessage(event, "I Can't go to hell, i'm all out of vacation days", false);
             }
@@ -881,6 +913,29 @@ public class MyBotX extends ListenerAdapter {
                         }
                     }
 
+                } else if (arg[1].equalsIgnoreCase("jabber")) {
+                    if (arg[2].equalsIgnoreCase("\\setup")) {
+                        try {
+                            ChatterBot jabberBot = factory.create(ChatterBotType.JABBERWACKY, "b0dafd24ee35a477");
+                            jabberBotsession = jabberBot.createSession();
+                            jabberBotInt = true;
+                            //noinspection ConstantConditions
+                            event.getUser().send().notice("PandoraBot started");
+                        } catch (Exception e) {
+                            sendMessage(event, "Error: Could not create pandora bot session. Error was: " + e, true);
+                        }
+                    } else {
+                        if (jabberBotInt) {
+                            try {
+                                sendMessage(event, " " + botTalk("pandora", arg[2]), true);
+                            } catch (Exception e) {
+                                sendError(event, e);
+                            }
+                        } else {
+                            sendMessage(event, " You have to start PandoraBot before you can talk to it. start it with \\setup", true);
+                        }
+                    }
+
 
                 }
             }
@@ -972,13 +1027,37 @@ public class MyBotX extends ListenerAdapter {
 // !memes - Got all dem memes
         if (arg[0].equalsIgnoreCase(prefix + "memes")) {
             if (checkPerm(event.getUser(), 0)) {
-                if (arg[1].equalsIgnoreCase("set")) {
-                    //todo
-                }
-                if (arg[1].equalsIgnoreCase("del")) {
-                    //todo
-                } else {
-                    //todo
+                try {
+                    if (arg[1].equalsIgnoreCase("set")) {
+                        if (memes.containsKey(arg[2].toLowerCase())) {
+                            Meme meme = memes.get(arg[2].toLowerCase());
+                            if (checkPerm(event.getUser(), 5) || meme.getCreator().equalsIgnoreCase(event.getUser().getNick())) {
+                                if (arg.length == 3) {
+                                    memes.remove(arg[2].toLowerCase());
+                                    sendMessage(event, "Meme " + arg[2] + " Deleted!", true);
+                                } else {
+                                    meme.setMeme(arg[3]);
+                                    memes.put(arg[2].toLowerCase(), meme);
+                                    sendMessage(event, "Meme " + arg[2] + " Edited!", true);
+                                }
+                            } else {
+                                sendMessage(event, "Sorry, Only the creator of the meme can edit it", true);
+                            }
+                        } else {
+                            memes.put(arg[2].toLowerCase(), new Meme(event.getUser().getNick(), arg[3]));
+                            sendMessage(event, "Meme " + arg[2] + " Created as " + arg[3], true);
+                        }
+                    } else if (arg[1].equalsIgnoreCase("list")) {
+                        sendMessage(event, memes.values().toString(), true);
+                    } else {
+                        if (memes.containsKey(arg[1].toLowerCase())) {
+                            sendMessage(event, arg[1] + ": " + memes.get(arg[1].toLowerCase()).getMeme(), false);
+                        } else {
+                            sendMessage(event, "That Meme doesn't exist!", true);
+                        }
+                    }
+                } catch (Exception e) {
+                    sendError(event, e);
                 }
             }
         }
@@ -1422,7 +1501,11 @@ public class MyBotX extends ListenerAdapter {
                         text = Translate.execute(arg[3], from, to);
                         System.out.println("Translating");
                         System.out.println(text);
-                        sendMessage(event, text, true);
+                        if (arg[3].contains(text)) {
+                            sendMessage(event, "Yandex couldn't translate that.", true);
+                        } else {
+                            sendMessage(event, text, true);
+                        }
                     }
                 } catch (IllegalArgumentException e) {
                     sendError(event, new Exception("That class doesn't exist!"));
@@ -1546,7 +1629,7 @@ public class MyBotX extends ListenerAdapter {
             if (checkPerm(event.getUser(), 3)) {
                 saveData(event);
                 event.getBot().sendIRC().quitServer("Died! Respawning in about 10 seconds");
-
+                event.getBot().stopBotReconnect();
             } else {
                 permErrorchn(event);
             }
@@ -1663,7 +1746,7 @@ public class MyBotX extends ListenerAdapter {
         if (arg[0].equalsIgnoreCase(prefix + "my")) {
             if (checkPerm(event.getUser(), 0)) {
                 if (jokeCommands || checkPerm(event.getUser(), 1))
-                    if (event.getChannel().getName().equalsIgnoreCase("#origami64") || event.getChannel().getName().equalsIgnoreCase("#sm64") || event.getChannel().getName().equalsIgnoreCase("#Lil-G|bot") || event.getChannel().getName().equalsIgnoreCase("#SSB")) {
+                    if (channel.equalsIgnoreCase("#origami64") || channel.equalsIgnoreCase("#sm64") || channel.equalsIgnoreCase("#Lil-G|bot") || channel.equalsIgnoreCase("#SSB") || channel.equalsIgnoreCase("#firemario_sucks ")) {
                         if (arg[1].equalsIgnoreCase("DickSize")) {
                             if (event.getUser().getNick().equalsIgnoreCase(currentNick)) {
                                 sendMessage(event, "Error: IntegerOutOfBoundsException: Greater than Integer.MAX_VALUE", true);
@@ -1865,12 +1948,10 @@ public class MyBotX extends ListenerAdapter {
 
 // !rejoin - Rejoins all channels
             if (PM.getMessage().equalsIgnoreCase(prefix + "rejoin")) {
-                PM.getBot().send().joinChannel("#Lil-G|bot");
-                PM.getBot().send().joinChannel("#pokemon");
-                PM.getBot().send().joinChannel("#retro");
-                PM.getBot().send().joinChannel("#retrotech");
-                PM.getBot().send().joinChannel("#SSB");
-                PM.getBot().send().joinChannel("#origami64");
+                ImmutableMap autoChannels = PM.getBot().getConfiguration().getAutoJoinChannels();
+                for (int i = 0; i < autoChannels.size(); i++) {
+
+                }
             }
         } else if (arg[0].startsWith(prefix)) {
             permError(PM.getUser());
@@ -1883,7 +1964,8 @@ public class MyBotX extends ListenerAdapter {
 
     public void onJoin(JoinEvent join) {
         System.out.println("User Joined");
-        if (join.getChannel().getName().equalsIgnoreCase("#Lil-G|Bot") || join.getChannel().getName().equalsIgnoreCase("#SSB")) {
+        User bot = join.getBot().getUserBot();
+        if (join.getChannel().isHalfOp(bot) || join.getChannel().isOp(bot) || join.getChannel().isSuperOp(bot) || join.getChannel().isOwner(bot)) {
             join.getChannel().send().voice(join.getUserHostmask());
         }
         //noinspection ConstantConditions
@@ -2093,8 +2175,13 @@ public class MyBotX extends ListenerAdapter {
 
     private void saveData(MessageEvent event) {
         try {
+            String network = event.getBot().getServerInfo().getNetwork();
+            if (network == null) {
+                network = event.getBot().getServerHostname();
+                network = network.substring(network.indexOf(".") + 1, network.lastIndexOf("."));
+            }
             SaveDataStore save = new SaveDataStore(noteList, authedUser, authedUserLevel, DNDJoined, DNDList, avatar, memes);
-            FileWriter writer = new FileWriter("Data/Data.json");
+            FileWriter writer = new FileWriter("Data/" + network + "-Data.json");
             writer.write(gson.toJson(save));
             writer.close();
 

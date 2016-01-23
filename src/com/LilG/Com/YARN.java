@@ -1,3 +1,5 @@
+package com.LilG.Com;
+
 class YARN {
   private String str;
 

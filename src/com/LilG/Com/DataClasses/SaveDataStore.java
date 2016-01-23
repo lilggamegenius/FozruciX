@@ -21,10 +21,10 @@ public class SaveDataStore {
 
     private String avatarLink = "http://puu.sh/mh1mu.png";
 
-    private HashMap<String, String> memes = new HashMap<>();
+    private HashMap<String, Meme> memes = new HashMap<>();
 
 
-    public SaveDataStore(List<Note> noteList, List<String> authedUser, List<Integer> authedUserLevel, List<String> DNDJoined, List<DNDPlayer> DNDList, String avatarLink, HashMap<String, String> memes) {
+    public SaveDataStore(List<Note> noteList, List<String> authedUser, List<Integer> authedUserLevel, List<String> DNDJoined, List<DNDPlayer> DNDList, String avatarLink, HashMap<String, Meme> memes) {
         this.noteList = noteList;
         this.authedUser = authedUser;
         this.authedUserLevel = authedUserLevel;
@@ -58,7 +58,7 @@ public class SaveDataStore {
         return avatarLink;
     }
 
-    public HashMap<String, String> getMemes() {
+    public HashMap<String, Meme> getMemes() {
         return memes;
     }
 }
