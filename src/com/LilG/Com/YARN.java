@@ -1,13 +1,13 @@
 package com.LilG.Com;
 
 class YARN {
-  private String str;
+    private String str;
 
-  public YARN(String str){
-    this.str = str;
-  }
+    public YARN(String str) {
+        this.str = str;
+    }
 
-  public String toString(){
-    return str;
-  }
+    public String toString() {
+        return str;
+    }
 }

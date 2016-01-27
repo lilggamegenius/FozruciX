@@ -5,10 +5,6 @@ import org.pircbotx.MultiBotManager;
 import org.pircbotx.UtilSSLSocketFactory;
 import org.pircbotx.cap.EnableCapHandler;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.nio.charset.Charset;
 
 /**
@@ -31,7 +27,7 @@ class MyBotXMain{
                 .setEncoding(Charset.forName("UTF-8"))
                 .setAutoReconnect(true)
                 .setAutoReconnectAttempts(attempts)
-                .setNickservPassword(setPassword(true))
+                .setNickservPassword(MyBotX.setPassword(true))
                 .setName(nick) //Set the nick of the bot.
                 .setLogin(login)
                 .setRealName(realName)
@@ -50,7 +46,7 @@ class MyBotXMain{
                 .setEncoding(Charset.forName("UTF-8"))
                 .setAutoReconnect(true)
                 .setAutoReconnectAttempts(attempts)
-                .setNickservPassword(setPassword(true))
+                .setNickservPassword(MyBotX.setPassword(true))
                 .setName(nick) //Set the nick of the bot.
                 .setLogin(login)
                 .setRealName(realName)
@@ -92,7 +88,7 @@ class MyBotXMain{
                 .setEncoding(Charset.forName("UTF-8"))
                 .setAutoReconnect(true)
                 .setAutoReconnectAttempts(attempts)
-                .setNickservPassword(setPassword(true))
+                .setNickservPassword(MyBotX.setPassword(true))
                 .setName(nick) //Set the nick of the bot.
                 .setLogin(login)
                 .setRealName(realName)
@@ -107,7 +103,7 @@ class MyBotXMain{
                 .setEncoding(Charset.forName("UTF-8"))
                 .setAutoReconnect(true)
                 .setAutoReconnectAttempts(attempts)
-                .setNickservPassword(setPassword(true))
+                .setNickservPassword(MyBotX.setPassword(true))
                 .setName(nick) //Set the nick of the bot.
                 .setLogin(login)
                 .setRealName(realName)
@@ -122,11 +118,11 @@ class MyBotXMain{
         if (debug) {
             manager.addBot(debugConfig.buildForServer(badnickNET, 6697));
             manager.addBot(debugConfigSmwc.buildForServer(caffie, 6697));
-            manager.addBot(twitchDebug.buildForServer(twitch, 6667, setPassword(false)));
+            manager.addBot(twitchDebug.buildForServer(twitch, 6667, MyBotX.setPassword(false)));
         } else {
             manager.addBot(normal.buildForServer(badnickNET, 6697));
             manager.addBot(normalSmwc.buildForServer(caffie, 6697));
-            manager.addBot(twitchNormal.buildForServer(twitch, 6667, setPassword(false)));
+            manager.addBot(twitchNormal.buildForServer(twitch, 6667, MyBotX.setPassword(false)));
         }
         //Connect to the server
         manager.start();
@@ -134,39 +130,5 @@ class MyBotXMain{
 
     }
 
-	private static String setPassword(boolean password){
-		File file;
-        if (password) {
-            file = new File("pass.bin");
-        } else {
-            file = new File("twitch.bin");
-        }
-        FileInputStream fin = null;
-        String ret = " ";
-        try {
-            // create FileInputStream object
-            fin = new FileInputStream(file);
 
-            byte fileContent[] = new byte[(int) file.length()];
-
-            // Reads up to certain bytes of data from this input stream into an array of bytes.
-            fin.read(fileContent);
-            //create string from byte array
-            ret = new String(fileContent);
-        } catch (FileNotFoundException e) {
-            System.out.println("File not found" + e);
-        } catch (IOException ioe) {
-            System.out.println("Exception while reading file " + ioe);
-        } finally {
-            // close the streams using close method
-            try {
-                if (fin != null) {
-                    fin.close();
-                }
-            } catch (IOException ioe) {
-                System.out.println("Error while closing stream: " + ioe);
-            }
-        }
-        return ret;
-    }
 }

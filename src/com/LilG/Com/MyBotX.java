@@ -68,7 +68,7 @@ public class MyBotX extends ListenerAdapter {
     private final String[] dictionary = {"i don't know what \"%s\" is, do i look like a dictionary?", "Go look it up yourself.", "Why not use your computer and look \"%s\" up.", "Google it.", "Nope.", "Get someone else to do it.", "Why not get that " + Colors.RED + "Other bot" + Colors.NORMAL + " to do it?", "There appears to be a error between your " + Colors.BOLD + "seat" + Colors.NORMAL + " and the " + Colors.BOLD + "Keyboard" + Colors.NORMAL + " >_>", "Uh oh, there appears to be a User error.", "error: Fuck count too low, Cannot give Fuck.", ">_>"};
     private final String[] listOfNoes = {" It’s not a priority for me at this time.", "I’d rather stick needles in my eyes.", "My schedule is up in the air right now. SEE IT WAFTING GENTLY DOWN THE CORRIDOR.", "I don’t love it, which means I’m not the right person for it.", "I would prefer another option.", "I would be the absolute worst person to execute, are you on crack?!", "Life is too short TO DO THINGS YOU don’t LOVE.", "I no longer do things that make me want to kill myself", "You should do this yourself, you would be awesome sauce.", "I would love to say yes to everything, but that would be stupid", "Fuck no.", "Some things have come up that need my attention.", "There is a person who totally kicks ass at this. I AM NOT THAT PERSON.", "Shoot me now...", "It would cause the slow withering death of my soul.", "I’d rather remove my own gallbladder with an oyster fork.", "I'd love to but I did my own thing and now I've got to undo it."};
     private final String[] commands = {"HelpMe", " Time", " calcj", " randomNum", " StringToBytes", " Chat", " Temp", " BlockConv", " Hello", " Bot", " GetName", " recycle", " Login", " GetLogin", " GetID", " GetSate", " ChngCMD", " SayThis", " ToSciNo", " Trans", " DebugVar", " RunCmd", " SayRaw", " SayCTCPCommnad", " Leave", " Respawn", " Kill", " ChangeNick", " SayAction", " NoteJ", "Memes", " jtoggle", " Joke: Splatoon", "Joke: Attempt", " Joke: potato", " Joke: whatIs?", "Joke: getFinger", " Joke: GayDar"};
-    private final String PASSWORD = setPassword();
+    private final String PASSWORD = setPassword(false);
     private final ChatterBotFactory factory = new ChatterBotFactory();
     private final ExtendedDoubleEvaluator calc = new ExtendedDoubleEvaluator();
     private final StaticVariableSet<Double> variables = new StaticVariableSet<>();
@@ -195,6 +195,42 @@ public class MyBotX extends ListenerAdapter {
 
     public static Unsafe getUnsafe() throws SecurityException {
         return Unsafe.getUnsafe();
+    }
+
+    public static String setPassword(boolean password) {
+        File file;
+        if (password) {
+            file = new File("pass.bin");
+        } else {
+            file = new File("twitch.bin");
+        }
+        FileInputStream fin = null;
+        String ret = " ";
+        try {
+            // create FileInputStream object
+            fin = new FileInputStream(file);
+
+            byte fileContent[] = new byte[(int) file.length()];
+
+            // Reads up to certain bytes of data from this input stream into an array of bytes.
+            fin.read(fileContent);
+            //create string from byte array
+            ret = new String(fileContent);
+        } catch (FileNotFoundException e) {
+            System.out.println("File not found" + e);
+        } catch (IOException ioe) {
+            System.out.println("Exception while reading file " + ioe);
+        } finally {
+            // close the streams using close method
+            try {
+                if (fin != null) {
+                    fin.close();
+                }
+            } catch (IOException ioe) {
+                System.out.println("Error while closing stream: " + ioe);
+            }
+        }
+        return ret;
     }
 
     private void makeDebug(Event event) {
@@ -1091,20 +1127,7 @@ public class MyBotX extends ListenerAdapter {
                     } catch (Exception e) {
                         sendError(event, e);
                     }
-                }
-
-                if (arg[1].equalsIgnoreCase("add")) {
-                    try {
-                        Note note = new Note(event.getUser().getNick(), arg[2], arg[3], event.getChannel().getName());
-                        noteList.add(note);
-                        sendMessage(event, "Left note \"" + arg[3] + "\" for \"" + arg[2] + "\".", false);
-                        event.getUser().send().notice("ID is \"" + noteList.get(noteList.indexOf(note)).getId().toString() + "\"");
-                    } catch (Exception e) {
-                        sendError(event, e);
-                    }
-                }
-
-                if (arg[1].equalsIgnoreCase("list")) {
+                } else if (arg[1].equalsIgnoreCase("list")) {
                     int i = 0;
                     List<String> found = new ArrayList<>();
                     List<String> foundUUID = new ArrayList<>();
@@ -1117,6 +1140,15 @@ public class MyBotX extends ListenerAdapter {
                     }
                     sendMessage(event, found.toString(), true);
                     event.getUser().send().notice(foundUUID.toString());
+                } else {
+                    try {
+                        Note note = new Note(event.getUser().getNick(), arg[2], arg[3], event.getChannel().getName());
+                        noteList.add(note);
+                        sendMessage(event, "Left note \"" + arg[3] + "\" for \"" + arg[2] + "\".", false);
+                        event.getUser().send().notice("ID is \"" + noteList.get(noteList.indexOf(note)).getId().toString() + "\"");
+                    } catch (Exception e) {
+                        sendError(event, e);
+                    }
                 }
                 saveData(event);
             }
@@ -1144,9 +1176,10 @@ public class MyBotX extends ListenerAdapter {
         }
 
 // !version - gets the version of the bot
-        if (event.getMessage().equalsIgnoreCase(prefix + "version") && event.getChannel().getName().equalsIgnoreCase("#deltasmash")) {
+        if (event.getMessage().equalsIgnoreCase(prefix + "version") && !event.getChannel().getName().equalsIgnoreCase("#deltasmash")) {
             if (checkPerm(event.getUser(), 0)) {
-                String VERSION = "PircBotX: 2.1-20151112.042241-148. BotVersion: 2.0";
+                String VERSION = "PircBotX: " + PircBotX.VERSION + ". BotVersion: 2.1. Java version: " + System.getProperty("java.version");
+
                 sendMessage(event, "Version: " + VERSION, true);
             }
         }
@@ -1319,15 +1352,7 @@ public class MyBotX extends ListenerAdapter {
                     try {
                         int index = DNDJoined.indexOf(event.getUser().getNick());
                         if (index > -1) {
-                            if (event.getUser().getNick().equalsIgnoreCase(currentNick)) {
-                                debug.setPlayerName(DNDList.get(index).getPlayerName());
-                                debug.setPlayerHP(DNDList.get(index).getHPAmounts());
-                                debug.setPlayerXP(DNDList.get(index).getXPAmounts());
-
-                                debug.setFamiliar(DNDList.get(index).getFamiliar().getName());
-                                debug.setFamiliarHP(DNDList.get(index).getFamiliar().getHPAmounts());
-                                debug.setFamiliarXP(DNDList.get(index).getFamiliar().getXPAmounts());
-                            }
+                            setDebugInfo(event);
                             sendMessage(event, DNDList.get(index).toString(), true);
                         } else {
                             sendMessage(event, "You have to join first!", true);
@@ -1343,17 +1368,7 @@ public class MyBotX extends ListenerAdapter {
                         sendError(event, e);
                     }
 
-                    int index = DNDJoined.indexOf(event.getUser().getNick());
-
-                    if (event.getUser().getNick().equalsIgnoreCase(currentNick)) {
-                        debug.setPlayerName(DNDList.get(index).getPlayerName());
-                        debug.setPlayerHP(DNDList.get(index).getHPAmounts());
-                        debug.setPlayerXP(DNDList.get(index).getXPAmounts());
-
-                        debug.setFamiliar(DNDList.get(index).getFamiliar().getName());
-                        debug.setFamiliarHP(DNDList.get(index).getFamiliar().getHPAmounts());
-                        debug.setFamiliarXP(DNDList.get(index).getFamiliar().getXPAmounts());
-                    }
+                    setDebugInfo(event);
                 }
                 if (arg[1].equalsIgnoreCase("ListClass")) {
                     sendMessage(event, "List of classes: " + Arrays.toString(DNDPlayer.DNDClasses.values()), true);
@@ -1747,6 +1762,7 @@ public class MyBotX extends ListenerAdapter {
             if (checkPerm(event.getUser(), 0)) {
                 if (jokeCommands || checkPerm(event.getUser(), 1))
                     if (channel.equalsIgnoreCase("#origami64") || channel.equalsIgnoreCase("#sm64") || channel.equalsIgnoreCase("#Lil-G|bot") || channel.equalsIgnoreCase("#SSB") || channel.equalsIgnoreCase("#firemario_sucks ")) {
+
                         if (arg[1].equalsIgnoreCase("DickSize")) {
                             if (event.getUser().getNick().equalsIgnoreCase(currentNick)) {
                                 sendMessage(event, "Error: IntegerOutOfBoundsException: Greater than Integer.MAX_VALUE", true);
@@ -1771,6 +1787,8 @@ public class MyBotX extends ListenerAdapter {
                         } else if (arg[1].equalsIgnoreCase("xdlength")) {
                             int size = randInt(0, jokeCommandDebugVar);
                             sendMessage(event, "X" + StringUtils.leftPad("", size, "D") + " - " + size, true);
+                        } else if (arg[1].equalsIgnoreCase("ass")) {
+                            sendMessage(event, "No.", true);
                         }
                     }
             }
@@ -1943,6 +1961,7 @@ public class MyBotX extends ListenerAdapter {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
+
                 System.exit(0);
             }
 
@@ -2166,8 +2185,8 @@ public class MyBotX extends ListenerAdapter {
             return cleverBotsession.think(message);
         } else if (bot.equalsIgnoreCase("pandora")) {
             return pandoraBotsession.think(message);
-        } else if (bot.equalsIgnoreCase("")) {
-            return "Error, not a valid bot";
+        } else if (bot.equalsIgnoreCase("jabber") || bot.equalsIgnoreCase("jabberwacky")) {
+            return jabberBotsession.think(message);
         } else {
             return "Error, not a valid bot";
         }
@@ -2442,38 +2461,6 @@ public class MyBotX extends ListenerAdapter {
                 break;
         }
         return lang;
-    }
-
-    private String setPassword() {
-        File file = new File("pass.bin");
-        FileInputStream fin = null;
-        String ret = " ";
-        try {
-            // create FileInputStream object
-            fin = new FileInputStream(file);
-
-            byte fileContent[] = new byte[(int) file.length()];
-
-            // Reads up to certain bytes of data from this input stream into an array of bytes.
-            //noinspection ResultOfMethodCallIgnored
-            fin.read(fileContent);
-            //create string from byte array
-            ret = new String(fileContent);
-        } catch (FileNotFoundException e) {
-            System.out.println("File not found" + e);
-        } catch (IOException ioe) {
-            System.out.println("Exception while reading file " + ioe);
-        } finally {
-            // close the streams using close method
-            try {
-                if (fin != null) {
-                    fin.close();
-                }
-            } catch (IOException ioe) {
-                System.out.println("Error while closing stream: " + ioe);
-            }
-        }
-        return ret;
     }
 
     private enum MessageModes {
