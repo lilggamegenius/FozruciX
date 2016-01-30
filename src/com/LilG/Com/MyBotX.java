@@ -67,8 +67,8 @@ public class MyBotX extends ListenerAdapter {
     //boolean spinStarted = false;
     private final String[] dictionary = {"i don't know what \"%s\" is, do i look like a dictionary?", "Go look it up yourself.", "Why not use your computer and look \"%s\" up.", "Google it.", "Nope.", "Get someone else to do it.", "Why not get that " + Colors.RED + "Other bot" + Colors.NORMAL + " to do it?", "There appears to be a error between your " + Colors.BOLD + "seat" + Colors.NORMAL + " and the " + Colors.BOLD + "Keyboard" + Colors.NORMAL + " >_>", "Uh oh, there appears to be a User error.", "error: Fuck count too low, Cannot give Fuck.", ">_>"};
     private final String[] listOfNoes = {" It’s not a priority for me at this time.", "I’d rather stick needles in my eyes.", "My schedule is up in the air right now. SEE IT WAFTING GENTLY DOWN THE CORRIDOR.", "I don’t love it, which means I’m not the right person for it.", "I would prefer another option.", "I would be the absolute worst person to execute, are you on crack?!", "Life is too short TO DO THINGS YOU don’t LOVE.", "I no longer do things that make me want to kill myself", "You should do this yourself, you would be awesome sauce.", "I would love to say yes to everything, but that would be stupid", "Fuck no.", "Some things have come up that need my attention.", "There is a person who totally kicks ass at this. I AM NOT THAT PERSON.", "Shoot me now...", "It would cause the slow withering death of my soul.", "I’d rather remove my own gallbladder with an oyster fork.", "I'd love to but I did my own thing and now I've got to undo it."};
-    private final String[] commands = {"HelpMe", " Time", " calcj", " randomNum", " StringToBytes", " Chat", " Temp", " BlockConv", " Hello", " Bot", " GetName", " recycle", " Login", " GetLogin", " GetID", " GetSate", " ChngCMD", " SayThis", " ToSciNo", " Trans", " DebugVar", " RunCmd", " SayRaw", " SayCTCPCommnad", " Leave", " Respawn", " Kill", " ChangeNick", " SayAction", " NoteJ", "Memes", " jtoggle", " Joke: Splatoon", "Joke: Attempt", " Joke: potato", " Joke: whatIs?", "Joke: getFinger", " Joke: GayDar"};
-    private final String PASSWORD = setPassword(false);
+    private final String[] commands = {"commands", " Time", " calcj", " randomNum", " StringToBytes", " Chat", " Temp", " BlockConv", " Hello", " Bot", " GetName", " recycle", " Login", " GetLogin", " GetID", " GetSate", " ChngCMD", " SayThis", " ToSciNo", " Trans", " DebugVar", " RunCmd", " SayRaw", " SayCTCPCommnad", " Leave", " Respawn", " Kill", " ChangeNick", " SayAction", " NoteJ", "Memes", " jtoggle", " Joke: Splatoon", "Joke: Attempt", " Joke: potato", " Joke: whatIs?", "Joke: getFinger", " Joke: GayDar"};
+    private final String PASSWORD = setPassword(true);
     private final ChatterBotFactory factory = new ChatterBotFactory();
     private final ExtendedDoubleEvaluator calc = new ExtendedDoubleEvaluator();
     private final StaticVariableSet<Double> variables = new StaticVariableSet<>();
@@ -240,6 +240,10 @@ public class MyBotX extends ListenerAdapter {
         debug.setCurrentNick(currentNick + "!" + currentUsername + "@" + currentHost);
     }
 
+    public void onDisconnect(DisconnectEvent DC) {
+        debug.dispose();
+    }
+
     public void onConnect(ConnectEvent event) throws Exception {
         PircBotX bot = event.getBot();
         bot.sendIRC().mode(event.getBot().getNick(), "+B");
@@ -353,14 +357,16 @@ public class MyBotX extends ListenerAdapter {
         }
 
 
-// !helpMe
-        if (arg[0].equalsIgnoreCase(prefix + "helpme")) {
+// !commands
+        if (arg[0].equalsIgnoreCase(prefix + "commands")) {
             if (checkPerm(event.getUser(), 0)) {
-                if (event.getMessage().equalsIgnoreCase(prefix + "helpme")) {
-                    sendNotice(event.getUser().getNick(), "List of commands so far. for more info on these commands do " + prefix + "helpme. commands with \"Joke: \" are joke commands that can be disabled");
+                if (event.getMessage().equalsIgnoreCase(prefix + "commands")) {
+                    sendNotice(event.getUser().getNick(), "List of commands so far. for more info on these commands do " + prefix + "commands. commands with \"Joke: \" are joke commands that can be disabled");
                     sendNotice(event.getUser().getNick(), Arrays.asList(commands).toString());
-                } else if (arg[1].equalsIgnoreCase("Helpme")) {
+                } else if (arg[1].equalsIgnoreCase("commands")) {
                     sendNotice(event.getUser().getNick(), "Really? ಠ_ಠ");
+                } else if (arg[1].equalsIgnoreCase("helpMe")) {
+                    sendNotice(event.getUser().getNick(), "Changed to commands (");
                 } else if (arg[1].equalsIgnoreCase("time")) {
                     sendNotice(event.getUser().getNick(), "Displays info from the Date class");
                 } else if (arg[1].equalsIgnoreCase("Hello")) {
@@ -462,6 +468,25 @@ public class MyBotX extends ListenerAdapter {
         if (arg[0].equalsIgnoreCase(prefix + "rps")) {
             if (checkPerm(event.getUser(), 0)) {
                 //todo
+            }
+        }
+
+// !reverseList - Reverses a list
+        if (arg[0].equalsIgnoreCase(prefix + "reverseList")) {
+            if (checkPerm(event.getUser(), 0)) {
+                String[] list = Arrays.copyOfRange(arg, 1, arg.length);
+                String temp = "Uh oh, something broke";
+                int i;
+                for (i = list.length - 1; i > 0; i--) {
+                    temp = list[0];
+                    for (int index = 1; i > index; index++) {
+                        list[index - 1] = list[index];
+                    }
+                    list[i] = temp;
+                }
+                list[i] = temp;
+                String str = new ArrayList<>(Arrays.asList(list)).toString();
+                sendMessage(event, str, true);
             }
         }
 
@@ -1508,18 +1533,26 @@ public class MyBotX extends ListenerAdapter {
                     if (arg[1].equalsIgnoreCase("\\detect")) {
                         sendMessage(event, fullNameToString(Detect.execute(arg[2])), true);
                     } else {
-                        System.out.println("Getting to lang");
-                        Language to = Language.valueOf(arg[2].toUpperCase());
-                        System.out.println("Getting from lang");
-                        Language from = Language.valueOf(arg[1].toUpperCase());
-                        System.out.println("Executing trans");
-                        text = Translate.execute(arg[3], from, to);
-                        System.out.println("Translating");
-                        System.out.println(text);
-                        if (arg[3].contains(text)) {
-                            sendMessage(event, "Yandex couldn't translate that.", true);
-                        } else {
-                            sendMessage(event, text, true);
+                        if (arg.length == 3) {
+                            Language to = Language.valueOf(arg[1].toUpperCase());
+                            Language from = Detect.execute(arg[2]);
+                            text = Translate.execute(arg[2], from, to);
+                            System.out.print("Translating: " + text);
+                            if (arg[2].contains(text)) {
+                                sendMessage(event, "Yandex couldn't translate that.", true);
+                            } else {
+                                sendMessage(event, text, true);
+                            }
+                        } else if (arg.length == 4) {
+                            Language to = Language.valueOf(arg[2].toUpperCase());
+                            Language from = Language.valueOf(arg[1].toUpperCase());
+                            text = Translate.execute(arg[3], from, to);
+                            System.out.print("Translating: " + text);
+                            if (arg[3].contains(text)) {
+                                sendMessage(event, "Yandex couldn't translate that.", true);
+                            } else {
+                                sendMessage(event, text, true);
+                            }
                         }
                     }
                 } catch (IllegalArgumentException e) {
