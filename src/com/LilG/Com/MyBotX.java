@@ -254,7 +254,13 @@ public class MyBotX extends ListenerAdapter {
             bot.sendRaw().rawLineNow("ns recover " + event.getBot().getConfiguration().getName() + " " + PASSWORD);
         }
 
-        BufferedReader br = new BufferedReader(new FileReader("Data/" + bot.getServerInfo().getNetwork() + "-Data.json"));
+        String network = event.getBot().getServerInfo().getNetwork();
+        if (network == null) {
+            network = event.getBot().getServerHostname();
+            network = network.substring(network.indexOf(".") + 1, network.lastIndexOf("."));
+        }
+
+        BufferedReader br = new BufferedReader(new FileReader("Data/" + network + "-Data.json"));
         SaveDataStore save = gson.fromJson(br, SaveDataStore.class);
         noteList = save.getNoteList();
         authedUser = save.getAuthedUser();
@@ -617,8 +623,9 @@ public class MyBotX extends ListenerAdapter {
         if (arg[0].equalsIgnoreCase(prefix + "CheckLink")) {
             if (checkPerm(event.getUser(), 0)) {
                 try {
-                    Matcher match = Pattern.compile("/(?:(https*):\\/\\/)?((?:(?:[a-z\\d\\.-]+)\\.[a-z]{2,6})|(?:\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}))(\\/.*?)?(?:\\s|$)/ig").matcher(event.getMessage());
+                    Matcher match = Pattern.compile("/((([A-Za-z]{3,9}:(?://)?)(?:[\\-;:&=\\+\\$,\\w]+@)?[A-Za-z0-9\\.\\-]+|(?:www\\.|[\\-;:&=\\+\\$,\\w]+@)[A-Za-z0-9\\.\\-]+)((?:/[\\+~%/\\.\\w\\-_]*)?\\??(?:[\\-\\+=&;%@\\.\\w_]*)#?(?:[\\.!/\\\\\\w]*))?)/").matcher(event.getMessage());
                     if (match.find()) {
+                        System.out.print("Matched");
                         for (int i = 0; i < match.groupCount(); i++) {
                             System.out.println("Found value: " + match.group(i));
                         }
@@ -2017,8 +2024,10 @@ public class MyBotX extends ListenerAdapter {
     public void onJoin(JoinEvent join) {
         System.out.println("User Joined");
         User bot = join.getBot().getUserBot();
-        if (join.getChannel().isHalfOp(bot) || join.getChannel().isOp(bot) || join.getChannel().isSuperOp(bot) || join.getChannel().isOwner(bot)) {
-            join.getChannel().send().voice(join.getUserHostmask());
+        if (checkOP(join.getChannel())) {
+            if (checkPerm(join.getUser(), 0)) {
+                join.getChannel().send().voice(join.getUserHostmask());
+            }
         }
         //noinspection ConstantConditions
         checkIfUserHasANote(join, join.getUser().getNick(), join.getChannel().getName());
@@ -2092,6 +2101,11 @@ public class MyBotX extends ListenerAdapter {
         }
         System.out.println("Recieved unknown: " + event.getLine());
         debug.setCurrentNick(currentNick + "!" + currentUsername + "@" + currentHost);
+    }
+
+    public boolean checkOP(Channel chn) {
+        User bot = chn.getBot().getUserBot();
+        return chn.isHalfOp(bot) || chn.isOp(bot) || chn.isSuperOp(bot) || chn.isOwner(bot);
     }
 
     /**
@@ -2292,6 +2306,7 @@ public class MyBotX extends ListenerAdapter {
             debug.setFamiliarHP(DNDList.get(index).getFamiliar().getHPAmounts());
             debug.setFamiliarXP(DNDList.get(index).getFamiliar().getXPAmounts());
         }
+
 
         debug.updateBot(event.getBot());
         debug.setCurrentNick(currentNick + "!" + currentUsername + "@" + currentHost);

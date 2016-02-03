@@ -37,7 +37,12 @@ class DebugWindow extends JFrame{
 
     public DebugWindow(PircBotX bot){
         JLabel currentNickL, lastMessageL, currDML, myPlayerNameL, myPlayerHPL, myPlayerXPL, myFamiliarL, myFamiliarHPL, myFamiliarXPL;
-        setTitle(bot.getNick());
+        String network = bot.getServerInfo().getNetwork();
+        if (network == null) {
+            network = bot.getServerHostname();
+            network = network.substring(network.indexOf(".") + 1, network.lastIndexOf("."));
+        }
+        setTitle(bot.getNick() + " @ " + network);
         this.bot = bot;
         channels = getChannels(bot.getUserBot().getChannels());
 
