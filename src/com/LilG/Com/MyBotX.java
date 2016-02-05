@@ -793,13 +793,14 @@ public class MyBotX extends ListenerAdapter {
         if (arg[0].equalsIgnoreCase(prefix + "JS")) {
             if (checkPerm(event.getUser(), 0)) {
                 ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
+                engine.put("load", null);
                 try {
                     String factorialFunct = "function factorial(num) {  if (num < 0) {    return -1;  } else if (num == 0) {    return 1;  }  var tmp = num;  while (num-- > 2) {    tmp *= num;  }  return tmp;} " +
                             "function getBit(num, bit) {  var result = (num >> bit) & 1; return result == 1} " +
                             "function offset(array, offsetNum){array = eval(\"\" + array + \"\");var size = array.length * offsetNum;var result = [];for(var i = 0; i < array.length; i++){result[i] = parseInt(array[i], 16) + size} return result;} " +
                             "function solvefor(expr, solve){var eq = algebra.parse(expr); var ans = eq.solveFor(solve); return solve + \" = \" + ans.toString(); }  var life = 42; ";
                     if (!checkPerm(event.getUser(), 5)) {
-                        factorialFunct += "Packages = \"nah fam\"; JavaImporter = \"tbh smh fam\"; Java = \"tbh smh fam\"; java = \"nah fam\"; ";
+                        factorialFunct += "Packages = \"nah fam\"; JavaImporter = \"tbh smh fam\"; Java = \"tbh smh fam\"; java = \"nah fam\"; javax = \"No.\"; Javax = \"No bro\"; org = \"Why do you keep trying?\"";
                     }
                     engine.eval(factorialFunct);
                     String eval;
@@ -1762,6 +1763,23 @@ public class MyBotX extends ListenerAdapter {
             }
         }
 
+// !sudo/make me a sandwich - You should already know this joke
+        if (event.getMessage().equalsIgnoreCase(prefix + "make me a sandwich")) {
+            if (checkPerm(event.getUser(), 0)) {
+                if (jokeCommands || checkPerm(event.getUser(), 1)) {
+                    sendMessage(event, "No, make one yourself", false);
+                } else {
+                    sendMessage(event, " Sorry, Joke commands are disabled", true);
+                }
+            }
+        }
+        if (event.getMessage().equalsIgnoreCase(prefix + "sudo make me a sandwich")) {
+            if (checkPerm(event.getUser(), 5)) {
+                sendMessage(event, "Ok", false);
+            } else {
+                sendMessage(event, "This command requires root permissions", true);
+            }
+        }
 
 // !Splatoon - Joke command - ask the splatoon question
         if (event.getMessage().equalsIgnoreCase(prefix + "Splatoon")) {
@@ -2319,6 +2337,22 @@ public class MyBotX extends ListenerAdapter {
             strToReturn += " " + args[argToStartFrom];
         }
         return strToReturn;
+    }
+
+    private boolean argChecker(String[] args, int index, String command) {
+        if (index == 0) {
+            if (prefix.length() > 1) {
+                return args[index].equalsIgnoreCase(prefix) && args[index + 1].equalsIgnoreCase(command);
+            } else {
+                return args[index].equalsIgnoreCase(prefix + command);
+            }
+        } else {
+            if (prefix.length() > 1) {
+                return args[index + 1].equalsIgnoreCase(command);
+            } else {
+                return args[index].equalsIgnoreCase(prefix + command);
+            }
+        }
     }
 
     private String fullNameToString(Language language) {
