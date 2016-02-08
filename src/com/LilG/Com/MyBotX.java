@@ -67,7 +67,7 @@ public class MyBotX extends ListenerAdapter {
     //boolean spinStarted = false;
     private final String[] dictionary = {"i don't know what \"%s\" is, do i look like a dictionary?", "Go look it up yourself.", "Why not use your computer and look \"%s\" up.", "Google it.", "Nope.", "Get someone else to do it.", "Why not get that " + Colors.RED + "Other bot" + Colors.NORMAL + " to do it?", "There appears to be a error between your " + Colors.BOLD + "seat" + Colors.NORMAL + " and the " + Colors.BOLD + "Keyboard" + Colors.NORMAL + " >_>", "Uh oh, there appears to be a User error.", "error: Fuck count too low, Cannot give Fuck.", ">_>"};
     private final String[] listOfNoes = {" It’s not a priority for me at this time.", "I’d rather stick needles in my eyes.", "My schedule is up in the air right now. SEE IT WAFTING GENTLY DOWN THE CORRIDOR.", "I don’t love it, which means I’m not the right person for it.", "I would prefer another option.", "I would be the absolute worst person to execute, are you on crack?!", "Life is too short TO DO THINGS YOU don’t LOVE.", "I no longer do things that make me want to kill myself", "You should do this yourself, you would be awesome sauce.", "I would love to say yes to everything, but that would be stupid", "Fuck no.", "Some things have come up that need my attention.", "There is a person who totally kicks ass at this. I AM NOT THAT PERSON.", "Shoot me now...", "It would cause the slow withering death of my soul.", "I’d rather remove my own gallbladder with an oyster fork.", "I'd love to but I did my own thing and now I've got to undo it."};
-    private final String[] commands = {"commands", " Time", " calcj", " randomNum", " StringToBytes", " Chat", " Temp", " BlockConv", " Hello", " Bot", " GetName", " recycle", " Login", " GetLogin", " GetID", " GetSate", " ChngCMD", " SayThis", " ToSciNo", " Trans", " DebugVar", " RunCmd", " SayRaw", " SayCTCPCommnad", " Leave", " Respawn", " Kill", " ChangeNick", " SayAction", " NoteJ", "Memes", " jtoggle", " Joke: Splatoon", "Joke: Attempt", " Joke: potato", " Joke: whatIs?", "Joke: getFinger", " Joke: GayDar"};
+    private final String[] commands = {"commands", " Time", " calcj", " randomNum", " StringToBytes", " Chat", " Temp", " BlockConv", " Hello", " Bot", " GetName", " recycle", " Login", " GetLogin", " GetID", " GetSate", " prefix", " SayThis", " ToSciNo", " Trans", " DebugVar", " RunCmd", " SayRaw", " SayCTCPCommnad", " Leave", " Respawn", " Kill", " ChangeNick", " SayAction", " NoteJ", "Memes", " jtoggle", " Joke: Splatoon", "Joke: Attempt", " Joke: potato", " Joke: whatIs?", "Joke: getFinger", " Joke: GayDar"};
     private final String PASSWORD = setPassword(true);
     private final ChatterBotFactory factory = new ChatterBotFactory();
     private final ExtendedDoubleEvaluator calc = new ExtendedDoubleEvaluator();
@@ -75,7 +75,7 @@ public class MyBotX extends ListenerAdapter {
     private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
     private String prefix = "!";
     private boolean jokeCommands = true;
-    private boolean chngCMDRan = false;
+    private boolean prefixRan = false;
     private String currentNick = "Lil-G";
     private String currentUsername = "GameGenuis";
     private String currentHost = "friendly.local.noob";
@@ -279,7 +279,7 @@ public class MyBotX extends ListenerAdapter {
                 frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
                 frame.setSize(frameWidth, frameHeight);
                 frame.setVisible(true);
-                frame.getContentPane().add(new com.LilG.Com.DrawWindow(DNDDungeon.getMap(), DNDDungeon.getMap_size(), DNDDungeon.getLocation()));
+                frame.getContentPane().add(new DrawWindow(DNDDungeon.getMap(), DNDDungeon.getMap_size(), DNDDungeon.getLocation()));
                 frame.paintAll(frame.getGraphics());
             });
         }*/
@@ -362,6 +362,12 @@ public class MyBotX extends ListenerAdapter {
             }
         }
 
+// !helpme - redirect to !commands
+        if (event.getMessage().equalsIgnoreCase(prefix + "helpme")) {
+            if (checkPerm(event.getUser(), 0)) {
+                sendMessage(event, "This commands was changed to commands.", true);
+            }
+        }
 
 // !commands
         if (arg[0].equalsIgnoreCase(prefix + "commands")) {
@@ -372,7 +378,7 @@ public class MyBotX extends ListenerAdapter {
                 } else if (arg[1].equalsIgnoreCase("commands")) {
                     sendNotice(event.getUser().getNick(), "Really? ಠ_ಠ");
                 } else if (arg[1].equalsIgnoreCase("helpMe")) {
-                    sendNotice(event.getUser().getNick(), "Changed to commands (");
+                    sendNotice(event.getUser().getNick(), "Changed to commands (Except you already know that since you just used it...)");
                 } else if (arg[1].equalsIgnoreCase("time")) {
                     sendNotice(event.getUser().getNick(), "Displays info from the Date class");
                 } else if (arg[1].equalsIgnoreCase("Hello")) {
@@ -1150,7 +1156,7 @@ public class MyBotX extends ListenerAdapter {
                         if (found) {
                             if (event.getUser().getNick().equalsIgnoreCase(noteList.get(index).getSender())) {
                                 noteList.remove(index);
-                                sendMessage(event, "com.LilG.Com.DataClasses.Note " + arg[2] + " Deleted", true);
+                                sendMessage(event, "Note " + arg[2] + " Deleted", true);
                             } else {
                                 sendMessage(event, "Nick didn't match nick that left note, as of right now there is no alias system so if you did leave this note; switch to the nick you used when you left it", true);
                             }
@@ -1272,19 +1278,19 @@ public class MyBotX extends ListenerAdapter {
             }
         }
 
-// !ChngCMD - Changes the command prefix when it isn't the standard "!"
-        if (arg[0].equalsIgnoreCase("!chngcmd") && !prefix.equals("!")) {
+// !prefix - Changes the command prefix when it isn't the standard "!"
+        if (arg[0].equalsIgnoreCase("!prefix") && !prefix.equals("!")) {
             if (checkPerm(event.getUser(), 5)) {
                 prefix = arg[1];
                 sendMessage(event, "Command variable is now \"" + prefix + "\"", true);
-                chngCMDRan = true;
+                prefixRan = true;
             } else {
                 permError(event.getUser());
             }
         }
 
-// !ChngCMD - Changes the command prefix
-        if (arg[0].equalsIgnoreCase(prefix + "chngcmd") && !chngCMDRan) {
+// !prefix - Changes the command prefix
+        if (arg[0].equalsIgnoreCase(prefix + "prefix") && !prefixRan) {
             if (checkPerm(event.getUser(), 5)) {
                 prefix = arg[1];
                 sendMessage(event, "Command variable is now \"" + prefix + "\"", true);
@@ -1292,7 +1298,7 @@ public class MyBotX extends ListenerAdapter {
                 permError(event.getUser());
             }
         }
-        chngCMDRan = false;
+        prefixRan = false;
 
 // !Saythis - Tells the bot to say someting
         if (arg[0].equalsIgnoreCase(prefix + "saythis")) {
@@ -2287,7 +2293,7 @@ public class MyBotX extends ListenerAdapter {
         try {
             if (i != -1) {
                 while (!indexList.isEmpty()) {
-                    System.out.println("com.LilG.Com.DataClasses.Note Loop Start");
+                    System.out.println("Note Loop Start");
                     int index = indexList.size() - 1;
                     System.out.println("Index " + index);
                     String receiver = noteList.get(index).getReceiver();
@@ -2301,7 +2307,7 @@ public class MyBotX extends ListenerAdapter {
                     }
                     noteList.remove(index);
                     indexList.remove(index);
-                    System.out.println(" com.LilG.Com.DataClasses.Note Loop End");
+                    System.out.println(" Note Loop End");
 
                 }
             }
