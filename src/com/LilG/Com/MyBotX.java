@@ -64,7 +64,13 @@ import java.util.regex.Pattern;
 
 public class MyBotX extends ListenerAdapter {
     private final static File WIKTIONARY_DIRECTORY = new File("Data\\Wiktionary");
-    //boolean spinStarted = false;
+    private final int jokeCommands = 0;
+    private final int prefixRan = 1;
+    private final int cleverBotInt = 2;
+    private final int pandoraBotInt = 3;
+    private final int jabberBotInt = 4;
+    private final int nickInUse = 5;
+    private final int color = 6;
     private final String[] dictionary = {"i don't know what \"%s\" is, do i look like a dictionary?", "Go look it up yourself.", "Why not use your computer and look \"%s\" up.", "Google it.", "Nope.", "Get someone else to do it.", "Why not get that " + Colors.RED + "Other bot" + Colors.NORMAL + " to do it?", "There appears to be a error between your " + Colors.BOLD + "seat" + Colors.NORMAL + " and the " + Colors.BOLD + "Keyboard" + Colors.NORMAL + " >_>", "Uh oh, there appears to be a User error.", "error: Fuck count too low, Cannot give Fuck.", ">_>"};
     private final String[] listOfNoes = {" It’s not a priority for me at this time.", "I’d rather stick needles in my eyes.", "My schedule is up in the air right now. SEE IT WAFTING GENTLY DOWN THE CORRIDOR.", "I don’t love it, which means I’m not the right person for it.", "I would prefer another option.", "I would be the absolute worst person to execute, are you on crack?!", "Life is too short TO DO THINGS YOU don’t LOVE.", "I no longer do things that make me want to kill myself", "You should do this yourself, you would be awesome sauce.", "I would love to say yes to everything, but that would be stupid", "Fuck no.", "Some things have come up that need my attention.", "There is a person who totally kicks ass at this. I AM NOT THAT PERSON.", "Shoot me now...", "It would cause the slow withering death of my soul.", "I’d rather remove my own gallbladder with an oyster fork.", "I'd love to but I did my own thing and now I've got to undo it."};
     private final String[] commands = {"commands", " Time", " calcj", " randomNum", " StringToBytes", " Chat", " Temp", " BlockConv", " Hello", " Bot", " GetName", " recycle", " Login", " GetLogin", " GetID", " GetSate", " prefix", " SayThis", " ToSciNo", " Trans", " DebugVar", " RunCmd", " SayRaw", " SayCTCPCommnad", " Leave", " Respawn", " Kill", " ChangeNick", " SayAction", " NoteJ", "Memes", " jtoggle", " Joke: Splatoon", "Joke: Attempt", " Joke: potato", " Joke: whatIs?", "Joke: getFinger", " Joke: GayDar"};
@@ -73,18 +79,14 @@ public class MyBotX extends ListenerAdapter {
     private final ExtendedDoubleEvaluator calc = new ExtendedDoubleEvaluator();
     private final StaticVariableSet<Double> variables = new StaticVariableSet<>();
     private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
+    private BitSet bools = new BitSet(7); // true, false, null, null, null, false, true
     private String prefix = "!";
-    private boolean jokeCommands = true;
-    private boolean prefixRan = false;
     private String currentNick = "Lil-G";
     private String currentUsername = "GameGenuis";
     private String currentHost = "friendly.local.noob";
     private ChatterBotSession cleverBotsession;
-    private boolean cleverBotInt;
     private ChatterBotSession pandoraBotsession;
-    private boolean pandoraBotInt;
     private ChatterBotSession jabberBotsession;
-    private boolean jabberBotInt;
     private MessageEvent lastEvent;
     private runCMD singleCMD = null;
     private List<Note> noteList = new ArrayList<>();
@@ -96,14 +98,12 @@ public class MyBotX extends ListenerAdapter {
     private DebugWindow debug;
     private int jokeCommandDebugVar = 30;
     private CommandLine terminal;
-    private boolean nickInUse = false;
     private String counter = "";
     private int countercount = 0;
     private JFrame frame = new JFrame();
     private MessageModes messageMode = MessageModes.normal;
     private List<RPSGame> rpsGames = new ArrayList<>();
     private String avatar = "http://puu.sh/mhwsr.gif";
-    private boolean color = true;
     private HashMap<String, Meme> memes = new HashMap<>();
 
     @SuppressWarnings("unused")
@@ -250,9 +250,7 @@ public class MyBotX extends ListenerAdapter {
 
         makeDebug(event);
 
-        if (nickInUse || event.getBot().getUserBot().getNick().equalsIgnoreCase("FozruciX1")) {
-            bot.sendRaw().rawLineNow("ns recover " + event.getBot().getConfiguration().getName() + " " + PASSWORD);
-        }
+        bot.sendRaw().rawLineNow("ns recover " + event.getBot().getConfiguration().getName() + " " + PASSWORD);
 
         String network = event.getBot().getServerInfo().getNetwork();
         if (network == null) {
@@ -353,8 +351,8 @@ public class MyBotX extends ListenerAdapter {
 // !formatting - toggles color (Mostly in the errors)
         if (arg[0].equalsIgnoreCase(prefix + "formatting")) {
             if (checkPerm(event.getUser(), 5)) {
-                color = !color;
-                if (color) {
+                bools.flip(color);
+                if (bools.get(color)) {
                     sendMessage(event, "Color formatting is now On", true);
                 } else {
                     sendMessage(event, "Color formatting is now Off", true);
@@ -440,7 +438,7 @@ public class MyBotX extends ListenerAdapter {
             //noinspection ConstantConditions
             event.getUser().send().notice("Disconnecting from server");
             if (arg.length > 1) {
-                event.getBot().sendIRC().quitServer(arg[1]);
+                event.getBot().sendIRC().quitServer(argJoiner(arg, 1));
             } else {
                 event.getBot().sendIRC().quitServer("I'm only a year old and have already wasted my entire life.");
             }
@@ -737,7 +735,7 @@ public class MyBotX extends ListenerAdapter {
 
                         while (count <= calcAmount) {
                             variables.set("x", x);
-                            eval.add(calc.evaluate(arg[4].toLowerCase(), variables));
+                            eval.add(calc.evaluate(argJoiner(arg, 4).toLowerCase(), variables));
                             x += step;
                             count++;
                         }
@@ -810,7 +808,7 @@ public class MyBotX extends ListenerAdapter {
                     }
                     engine.eval(factorialFunct);
                     String eval;
-                    eval = engine.eval(arg[1]).toString();
+                    eval = engine.eval(arg[1]).toString(); //todo
                     if (isNumeric(eval)) {
                         if (arg.length < 3) {
                             sendMessage(event, eval, true);
@@ -858,7 +856,7 @@ public class MyBotX extends ListenerAdapter {
         if (arg[0].equalsIgnoreCase(prefix + "StringToBytes")) {
             if (checkPerm(event.getUser(), 0)) {
                 try {
-                    sendMessage(event, getBytes(arg[1]), true);
+                    sendMessage(event, getBytes(argJoiner(arg, 1)), true);
                 } catch (ArrayIndexOutOfBoundsException e) {
                     sendMessage(event, "Not enough args. Must provide a string", true);
                 }
@@ -925,7 +923,7 @@ public class MyBotX extends ListenerAdapter {
 //lookup - Looks up something in Wikipedia
         if (arg[0].equalsIgnoreCase(prefix + "Lookup")) {
             if (checkPerm(event.getUser(), 5)) {
-                String[] listOfTitleStrings = {arg[1]};
+                String[] listOfTitleStrings = {argJoiner(arg, 1)};
                 info.bliki.api.User user = new info.bliki.api.User("", "", "http://en.wikipedia.org/w/api.php");
                 user.login();
                 List<Page> listOfPages = user.queryContent(listOfTitleStrings);
@@ -948,16 +946,16 @@ public class MyBotX extends ListenerAdapter {
                     if (arg[2].equalsIgnoreCase("\\setup")) {
                         try {
                             cleverBotsession = factory.create(ChatterBotType.CLEVERBOT).createSession();
-                            cleverBotInt = true;
+                            bools.set(cleverBotInt);
                             //noinspection ConstantConditions
                             event.getUser().send().notice("CleverBot started");
                         } catch (Exception e) {
                             sendMessage(event, "Error: Could not create clever bot session. Error was: " + e, true);
                         }
                     } else {
-                        if (cleverBotInt) {
+                        if (bools.get(cleverBotInt)) {
                             try {
-                                sendMessage(event, " " + botTalk("clever", arg[2]), true);
+                                sendMessage(event, " " + botTalk("clever", argJoiner(arg, 2)), true);
                             } catch (Exception e) {
                                 sendMessage(event, "Error: Problem with bot. Error was: " + e, true);
                             }
@@ -970,16 +968,16 @@ public class MyBotX extends ListenerAdapter {
                         try {
                             ChatterBot pandoraBot = factory.create(ChatterBotType.PANDORABOTS, "b0dafd24ee35a477");
                             pandoraBotsession = pandoraBot.createSession();
-                            pandoraBotInt = true;
+                            bools.set(pandoraBotInt);
                             //noinspection ConstantConditions
                             event.getUser().send().notice("PandoraBot started");
                         } catch (Exception e) {
                             sendMessage(event, "Error: Could not create pandora bot session. Error was: " + e, true);
                         }
                     } else {
-                        if (pandoraBotInt) {
+                        if (bools.get(pandoraBotInt)) {
                             try {
-                                sendMessage(event, " " + botTalk("pandora", arg[2]), true);
+                                sendMessage(event, " " + botTalk("pandora", argJoiner(arg, 2)), true);
                             } catch (Exception e) {
                                 sendMessage(event, "Error: Problem with bot. Error was: " + e, true);
                             }
@@ -993,16 +991,16 @@ public class MyBotX extends ListenerAdapter {
                         try {
                             ChatterBot jabberBot = factory.create(ChatterBotType.JABBERWACKY, "b0dafd24ee35a477");
                             jabberBotsession = jabberBot.createSession();
-                            jabberBotInt = true;
+                            bools.set(jabberBotInt);
                             //noinspection ConstantConditions
                             event.getUser().send().notice("PandoraBot started");
                         } catch (Exception e) {
                             sendMessage(event, "Error: Could not create pandora bot session. Error was: " + e, true);
                         }
                     } else {
-                        if (jabberBotInt) {
+                        if (bools.get(jabberBotInt)) {
                             try {
-                                sendMessage(event, " " + botTalk("pandora", arg[2]), true);
+                                sendMessage(event, " " + botTalk("pandora", argJoiner(arg, 2)), true);
                             } catch (Exception e) {
                                 sendError(event, e);
                             }
@@ -1111,7 +1109,7 @@ public class MyBotX extends ListenerAdapter {
                                     memes.remove(arg[2].toLowerCase());
                                     sendMessage(event, "Meme " + arg[2] + " Deleted!", true);
                                 } else {
-                                    meme.setMeme(arg[3]);
+                                    meme.setMeme(argJoiner(arg, 3));
                                     memes.put(arg[2].toLowerCase(), meme);
                                     sendMessage(event, "Meme " + arg[2] + " Edited!", true);
                                 }
@@ -1119,7 +1117,7 @@ public class MyBotX extends ListenerAdapter {
                                 sendMessage(event, "Sorry, Only the creator of the meme can edit it", true);
                             }
                         } else {
-                            memes.put(arg[2].toLowerCase(), new Meme(event.getUser().getNick(), arg[3]));
+                            memes.put(arg[2].toLowerCase(), new Meme(event.getUser().getNick(), argJoiner(arg, 3)));
                             sendMessage(event, "Meme " + arg[2] + " Created as " + arg[3], true);
                         }
                     } else if (arg[1].equalsIgnoreCase("list")) {
@@ -1181,9 +1179,9 @@ public class MyBotX extends ListenerAdapter {
                     event.getUser().send().notice(foundUUID.toString());
                 } else {
                     try {
-                        Note note = new Note(event.getUser().getNick(), arg[2], arg[3], event.getChannel().getName());
+                        Note note = new Note(event.getUser().getNick(), arg[1], argJoiner(arg, 2), event.getChannel().getName());
                         noteList.add(note);
-                        sendMessage(event, "Left note \"" + arg[3] + "\" for \"" + arg[2] + "\".", false);
+                        sendMessage(event, "Left note \"" + argJoiner(arg, 2) + "\" for \"" + arg[1] + "\".", false);
                         event.getUser().send().notice("ID is \"" + noteList.get(noteList.indexOf(note)).getId().toString() + "\"");
                     } catch (Exception e) {
                         sendError(event, e);
@@ -1283,14 +1281,14 @@ public class MyBotX extends ListenerAdapter {
             if (checkPerm(event.getUser(), 5)) {
                 prefix = arg[1];
                 sendMessage(event, "Command variable is now \"" + prefix + "\"", true);
-                prefixRan = true;
+                bools.set(prefixRan);
             } else {
                 permError(event.getUser());
             }
         }
 
 // !prefix - Changes the command prefix
-        if (arg[0].equalsIgnoreCase(prefix + "prefix") && !prefixRan) {
+        if (arg[0].equalsIgnoreCase(prefix + "prefix") && !bools.get(prefixRan)) {
             if (checkPerm(event.getUser(), 5)) {
                 prefix = arg[1];
                 sendMessage(event, "Command variable is now \"" + prefix + "\"", true);
@@ -1298,12 +1296,12 @@ public class MyBotX extends ListenerAdapter {
                 permError(event.getUser());
             }
         }
-        prefixRan = false;
+        bools.clear(prefixRan);
 
 // !Saythis - Tells the bot to say someting
         if (arg[0].equalsIgnoreCase(prefix + "saythis")) {
             if (checkPerm(event.getUser(), 4)) {
-                sendMessage(event, arg[1], false);
+                sendMessage(event, argJoiner(arg, 1), false);
             } else {
                 permErrorchn(event);
             }
@@ -1316,7 +1314,7 @@ public class MyBotX extends ListenerAdapter {
                 int loopCount = 0;
                 try {
                     while (i > loopCount) {
-                        sendMessage(event, arg[2], false);
+                        sendMessage(event, argJoiner(arg, 2), false);
                         loopCount++;
                     }
                 } catch (Exception e) {
@@ -1545,14 +1543,14 @@ public class MyBotX extends ListenerAdapter {
                 YandexTranslatorAPI.setKey("trnsl.1.1.20150924T011621Z.e06050bb431b7175.e5452b78ee8d11e4b736035e5f99f2831a57d0e2");
                 try {
                     if (arg[1].equalsIgnoreCase("\\detect")) {
-                        sendMessage(event, fullNameToString(Detect.execute(arg[2])), true);
+                        sendMessage(event, fullNameToString(Detect.execute(argJoiner(arg, 2))), true);
                     } else {
                         if (arg.length == 3) {
                             Language to = Language.valueOf(arg[1].toUpperCase());
-                            Language from = Detect.execute(arg[2]);
-                            text = Translate.execute(arg[2], from, to);
+                            Language from = Detect.execute(argJoiner(arg, 2));
+                            text = Translate.execute(argJoiner(arg, 2), from, to);
                             System.out.print("Translating: " + text);
-                            if (arg[2].contains(text)) {
+                            if (argJoiner(arg, 2).contains(text)) {
                                 sendMessage(event, "Yandex couldn't translate that.", true);
                             } else {
                                 sendMessage(event, text, true);
@@ -1560,9 +1558,9 @@ public class MyBotX extends ListenerAdapter {
                         } else if (arg.length == 4) {
                             Language to = Language.valueOf(arg[2].toUpperCase());
                             Language from = Language.valueOf(arg[1].toUpperCase());
-                            text = Translate.execute(arg[3], from, to);
+                            text = Translate.execute(argJoiner(arg, 3), from, to);
                             System.out.print("Translating: " + text);
-                            if (arg[3].contains(text)) {
+                            if (argJoiner(arg, 3).contains(text)) {
                                 sendMessage(event, "Yandex couldn't translate that.", true);
                             } else {
                                 sendMessage(event, text, true);
@@ -1639,7 +1637,7 @@ public class MyBotX extends ListenerAdapter {
 // !SayRaw - Tells the bot to send a raw line
         if (arg[0].equalsIgnoreCase(prefix + "SayRaw")) {
             if (checkPerm(event.getUser(), 5)) {
-                event.getBot().sendRaw().rawLineNow(arg[1]);
+                event.getBot().sendRaw().rawLineNow(argJoiner(arg, 1));
             } else {
                 permErrorchn(event);
             }
@@ -1648,7 +1646,7 @@ public class MyBotX extends ListenerAdapter {
 // !SayNotice - Tells the bot to send a notice
         if (arg[0].equalsIgnoreCase(prefix + "SayNotice")) {
             if (checkPerm(event.getUser(), 5)) {
-                event.getBot().sendIRC().notice(arg[1], arg[2]);
+                event.getBot().sendIRC().notice(arg[1], argJoiner(arg, 2));
             } else {
                 permErrorchn(event);
             }
@@ -1657,7 +1655,7 @@ public class MyBotX extends ListenerAdapter {
 // !SayCTCPCommand - Tells the bot to send a CTCP Command
         if (arg[0].equalsIgnoreCase(prefix + "SayCTCPCommand")) {
             if (checkPerm(event.getUser(), 5)) {
-                event.getBot().sendIRC().ctcpCommand(arg[2], arg[1]);
+                event.getBot().sendIRC().ctcpCommand(arg[1], argJoiner(arg, 2));
             } else {
                 permErrorchn(event);
             }
@@ -1677,7 +1675,7 @@ public class MyBotX extends ListenerAdapter {
         if (arg[0].equalsIgnoreCase(prefix + "leave")) {
             if (checkPerm(event.getUser(), 5)) {
                 if (arg[1].length() == 2) {
-                    event.getChannel().send().part(arg[1]);
+                    event.getChannel().send().part(argJoiner(arg, 1));
                 } else {
                     event.getChannel().send().part();
                 }
@@ -1690,7 +1688,7 @@ public class MyBotX extends ListenerAdapter {
         if (arg[0].equalsIgnoreCase(prefix + "respawn")) {
             if (checkPerm(event.getUser(), 3)) {
                 saveData(event);
-                event.getBot().sendIRC().quitServer("Died! Respawning in about 10 seconds");
+                event.getBot().sendIRC().quitServer("Died! Respawning in about 5 seconds");
                 event.getBot().stopBotReconnect();
             } else {
                 permErrorchn(event);
@@ -1738,7 +1736,7 @@ public class MyBotX extends ListenerAdapter {
 // !SayAction - Makes the bot do a action
         if (arg[0].equalsIgnoreCase(prefix + "SayAction")) {
             if (checkPerm(event.getUser(), 5)) {
-                event.getChannel().send().action(arg[1]);
+                event.getChannel().send().action(argJoiner(arg, 1));
             } else {
                 permErrorchn(event);
             }
@@ -1748,7 +1746,7 @@ public class MyBotX extends ListenerAdapter {
         if (arg[0].equalsIgnoreCase(prefix + "jtoggle")) {
             if (event.getMessage().equalsIgnoreCase(prefix + "jtoggle")) {
                 if (checkPerm(event.getUser(), 0)) {
-                    if (jokeCommands) {
+                    if (bools.get(jokeCommands)) {
                         sendMessage(event, "Joke commands are currently enabled", true);
                     } else {
                         sendMessage(event, "Joke commands are currently disabled", true);
@@ -1757,8 +1755,8 @@ public class MyBotX extends ListenerAdapter {
             }
             if (arg[1].equalsIgnoreCase("toggle")) {
                 if (checkPerm(event.getUser(), 2)) {
-                    jokeCommands = !jokeCommands;
-                    if (jokeCommands) {
+                    bools.flip(jokeCommands);
+                    if (bools.get(jokeCommands)) {
                         sendMessage(event, "Joke commands are now enabled", true);
                     } else {
                         sendMessage(event, "Joke commands are now disabled", true);
@@ -1772,7 +1770,7 @@ public class MyBotX extends ListenerAdapter {
 // !sudo/make me a sandwich - You should already know this joke
         if (event.getMessage().equalsIgnoreCase(prefix + "make me a sandwich")) {
             if (checkPerm(event.getUser(), 0)) {
-                if (jokeCommands || checkPerm(event.getUser(), 1)) {
+                if (bools.get(jokeCommands) || checkPerm(event.getUser(), 1)) {
                     sendMessage(event, "No, make one yourself", false);
                 } else {
                     sendMessage(event, " Sorry, Joke commands are disabled", true);
@@ -1790,7 +1788,7 @@ public class MyBotX extends ListenerAdapter {
 // !Splatoon - Joke command - ask the splatoon question
         if (event.getMessage().equalsIgnoreCase(prefix + "Splatoon")) {
             if (checkPerm(event.getUser(), 0)) {
-                if (jokeCommands || checkPerm(event.getUser(), 1))
+                if (bools.get(jokeCommands) || checkPerm(event.getUser(), 1))
                     sendMessage(event, " YOU'RE A KID YOU'RE A SQUID", true);
                 else
                     sendMessage(event, " Sorry, Joke commands are disabled", true);
@@ -1800,7 +1798,7 @@ public class MyBotX extends ListenerAdapter {
 // !attempt - Joke command - NOT ATTEMPTED
         if (event.getMessage().equalsIgnoreCase(prefix + "attempt")) {
             if (checkPerm(event.getUser(), 0)) {
-                if (jokeCommands || checkPerm(event.getUser(), 1))
+                if (bools.get(jokeCommands) || checkPerm(event.getUser(), 1))
                     sendMessage(event, " NOT ATTEMPTED", true);
                 else
                     sendMessage(event, " Sorry, Joke commands are disabled", true);
@@ -1809,14 +1807,14 @@ public class MyBotX extends ListenerAdapter {
 
 //// !stfu - Joke command - say "no u"
 //		if (event.getMessage().equalsIgnoreCase(prefix + "stfu")){
-//			if(jokeCommands || checkPerm(event.getUser()))
+//			if(bools.get(jokeCommands) || checkPerm(event.getUser()))
 //				sendMessage(event, sender + ": " + prefix + "no u");
 //		}
 
 // !eatabowlofdicks - Joke command - joke help command
         if (event.getMessage().equalsIgnoreCase(prefix + "eatabowlofdicks")) {
             if (checkPerm(event.getUser(), 0)) {
-                if (jokeCommands || checkPerm(event.getUser(), 1))
+                if (bools.get(jokeCommands) || checkPerm(event.getUser(), 1))
                     sendMessage(event, "no u", true);
             }
         }
@@ -1824,7 +1822,7 @@ public class MyBotX extends ListenerAdapter {
 // !my  - Joke command - This was requested by Greeny in #origami64. ask him about it
         if (arg[0].equalsIgnoreCase(prefix + "my")) {
             if (checkPerm(event.getUser(), 0)) {
-                if (jokeCommands || checkPerm(event.getUser(), 1))
+                if (bools.get(jokeCommands) || checkPerm(event.getUser(), 1))
                     if (channel.equalsIgnoreCase("#origami64") || channel.equalsIgnoreCase("#sm64") || channel.equalsIgnoreCase("#Lil-G|bot") || channel.equalsIgnoreCase("#SSB") || channel.equalsIgnoreCase("#firemario_sucks ")) {
 
                         if (arg[1].equalsIgnoreCase("DickSize")) {
@@ -1862,7 +1860,7 @@ public class MyBotX extends ListenerAdapter {
 // !potato - Joke command - say "i am potato" in Japanese
         if (event.getMessage().equalsIgnoreCase(prefix + "potato")) {
             if (checkPerm(event.getUser(), 0)) {
-                if (jokeCommands || checkPerm(event.getUser(), 1)) {
+                if (bools.get(jokeCommands) || checkPerm(event.getUser(), 1)) {
                     byte[] bytes = "わたしわポタトデス".getBytes(Charset.forName("UTF-8"));
                     String v = new String(bytes, Charset.forName("UTF-8"));
                     sendMessage(event, v, true);
@@ -1874,20 +1872,29 @@ public class MyBotX extends ListenerAdapter {
 // !whatis? - Joke command -
         if (arg[0].equalsIgnoreCase(prefix + "whatis?")) {
             if (checkPerm(event.getUser(), 0)) {
-                if (jokeCommands || checkPerm(event.getUser(), 1)) {
+                if (bools.get(jokeCommands) || checkPerm(event.getUser(), 1)) {
                     int num = randInt(0, dictionary.length - 1);
-                    String comeback = String.format(dictionary[num], arg[1]);
+                    String comeback = String.format(dictionary[num], argJoiner(arg, 1));
                     sendMessage(event, comeback, true);
                 } else
                     sendMessage(event, " Sorry, Joke commands are disabled", true);
             }
         }
 
+// !rip - Joke command - never forgetti the spaghetti
+        if (arg[0].equalsIgnoreCase(prefix + "rip")) {
+            if (checkPerm(event.getUser(), 0)) {
+                if (bools.get(jokeCommands) || checkPerm(event.getUser(), 1)) {
+                    sendMessage(event, "Rest in spaghetti, never forgetti. May the pasta be with " + argJoiner(arg, 1), false);
+                } else
+                    sendMessage(event, " Sorry, Joke commands are disabled", true);
+            }
+        }
 
 // !GayDar - Joke command - picks random user
         if (arg[0].equalsIgnoreCase(prefix + "GayDar")) {
             if (checkPerm(event.getUser(), 0)) {
-                if (jokeCommands || checkPerm(event.getUser(), 1)) {
+                if (bools.get(jokeCommands) || checkPerm(event.getUser(), 1)) {
                     Iterator<User> user = event.getChannel().getUsers().iterator();
                     List<String> userList = new ArrayList<>();
                     while (user.hasNext()) {
@@ -1983,22 +1990,22 @@ public class MyBotX extends ListenerAdapter {
 
 // !SendTo - Tells the bot to say someting on a channel
             if (arg[0].equalsIgnoreCase(prefix + "sendto")) {
-                PM.getBot().sendIRC().message(arg[1], arg[2]);
+                PM.getBot().sendIRC().message(arg[1], argJoiner(arg, 2));
             }
 
 // !sendAction - Tells the bot to make a action on a channel
             if (arg[0].equalsIgnoreCase(prefix + "sendAction")) {
-                PM.getBot().sendIRC().action(arg[1], arg[2]);
+                PM.getBot().sendIRC().action(arg[1], argJoiner(arg, 2));
             }
 // !sendRaw - Tells the bot to say a raw line
             if (arg[0].equalsIgnoreCase(prefix + "sendRaw")) {
-                PM.getBot().sendRaw().rawLineNow(arg[1]);
+                PM.getBot().sendRaw().rawLineNow(argJoiner(arg, 1));
             }
 
 // !changenick- Changes the nick of the bot
             if (arg[0].equalsIgnoreCase(prefix + "changeNick")) {
-                PM.getBot().sendIRC().changeNick(arg[1]);
-                debug.setNick(arg[1]);
+                PM.getBot().sendIRC().changeNick(argJoiner(arg, 1));
+                debug.setNick(argJoiner(arg, 1));
             }
 
 
@@ -2016,7 +2023,7 @@ public class MyBotX extends ListenerAdapter {
             if (arg[0].equalsIgnoreCase(prefix + "quitserv")) {
                 PM.getUser().send().notice("Disconnecting from server");
                 if (arg.length > 1) {
-                    PM.getBot().sendIRC().quitServer(arg[1]);
+                    PM.getBot().sendIRC().quitServer(argJoiner(arg, 1));
                 } else {
                     PM.getBot().sendIRC().quitServer("I'm only a year old and have already wasted my entire life.");
                 }
@@ -2105,7 +2112,7 @@ public class MyBotX extends ListenerAdapter {
     }
 
     public void onNickAlreadyInUse(NickAlreadyInUseEvent nick) {
-        nickInUse = true;
+        bools.set(nickInUse);
         nick.respond(nick.getUsedNick() + 1);
     }
 
@@ -2226,7 +2233,7 @@ public class MyBotX extends ListenerAdapter {
     private void sendError(MessageEvent event, Exception e) {
         System.out.println("Error: " + e.getCause());
         String cause;
-        if (color) {
+        if (bools.get(color)) {
             cause = Colors.RED + "Error: " + e.getCause();
         } else {
             cause = "Error: " + e.getCause();
@@ -2339,8 +2346,8 @@ public class MyBotX extends ListenerAdapter {
     private String argJoiner(String[] args, int argToStartFrom) throws ArrayIndexOutOfBoundsException {
         int length = args.length;
         String strToReturn = "";
-        for (; length < argToStartFrom; argToStartFrom++) {
-            strToReturn += " " + args[argToStartFrom];
+        for (; length > argToStartFrom; argToStartFrom++) {
+            strToReturn += args[argToStartFrom] + " ";
         }
         return strToReturn;
     }
