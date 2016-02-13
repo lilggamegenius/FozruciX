@@ -1100,38 +1100,42 @@ public class MyBotX extends ListenerAdapter {
 // !memes - Got all dem memes
         if (arg[0].equalsIgnoreCase(prefix + "memes")) {
             if (checkPerm(event.getUser(), 0)) {
-                try {
-                    if (arg[1].equalsIgnoreCase("set")) {
-                        if (memes.containsKey(arg[2].toLowerCase())) {
-                            Meme meme = memes.get(arg[2].toLowerCase());
-                            if (checkPerm(event.getUser(), 5) || meme.getCreator().equalsIgnoreCase(event.getUser().getNick())) {
-                                if (arg.length == 3) {
-                                    memes.remove(arg[2].toLowerCase());
-                                    sendMessage(event, "Meme " + arg[2] + " Deleted!", true);
+                if (arg.length > 1) {
+                    try {
+                        if (arg[1].equalsIgnoreCase("set")) {
+                            if (memes.containsKey(arg[2].toLowerCase())) {
+                                Meme meme = memes.get(arg[2].toLowerCase());
+                                if (checkPerm(event.getUser(), 5) || meme.getCreator().equalsIgnoreCase(event.getUser().getNick())) {
+                                    if (arg.length == 3) {
+                                        memes.remove(arg[2].toLowerCase());
+                                        sendMessage(event, "Meme " + arg[2] + " Deleted!", true);
+                                    } else {
+                                        meme.setMeme(argJoiner(arg, 3));
+                                        memes.put(arg[2].toLowerCase(), meme);
+                                        sendMessage(event, "Meme " + arg[2] + " Edited!", true);
+                                    }
                                 } else {
-                                    meme.setMeme(argJoiner(arg, 3));
-                                    memes.put(arg[2].toLowerCase(), meme);
-                                    sendMessage(event, "Meme " + arg[2] + " Edited!", true);
+                                    sendMessage(event, "Sorry, Only the creator of the meme can edit it", true);
                                 }
                             } else {
-                                sendMessage(event, "Sorry, Only the creator of the meme can edit it", true);
+                                memes.put(arg[2].toLowerCase(), new Meme(event.getUser().getNick(), argJoiner(arg, 3)));
+                                sendMessage(event, "Meme " + arg[2] + " Created as " + argJoiner(arg, 3), true);
                             }
+                        } else if (arg[1].equalsIgnoreCase("list")) {
+                            sendMessage(event, memes.values().toString(), true);
                         } else {
-                            memes.put(arg[2].toLowerCase(), new Meme(event.getUser().getNick(), argJoiner(arg, 3)));
-                            sendMessage(event, "Meme " + arg[2] + " Created as " + arg[3], true);
+                            if (memes.containsKey(arg[1].toLowerCase())) {
+                                sendMessage(event, arg[1] + ": " + memes.get(arg[1].toLowerCase()).getMeme(), false);
+                            } else {
+                                sendMessage(event, "That Meme doesn't exist!", true);
+                            }
                         }
-                    } else if (arg[1].equalsIgnoreCase("list")) {
-                        sendMessage(event, memes.values().toString(), true);
-                    } else {
-                        if (memes.containsKey(arg[1].toLowerCase())) {
-                            sendMessage(event, arg[1] + ": " + memes.get(arg[1].toLowerCase()).getMeme(), false);
-                        } else {
-                            sendMessage(event, "That Meme doesn't exist!", true);
-                        }
+                    } catch (Exception e) {
+                        sendError(event, e);
                     }
-                } catch (Exception e) {
-                    sendError(event, e);
                 }
+            } else {
+                sendMessage(event, "Missing arguments", true);
             }
         }
 
@@ -1674,7 +1678,7 @@ public class MyBotX extends ListenerAdapter {
 // !leave - Tells the bot to leave the current channel
         if (arg[0].equalsIgnoreCase(prefix + "leave")) {
             if (checkPerm(event.getUser(), 5)) {
-                if (arg[1].length() == 2) {
+                if (!event.getMessage().equalsIgnoreCase(prefix + "leave")) {
                     event.getChannel().send().part(argJoiner(arg, 1));
                 } else {
                     event.getChannel().send().part();
