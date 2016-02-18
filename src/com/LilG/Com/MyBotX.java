@@ -37,10 +37,7 @@ import io.nodyn.runtime.RuntimeFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.pircbotx.Channel;
-import org.pircbotx.Colors;
-import org.pircbotx.PircBotX;
-import org.pircbotx.User;
+import org.pircbotx.*;
 import org.pircbotx.hooks.Event;
 import org.pircbotx.hooks.ListenerAdapter;
 import org.pircbotx.hooks.events.*;
@@ -71,6 +68,7 @@ public class MyBotX extends ListenerAdapter {
     private final int jabberBotInt = 4;
     private final int nickInUse = 5;
     private final int color = 6;
+    private final int respondToPMs = 7;
     private final String[] dictionary = {"i don't know what \"%s\" is, do i look like a dictionary?", "Go look it up yourself.", "Why not use your computer and look \"%s\" up.", "Google it.", "Nope.", "Get someone else to do it.", "Why not get that " + Colors.RED + "Other bot" + Colors.NORMAL + " to do it?", "There appears to be a error between your " + Colors.BOLD + "seat" + Colors.NORMAL + " and the " + Colors.BOLD + "Keyboard" + Colors.NORMAL + " >_>", "Uh oh, there appears to be a User error.", "error: Fuck count too low, Cannot give Fuck.", ">_>"};
     private final String[] listOfNoes = {" It’s not a priority for me at this time.", "I’d rather stick needles in my eyes.", "My schedule is up in the air right now. SEE IT WAFTING GENTLY DOWN THE CORRIDOR.", "I don’t love it, which means I’m not the right person for it.", "I would prefer another option.", "I would be the absolute worst person to execute, are you on crack?!", "Life is too short TO DO THINGS YOU don’t LOVE.", "I no longer do things that make me want to kill myself", "You should do this yourself, you would be awesome sauce.", "I would love to say yes to everything, but that would be stupid", "Fuck no.", "Some things have come up that need my attention.", "There is a person who totally kicks ass at this. I AM NOT THAT PERSON.", "Shoot me now...", "It would cause the slow withering death of my soul.", "I’d rather remove my own gallbladder with an oyster fork.", "I'd love to but I did my own thing and now I've got to undo it."};
     private final String[] commands = {"commands", " Time", " calcj", " randomNum", " StringToBytes", " Chat", " Temp", " BlockConv", " Hello", " Bot", " GetName", " recycle", " Login", " GetLogin", " GetID", " GetSate", " prefix", " SayThis", " ToSciNo", " Trans", " DebugVar", " RunCmd", " SayRaw", " SayCTCPCommnad", " Leave", " Respawn", " Kill", " ChangeNick", " SayAction", " NoteJ", "Memes", " jtoggle", " Joke: Splatoon", "Joke: Attempt", " Joke: potato", " Joke: whatIs?", "Joke: getFinger", " Joke: GayDar"};
@@ -106,6 +104,8 @@ public class MyBotX extends ListenerAdapter {
     private String avatar = "http://puu.sh/mhwsr.gif";
     private HashMap<String, Meme> memes = new HashMap<>();
     private int arrayOffset = 0;
+    private Thread js;
+    private HashMap<UserHostmask, Integer> notifiedUserList = new HashMap<>();
     @SuppressWarnings("unused")
     public MyBotX() {
     }
@@ -361,7 +361,7 @@ public class MyBotX extends ListenerAdapter {
         }
 
 // !helpme - redirect to !commands
-        if (event.getMessage().equalsIgnoreCase(prefix + "helpme")) {
+        if (commandChecker(arg, "helpme")) {
             if (checkPerm(event.getUser(), 0)) {
                 sendMessage(event, "This commands was changed to commands.", true);
             }
@@ -370,7 +370,7 @@ public class MyBotX extends ListenerAdapter {
 // !commands
         if (commandChecker(arg, "commands")) {
             if (checkPerm(event.getUser(), 0)) {
-                if (event.getMessage().equalsIgnoreCase(prefix + "commands")) {
+                if (arg.length < 2 + arrayOffset) {
                     sendNotice(event.getUser().getNick(), "List of commands so far. for more info on these commands do " + prefix + "commands. commands with \"Joke: \" are joke commands that can be disabled");
                     sendNotice(event.getUser().getNick(), Arrays.asList(commands).toString());
                 } else if (arg[1 + arrayOffset].equalsIgnoreCase("commands")) {
@@ -423,6 +423,15 @@ public class MyBotX extends ListenerAdapter {
         if (commandChecker(arg, "serverHostName")) {
             if (checkPerm(event.getUser(), 5)) {
                 sendMessage(event, event.getBot().getServerHostname(), false);
+            }
+        }
+
+// !clearLogin - Clears login info to test auth related thing
+        if (commandChecker(arg, "clearLogin")) {
+            if (checkPerm(event.getUser(), 5)) {
+                currentNick = "Null";
+                currentUsername = "Null";
+                currentHost = "Null";
             }
         }
 
@@ -601,7 +610,7 @@ public class MyBotX extends ListenerAdapter {
         }
 
 // !getChannelName - Gets channel name, for debuging
-        if (event.getMessage().equalsIgnoreCase(prefix + "GetChannelName")) {
+        if (commandChecker(arg, "GetChannelName")) {
             if (checkPerm(event.getUser(), 0)) {
                 sendMessage(event, event.getChannel().getName(), true);
             }
@@ -643,7 +652,7 @@ public class MyBotX extends ListenerAdapter {
         }
 
 // !testPermError - gets one of the permission error statements
-        if (event.getMessage().equalsIgnoreCase(prefix + "testPermError")) {
+        if (commandChecker(arg, "testPermError")) {
             if (checkPerm(event.getUser(), 5)) {
                 permErrorchn(event);
             }
@@ -651,7 +660,7 @@ public class MyBotX extends ListenerAdapter {
 
 
 // !Time - Tell the time
-        if (event.getMessage().equalsIgnoreCase(prefix + "time")) {
+        if (commandChecker(arg, "time")) {
             if (checkPerm(event.getUser(), 0)) {
                 try {
                     String time = new Date().toString();
@@ -730,6 +739,9 @@ public class MyBotX extends ListenerAdapter {
                         double x = Double.parseDouble(arg[1 + arrayOffset]);
                         double step = Double.parseDouble(arg[2 + arrayOffset]);
                         double calcAmount = Double.parseDouble(arg[3 + arrayOffset]) - 1;
+                        if (calcAmount > 5) {
+
+                        }
                         int count = 0;
                         ArrayList<Double> eval = new ArrayList<>(0);
 
@@ -796,37 +808,43 @@ public class MyBotX extends ListenerAdapter {
 // !JS - evaluates a expression in JavaScript
         if (commandChecker(arg, "JS")) {
             if (checkPerm(event.getUser(), 0)) {
-                ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
-                engine.put("load", null);
-                try {
-                    String factorialFunct = "function factorial(num) {  if (num < 0) {    return -1;  } else if (num == 0) {    return 1;  }  var tmp = num;  while (num-- > 2) {    tmp *= num;  }  return tmp;} " +
-                            "function getBit(num, bit) {  var result = (num >> bit) & 1; return result == 1} " +
-                            "function offset(array, offsetNum){array = eval(\"\" + array + \"\");var size = array.length * offsetNum;var result = [];for(var i = 0; i < array.length; i++){result[i] = parseInt(array[i], 16) + size} return result;} " +
-                            "function solvefor(expr, solve){var eq = algebra.parse(expr); var ans = eq.solveFor(solve); return solve + \" = \" + ans.toString(); }  var life = 42; ";
-                    if (!checkPerm(event.getUser(), 5)) {
-                        factorialFunct += "Packages = \"nah fam\"; JavaImporter = \"tbh smh fam\"; Java = \"tbh smh fam\"; java = \"nah fam\"; javax = \"No.\"; Javax = \"No bro\"; org = \"Why do you keep trying?\"";
-                    }
-                    engine.eval(factorialFunct);
-                    String eval;
-                    eval = engine.eval(arg[1 + arrayOffset]).toString(); //todo
-                    if (isNumeric(eval)) {
-                        if (arg.length < 3 + arrayOffset) {
-                            sendMessage(event, eval, true);
-                            System.out.println("Outputting as decimal");
-                        } else {
-                            eval = Long.toString(Long.parseLong(eval), Integer.parseInt(arg[2 + arrayOffset]));
-                            sendMessage(event, eval, true);
-                            System.out.println("Outputting as base " + arg[2 + arrayOffset]);
+                if (arg.length > 1) {
+                    js.destroy();
+                    js = new Thread(() -> {
+                        ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
+                        engine.put("load", null);
+                        try {
+                            String factorialFunct = "function factorial(num) {  if (num < 0) {    return -1;  } else if (num == 0) {    return 1;  }  var tmp = num;  while (num-- > 2) {    tmp *= num;  }  return tmp;} " +
+                                    "function getBit(num, bit) {  var result = (num >> bit) & 1; return result == 1} " +
+                                    "function offset(array, offsetNum){array = eval(\"\" + array + \"\");var size = array.length * offsetNum;var result = [];for(var i = 0; i < array.length; i++){result[i] = parseInt(array[i], 16) + size} return result;} " +
+                                    "function solvefor(expr, solve){var eq = algebra.parse(expr); var ans = eq.solveFor(solve); return solve + \" = \" + ans.toString(); }  var life = 42; ";
+                            if (!checkPerm(event.getUser(), 5)) {
+                                factorialFunct += "Packages = \"nah fam\"; JavaImporter = \"tbh smh fam\"; Java = \"tbh smh fam\"; java = \"nah fam\"; javax = \"No.\"; Javax = \"No bro\"; org = \"Why do you keep trying?\"";
+                            }
+                            engine.eval(factorialFunct);
+                            String eval;
+                            eval = engine.eval(arg[1 + arrayOffset]).toString(); //todo
+                            if (isNumeric(eval)) {
+                                if (arg.length < 3 + arrayOffset) {
+                                    sendMessage(event, eval, true);
+                                    System.out.println("Outputting as decimal");
+                                } else {
+                                    eval = Long.toString(Long.parseLong(eval), Integer.parseInt(arg[2 + arrayOffset]));
+                                    sendMessage(event, eval, true);
+                                    System.out.println("Outputting as base " + arg[2 + arrayOffset]);
+                                }
+                            } else {
+                                sendMessage(event, eval, true);
+                            }
+                        } catch (Exception e) {
+                            sendError(event, e);
                         }
-                    } else {
-                        sendMessage(event, eval, true);
-                    }
-                } catch (Exception e) {
-                    sendError(event, e);
+                    });
+                    js.start();
+                } else {
+                    sendMessage(event, "Requires more arguments", true);
                 }
-            }/* else {
-                sendMessage(event, "Sorry this command is broken right now, please come back later.", true);
-            }*/
+            }
         }
 
 // if someone tells the bot to "Go to hell" do this
@@ -845,7 +863,7 @@ public class MyBotX extends ListenerAdapter {
                         countercount = Integer.parseInt(arg[3 + arrayOffset]);
                     }
                 }
-                if (event.getMessage().equalsIgnoreCase(prefix + "count")) {
+                if (commandChecker(arg, "count")) {
                     countercount++;
                     sendMessage(event, "Number of times that " + counter + " is: " + countercount, false);
                 }
@@ -1196,28 +1214,28 @@ public class MyBotX extends ListenerAdapter {
         }
 
 // !Hello - Standard "Hello world" command
-        if (event.getMessage().equalsIgnoreCase(prefix + "hello")) {
+        if (commandChecker(arg, "hello")) {
             if (checkPerm(event.getUser(), 0)) {
                 sendMessage(event, "Hello World!", true);
             }
         }
 
 // !Bot - Explains that "yes this is a bot"
-        if (event.getMessage().equalsIgnoreCase(prefix + "bot")) {
+        if (commandChecker(arg, "bot")) {
             if (checkPerm(event.getUser(), 0)) {
                 sendMessage(event, "Yes, this is " + currentNick + "'s bot.", true);
             }
         }
 
 // !getname - gets the name of the bot
-        if (event.getMessage().equalsIgnoreCase(prefix + "getname")) {
+        if (commandChecker(arg, "getname")) {
             if (checkPerm(event.getUser(), 0)) {
                 sendMessage(event, event.getBot().getUserBot().getRealName(), true);
             }
         }
 
 // !version - gets the version of the bot
-        if (event.getMessage().equalsIgnoreCase(prefix + "version") && !event.getChannel().getName().equalsIgnoreCase("#deltasmash")) {
+        if (commandChecker(arg, "version") && !event.getChannel().getName().equalsIgnoreCase("#deltasmash")) {
             if (checkPerm(event.getUser(), 0)) {
                 String VERSION = "PircBotX: " + PircBotX.VERSION + ". BotVersion: 2.1. Java version: " + System.getProperty("java.version");
 
@@ -1226,7 +1244,7 @@ public class MyBotX extends ListenerAdapter {
         }
 
 // !login - attempts to login to nickserv
-        if (event.getMessage().equalsIgnoreCase(prefix + "login")) {
+        if (commandChecker(arg, "login")) {
             if (checkPerm(event.getUser(), 0)) {
                 event.getBot().sendIRC().mode(event.getBot().getNick(), "+B");
                 event.getBot().sendIRC().identify(PASSWORD);
@@ -1239,7 +1257,7 @@ public class MyBotX extends ListenerAdapter {
         }
 
 // !getLogin - gets the login of the bot
-        if (event.getMessage().equalsIgnoreCase(prefix + "getLogin")) {
+        if (commandChecker(arg, "getLogin")) {
             if (checkPerm(event.getUser(), 0)) {
                 sendMessage(event, event.getBot().getUserBot().getLogin(), true);
             }
@@ -1274,7 +1292,7 @@ public class MyBotX extends ListenerAdapter {
         }
 
 // !getState - Displays what version the bot is on
-        if (event.getMessage().equalsIgnoreCase(prefix + "getState")) {
+        if (commandChecker(arg, "getState")) {
             if (checkPerm(event.getUser(), 0)) {
                 sendMessage(event, "State is: " + event.getBot().getState(), true);
             }
@@ -1358,7 +1376,7 @@ public class MyBotX extends ListenerAdapter {
 // !DND - Dungeons and dragons. RNG the Game
         if (commandChecker(arg, "DND")) {
             if (checkPerm(event.getUser(), 0)) {
-                if (event.getMessage().equalsIgnoreCase(prefix + "DND join")) {
+                if (commandChecker(arg, "DND join")) {
                     sendMessage(event, "Syntax: " + prefix + "DND join <Character name> <Race (can be anything right now)> <Class> {<Familiar name> <Familiar Species>}", true);
                 } else {
                     if (arg[1 + arrayOffset].equalsIgnoreCase("join")) {
@@ -1689,7 +1707,7 @@ public class MyBotX extends ListenerAdapter {
 // !leave - Tells the bot to leave the current channel
         if (commandChecker(arg, "leave")) {
             if (checkPerm(event.getUser(), 5)) {
-                if (!event.getMessage().equalsIgnoreCase(prefix + "leave")) {
+                if (!commandChecker(arg, "leave")) {
                     event.getChannel().send().part(argJoiner(arg, 1));
                 } else {
                     event.getChannel().send().part();
@@ -1759,7 +1777,7 @@ public class MyBotX extends ListenerAdapter {
 
 // !jtoggle - toggle joke commands
         if (commandChecker(arg, "jtoggle")) {
-            if (event.getMessage().equalsIgnoreCase(prefix + "jtoggle")) {
+            if (commandChecker(arg, "jtoggle")) {
                 if (checkPerm(event.getUser(), 0)) {
                     if (bools.get(jokeCommands)) {
                         sendMessage(event, "Joke commands are currently enabled", true);
@@ -1783,7 +1801,7 @@ public class MyBotX extends ListenerAdapter {
         }
 
 // !sudo/make me a sandwich - You should already know this joke
-        if (event.getMessage().equalsIgnoreCase(prefix + "make me a sandwich")) {
+        if (commandChecker(arg, "make me a sandwich")) {
             if (checkPerm(event.getUser(), 0)) {
                 if (bools.get(jokeCommands) || checkPerm(event.getUser(), 1)) {
                     sendMessage(event, "No, make one yourself", false);
@@ -1792,7 +1810,7 @@ public class MyBotX extends ListenerAdapter {
                 }
             }
         }
-        if (event.getMessage().equalsIgnoreCase(prefix + "sudo make me a sandwich")) {
+        if (commandChecker(arg, "sudo make me a sandwich")) {
             if (checkPerm(event.getUser(), 5)) {
                 sendMessage(event, "Ok", false);
             } else {
@@ -1801,7 +1819,7 @@ public class MyBotX extends ListenerAdapter {
         }
 
 // !Splatoon - Joke command - ask the splatoon question
-        if (event.getMessage().equalsIgnoreCase(prefix + "Splatoon")) {
+        if (commandChecker(arg, "Splatoon")) {
             if (checkPerm(event.getUser(), 0)) {
                 if (bools.get(jokeCommands) || checkPerm(event.getUser(), 1))
                     sendMessage(event, " YOU'RE A KID YOU'RE A SQUID", true);
@@ -1811,7 +1829,7 @@ public class MyBotX extends ListenerAdapter {
         }
 
 // !attempt - Joke command - NOT ATTEMPTED
-        if (event.getMessage().equalsIgnoreCase(prefix + "attempt")) {
+        if (commandChecker(arg, "attempt")) {
             if (checkPerm(event.getUser(), 0)) {
                 if (bools.get(jokeCommands) || checkPerm(event.getUser(), 1))
                     sendMessage(event, " NOT ATTEMPTED", true);
@@ -1821,13 +1839,13 @@ public class MyBotX extends ListenerAdapter {
         }
 
 //// !stfu - Joke command - say "no u"
-//		if (event.getMessage().equalsIgnoreCase(prefix + "stfu")){
+//		if (commandChecker(arg, "stfu")){
 //			if(bools.get(jokeCommands) || checkPerm(event.getUser()))
 //				sendMessage(event, sender + ": " + prefix + "no u");
 //		}
 
 // !eatabowlofdicks - Joke command - joke help command
-        if (event.getMessage().equalsIgnoreCase(prefix + "eatabowlofdicks")) {
+        if (commandChecker(arg, "eatabowlofdicks")) {
             if (checkPerm(event.getUser(), 0)) {
                 if (bools.get(jokeCommands) || checkPerm(event.getUser(), 1))
                     sendMessage(event, "no u", true);
@@ -1873,7 +1891,7 @@ public class MyBotX extends ListenerAdapter {
 
 
 // !potato - Joke command - say "i am potato" in Japanese
-        if (event.getMessage().equalsIgnoreCase(prefix + "potato")) {
+        if (commandChecker(arg, "potato")) {
             if (checkPerm(event.getUser(), 0)) {
                 if (bools.get(jokeCommands) || checkPerm(event.getUser(), 1)) {
                     byte[] bytes = "わたしわポタトデス".getBytes(Charset.forName("UTF-8"));
@@ -2034,6 +2052,17 @@ public class MyBotX extends ListenerAdapter {
                 PM.getUser().send().notice("Successfully connected to " + arg[1 + arrayOffset]);
             }
 
+// !leave - Tells the bot to leave a channel
+            if (commandChecker(arg, "leave")) {
+                PM.getBot().sendRaw().rawLineNow("part ");
+                if (arg.length != 2 + arrayOffset) {
+                    PM.getBot().sendIRC().joinChannel(arg[1 + arrayOffset], arg[2 + arrayOffset]);
+                } else {
+                    PM.getBot().sendIRC().joinChannel(arg[1 + arrayOffset]);
+                }
+                PM.getUser().send().notice("Successfully connected to " + arg[1 + arrayOffset]);
+            }
+
 // !QuitServ - Tells the bot to disconnect from server
             if (commandChecker(arg, "quitserv")) {
                 PM.getUser().send().notice("Disconnecting from server");
@@ -2058,9 +2087,11 @@ public class MyBotX extends ListenerAdapter {
 
                 }
             }
-        } else if (arg[0].startsWith(prefix)) {
-            permError(PM.getUser());
-            PM.getBot().sendIRC().notice(currentNick, "Attempted use of PM commands by " + PM.getUser().getNick() + ". The command used was \"" + PM.getMessage() + "\"");
+        } else if (arg[0].startsWith(prefix) && bools.get(respondToPMs)) {
+            if (!notifiedUserList.containsKey(PM.getUserHostmask()) || notifiedUserList.get(PM.getUserHostmask()) < 3) {
+                permError(PM.getUser());
+                PM.getBot().sendIRC().notice(currentNick, "Attempted use of PM commands by " + PM.getUser().getNick() + ". The command used was \"" + PM.getMessage() + "\"");
+            }
         }
         debug.updateBot(PM.getBot());
         checkIfUserHasANote(PM, PM.getUser().getNick(), null);
