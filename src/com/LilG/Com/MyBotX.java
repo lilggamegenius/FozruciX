@@ -34,6 +34,7 @@ import io.nodyn.NoOpExitHandler;
 import io.nodyn.Nodyn;
 import io.nodyn.runtime.NodynConfig;
 import io.nodyn.runtime.RuntimeFactory;
+import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -43,8 +44,8 @@ import org.pircbotx.hooks.ListenerAdapter;
 import org.pircbotx.hooks.events.*;
 import sun.misc.Unsafe;
 
+import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
 import javax.swing.*;
 import java.awt.*;
 import java.io.*;
@@ -77,7 +78,7 @@ public class MyBotX extends ListenerAdapter {
     private final ExtendedDoubleEvaluator calc = new ExtendedDoubleEvaluator();
     private final StaticVariableSet<Double> variables = new StaticVariableSet<>();
     private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
-    private BitSet bools = new BitSet(7); // true, false, null, null, null, false, true
+    private BitSet bools = new BitSet(8); // true, false, null, null, null, false, true, true
     private String prefix = "!";
     private String currentNick = "Lil-G";
     private String currentUsername = "GameGenuis";
@@ -108,6 +109,10 @@ public class MyBotX extends ListenerAdapter {
     private HashMap<UserHostmask, Integer> notifiedUserList = new HashMap<>();
     @SuppressWarnings("unused")
     public MyBotX() {
+        // true, false, null, null, null, false, true, true
+        bools.set(jokeCommands);
+        bools.set(color);
+        bools.set(respondToPMs);
     }
 
     @SuppressWarnings("unused")
@@ -117,6 +122,10 @@ public class MyBotX extends ListenerAdapter {
             currentUsername = currentNick;
             currentHost = currentUsername + ".tmi.twitch.tv";
         }
+        // true, false, null, null, null, false, true, true
+        bools.set(jokeCommands);
+        bools.set(color);
+        bools.set(respondToPMs);
     }
 
     /**
@@ -432,6 +441,15 @@ public class MyBotX extends ListenerAdapter {
                 currentNick = "Null";
                 currentUsername = "Null";
                 currentHost = "Null";
+                sendMessage(event, "Logged out", false);
+            }
+        }
+
+// !respondToPMs - sets whether or not to respond to PMs
+        if (commandChecker(arg, "respondToPMs")) {
+            if (checkPerm(event.getUser(), 5)) {
+                bools.flip(respondToPMs);
+                sendMessage(event, "Responding to PMs: " + bools.get(respondToPMs), false);
             }
         }
 
@@ -809,17 +827,50 @@ public class MyBotX extends ListenerAdapter {
         if (commandChecker(arg, "JS")) {
             if (checkPerm(event.getUser(), 0)) {
                 if (arg.length > 1) {
-                    js.destroy();
+                    if (js != null) {
+                        js.stop();
+                    }
                     js = new Thread(() -> {
-                        ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
-                        engine.put("load", null);
+                        ScriptEngine engine;
                         try {
+                            final String[] unsafeAttributes = {
+                                    "Java",
+                                    "JavaImporter",
+                                    "Packages",
+                                    "java",
+                                    "javax",
+                                    "javafx",
+                                    "org",
+                                    "com",
+                                    "net",
+                                    "edu",
+                                    "load",
+                                    "loadWithNewGlobal",
+                                    "exit",
+                                    "quit"
+                            };
+                            final String[] unsafeClasses = {
+                                    "java.lang.reflect",
+                                    "java.lang.invoke",
+                            };
                             String factorialFunct = "function factorial(num) {  if (num < 0) {    return -1;  } else if (num == 0) {    return 1;  }  var tmp = num;  while (num-- > 2) {    tmp *= num;  }  return tmp;} " +
                                     "function getBit(num, bit) {  var result = (num >> bit) & 1; return result == 1} " +
                                     "function offset(array, offsetNum){array = eval(\"\" + array + \"\");var size = array.length * offsetNum;var result = [];for(var i = 0; i < array.length; i++){result[i] = parseInt(array[i], 16) + size} return result;} " +
                                     "function solvefor(expr, solve){var eq = algebra.parse(expr); var ans = eq.solveFor(solve); return solve + \" = \" + ans.toString(); }  var life = 42; ";
                             if (!checkPerm(event.getUser(), 5)) {
-                                factorialFunct += "Packages = \"nah fam\"; JavaImporter = \"tbh smh fam\"; Java = \"tbh smh fam\"; java = \"nah fam\"; javax = \"No.\"; Javax = \"No bro\"; org = \"Why do you keep trying?\"";
+                                engine = new NashornScriptEngineFactory().getScriptEngine(requestedClass -> {
+                                    for (String unsafeClass : unsafeClasses) {
+                                        if (requestedClass.equals(unsafeClass)) return false;
+                                    }
+                                    return true;
+                                });
+                                ScriptContext ctx = engine.getContext();
+                                int globalScope = ctx.getScopes().get(0);
+                                for (String unsafeAttribute : unsafeAttributes) {
+                                    ctx.removeAttribute(unsafeAttribute, globalScope);
+                                }
+                            } else {
+                                engine = new NashornScriptEngineFactory().getScriptEngine();
                             }
                             engine.eval(factorialFunct);
                             String eval;
@@ -2088,7 +2139,14 @@ public class MyBotX extends ListenerAdapter {
                 }
             }
         } else if (arg[0].startsWith(prefix) && bools.get(respondToPMs)) {
-            if (!notifiedUserList.containsKey(PM.getUserHostmask()) || notifiedUserList.get(PM.getUserHostmask()) < 3) {
+            if (notifiedUserList.containsKey(PM.getUserHostmask())) {
+                if (notifiedUserList.get(PM.getUserHostmask()) < 3) {
+                    permError(PM.getUser());
+                    PM.getBot().sendIRC().notice(currentNick, "Attempted use of PM commands by " + PM.getUser().getNick() + ". The command used was \"" + PM.getMessage() + "\"");
+                    notifiedUserList.put(PM.getUserHostmask(), notifiedUserList.get(PM.getUserHostmask()) + 1);
+                }
+            } else {
+                notifiedUserList.put(PM.getUserHostmask(), 1);
                 permError(PM.getUser());
                 PM.getBot().sendIRC().notice(currentNick, "Attempted use of PM commands by " + PM.getUser().getNick() + ". The command used was \"" + PM.getMessage() + "\"");
             }
