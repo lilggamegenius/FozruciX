@@ -758,7 +758,7 @@ public class MyBotX extends ListenerAdapter {
                         double step = Double.parseDouble(arg[2 + arrayOffset]);
                         double calcAmount = Double.parseDouble(arg[3 + arrayOffset]) - 1;
                         if (calcAmount > 5) {
-
+                            calcAmount = 5;
                         }
                         int count = 0;
                         ArrayList<Double> eval = new ArrayList<>(0);
@@ -1385,7 +1385,7 @@ public class MyBotX extends ListenerAdapter {
 // !Saythis - Tells the bot to say someting
         if (commandChecker(arg, "saythis")) {
             if (checkPerm(event.getUser(), 4)) {
-                sendMessage(event, argJoiner(arg, 1), false);
+                sendMessage(event, argJoiner(arg, 1 + arrayOffset), false);
             } else {
                 permErrorchn(event);
             }
