@@ -1620,21 +1620,28 @@ public class MyBotX extends ListenerAdapter {
             }
         }
 
-// !disasm68k - disassembles machine code for the 68k
-        if (commandChecker(arg, "disasm68k")) {
-            if (checkPerm(event.getUser(), 5)) {
+// !disasm - disassembles machine code for the specified CPU
+        if (commandChecker(arg, "disasm")) {
+            if (checkPerm(event.getUser(), 0)) {
                 try {
-                    String byteStr = argJoiner(arg, 1).replace(" ", "");
+                    String byteStr = argJoiner(arg, 2).replace(" ", "");
                     byte[] bytes = DatatypeConverter.parseHexBinary(byteStr);
                     FileOutputStream fos = new FileOutputStream("Data\\temp.68k");
                     fos.write(bytes);
                     fos.close();
+                    String proccessor = arg[1 + arrayOffset];
+                    if (proccessor.equalsIgnoreCase("M68K")) {
+                        proccessor = "68000";
+                    }
+                    Process process = new ProcessBuilder("C:\\Program Files (x86)\\IDA 6.8\\idaq", "-B", "-p" + proccessor, "data\\temp.68k").start();
+                    while (process.isAlive()) {
+                    }
                     BufferedReader disasm = new BufferedReader(new FileReader("Data\\temp.asm"));
                     String disasmTemp;
                     int lines = 0;
                     while ((disasmTemp = disasm.readLine()) != null) {
-                        if (!disasmTemp.startsWith(";") && !disasmTemp.contains("END") && lines < 3) {
-                            sendMessage(event, disasmTemp, true);
+                        if (!disasmTemp.startsWith(";") && !disasmTemp.contains("END") && lines < 3 && !disasmTemp.isEmpty()) {
+                            sendMessage(event, disasmTemp.replace("\t", " "), true);
                             lines++;
                         }
                     }
@@ -1643,8 +1650,6 @@ public class MyBotX extends ListenerAdapter {
                 } catch (Exception e) {
                     sendError(event, e);
                 }
-            } else {
-                sendMessage(event, "Command isn't finish yet, please try again after the beep. *Silence*", true);
             }
         }
 
