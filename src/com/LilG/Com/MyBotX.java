@@ -47,6 +47,7 @@ import sun.misc.Unsafe;
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.swing.*;
+import javax.xml.bind.DatatypeConverter;
 import java.awt.*;
 import java.io.*;
 import java.lang.ref.WeakReference;
@@ -1619,6 +1620,34 @@ public class MyBotX extends ListenerAdapter {
             }
         }
 
+// !disasm68k - disassembles machine code for the 68k
+        if (commandChecker(arg, "disasm68k")) {
+            if (checkPerm(event.getUser(), 5)) {
+                try {
+                    String byteStr = argJoiner(arg, 1).replace(" ", "");
+                    byte[] bytes = DatatypeConverter.parseHexBinary(byteStr);
+                    FileOutputStream fos = new FileOutputStream("Data\\temp.68k");
+                    fos.write(bytes);
+                    fos.close();
+                    BufferedReader disasm = new BufferedReader(new FileReader("Data\\temp.asm"));
+                    String disasmTemp;
+                    int lines = 0;
+                    while ((disasmTemp = disasm.readLine()) != null) {
+                        if (!disasmTemp.startsWith(";") && !disasmTemp.contains("END") && lines < 3) {
+                            sendMessage(event, disasmTemp, true);
+                            lines++;
+                        }
+                    }
+                } catch (IllegalArgumentException e) {
+                    sendMessage(event, "Arguments have to be a Hexadecimal number: " + e.getCause(), true);
+                } catch (Exception e) {
+                    sendError(event, e);
+                }
+            } else {
+                sendMessage(event, "Command isn't finish yet, please try again after the beep. *Silence*", true);
+            }
+        }
+
 // !Trans - Translate from 1 language to another
         if (commandChecker(arg, "trans")) {
             if (checkPerm(event.getUser(), 0)) {
@@ -1704,7 +1733,7 @@ public class MyBotX extends ListenerAdapter {
         String consolePrefix = "\\";
         if (arg[0].startsWith(consolePrefix)) {
             if (checkPerm(event.getUser(), 5)) {
-                if (arg[0].substring(1).equalsIgnoreCase("\\start")) {
+                if (arg[0].equalsIgnoreCase("\\start")) {
                     terminal = new CommandLine(event, arg);
                     terminal.start();
                     sendMessage(event, "Command line started", true);

@@ -85,11 +85,12 @@ public class CommandLine extends Thread {
             String output;
             while (s.hasNextLine() && !Thread.interrupted()) {
                 output = s.nextLine();
-                if (!output.matches("/.:\\.*>/")
-                        && !output.equals("Microsoft Windows [Version 10.0.10240]")
-                        && !output.equals("(c) 2015 Microsoft Corporation. All rights reserved.")
+                System.out.println(output);
+                if (!output.contains("C:\\Users\\FozruciX\\Workspace\\FozruciX>")
+                        && !output.contains("Microsoft Windows [Version")
+                        && !output.contains("Microsoft Corporation. All rights reserved.")
                         && !output.contains("Directory of")
-                        && !output.contains("<DIR>.")
+                        && !output.contains("<DIR>          .")
                         && !output.contains("bytes free")
                         && !output.contains("Volume in drive C is OS")
                         && !output.contains("Volume Serial Number is")
