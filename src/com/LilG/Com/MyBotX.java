@@ -81,9 +81,9 @@ public class MyBotX extends ListenerAdapter {
     private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
     private BitSet bools = new BitSet(8); // true, false, null, null, null, false, true, true
     private String prefix = "!";
-    private String currentNick = "null";
-    private String currentUsername = "null";
-    private String currentHost = "null";
+    private String currentNick = "Lil-G";
+    private String currentUsername = "GameGenuis";
+    private String currentHost = "friendly.local.noob";
     private ChatterBotSession cleverBotsession;
     private ChatterBotSession pandoraBotsession;
     private ChatterBotSession jabberBotsession;
@@ -244,10 +244,18 @@ public class MyBotX extends ListenerAdapter {
     }
 
     private void makeDebug(Event event) {
+
         System.out.println("Creating Debug window");
         SwingUtilities.invokeLater(() -> debug = new DebugWindow(event.getBot()));
         System.out.println("Debug window created");
-        debug.setCurrentNick(currentNick + "!" + currentUsername + "@" + currentHost);
+        try {
+            while (debug == null) {
+                int nop = 0;
+            }
+            debug.setCurrentNick(currentNick + "!" + currentUsername + "@" + currentHost);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public void onDisconnect(DisconnectEvent DC) {
