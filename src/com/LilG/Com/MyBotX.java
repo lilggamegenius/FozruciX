@@ -81,9 +81,9 @@ public class MyBotX extends ListenerAdapter {
     private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
     private BitSet bools = new BitSet(8); // true, false, null, null, null, false, true, true
     private String prefix = "!";
-    private String currentNick = "Lil-G";
-    private String currentUsername = "GameGenuis";
-    private String currentHost = "friendly.local.noob";
+    private String currentNick = "null";
+    private String currentUsername = "null";
+    private String currentHost = "null";
     private ChatterBotSession cleverBotsession;
     private ChatterBotSession pandoraBotsession;
     private ChatterBotSession jabberBotsession;
@@ -422,6 +422,9 @@ public class MyBotX extends ListenerAdapter {
                 } else if (arg[1 + arrayOffset].equalsIgnoreCase("Memes")) {
                     sendNotice(event.getUser().getNick(), "Meme database. To get a meme you simply have to do \"Memes <meme name>\"");
                     sendNotice(event.getUser().getNick(), "Subcommand set <Meme Name> <The Meme>: Sets up a meme. Note, When Seting a meme that already exists, you have to be the creator to edit it.  Subcommand list: Lists all the memes in the database");
+                } else if (arg[1 + arrayOffset].equalsIgnoreCase("disasm")) {
+                    sendNotice(event.getUser().getNick(), "Disassembles bytes from different CPUs");
+                    sendNotice(event.getUser().getNick(), "Usage: 1st param is the CPU to read from. 2nd param is the bytes to assemble. You can use M68k as a shorthand instead of typing 68000. List of avalible CPUs https://www.hex-rays.com/products/ida/support/idadoc/618.shtml");
                 } else {
                     sendNotice(event.getUser().getNick(), "That either isn't a command, or " + currentNick + " hasn't add that to the help yet.");
                 }
@@ -464,6 +467,7 @@ public class MyBotX extends ListenerAdapter {
 // !QuitServ - Tells the bot to disconnect from server
         if (commandChecker(arg, "quitserv")) {
             //noinspection ConstantConditions
+            saveData(event);
             event.getUser().send().notice("Disconnecting from server");
             if (arg.length > 1 + arrayOffset) {
                 event.getBot().sendIRC().quitServer(argJoiner(arg, 1));
@@ -692,7 +696,7 @@ public class MyBotX extends ListenerAdapter {
 
 // !perms - edit privileged users
         if (commandChecker(arg, "perms")) {
-            if (checkPerm(event.getUser(), 5)) {
+            if (checkPerm(event.getUser(), Integer.MAX_VALUE)) {
                 if (arg[1 + arrayOffset].equalsIgnoreCase("set")) {
                     try {
                         if (authedUser.contains(arg[2 + arrayOffset])) {
@@ -874,6 +878,7 @@ public class MyBotX extends ListenerAdapter {
                                 engine = new NashornScriptEngineFactory().getScriptEngine();
                             }
                             engine.eval(factorialFunct);
+                            engine.eval(new InputStreamReader(new FileInputStream("algebra.min.js")));
                             String eval;
                             eval = engine.eval(arg[1 + arrayOffset]).toString(); //todo
                             if (isNumeric(eval)) {
@@ -881,8 +886,23 @@ public class MyBotX extends ListenerAdapter {
                                     sendMessage(event, eval, true);
                                     System.out.println("Outputting as decimal");
                                 } else {
-                                    eval = Long.toString(Long.parseLong(eval), Integer.parseInt(arg[2 + arrayOffset]));
-                                    sendMessage(event, eval, true);
+                                    String basePrefix = "";
+                                    switch (Integer.parseInt(arg[2 + arrayOffset])) {
+                                        case 2:
+                                            basePrefix = "0b";
+                                            break;
+                                        case 8:
+                                            basePrefix = "0";
+                                            break;
+                                        case 16:
+                                            basePrefix = "0x";
+                                            break;
+                                    }
+                                    eval = Long.toString(Long.parseLong(eval), Integer.parseInt(arg[2 + arrayOffset])).toUpperCase();
+                                    if (eval.length() % 2 == 1) {
+                                        eval = "0" + eval;
+                                    }
+                                    sendMessage(event, basePrefix + eval, true);
                                     System.out.println("Outputting as base " + arg[2 + arrayOffset]);
                                 }
                             } else {
@@ -1623,26 +1643,57 @@ public class MyBotX extends ListenerAdapter {
 // !disasm - disassembles machine code for the specified CPU
         if (commandChecker(arg, "disasm")) {
             if (checkPerm(event.getUser(), 0)) {
-                try {
-                    String byteStr = argJoiner(arg, 2).replace(" ", "");
-                    byte[] bytes = DatatypeConverter.parseHexBinary(byteStr);
-                    FileOutputStream fos = new FileOutputStream("Data\\temp.68k");
+                String byteStr = argJoiner(arg, 2).replace(" ", "");
+                byte[] bytes = DatatypeConverter.parseHexBinary(byteStr);
+                try (FileOutputStream fos = new FileOutputStream("Data\\temp.68k")) {
+                    BufferedWriter delFile = new BufferedWriter(new FileWriter("Data\\temp.asm", false));
+                    delFile.close();
                     fos.write(bytes);
-                    fos.close();
-                    String proccessor = arg[1 + arrayOffset];
-                    if (proccessor.equalsIgnoreCase("M68K")) {
-                        proccessor = "68000";
+                    String processor = arg[1 + arrayOffset];
+                    if (processor.equalsIgnoreCase("M68K")) {
+                        processor = "68000";
                     }
-                    Process process = new ProcessBuilder("C:\\Program Files (x86)\\IDA 6.8\\idaq", "-B", "-p" + proccessor, "data\\temp.68k").start();
+                    Process process = new ProcessBuilder("C:\\Program Files (x86)\\IDA 6.8\\idaq", "-B", "-p" + processor, "data\\temp.68k").start();
                     while (process.isAlive()) {
                     }
                     BufferedReader disasm = new BufferedReader(new FileReader("Data\\temp.asm"));
                     String disasmTemp;
                     int lines = 0;
+                    boolean fileIsEmpty = true;
+                    ArrayList<String> messagesToSend = new ArrayList<>();
                     while ((disasmTemp = disasm.readLine()) != null) {
-                        if (!disasmTemp.startsWith(";") && !disasmTemp.contains("END") && lines < 3 && !disasmTemp.isEmpty()) {
-                            sendMessage(event, disasmTemp.replace("\t", " "), true);
+                        if (!disasmTemp.startsWith(";") &&          // Check for comments
+                                !disasmTemp.startsWith(" #") &&
+                                !disasmTemp.startsWith("#") &&
+                                !disasmTemp.toLowerCase().contains("end") &&     //Check for various metadata instructions
+                                !disasmTemp.toLowerCase().contains("seg000") &&
+                                !disasmTemp.contains(".text") &&
+                                !disasmTemp.contains(".set") &&
+                                !disasmTemp.contains(".model") &&
+                                !disasmTemp.contains(".8086") &&
+                                !disasmTemp.contains("segment") &&
+                                !disasmTemp.contains(".686p") &&
+                                !disasmTemp.contains(".mmx") &&
+                                !disasmTemp.contains("assume") &&
+                                !disasmTemp.contains(".section") &&
+                                !disasmTemp.isEmpty()) {
+                            messagesToSend.add(disasmTemp.replace("\t", " "));
                             lines++;
+                            if (fileIsEmpty) {
+                                fileIsEmpty = false;
+                            }
+                        }
+                    }
+                    disasm.close();
+                    if (fileIsEmpty) {
+                        sendMessage(event, "Processor is either not supported or some other error has occurred: Empty File", true);
+                    } else {
+                        for (int i = 0; i < 3 && i < messagesToSend.size(); i++) {
+                            if (i == 2 && lines > 3) {
+                                sendMessage(event, messagesToSend.get(i) + "  ; More than 3 lines of output", true);
+                            } else {
+                                sendMessage(event, messagesToSend.get(i), true);
+                            }
                         }
                     }
                 } catch (IllegalArgumentException e) {
@@ -1941,7 +1992,7 @@ public class MyBotX extends ListenerAdapter {
         if (commandChecker(arg, "my")) {
             if (checkPerm(event.getUser(), 0)) {
                 if (bools.get(jokeCommands) || checkPerm(event.getUser(), 1))
-                    if (channel.equalsIgnoreCase("#origami64") || channel.equalsIgnoreCase("#sm64") || channel.equalsIgnoreCase("#Lil-G|bot") || channel.equalsIgnoreCase("#SSB") || channel.equalsIgnoreCase("#firemario_sucks ")) {
+                    if (!channel.equalsIgnoreCase("#retro")) {
 
                         if (arg[1 + arrayOffset].equalsIgnoreCase("DickSize")) {
                             if (event.getUser().getNick().equalsIgnoreCase(currentNick)) {
@@ -1969,6 +2020,12 @@ public class MyBotX extends ListenerAdapter {
                             sendMessage(event, "X" + StringUtils.leftPad("", size, "D") + " - " + size, true);
                         } else if (arg[1 + arrayOffset].equalsIgnoreCase("ass")) {
                             sendMessage(event, "No.", true);
+                        } else if (arg[1 + arrayOffset].equalsIgnoreCase("powerLevel")) {
+                            if (checkPerm(event.getUser(), 5)) {
+                                sendMessage(event, "Its OVER 9000!!!!", true);
+                            } else {
+                                sendMessage(event, "The scouter says their power level is... " + randInt(-1, 9000) + "!", true);
+                            }
                         }
                     }
             }
@@ -2100,7 +2157,7 @@ public class MyBotX extends ListenerAdapter {
                 PM.getUser().send().message("password is incorrect.");
         }
         //Only allow me (Lil-G) to use PM commands except for the login command
-        else if (checkPerm(PM.getUser(), 5) &&
+        else if (checkPerm(PM.getUser(), 4) &&
                 !commandChecker(arg, "login") &&
                 !commandChecker(arg, "rps") &&
                 arg[0].contains(prefix)) {
@@ -2121,7 +2178,7 @@ public class MyBotX extends ListenerAdapter {
             }
 
 // !changenick- Changes the nick of the bot
-            if (commandChecker(arg, "changeNick")) {
+            if (commandChecker(arg, "changeNick") && checkPerm(PM.getUser(), 5)) {
                 PM.getBot().sendIRC().changeNick(argJoiner(arg, 1));
                 debug.setNick(argJoiner(arg, 1));
             }
@@ -2149,7 +2206,7 @@ public class MyBotX extends ListenerAdapter {
             }
 
 // !QuitServ - Tells the bot to disconnect from server
-            if (commandChecker(arg, "quitserv")) {
+            if (commandChecker(arg, "quitserv") && checkPerm(PM.getUser(), Integer.MAX_VALUE)) {
                 PM.getUser().send().notice("Disconnecting from server");
                 if (arg.length > 1 + arrayOffset) {
                     PM.getBot().sendIRC().quitServer(argJoiner(arg, 1));

@@ -14,8 +14,8 @@ import java.nio.charset.Charset;
 class MyBotXMain{
     public static void main(String[] args) throws Exception {
         //Configure what we want our bot to do
-	    boolean debug = false;
-	    String nick = "FozruciX";
+        final boolean debug = true;
+        String nick = "FozruciX";
         String login = "SmugLeaf";
         String realName = "\u00034\u000F* What can I do for you, little buddy?";
         String badnickNET = "irc.badnik.net";
@@ -38,7 +38,6 @@ class MyBotXMain{
                 .addAutoJoinChannel("#retrotech")
                 .addAutoJoinChannel("#SSB")
                 .addAutoJoinChannel("#origami64")
-                .addAutoJoinChannel("#firemario_sucks")
                 .addListener(new MyBotX()); //Add our listener that will be called on Events
 
 
@@ -54,7 +53,6 @@ class MyBotXMain{
                 .addAutoJoinChannel("#Lil-G|bot") //Join the official #Lil-G|Bot channel
                 .addAutoJoinChannel("#SSB")
                 .addAutoJoinChannel("#origami64")
-                .addAutoJoinChannel("#firemario_sucks")
                 .addListener(new MyBotX()); //Add our listener that will be called on Events
 
         Configuration.Builder twitchNormal = new Configuration.Builder()
@@ -96,6 +94,8 @@ class MyBotXMain{
                 .addAutoJoinChannel("#sm64")
                 .addAutoJoinChannel("#pmd")
                 .addAutoJoinChannel("#botTest")
+                .addAutoJoinChannel("#unix")
+                .addAutoJoinChannel("#smashbros")
                 .addListener(new MyBotX()); //Add our listener that will be called on Events
 
 
@@ -111,6 +111,8 @@ class MyBotXMain{
                 .addAutoJoinChannel("#sm64")
                 .addAutoJoinChannel("#pmd")
                 .addAutoJoinChannel("#botTest")
+                .addAutoJoinChannel("#unix")
+                .addAutoJoinChannel("#smashbros")
                 .addListener(new MyBotX()); //Add our listener that will be called on Events
 
         //Create our bot with the configuration
