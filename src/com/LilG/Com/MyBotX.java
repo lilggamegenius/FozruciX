@@ -246,16 +246,9 @@ public class MyBotX extends ListenerAdapter {
     private void makeDebug(Event event) {
 
         System.out.println("Creating Debug window");
-        SwingUtilities.invokeLater(() -> debug = new DebugWindow(event.getBot()));
+        debug = new DebugWindow(event.getBot());
         System.out.println("Debug window created");
-        try {
-            while (debug == null) {
-                int nop = 0;
-            }
-            debug.setCurrentNick(currentNick + "!" + currentUsername + "@" + currentHost);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        debug.setCurrentNick(currentNick + "!" + currentUsername + "@" + currentHost);
     }
 
     public void onDisconnect(DisconnectEvent DC) {
