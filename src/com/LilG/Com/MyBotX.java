@@ -15,7 +15,8 @@ import com.google.code.chatterbotapi.ChatterBot;
 import com.google.code.chatterbotapi.ChatterBotFactory;
 import com.google.code.chatterbotapi.ChatterBotSession;
 import com.google.code.chatterbotapi.ChatterBotType;
-import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.rmtheis.yandtran.YandexTranslatorAPI;
@@ -36,6 +37,8 @@ import io.nodyn.runtime.NodynConfig;
 import io.nodyn.runtime.RuntimeFactory;
 import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
 import org.apache.commons.lang3.StringUtils;
+import org.apfloat.Apfloat;
+import org.apfloat.ApfloatMath;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.pircbotx.*;
@@ -79,7 +82,7 @@ public class MyBotX extends ListenerAdapter {
     private final ExtendedDoubleEvaluator calc = new ExtendedDoubleEvaluator();
     private final StaticVariableSet<Double> variables = new StaticVariableSet<>();
     private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
-    private BitSet bools = new BitSet(8); // true, false, null, null, null, false, true, true
+    private BitSet bools = new BitSet(8); // true, false, null, null, null, false, true, true, false
     private String prefix = "!";
     private String currentNick = "Lil-G";
     private String currentUsername = "GameGenuis";
@@ -108,6 +111,7 @@ public class MyBotX extends ListenerAdapter {
     private int arrayOffset = 0;
     private Thread js;
     private HashMap<UserHostmask, Integer> notifiedUserList = new HashMap<>();
+    private HashMap<String, String> FCList = new HashMap<>();
     @SuppressWarnings("unused")
     public MyBotX() {
         // true, false, null, null, null, false, true, true
@@ -244,7 +248,6 @@ public class MyBotX extends ListenerAdapter {
     }
 
     private void makeDebug(Event event) {
-
         System.out.println("Creating Debug window");
         debug = new DebugWindow(event.getBot());
         System.out.println("Debug window created");
@@ -263,23 +266,7 @@ public class MyBotX extends ListenerAdapter {
 
         bot.sendRaw().rawLineNow("ns recover " + event.getBot().getConfiguration().getName() + " " + PASSWORD);
 
-        String network = event.getBot().getServerInfo().getNetwork();
-        if (network == null) {
-            network = event.getBot().getServerHostname();
-            network = network.substring(network.indexOf(".") + 1, network.lastIndexOf("."));
-        }
-
-        BufferedReader br = new BufferedReader(new FileReader("Data/" + network + "-Data.json"));
-        SaveDataStore save = gson.fromJson(br, SaveDataStore.class);
-        noteList = save.getNoteList();
-        authedUser = save.getAuthedUser();
-        authedUserLevel = save.getAuthedUserLevel();
-        DNDJoined = save.getDNDJoined();
-        DNDList = save.getDNDList();
-        if (save.getAvatarLink() != null) {
-            avatar = save.getAvatarLink();
-        }
-        memes = save.getMemes();
+        loadData();
 
 
         /*boolean drawDungeon = false;
@@ -292,6 +279,53 @@ public class MyBotX extends ListenerAdapter {
                 frame.paintAll(frame.getGraphics());
             });
         }*/
+    }
+
+    private void loadData() {
+        try {
+            BufferedReader br = new BufferedReader(new FileReader("Data/Data.json"));
+            SaveDataStore save = gson.fromJson(br, SaveDataStore.class);
+            noteList = save.getNoteList();
+            authedUser = save.getAuthedUser();
+            authedUserLevel = save.getAuthedUserLevel();
+            DNDJoined = save.getDNDJoined();
+            DNDList = save.getDNDList();
+
+            String avatarTemp = save.getAvatarLink();
+            avatar = (avatarTemp == null) ? avatarTemp : avatar;
+
+            memes = save.getMemes();
+            FCList = save.getFCList();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private int getUserLevel(ArrayList<UserLevel> levels) {
+        int ret;
+        UserLevel level = levels.get(levels.size() - 1);
+        switch (level) {
+            case VOICE:
+                ret = 1;
+                break;
+            case HALFOP:
+                ret = 2;
+                if (levels.get(levels.size() - 2) != UserLevel.OP) {
+                    break;
+                }
+            case OP:
+                ret = 3;
+                break;
+            case SUPEROP:
+                ret = 4;
+                break;
+            case OWNER:
+                ret = 5;
+                break;
+            default:
+                ret = 0; // how it can not be these, i don't know
+        }
+        return ret;
     }
 
     private String getScramble(String msgToSend) {
@@ -361,7 +395,7 @@ public class MyBotX extends ListenerAdapter {
 
 // !formatting - toggles color (Mostly in the errors)
         if (commandChecker(arg, "formatting")) {
-            if (checkPerm(event.getUser(), 5)) {
+            if (checkPerm(event.getUser(), 10)) {
                 bools.flip(color);
                 if (bools.get(color)) {
                     sendMessage(event, "Color formatting is now On", true);
@@ -435,14 +469,14 @@ public class MyBotX extends ListenerAdapter {
 
 // !serverHostName - Gets the Server Host Name
         if (commandChecker(arg, "serverHostName")) {
-            if (checkPerm(event.getUser(), 5)) {
+            if (checkPerm(event.getUser(), 10)) {
                 sendMessage(event, event.getBot().getServerHostname(), false);
             }
         }
 
 // !clearLogin - Clears login info to test auth related thing
         if (commandChecker(arg, "clearLogin")) {
-            if (checkPerm(event.getUser(), 5)) {
+            if (checkPerm(event.getUser(), 10)) {
                 currentNick = "Null";
                 currentUsername = "Null";
                 currentHost = "Null";
@@ -452,7 +486,7 @@ public class MyBotX extends ListenerAdapter {
 
 // !respondToPMs - sets whether or not to respond to PMs
         if (commandChecker(arg, "respondToPMs")) {
-            if (checkPerm(event.getUser(), 5)) {
+            if (checkPerm(event.getUser(), 10)) {
                 bools.flip(respondToPMs);
                 sendMessage(event, "Responding to PMs: " + bools.get(respondToPMs), false);
             }
@@ -460,7 +494,7 @@ public class MyBotX extends ListenerAdapter {
 
 // !Connect - joins a channel
         if (commandChecker(arg, "Connect")) {
-            if (checkPerm(event.getUser(), 5)) {
+            if (checkPerm(event.getUser(), 10)) {
                 event.getBot().send().joinChannel(arg[1 + arrayOffset]);
             }
         }
@@ -485,7 +519,7 @@ public class MyBotX extends ListenerAdapter {
 
 // !setAvatar - sets the avatar of the bot
         if (commandChecker(arg, "setAvatar")) {
-            if (checkPerm(event.getUser(), 5)) {
+            if (checkPerm(event.getUser(), 10)) {
                 avatar = arg[1 + arrayOffset];
                 sendMessage(event, "Avatar set", false);
                 List<User> users = new ArrayList<>();
@@ -504,6 +538,13 @@ public class MyBotX extends ListenerAdapter {
 
             } else {
                 permErrorchn(event);
+            }
+        }
+
+// !loadData - force a reload of the save data
+        if (commandChecker(arg, "loadData")) {
+            if (checkPerm(event.getUser(), 2)) {
+                loadData();
             }
         }
 
@@ -605,7 +646,7 @@ public class MyBotX extends ListenerAdapter {
 
 // !setMessage - Sets different message formats
         if (commandChecker(arg, "setMessage")) {
-            if (checkPerm(event.getUser(), 5)) {
+            if (checkPerm(event.getUser(), 10)) {
                 switch (arg[1 + arrayOffset].toLowerCase()) {
                     case "normal":
                         messageMode = MessageModes.normal;
@@ -677,7 +718,7 @@ public class MyBotX extends ListenerAdapter {
 
 // !testPermError - gets one of the permission error statements
         if (commandChecker(arg, "testPermError")) {
-            if (checkPerm(event.getUser(), 5)) {
+            if (checkPerm(event.getUser(), 10)) {
                 permErrorchn(event);
             }
         }
@@ -751,6 +792,20 @@ public class MyBotX extends ListenerAdapter {
                         sendMessage(event, "User " + authedUser.get(place) + " Has permission level " + authedUserLevel.get(place), false);
                     }
 
+                }
+            }
+        }
+
+// !mathTest - test bigDecimal
+        if (commandChecker(arg, "mathTest")) {
+            if (checkPerm(event.getUser(), 10)) {
+                Apfloat a = new Apfloat(2);
+                Apfloat b = new Apfloat(0x7FFFFFFF);
+                String ans = ApfloatMath.pow(a, b).toString();
+                if (ans.length() > 450) {
+                    sendMessage(event, ans.substring(450) + "...", true);
+                } else {
+                    sendMessage(event, ans, true);
                 }
             }
         }
@@ -863,7 +918,7 @@ public class MyBotX extends ListenerAdapter {
                                     "function getBit(num, bit) {  var result = (num >> bit) & 1; return result == 1} " +
                                     "function offset(array, offsetNum){array = eval(\"\" + array + \"\");var size = array.length * offsetNum;var result = [];for(var i = 0; i < array.length; i++){result[i] = parseInt(array[i], 16) + size} return result;} " +
                                     "function solvefor(expr, solve){var eq = algebra.parse(expr); var ans = eq.solveFor(solve); return solve + \" = \" + ans.toString(); }  var life = 42; ";
-                            if (!checkPerm(event.getUser(), 5)) {
+                            if (!checkPerm(event.getUser(), 10)) {
                                 engine = new NashornScriptEngineFactory().getScriptEngine(requestedClass -> {
                                     for (String unsafeClass : unsafeClasses) {
                                         if (requestedClass.equals(unsafeClass)) return false;
@@ -922,7 +977,7 @@ public class MyBotX extends ListenerAdapter {
 
 // if someone tells the bot to "Go to hell" do this
         if (event.getMessage().contains(event.getBot().getNick()) && event.getMessage().toLowerCase().contains("Go to hell".toLowerCase())) {
-            if (checkPerm(event.getUser(), 0) && !checkPerm(event.getUser(), 5)) {
+            if (checkPerm(event.getUser(), 0) && !checkPerm(event.getUser(), 10)) {
                 sendMessage(event, "I Can't go to hell, i'm all out of vacation days", false);
             }
         }
@@ -1013,7 +1068,7 @@ public class MyBotX extends ListenerAdapter {
 
 //lookup - Looks up something in Wikipedia
         if (commandChecker(arg, "Lookup")) {
-            if (checkPerm(event.getUser(), 5)) {
+            if (checkPerm(event.getUser(), 10)) {
                 String[] listOfTitleStrings = {argJoiner(arg, 1)};
                 info.bliki.api.User user = new info.bliki.api.User("", "", "http://en.wikipedia.org/w/api.php");
                 user.login();
@@ -1188,6 +1243,35 @@ public class MyBotX extends ListenerAdapter {
             }
         }
 
+// !FC - Friend code database
+        if (commandChecker(arg, "FC")) {
+            if (!event.getChannel().getName().equals("#deltasmash") && checkPerm(event.getUser(), 10)) {
+                if (arg.length > 1 + arrayOffset) {
+                    try {
+                        if (arg[1 + arrayOffset].equalsIgnoreCase("set")) {
+                            if (FCList.containsKey(event.getUser().getNick())) {
+                                FCList.put(event.getUser().getNick(), (arg[2 + arrayOffset].replace("-", "").replace(" ", "")));
+
+                            } else {
+                                memes.put(arg[2 + arrayOffset], new Meme(event.getUser().getNick(), argJoiner(arg, 3)));
+                                sendMessage(event, "Meme " + arg[2 + arrayOffset] + " Created as " + argJoiner(arg, 3), true);
+                            }
+                        } else if (arg[1 + arrayOffset].equalsIgnoreCase("list")) {
+                            sendMessage(event, memes.values().toString(), true);
+                        } else {
+                            if (memes.containsKey(arg[1 + arrayOffset])) {
+                                sendMessage(event, arg[1 + arrayOffset] + ": " + memes.get(arg[1 + arrayOffset]).getMeme(), false);
+                            } else {
+                                sendMessage(event, "That Friend code doesn't exist", true);
+                            }
+                        }
+                    } catch (Exception e) {
+                        sendError(event, e);
+                    }
+                }
+            }
+        }
+
 // !memes - Got all dem memes
         if (commandChecker(arg, "memes")) {
             if (checkPerm(event.getUser(), 0)) {
@@ -1196,7 +1280,7 @@ public class MyBotX extends ListenerAdapter {
                         if (arg[1 + arrayOffset].equalsIgnoreCase("set")) {
                             if (memes.containsKey(arg[2 + arrayOffset].toLowerCase())) {
                                 Meme meme = memes.get(arg[2 + arrayOffset].toLowerCase());
-                                if (checkPerm(event.getUser(), 5) || meme.getCreator().equalsIgnoreCase(event.getUser().getNick())) {
+                                if (checkPerm(event.getUser(), 10) || meme.getCreator().equalsIgnoreCase(event.getUser().getNick())) {
                                     if (arg.length == 3 + arrayOffset) {
                                         memes.remove(arg[2 + arrayOffset].toLowerCase());
                                         sendMessage(event, "Meme " + arg[2 + arrayOffset] + " Deleted!", true);
@@ -1373,7 +1457,7 @@ public class MyBotX extends ListenerAdapter {
 
 // !prefix - Changes the command prefix when it isn't the standard "!"
         if (arg[0].equalsIgnoreCase("!prefix") && !prefix.equals("!")) {
-            if (checkPerm(event.getUser(), 5)) {
+            if (checkPerm(event.getUser(), 10)) {
                 prefix = arg[1];
                 if (prefix.length() > 1 && !prefix.endsWith(".")) {
                     arrayOffset = 1;
@@ -1389,7 +1473,7 @@ public class MyBotX extends ListenerAdapter {
 
 // !prefix - Changes the command prefix
         if (commandChecker(arg, "prefix") && !bools.get(prefixRan)) {
-            if (checkPerm(event.getUser(), 5)) {
+            if (checkPerm(event.getUser(), 10)) {
                 prefix = arg[1 + arrayOffset];
                 if (prefix.length() > 1 && !prefix.endsWith(".")) {
                     arrayOffset = 1;
@@ -1406,7 +1490,7 @@ public class MyBotX extends ListenerAdapter {
 
 // !Saythis - Tells the bot to say someting
         if (commandChecker(arg, "saythis")) {
-            if (checkPerm(event.getUser(), 4)) {
+            if (checkPerm(event.getUser(), 6)) {
                 sendMessage(event, argJoiner(arg, 1 + arrayOffset), false);
             } else {
                 permErrorchn(event);
@@ -1415,7 +1499,7 @@ public class MyBotX extends ListenerAdapter {
 
 // !LoopSay - Tells the bot to say someting and loop it
         if (commandChecker(arg, "loopsay")) {
-            if (checkPerm(event.getUser(), 5)) {
+            if (checkPerm(event.getUser(), 10)) {
                 int i = Integer.parseInt(arg[1 + arrayOffset]);
                 int loopCount = 0;
                 try {
@@ -1567,7 +1651,7 @@ public class MyBotX extends ListenerAdapter {
                         }
 
                         if (arg[2 + arrayOffset].equalsIgnoreCase("clearList")) {
-                            if (checkPerm(event.getUser(), 3)) {
+                            if (checkPerm(event.getUser(), 10)) {
                                 DNDJoined.clear();
                                 DNDList.clear();
                                 sendMessage(event, "DND Player lists cleared", false);
@@ -1575,7 +1659,7 @@ public class MyBotX extends ListenerAdapter {
                         }
 
                         if (arg[2 + arrayOffset].equalsIgnoreCase("DelChar")) {
-                            if (checkPerm(event.getUser(), 5)) {
+                            if (checkPerm(event.getUser(), 10)) {
                                 if (DNDJoined.contains(arg[3 + arrayOffset])) {
                                     DNDJoined.remove(index);
                                 }
@@ -1747,7 +1831,7 @@ public class MyBotX extends ListenerAdapter {
 
 // !debugvar - changes a variable to the value
         if (commandChecker(arg, "debugvar")) {
-            if (checkPerm(event.getUser(), 5)) {
+            if (checkPerm(event.getUser(), 10)) {
                 switch (arg[1 + arrayOffset].toLowerCase()) { //Make sure strings are lowercsae
                     case "i":
                         int i = Integer.parseInt(arg[2 + arrayOffset]);
@@ -1764,7 +1848,7 @@ public class MyBotX extends ListenerAdapter {
 
 // !runcmd - Tells the bot to run a OS command
         if (commandChecker(arg, "runcmd")) {
-            if (checkPerm(event.getUser(), 5)) {
+            if (checkPerm(event.getUser(), 10)) {
                 try {
                     if (!arg[1 + arrayOffset].equalsIgnoreCase("stop")) {
                         try {
@@ -1789,7 +1873,7 @@ public class MyBotX extends ListenerAdapter {
 // \ - runs commands without closing at the end
         String consolePrefix = "\\";
         if (arg[0].startsWith(consolePrefix)) {
-            if (checkPerm(event.getUser(), 5)) {
+            if (checkPerm(event.getUser(), 10)) {
                 if (arg[0].equalsIgnoreCase("\\start")) {
                     terminal = new CommandLine(event, arg);
                     terminal.start();
@@ -1806,7 +1890,7 @@ public class MyBotX extends ListenerAdapter {
 
 // !SayRaw - Tells the bot to send a raw line
         if (commandChecker(arg, "SayRaw")) {
-            if (checkPerm(event.getUser(), 5)) {
+            if (checkPerm(event.getUser(), 10)) {
                 event.getBot().sendRaw().rawLineNow(argJoiner(arg, 1));
             } else {
                 permErrorchn(event);
@@ -1815,7 +1899,7 @@ public class MyBotX extends ListenerAdapter {
 
 // !SayNotice - Tells the bot to send a notice
         if (commandChecker(arg, "SayNotice")) {
-            if (checkPerm(event.getUser(), 5)) {
+            if (checkPerm(event.getUser(), 10)) {
                 event.getBot().sendIRC().notice(arg[1 + arrayOffset], argJoiner(arg, 2));
             } else {
                 permErrorchn(event);
@@ -1824,7 +1908,7 @@ public class MyBotX extends ListenerAdapter {
 
 // !SayCTCPCommand - Tells the bot to send a CTCP Command
         if (commandChecker(arg, "SayCTCPCommand")) {
-            if (checkPerm(event.getUser(), 5)) {
+            if (checkPerm(event.getUser(), 10)) {
                 event.getBot().sendIRC().ctcpCommand(arg[1 + arrayOffset], argJoiner(arg, 2));
             } else {
                 permErrorchn(event);
@@ -1843,9 +1927,9 @@ public class MyBotX extends ListenerAdapter {
 
 // !leave - Tells the bot to leave the current channel
         if (commandChecker(arg, "leave")) {
-            if (checkPerm(event.getUser(), 5)) {
+            if (checkPerm(event.getUser(), 10)) {
                 if (!commandChecker(arg, "leave")) {
-                    event.getChannel().send().part(argJoiner(arg, 1));
+                    event.getChannel().send().part(argJoiner(arg, 2));
                 } else {
                     event.getChannel().send().part();
                 }
@@ -1856,7 +1940,7 @@ public class MyBotX extends ListenerAdapter {
 
 // !respawn - Tells the bot to restart and reconnect
         if (commandChecker(arg, "respawn")) {
-            if (checkPerm(event.getUser(), 3)) {
+            if (checkPerm(event.getUser(), 5)) {
                 saveData(event);
                 event.getBot().sendIRC().quitServer("Died! Respawning in about 5 seconds");
                 event.getBot().stopBotReconnect();
@@ -1867,7 +1951,7 @@ public class MyBotX extends ListenerAdapter {
 
 // !recycle - Tells the bot to part and rejoin the channel
         if (commandChecker(arg, "recycle")) {
-            if (checkPerm(event.getUser(), 3)) {
+            if (checkPerm(event.getUser(), 2)) {
                 saveData(event);
                 event.getChannel().send().cycle();
             } else {
@@ -1883,7 +1967,7 @@ public class MyBotX extends ListenerAdapter {
 
 // !kill - Tells the bot to disconnect from server
         if (event.getMessage().contentEquals(prefix + "kill")) {
-            if (checkPerm(event.getUser(), 5)) {
+            if (checkPerm(event.getUser(), 10)) {
                 saveData(event);
                 event.getBot().sendIRC().quitServer("Died! Out of lives. Game over.");
                 System.exit(0);
@@ -1892,10 +1976,22 @@ public class MyBotX extends ListenerAdapter {
             }
         }
 
+// !getUserLevels - gets the user levels of the user
+        if (commandChecker(arg, "getUserLevels")) {
+            if (checkPerm(event.getUser(), 0)) {
+                try {
+                    List<UserLevel> userLevels = Lists.newArrayList(event.getUser().getUserLevels(event.getChannel()).iterator());
+                    sendMessage(event, userLevels.toString(), true);
+                } catch (Exception e) {
+                    sendError(event, e);
+                }
+            }
+        }
+
 
 // !changenick - Changes the nick of the bot
         if (commandChecker(arg, "changeNick")) {
-            if (checkPerm(event.getUser(), 5)) {
+            if (checkPerm(event.getUser(), 10)) {
                 event.getBot().sendIRC().changeNick(arg[1 + arrayOffset]);
                 debug.setNick(arg[1 + arrayOffset]);
             } else {
@@ -1905,8 +2001,8 @@ public class MyBotX extends ListenerAdapter {
 
 // !SayAction - Makes the bot do a action
         if (commandChecker(arg, "SayAction")) {
-            if (checkPerm(event.getUser(), 5)) {
-                event.getChannel().send().action(argJoiner(arg, 1));
+            if (checkPerm(event.getUser(), 10)) {
+                event.getChannel().send().action(argJoiner(arg, 2));
             } else {
                 permErrorchn(event);
             }
@@ -1948,7 +2044,7 @@ public class MyBotX extends ListenerAdapter {
             }
         }
         if (commandChecker(arg, "sudo make me a sandwich")) {
-            if (checkPerm(event.getUser(), 5)) {
+            if (checkPerm(event.getUser(), 10)) {
                 sendMessage(event, "Ok", false);
             } else {
                 sendMessage(event, "This command requires root permissions", true);
@@ -2022,7 +2118,7 @@ public class MyBotX extends ListenerAdapter {
                         } else if (arg[1 + arrayOffset].equalsIgnoreCase("ass")) {
                             sendMessage(event, "No.", true);
                         } else if (arg[1 + arrayOffset].equalsIgnoreCase("powerLevel")) {
-                            if (checkPerm(event.getUser(), 5)) {
+                            if (checkPerm(event.getUser(), 10)) {
                                 sendMessage(event, "Its OVER 9000!!!!", true);
                             } else {
                                 sendMessage(event, "The scouter says their power level is... " + randInt(-1, 9000) + "!", true);
@@ -2098,7 +2194,7 @@ public class MyBotX extends ListenerAdapter {
             }
         }
 
-        saveData(lastEvent);
+        saveData(event);
         debug.setCurrentNick(currentNick + "!" + currentUsername + "@" + currentHost);
         String DNDDungeonMaster = "Null";
         debug.setCurrDM(DNDDungeonMaster);
@@ -2158,7 +2254,7 @@ public class MyBotX extends ListenerAdapter {
                 PM.getUser().send().message("password is incorrect.");
         }
         //Only allow me (Lil-G) to use PM commands except for the login command
-        else if (checkPerm(PM.getUser(), 4) &&
+        else if (checkPerm(PM.getUser(), 6) &&
                 !commandChecker(arg, "login") &&
                 !commandChecker(arg, "rps") &&
                 arg[0].contains(prefix)) {
@@ -2166,21 +2262,21 @@ public class MyBotX extends ListenerAdapter {
 
 // !SendTo - Tells the bot to say someting on a channel
             if (commandChecker(arg, "sendto")) {
-                PM.getBot().sendIRC().message(arg[1 + arrayOffset], argJoiner(arg, 2));
+                PM.getBot().sendIRC().message(arg[1 + arrayOffset], argJoiner(arg, 6));
             }
 
 // !sendAction - Tells the bot to make a action on a channel
             if (commandChecker(arg, "sendAction")) {
-                PM.getBot().sendIRC().action(arg[1 + arrayOffset], argJoiner(arg, 2));
+                PM.getBot().sendIRC().action(arg[1 + arrayOffset], argJoiner(arg, 6));
             }
 // !sendRaw - Tells the bot to say a raw line
             if (commandChecker(arg, "sendRaw")) {
-                PM.getBot().sendRaw().rawLineNow(argJoiner(arg, 1));
+                PM.getBot().sendRaw().rawLineNow(argJoiner(arg, 10));
             }
 
 // !changenick- Changes the nick of the bot
-            if (commandChecker(arg, "changeNick") && checkPerm(PM.getUser(), 5)) {
-                PM.getBot().sendIRC().changeNick(argJoiner(arg, 1));
+            if (commandChecker(arg, "changeNick") && checkPerm(PM.getUser(), 10)) {
+                PM.getBot().sendIRC().changeNick(argJoiner(arg, 6));
                 debug.setNick(argJoiner(arg, 1));
             }
 
@@ -2225,9 +2321,9 @@ public class MyBotX extends ListenerAdapter {
 
 // !rejoin - Rejoins all channels
             if (PM.getMessage().equalsIgnoreCase(prefix + "rejoin")) {
-                ImmutableMap autoChannels = PM.getBot().getConfiguration().getAutoJoinChannels();
+                ImmutableList<String> autoChannels = PM.getBot().getConfiguration().getAutoJoinChannels().values().asList();
                 for (int i = 0; i < autoChannels.size(); i++) {
-
+                    PM.getBot().send().joinChannel(autoChannels.get(i));
                 }
             }
         } else if (arg[0].startsWith(prefix) && bools.get(respondToPMs)) {
@@ -2363,13 +2459,13 @@ public class MyBotX extends ListenerAdapter {
      * @param user User trying to use command
      * @return Boolean true if allowed, false if not
      */
-    private boolean checkPerm(User user, int userLevel) {
+    private boolean checkPerm(User user, int requiredUserLevel) {
         if (user.getNick().equalsIgnoreCase(currentNick) && user.getLogin().equalsIgnoreCase(currentUsername) && user.getHostname().equalsIgnoreCase(currentHost)) {
             return true;
         } else if (authedUser.contains(user.getNick())) {
             int index = authedUser.indexOf(user.getNick() + "!" + user.getLogin() + "@" + user.getHostname());
             if (index > -1) {
-                if (authedUserLevel.get(index) >= userLevel) {
+                if (authedUserLevel.get(index) >= requiredUserLevel) {
                     return true;
                 }
             }
@@ -2383,13 +2479,14 @@ public class MyBotX extends ListenerAdapter {
                 if (nick.equalsIgnoreCase(user.getNick()) || nick.equalsIgnoreCase("*")) {
                     if (userName.equalsIgnoreCase(user.getLogin()) || userName.equalsIgnoreCase("*")) {
                         if (Hostname.equalsIgnoreCase(user.getHostname()) || Hostname.equalsIgnoreCase("*")) {
-                            return authedUserLevel.get(index) >= userLevel;
+                            return authedUserLevel.get(index) >= requiredUserLevel;
                         }
                     }
                 }
                 index--;
             }
-            if (userLevel <= 0) {
+
+            if (requiredUserLevel <= 0) {
                 return true;
             }
         }
@@ -2468,17 +2565,12 @@ public class MyBotX extends ListenerAdapter {
 
     private void saveData(MessageEvent event) {
         try {
-            String network = event.getBot().getServerInfo().getNetwork();
-            if (network == null) {
-                network = event.getBot().getServerHostname();
-                network = network.substring(network.indexOf(".") + 1, network.lastIndexOf("."));
-            }
-            SaveDataStore save = new SaveDataStore(noteList, authedUser, authedUserLevel, DNDJoined, DNDList, avatar, memes);
-            FileWriter writer = new FileWriter("Data/" + network + "-Data.json");
+            SaveDataStore save = new SaveDataStore(noteList, authedUser, authedUserLevel, DNDJoined, DNDList, avatar, memes, FCList);
+            FileWriter writer = new FileWriter("Data/Data.json");
             writer.write(gson.toJson(save));
             writer.close();
 
-            System.out.println("Data saved!");
+            //System.out.println("Data saved!");
         } catch (Exception e) {
             sendError(event, e);
         }

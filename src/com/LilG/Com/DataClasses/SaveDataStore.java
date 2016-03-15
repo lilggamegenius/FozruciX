@@ -23,8 +23,10 @@ public class SaveDataStore {
 
     private HashMap<String, Meme> memes = new HashMap<>();
 
+    private HashMap<String, String> FCList = new HashMap<>();
 
-    public SaveDataStore(List<Note> noteList, List<String> authedUser, List<Integer> authedUserLevel, List<String> DNDJoined, List<DNDPlayer> DNDList, String avatarLink, HashMap<String, Meme> memes) {
+
+    public SaveDataStore(List<Note> noteList, List<String> authedUser, List<Integer> authedUserLevel, List<String> DNDJoined, List<DNDPlayer> DNDList, String avatarLink, HashMap<String, Meme> memes, HashMap<String, String> FCList) {
         this.noteList = noteList;
         this.authedUser = authedUser;
         this.authedUserLevel = authedUserLevel;
@@ -32,6 +34,7 @@ public class SaveDataStore {
         this.DNDList = DNDList;
         this.avatarLink = avatarLink;
         this.memes = memes;
+        this.FCList = FCList;
     }
 
     public List<Note> getNoteList() {
@@ -60,5 +63,9 @@ public class SaveDataStore {
 
     public HashMap<String, Meme> getMemes() {
         return memes;
+    }
+
+    public HashMap<String, String> getFCList() {
+        return FCList;
     }
 }
