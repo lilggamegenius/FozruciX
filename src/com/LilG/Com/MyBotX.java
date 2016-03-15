@@ -2165,7 +2165,7 @@ public class MyBotX extends ListenerAdapter {
 
 // !GayDar - Joke command - picks random user
         if (commandChecker(arg, "GayDar")) {
-            if (checkPerm(event.getUser(), 0)) {
+            if (checkPerm(event.getUser(), 0) && !channel.equalsIgnoreCase("#retro")) {
                 if (bools.get(jokeCommands) || checkPerm(event.getUser(), 1)) {
                     Iterator<User> user = event.getChannel().getUsers().iterator();
                     List<String> userList = new ArrayList<>();
