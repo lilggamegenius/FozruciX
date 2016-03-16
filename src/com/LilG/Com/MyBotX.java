@@ -37,8 +37,6 @@ import io.nodyn.runtime.NodynConfig;
 import io.nodyn.runtime.RuntimeFactory;
 import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
 import org.apache.commons.lang3.StringUtils;
-import org.apfloat.Apfloat;
-import org.apfloat.ApfloatMath;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.pircbotx.*;
@@ -82,7 +80,7 @@ public class MyBotX extends ListenerAdapter {
     private final ExtendedDoubleEvaluator calc = new ExtendedDoubleEvaluator();
     private final StaticVariableSet<Double> variables = new StaticVariableSet<>();
     private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
-    private BitSet bools = new BitSet(8); // true, false, null, null, null, false, true, true, false
+    private volatile BitSet bools = new BitSet(8); // true, false, null, null, null, false, true, true, false
     private String prefix = "!";
     private String currentNick = "Lil-G";
     private String currentUsername = "GameGenuis";
@@ -92,7 +90,7 @@ public class MyBotX extends ListenerAdapter {
     private ChatterBotSession jabberBotsession;
     private MessageEvent lastEvent;
     private runCMD singleCMD = null;
-    private List<Note> noteList = new ArrayList<>();
+    private volatile List<Note> noteList = new ArrayList<>();
     private List<String> authedUser = new ArrayList<>();
     private List<Integer> authedUserLevel = new ArrayList<>();
     private List<String> DNDJoined = new ArrayList<>();
@@ -100,18 +98,18 @@ public class MyBotX extends ListenerAdapter {
     private Dungeon DNDDungeon = new Dungeon();
     private DebugWindow debug;
     private int jokeCommandDebugVar = 30;
-    private CommandLine terminal;
+    private volatile CommandLine terminal;
     private String counter = "";
     private int countercount = 0;
     private JFrame frame = new JFrame();
     private MessageModes messageMode = MessageModes.normal;
     private List<RPSGame> rpsGames = new ArrayList<>();
-    private String avatar = "http://puu.sh/mhwsr.gif";
-    private HashMap<String, Meme> memes = new HashMap<>();
+    private volatile String avatar = "http://puu.sh/mhwsr.gif";
+    private volatile HashMap<String, Meme> memes = new HashMap<>();
     private int arrayOffset = 0;
-    private Thread js;
-    private HashMap<UserHostmask, Integer> notifiedUserList = new HashMap<>();
-    private HashMap<String, String> FCList = new HashMap<>();
+    private volatile Thread js;
+    private volatile HashMap<UserHostmask, Integer> notifiedUserList = new HashMap<>();
+    private volatile HashMap<String, String> FCList = new HashMap<>();
     @SuppressWarnings("unused")
     public MyBotX() {
         // true, false, null, null, null, false, true, true
@@ -269,6 +267,8 @@ public class MyBotX extends ListenerAdapter {
         loadData();
 
 
+
+
         /*boolean drawDungeon = false;
         if (drawDungeon) {
             SwingUtilities.invokeLater(() -> {
@@ -303,32 +303,36 @@ public class MyBotX extends ListenerAdapter {
 
     private int getUserLevel(ArrayList<UserLevel> levels) {
         int ret;
-        UserLevel level = levels.get(levels.size() - 1);
-        switch (level) {
-            case VOICE:
-                ret = 1;
-                break;
-            case HALFOP:
-                ret = 2;
-                if (levels.get(levels.size() - 2) != UserLevel.OP) {
+        if (levels.size() == 0) {
+            ret = 0;
+        } else {
+            UserLevel level = levels.get(levels.size() - 1);
+            switch (level) {
+                case VOICE:
+                    ret = 1;
                     break;
-                }
-            case OP:
-                ret = 3;
-                break;
-            case SUPEROP:
-                ret = 4;
-                break;
-            case OWNER:
-                ret = 5;
-                break;
-            default:
-                ret = 0; // how it can not be these, i don't know
+                case HALFOP:
+                    ret = 2;
+                    if (levels.get(levels.size() - 2) != UserLevel.OP) {
+                        break;
+                    }
+                case OP:
+                    ret = 3;
+                    break;
+                case SUPEROP:
+                    ret = 4;
+                    break;
+                case OWNER:
+                    ret = 5;
+                    break;
+                default:
+                    ret = 0; // how it can not be these, i don't know
+            }
         }
         return ret;
     }
 
-    private String getScramble(String msgToSend) {
+    public String getScramble(String msgToSend) {
         if (msgToSend.contains("\r") || msgToSend.contains("\n")) {
             msgToSend = msgToSend.replace("\r", "").replace("\n", "");
         }
@@ -499,23 +503,7 @@ public class MyBotX extends ListenerAdapter {
             }
         }
 
-// !QuitServ - Tells the bot to disconnect from server
-        if (commandChecker(arg, "quitserv")) {
-            //noinspection ConstantConditions
-            saveData(event);
-            event.getUser().send().notice("Disconnecting from server");
-            if (arg.length > 1 + arrayOffset) {
-                event.getBot().sendIRC().quitServer(argJoiner(arg, 1));
-            } else {
-                event.getBot().sendIRC().quitServer("I'm only a year old and have already wasted my entire life.");
-            }
-            try {
-                wait(10000);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            System.exit(0);
-        }
+
 
 // !setAvatar - sets the avatar of the bot
         if (commandChecker(arg, "setAvatar")) {
@@ -792,20 +780,6 @@ public class MyBotX extends ListenerAdapter {
                         sendMessage(event, "User " + authedUser.get(place) + " Has permission level " + authedUserLevel.get(place), false);
                     }
 
-                }
-            }
-        }
-
-// !mathTest - test bigDecimal
-        if (commandChecker(arg, "mathTest")) {
-            if (checkPerm(event.getUser(), 10)) {
-                Apfloat a = new Apfloat(2);
-                Apfloat b = new Apfloat(0x7FFFFFFF);
-                String ans = ApfloatMath.pow(a, b).toString();
-                if (ans.length() > 450) {
-                    sendMessage(event, ans.substring(450) + "...", true);
-                } else {
-                    sendMessage(event, ans, true);
                 }
             }
         }
@@ -1243,31 +1217,52 @@ public class MyBotX extends ListenerAdapter {
             }
         }
 
+// !do nothing
+
 // !FC - Friend code database
         if (commandChecker(arg, "FC")) {
-            if (!event.getChannel().getName().equals("#deltasmash") && checkPerm(event.getUser(), 10)) {
-                if (arg.length > 1 + arrayOffset) {
-                    try {
-                        if (arg[1 + arrayOffset].equalsIgnoreCase("set")) {
+            if (!event.getChannel().getName().equals("#deltasmash") && checkPerm(event.getUser(), 0)) {
+                try {
+                    if (arg.length > 2) {
+                        if (arg[1].equalsIgnoreCase("set")) {
                             if (FCList.containsKey(event.getUser().getNick())) {
-                                FCList.put(event.getUser().getNick(), (arg[2 + arrayOffset].replace("-", "").replace(" ", "")));
-
+                                String fc = arg[2 + arrayOffset].replaceAll("[^\\d]", "");
+                                if (fc.length() == 12) {
+                                    FCList.put(event.getUser().getNick(), fc);
+                                    sendMessage(event, "FC Edited", true);
+                                } else {
+                                    sendMessage(event, "Incorrect FC", true);
+                                }
                             } else {
-                                memes.put(arg[2 + arrayOffset], new Meme(event.getUser().getNick(), argJoiner(arg, 3)));
-                                sendMessage(event, "Meme " + arg[2 + arrayOffset] + " Created as " + argJoiner(arg, 3), true);
-                            }
-                        } else if (arg[1 + arrayOffset].equalsIgnoreCase("list")) {
-                            sendMessage(event, memes.values().toString(), true);
-                        } else {
-                            if (memes.containsKey(arg[1 + arrayOffset])) {
-                                sendMessage(event, arg[1 + arrayOffset] + ": " + memes.get(arg[1 + arrayOffset]).getMeme(), false);
-                            } else {
-                                sendMessage(event, "That Friend code doesn't exist", true);
+                                String fc = arg[2 + arrayOffset].replaceAll("[^\\d]", "");
+                                if (fc.length() == 12) {
+                                    FCList.put(event.getUser().getNick(), arg[2].replaceAll("[^\\d]", ""));
+                                    sendMessage(event, "Added " + event.getUser().getNick() + "'s FC to the DB as " + arg[2 + arrayOffset].replaceAll("[^\\d]", ""), true);
+                                } else {
+                                    sendMessage(event, "Incorrect FC", true);
+                                }
                             }
                         }
-                    } catch (Exception e) {
-                        sendError(event, e);
+                    } else {
+                        if (arg[1].equalsIgnoreCase("list")) {
+                            sendMessage(event, FCList.keySet().toString(), true);
+                        } else if (FCList.containsKey(arg[1])) {
+                            String fc = FCList.get(arg[1 + arrayOffset]);
+                            String fcParts[] = new String[3];
+                            fcParts[0] = fc.substring(0, 4);
+                            fcParts[1] = fc.substring(4, 8);
+                            fcParts[2] = fc.substring(8);
+                            fc = fcParts[0] + "-" + fcParts[1] + "-" + fcParts[2];
+                            sendMessage(event, arg[1 + arrayOffset] + ": " + fc, false);
+                        } else {
+                            sendMessage(event, "That user hasn't entered their FC yet", false);
+                        }
                     }
+                } catch (NullPointerException e) {
+                    FCList = new HashMap<>();
+                    sendMessage(event, "Try the command again", true);
+                } catch (Exception e) {
+                    sendError(event, e);
                 }
             }
         }
@@ -1966,10 +1961,21 @@ public class MyBotX extends ListenerAdapter {
         }
 
 // !kill - Tells the bot to disconnect from server
-        if (event.getMessage().contentEquals(prefix + "kill")) {
+        if (commandChecker(arg, "kill")) {
             if (checkPerm(event.getUser(), 10)) {
+                //noinspection ConstantConditions
                 saveData(event);
-                event.getBot().sendIRC().quitServer("Died! Out of lives. Game over.");
+                event.getUser().send().notice("Disconnecting from server");
+                if (arg.length > 1 + arrayOffset) {
+                    event.getBot().sendIRC().quitServer(argJoiner(arg, 1));
+                } else {
+                    event.getBot().sendIRC().quitServer("I'm only a year old and have already wasted my entire life.");
+                }
+                try {
+                    wait(10000);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
                 System.exit(0);
             } else {
                 permErrorchn(event);
@@ -2344,20 +2350,6 @@ public class MyBotX extends ListenerAdapter {
         debug.setCurrentNick(currentNick + "!" + currentUsername + "@" + currentHost);
     }
 
-    public void onJoin(JoinEvent join) {
-        System.out.println("User Joined");
-        User bot = join.getBot().getUserBot();
-        if (checkOP(join.getChannel())) {
-            if (checkPerm(join.getUser(), 0)) {
-                join.getChannel().send().voice(join.getUserHostmask());
-            }
-        }
-        //noinspection ConstantConditions
-        checkIfUserHasANote(join, join.getUser().getNick(), join.getChannel().getName());
-        debug.updateBot(join.getBot());
-        debug.setCurrentNick(currentNick + "!" + currentUsername + "@" + currentHost);
-    }
-
     public void onNotice(NoticeEvent event) {
         String message = event.getMessage();
         //noinspection ConstantConditions
@@ -2381,6 +2373,20 @@ public class MyBotX extends ListenerAdapter {
             debug.setCurrentNick(currentNick + "!" + currentUsername + "@" + currentHost);
         }
         debug.updateBot(event.getBot());
+    }
+
+    public void onJoin(JoinEvent join) {
+        System.out.println("User Joined");
+        User bot = join.getBot().getUserBot();
+        if (checkOP(join.getChannel())) {
+            if (checkPerm(join.getUser(), 0)) {
+                join.getChannel().send().voice(join.getUserHostmask());
+            }
+        }
+        //noinspection ConstantConditions
+        checkIfUserHasANote(join, join.getUser().getNick(), join.getChannel().getName());
+        debug.updateBot(join.getBot());
+        debug.setCurrentNick(currentNick + "!" + currentUsername + "@" + currentHost);
     }
 
     public void onNickChange(NickChangeEvent nick) {
@@ -2485,8 +2491,8 @@ public class MyBotX extends ListenerAdapter {
                 }
                 index--;
             }
-
-            if (requiredUserLevel <= 0) {
+            ArrayList<UserLevel> levels = Lists.newArrayList(user.getUserLevels(lastEvent.getChannel()).iterator());
+            if (requiredUserLevel <= getUserLevel(levels)) {
                 return true;
             }
         }
