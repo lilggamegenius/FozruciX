@@ -283,7 +283,13 @@ public class MyBotX extends ListenerAdapter {
 
     private void loadData() {
         try {
-            BufferedReader br = new BufferedReader(new FileReader("Data/Data.json"));
+            String network = lastEvent.getBot().getServerInfo().getNetwork();
+            if (network == null) {
+                network = lastEvent.getBot().getServerHostname();
+                network = network.substring(network.indexOf(".") + 1, network.lastIndexOf("."));
+            }
+
+            BufferedReader br = new BufferedReader(new FileReader("Data/" + network + "-Data.json"));
             SaveDataStore save = gson.fromJson(br, SaveDataStore.class);
             noteList = save.getNoteList();
             authedUser = save.getAuthedUser();
@@ -2571,8 +2577,13 @@ public class MyBotX extends ListenerAdapter {
 
     private void saveData(MessageEvent event) {
         try {
+            String network = event.getBot().getServerInfo().getNetwork();
+            if (network == null) {
+                network = event.getBot().getServerHostname();
+                network = network.substring(network.indexOf(".") + 1, network.lastIndexOf("."));
+            }
             SaveDataStore save = new SaveDataStore(noteList, authedUser, authedUserLevel, DNDJoined, DNDList, avatar, memes, FCList);
-            FileWriter writer = new FileWriter("Data/Data.json");
+            FileWriter writer = new FileWriter("Data/" + network + "-Data.json");
             writer.write(gson.toJson(save));
             writer.close();
 
