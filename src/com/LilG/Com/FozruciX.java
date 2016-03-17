@@ -62,7 +62,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 
-public class MyBotX extends ListenerAdapter {
+public class FozruciX extends ListenerAdapter {
     private final static File WIKTIONARY_DIRECTORY = new File("Data\\Wiktionary");
     private final int jokeCommands = 0;
     private final int prefixRan = 1;
@@ -111,7 +111,7 @@ public class MyBotX extends ListenerAdapter {
     private volatile HashMap<UserHostmask, Integer> notifiedUserList = new HashMap<>();
     private volatile HashMap<String, String> FCList = new HashMap<>();
     @SuppressWarnings("unused")
-    public MyBotX() {
+    public FozruciX() {
         // true, false, null, null, null, false, true, true
         bools.set(jokeCommands);
         bools.set(color);
@@ -119,7 +119,7 @@ public class MyBotX extends ListenerAdapter {
     }
 
     @SuppressWarnings("unused")
-    public MyBotX(boolean Twitch) {
+    public FozruciX(boolean Twitch) {
         if (Twitch) {
             currentNick = "lilggamegenuis";
             currentUsername = currentNick;
@@ -847,7 +847,7 @@ public class MyBotX extends ListenerAdapter {
                 String expression = arg[1 + arrayOffset];
                 String solveFor = arg[2 + arrayOffset];
                 // Use DynJS runtime
-                RuntimeFactory factory = RuntimeFactory.init(MyBotX.class.getClassLoader(), RuntimeFactory.RuntimeType.DYNJS);
+                RuntimeFactory factory = RuntimeFactory.init(FozruciX.class.getClassLoader(), RuntimeFactory.RuntimeType.DYNJS);
                 // Set config to run main.js
                 NodynConfig config = new NodynConfig(new String[]{"-e", "var algebra = require('algebra.js'); var exp = new algebra.parse(\"" + expression + "\"); var ans = eq.solveFor(\"" + solveFor + "\"); eq.toString()   " + solveFor + " = ans.toString()"});
                 // Create a new Nodyn and run it

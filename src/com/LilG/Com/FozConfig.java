@@ -11,7 +11,7 @@ import java.nio.charset.Charset;
  * Created by ggonz on 10/12/2015.
  * The Main file with all of the configs
  */
-class MyBotXMain{
+public class FozConfig {
     public static void main(String[] args) throws Exception {
         //Configure what we want our bot to do
         final boolean debug = false;
@@ -27,7 +27,7 @@ class MyBotXMain{
                 .setEncoding(Charset.forName("UTF-8"))
                 .setAutoReconnect(true)
                 .setAutoReconnectAttempts(attempts)
-                .setNickservPassword(MyBotX.setPassword(true))
+                .setNickservPassword(FozruciX.setPassword(true))
                 .setName(nick) //Set the nick of the bot.
                 .setLogin(login)
                 .setRealName(realName)
@@ -38,14 +38,14 @@ class MyBotXMain{
                 .addAutoJoinChannel("#retrotech")
                 .addAutoJoinChannel("#SSB")
                 .addAutoJoinChannel("#origami64")
-                .addListener(new MyBotX()); //Add our listener that will be called on Events
+                .addListener(new FozruciX()); //Add our listener that will be called on Events
 
 
         Configuration.Builder debugConfig = new Configuration.Builder()
                 .setEncoding(Charset.forName("UTF-8"))
                 .setAutoReconnect(true)
                 .setAutoReconnectAttempts(attempts)
-                .setNickservPassword(MyBotX.setPassword(true))
+                .setNickservPassword(FozruciX.setPassword(true))
                 .setName(nick) //Set the nick of the bot.
                 .setLogin(login)
                 .setRealName(realName)
@@ -53,7 +53,7 @@ class MyBotXMain{
                 .addAutoJoinChannel("#Lil-G|bot") //Join the official #Lil-G|Bot channel
                 .addAutoJoinChannel("#SSB")
                 .addAutoJoinChannel("#origami64")
-                .addListener(new MyBotX()); //Add our listener that will be called on Events
+                .addListener(new FozruciX()); //Add our listener that will be called on Events
 
         Configuration.Builder twitchNormal = new Configuration.Builder()
                 .setEncoding(Charset.forName("UTF-8"))
@@ -69,7 +69,7 @@ class MyBotXMain{
                 .setLogin(nick.toLowerCase())
                 .addAutoJoinChannel("#lilggamegenuis") //Join lilggamegenuis's twitch chat
                 .addAutoJoinChannel("#deltasmash")
-                .addListener(new MyBotX(true)); //Add our listener that will be called on Events
+                .addListener(new FozruciX(true)); //Add our listener that will be called on Events
 
 
         Configuration.Builder twitchDebug = new Configuration.Builder()
@@ -80,13 +80,13 @@ class MyBotXMain{
                 .setName(nick.toLowerCase()) //Set the nick of the bot.
                 .setLogin(nick.toLowerCase())
                 .addAutoJoinChannel("#lilggamegenuis") //Join lilggamegenuis's twitch chat
-                .addListener(new MyBotX(true)); //Add our listener that will be called on Events
+                .addListener(new FozruciX(true)); //Add our listener that will be called on Events
 
         Configuration.Builder normalSmwc = new Configuration.Builder()
                 .setEncoding(Charset.forName("UTF-8"))
                 .setAutoReconnect(true)
                 .setAutoReconnectAttempts(attempts)
-                .setNickservPassword(MyBotX.setPassword(true))
+                .setNickservPassword(FozruciX.setPassword(true))
                 .setName(nick) //Set the nick of the bot.
                 .setLogin(login)
                 .setRealName(realName)
@@ -96,14 +96,14 @@ class MyBotXMain{
                 .addAutoJoinChannel("#botTest")
                 .addAutoJoinChannel("#unix")
                 .addAutoJoinChannel("#smashbros")
-                .addListener(new MyBotX()); //Add our listener that will be called on Events
+                .addListener(new FozruciX()); //Add our listener that will be called on Events
 
 
         Configuration.Builder debugConfigSmwc = new Configuration.Builder()
                 .setEncoding(Charset.forName("UTF-8"))
                 .setAutoReconnect(true)
                 .setAutoReconnectAttempts(attempts)
-                .setNickservPassword(MyBotX.setPassword(true))
+                .setNickservPassword(FozruciX.setPassword(true))
                 .setName(nick) //Set the nick of the bot.
                 .setLogin(login)
                 .setRealName(realName)
@@ -113,18 +113,18 @@ class MyBotXMain{
                 .addAutoJoinChannel("#botTest")
                 .addAutoJoinChannel("#unix")
                 .addAutoJoinChannel("#smashbros")
-                .addListener(new MyBotX()); //Add our listener that will be called on Events
+                .addListener(new FozruciX()); //Add our listener that will be called on Events
 
         //Create our bot with the configuration
         MultiBotManager manager = new MultiBotManager();
         if (debug) {
             manager.addBot(debugConfig.buildForServer(badnickNET, 6697));
             manager.addBot(debugConfigSmwc.buildForServer(caffie, 6697));
-            manager.addBot(twitchDebug.buildForServer(twitch, 6667, MyBotX.setPassword(false)));
+            manager.addBot(twitchDebug.buildForServer(twitch, 6667, FozruciX.setPassword(false)));
         } else {
             manager.addBot(normal.buildForServer(badnickNET, 6697));
             manager.addBot(normalSmwc.buildForServer(caffie, 6697));
-            manager.addBot(twitchNormal.buildForServer(twitch, 6667, MyBotX.setPassword(false)));
+            manager.addBot(twitchNormal.buildForServer(twitch, 6667, FozruciX.setPassword(false)));
         }
         //Connect to the server
         manager.start();
