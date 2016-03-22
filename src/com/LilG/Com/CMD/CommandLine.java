@@ -52,6 +52,9 @@ public class CommandLine extends Thread {
         }
     }
 
+    public CommandLine() {
+    } //Dummy constructor, only to "initialize a value to be overwritten later
+
     private void sendError(MessageEvent event, Exception e){
         event.getChannel().send().message("Error: " + e.getCause() + ". From " + e);
     }
