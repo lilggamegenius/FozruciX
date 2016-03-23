@@ -1935,7 +1935,7 @@ public class FozruciX extends ListenerAdapter {
                         System.out.print("Translating: " + text);
                         sendMessage(event, text, true);
                     } else {
-
+                        sendMessage(event, ">_>", true);
                     }
 
                 } catch (IllegalArgumentException e) {
