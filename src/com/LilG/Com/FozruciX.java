@@ -1923,7 +1923,7 @@ public class FozruciX extends ListenerAdapter {
                 YandexTranslatorAPI.setKey("trnsl.1.1.20150924T011621Z.e06050bb431b7175.e5452b78ee8d11e4b736035e5f99f2831a57d0e2");
                 try {
                     if (arg.length > 1 + arrayOffset) {
-                        text = argJoiner(arg, 2);
+                        text = argJoiner(arg, 1);
                         System.out.print("Translating: " + text + " - ");
                         text = Translate.execute(text, Language.ENGLISH, Language.JAPANESE);
                         System.out.print("Translating: " + text + " - ");
@@ -1932,7 +1932,7 @@ public class FozruciX extends ListenerAdapter {
                         text = Translate.execute(text, Language.VIETNAMESE, Language.CHINESE);
                         System.out.print("Translating: " + text + " - ");
                         text = Translate.execute(text, Language.CHINESE, Language.ENGLISH);
-                        System.out.print("Translating: " + text);
+                        System.out.println("Translating: " + text);
                         sendMessage(event, text, true);
                     } else {
                         sendMessage(event, ">_>", true);
