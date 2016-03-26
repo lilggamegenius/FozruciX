@@ -306,17 +306,19 @@ public class FozruciX extends ListenerAdapter {
 
             BufferedReader br = new BufferedReader(new FileReader("Data/" + network + "-Data.json"));
             SaveDataStore save = gson.fromJson(br, SaveDataStore.class);
-            noteList.set(save.getNoteList());
+            BufferedReader uniBr = new BufferedReader(new FileReader("Data/Data.json"));
+            SaveDataStore uniSave = gson.fromJson(uniBr, SaveDataStore.class);
+            noteList.set(uniSave.getNoteList());
             authedUser = save.getAuthedUser();
             authedUserLevel = save.getAuthedUserLevel();
             DNDJoined = save.getDNDJoined();
             DNDList = save.getDNDList();
 
-            String avatarTemp = save.getAvatarLink();
+            String avatarTemp = uniSave.getAvatarLink();
             avatar.set((avatarTemp == null) ? avatarTemp : avatar.get());
 
-            memes.set(save.getMemes());
-            FCList.set(save.getFCList());
+            memes.set(uniSave.getMemes());
+            FCList.set(uniSave.getFCList());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -425,6 +427,37 @@ public class FozruciX extends ListenerAdapter {
             }
         }
         return msgToSend;
+    }
+
+    private void sendPage(MessageEvent event, String[] arg, ArrayList<String> messagesToSend) {
+        try {
+            UUID name = UUID.randomUUID();
+            File f = new File("Data/site/temp/" + name + ".htm");
+            BufferedWriter bw = new BufferedWriter(new FileWriter(f));
+            bw.write("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">");
+            bw.write("<html>");
+            bw.write("<head>");
+            bw.write("<link href=\"CommandStyles.css\" rel=\"stylesheet\" type=\"text/css\">");
+            bw.write("<title>" + event.getUser().getNick() + ": " + event.getBot().getNick() + "'s Command output</title>");
+            bw.write("</head>");
+            bw.write("<body>");
+            bw.write("<h1>" + event.getUser().getNick() + ": " + argJoiner(arg, 0) + "</h1>");
+            bw.write("<textarea cols=\"75\" rows=\"30\">");
+
+            for (String aMessagesToSend : messagesToSend) {
+                bw.write(aMessagesToSend);
+                bw.newLine();
+            }
+
+            bw.write("</textarea>");
+            bw.write("</body>");
+            bw.write("</html>");
+
+            bw.close();
+            sendMessage(event, "http://lilggamegenuis.noip.me/Misc/temp/" + name + ".htm", true);
+        } catch (Exception e) {
+            sendError(event, e);
+        }
     }
 
     private void sendMessage(MessageEvent event, String msgToSend, boolean addNick) {
@@ -741,6 +774,8 @@ public class FozruciX extends ListenerAdapter {
                     default:
                         sendMessage(event, "Not a message mode", true);
                 }
+            } else {
+                permErrorchn(event);
             }
         }
 
@@ -1859,11 +1894,11 @@ public class FozruciX extends ListenerAdapter {
                     if (fileIsEmpty) {
                         sendMessage(event, "Processor is either not supported or some other error has occurred: Empty File", true);
                     } else {
-                        for (int i = 0; i < 3 && i < messagesToSend.size(); i++) {
-                            if (i == 2 && lines > 3) {
-                                sendMessage(event, messagesToSend.get(i) + "  ; More than 3 lines of output", true);
-                            } else {
-                                sendMessage(event, messagesToSend.get(i), true);
+                        if (messagesToSend.size() > 3) {
+                            sendPage(event, arg, messagesToSend);
+                        } else {
+                            for (String aMessagesToSend : messagesToSend) {
+                                sendMessage(event, aMessagesToSend, true);
                             }
                         }
                     }
@@ -2088,14 +2123,11 @@ public class FozruciX extends ListenerAdapter {
                 //noinspection ConstantConditions
                 saveData(event);
                 event.getUser().send().notice("Disconnecting from server");
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (arg.length > 1 + arrayOffset) {
-                            manager.get().stop(argJoiner(arg, 1));
-                        } else {
-                            manager.get().stop("I'm only a year old and have already wasted my entire life.");
-                        }
+                new Thread(() -> {
+                    if (arg.length > 1 + arrayOffset) {
+                        manager.get().stop(argJoiner(arg, 1));
+                    } else {
+                        manager.get().stop("I'm only a year old and have already wasted my entire life.");
                     }
                 }).start();
                 System.exit(0);
@@ -2411,38 +2443,37 @@ public class FozruciX extends ListenerAdapter {
 
 // !SendTo - Tells the bot to say someting on a channel
             if (commandChecker(arg, "sendto")) {
-                PM.getBot().sendIRC().message(arg[1 + arrayOffset], argJoiner(arg, 6));
+                PM.getBot().sendIRC().message(arg[1 + arrayOffset], argJoiner(arg, 2));
             }
 
 // !sendAction - Tells the bot to make a action on a channel
             if (commandChecker(arg, "sendAction")) {
-                PM.getBot().sendIRC().action(arg[1 + arrayOffset], argJoiner(arg, 6));
+                PM.getBot().sendIRC().action(arg[1 + arrayOffset], argJoiner(arg, 2));
             }
 // !sendRaw - Tells the bot to say a raw line
             if (commandChecker(arg, "sendRaw")) {
                 PM.getBot().sendRaw().rawLineNow(argJoiner(arg, 1));
             }
 
+// !part - leaves a channel
+            if (commandChecker(arg, "part")) {
+                if (arg.length != 2 + arrayOffset) {
+                    PM.getBot().sendRaw().rawLineNow("part " + arg[1 + arrayOffset] + " " + arg[2 + arrayOffset]);
+                } else {
+                    PM.getBot().sendRaw().rawLineNow("part " + arg[1 + arrayOffset]);
+                }
+                PM.getUser().send().notice("Successfully connected to " + arg[1 + arrayOffset]);
+            }
+
 // !changenick- Changes the nick of the bot
             if (commandChecker(arg, "changeNick") && checkPerm(PM.getUser(), 9001)) {
-                PM.getBot().sendIRC().changeNick(argJoiner(arg, 6));
+                PM.getBot().sendIRC().changeNick(argJoiner(arg, 1));
                 debug.setNick(argJoiner(arg, 1));
             }
 
 
 // !Connect - Tells the bot to connect to specified channel
             if (commandChecker(arg, "connect")) {
-                if (arg.length != 2 + arrayOffset) {
-                    PM.getBot().sendIRC().joinChannel(arg[1 + arrayOffset], arg[2 + arrayOffset]);
-                } else {
-                    PM.getBot().sendIRC().joinChannel(arg[1 + arrayOffset]);
-                }
-                PM.getUser().send().notice("Successfully connected to " + arg[1 + arrayOffset]);
-            }
-
-// !leave - Tells the bot to leave a channel
-            if (commandChecker(arg, "leave")) {
-                PM.getBot().sendRaw().rawLineNow("part ");
                 if (arg.length != 2 + arrayOffset) {
                     PM.getBot().sendIRC().joinChannel(arg[1 + arrayOffset], arg[2 + arrayOffset]);
                 } else {
@@ -2717,10 +2748,15 @@ public class FozruciX extends ListenerAdapter {
                 network = event.getBot().getServerHostname();
                 network = network.substring(network.indexOf(".") + 1, network.lastIndexOf("."));
             }
-            SaveDataStore save = new SaveDataStore(noteList.get(), authedUser, authedUserLevel, DNDJoined, DNDList, avatar.get(), memes.get(), FCList.get());
+            SaveDataStore save = new SaveDataStore(authedUser, authedUserLevel, DNDJoined, DNDList);
+            SaveDataStore universalSave = new SaveDataStore(noteList.get(), avatar.get(), memes.get(), FCList.get());
             FileWriter writer = new FileWriter("Data/" + network + "-Data.json");
+            FileWriter uniWriter = new FileWriter("Data/Data.json");
             writer.write(gson.toJson(save));
             writer.close();
+
+            uniWriter.write(gson.toJson(universalSave));
+            uniWriter.close();
 
             //System.out.println("Data saved!");
         } catch (Exception e) {
