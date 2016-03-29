@@ -30,6 +30,7 @@ public class FozConfig {
         String badnickNET = "irc.badnik.net";
         String twitch = "irc.twitch.tv";
         String caffie = "irc.caffie.net";
+        String esper = "irc.esper.net";
         int attempts = Integer.MAX_VALUE;
 
         //Bot universal variables
@@ -83,8 +84,21 @@ public class FozConfig {
                     .addAutoJoinChannel("#lilggamegenuis") //Join lilggamegenuis's twitch chat
                     .addListener(new FozruciX(true, manager, noteList, avatar, memes, FCList)); //Add our listener that will be called on Events
 
+            Configuration.Builder debugConfigEsper = new Configuration.Builder()
+                    .setEncoding(Charset.forName("UTF-8"))
+                    .setAutoReconnect(true)
+                    .setAutoReconnectAttempts(attempts)
+                    .setNickservPassword(FozruciX.setPassword(true))
+                    .setName(nick) //Set the nick of the bot.
+                    .setLogin(login)
+                    .setRealName(realName)
+                    .setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates())
+                    .addAutoJoinChannel("#savespam")
+                    .addListener(new FozruciX(manager, noteList, terminal, avatar, memes, js, FCList)); //Add our listener that will be called on Events
+
             manager.addBot(debugConfig.buildForServer(badnickNET, 6697));
             manager.addBot(debugConfigSmwc.buildForServer(caffie, 6697));
+            manager.addBot(debugConfigEsper.buildForServer(esper, 6697));
             manager.addBot(twitchDebug.buildForServer(twitch, 6667, FozruciX.setPassword(false)));
         } else {
             Configuration.Builder normal = new Configuration.Builder()
@@ -136,8 +150,20 @@ public class FozConfig {
                     .addAutoJoinChannel("#deltasmash")
                     .addListener(new FozruciX(true, manager, noteList, avatar, memes, FCList)); //Add our listener that will be called on Events
 
+            Configuration.Builder normalEsper = new Configuration.Builder()
+                    .setEncoding(Charset.forName("UTF-8"))
+                    .setAutoReconnect(true)
+                    .setAutoReconnectAttempts(attempts)
+                    .setNickservPassword(FozruciX.setPassword(true))
+                    .setName(nick) //Set the nick of the bot.
+                    .setLogin(login)
+                    .setRealName(realName)
+                    .setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates())
+                    .addAutoJoinChannel("#savespam");
+
             manager.addBot(normal.buildForServer(badnickNET, 6697));
             manager.addBot(normalSmwc.buildForServer(caffie, 6697));
+            manager.addBot(normalEsper.buildForServer(esper, 6697));
             manager.addBot(twitchNormal.buildForServer(twitch, 6667, FozruciX.setPassword(false)));
         }
         //Connect to the server

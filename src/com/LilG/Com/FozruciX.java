@@ -279,7 +279,7 @@ public class FozruciX extends ListenerAdapter {
 
         bot.sendRaw().rawLineNow("ns recover " + event.getBot().getConfiguration().getName() + " " + PASSWORD);
 
-        loadData();
+        loadData(event);
 
 
 
@@ -296,11 +296,11 @@ public class FozruciX extends ListenerAdapter {
         }*/
     }
 
-    private void loadData() {
+    private void loadData(Event event) {
         try {
-            String network = lastEvent.getBot().getServerInfo().getNetwork();
+            String network = event.getBot().getServerInfo().getNetwork();
             if (network == null) {
-                network = lastEvent.getBot().getServerHostname();
+                network = event.getBot().getServerHostname();
                 network = network.substring(network.indexOf(".") + 1, network.lastIndexOf("."));
             }
 
@@ -647,7 +647,7 @@ public class FozruciX extends ListenerAdapter {
 // !loadData - force a reload of the save data
         if (commandChecker(arg, "loadData")) {
             if (checkPerm(event.getUser(), 2)) {
-                loadData();
+                loadData(event);
             }
         }
 
@@ -821,9 +821,9 @@ public class FozruciX extends ListenerAdapter {
             }
         }
 
-// !testPermError - gets one of the permission error statements
-        if (commandChecker(arg, "testPermError")) {
-            if (checkPerm(event.getUser(), 9001)) {
+// !comeback - gets one of the permission error statements
+        if (commandChecker(arg, "comeback")) {
+            if (checkPerm(event.getUser(), 1)) {
                 permErrorchn(event);
             }
         }
@@ -1399,29 +1399,29 @@ public class FozruciX extends ListenerAdapter {
                 if (arg.length > 1 + arrayOffset) {
                     try {
                         if (arg[1 + arrayOffset].equalsIgnoreCase("set")) {
-                            if (memes.get().containsKey(arg[2 + arrayOffset].toLowerCase())) {
+                            if (memes.get().containsKey(arg[2 + arrayOffset].toLowerCase().replace("\u0001", ""))) {
                                 Meme meme = memes.get().get(arg[2 + arrayOffset].toLowerCase());
                                 if (checkPerm(event.getUser(), 9001) || meme.getCreator().equalsIgnoreCase(event.getUser().getNick())) {
                                     if (arg.length == 3 + arrayOffset) {
-                                        memes.get().remove(arg[2 + arrayOffset].toLowerCase());
+                                        memes.get().remove(arg[2 + arrayOffset].toLowerCase().replace("\u0001", ""));
                                         sendMessage(event, "Meme " + arg[2 + arrayOffset] + " Deleted!", true);
                                     } else {
                                         meme.setMeme(argJoiner(arg, 3));
-                                        memes.get().put(arg[2 + arrayOffset].toLowerCase(), meme);
+                                        memes.get().put(arg[2 + arrayOffset].toLowerCase().replace("\u0001", ""), meme);
                                         sendMessage(event, "Meme " + arg[2 + arrayOffset] + " Edited!", true);
                                     }
                                 } else {
                                     sendMessage(event, "Sorry, Only the creator of the meme can edit it", true);
                                 }
                             } else {
-                                memes.get().put(arg[2 + arrayOffset].toLowerCase(), new Meme(event.getUser().getNick(), argJoiner(arg, 3)));
+                                memes.get().put(arg[2 + arrayOffset].toLowerCase().replace("\u0001", ""), new Meme(event.getUser().getNick(), argJoiner(arg, 3).replace("\u0001", "")));
                                 sendMessage(event, "Meme " + arg[2 + arrayOffset] + " Created as " + argJoiner(arg, 3), true);
                             }
                         } else if (arg[1 + arrayOffset].equalsIgnoreCase("list")) {
-                            sendMessage(event, memes.get().values().toString(), true);
+                            sendMessage(event, memes.get().values().toString().replace("\u0001", ""), true);
                         } else {
                             if (memes.get().containsKey(arg[1 + arrayOffset].toLowerCase())) {
-                                sendMessage(event, arg[1 + arrayOffset] + ": " + memes.get().get(arg[1 + arrayOffset].toLowerCase()).getMeme(), false);
+                                sendMessage(event, arg[1 + arrayOffset].replace("\u0001", "") + ": " + memes.get().get(arg[1 + arrayOffset].toLowerCase()).getMeme().replace("\u0001", ""), false);
                             } else {
                                 sendMessage(event, "That Meme doesn't exist!", true);
                             }
