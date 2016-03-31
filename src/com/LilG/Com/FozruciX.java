@@ -73,6 +73,7 @@ public class FozruciX extends ListenerAdapter {
     private final int nickInUse = 5;
     private final int color = 6;
     private final int respondToPMs = 7;
+    private final int dataLoaded = 8;
     private final String[] dictionary = {"i don't know what \"%s\" is, do i look like a dictionary?", "Go look it up yourself.", "Why not use your computer and look \"%s\" up.", "Google it.", "Nope.", "Get someone else to do it.", "Why not get that " + Colors.RED + "Other bot" + Colors.NORMAL + " to do it?", "There appears to be a error between your " + Colors.BOLD + "seat" + Colors.NORMAL + " and the " + Colors.BOLD + "Keyboard" + Colors.NORMAL + " >_>", "Uh oh, there appears to be a User error.", "error: Fuck count too low, Cannot give Fuck.", ">_>"};
     private final String[] listOfNoes = {" It’s not a priority for me at this time.", "I’d rather stick needles in my eyes.", "My schedule is up in the air right now. SEE IT WAFTING GENTLY DOWN THE CORRIDOR.", "I don’t love it, which means I’m not the right person for it.", "I would prefer another option.", "I would be the absolute worst person to execute, are you on crack?!", "Life is too short TO DO THINGS YOU don’t LOVE.", "I no longer do things that make me want to kill myself", "You should do this yourself, you would be awesome sauce.", "I would love to say yes to everything, but that would be stupid", "Fuck no.", "Some things have come up that need my attention.", "There is a person who totally kicks ass at this. I AM NOT THAT PERSON.", "Shoot me now...", "It would cause the slow withering death of my soul.", "I’d rather remove my own gallbladder with an oyster fork.", "I'd love to but I did my own thing and now I've got to undo it."};
     private final String[] commands = {"commands", " Time", " calcj", " randomNum", " StringToBytes", " Chat", " Temp", " BlockConv", " Hello", " Bot", " GetName", " recycle", " Login", " GetLogin", " GetID", " GetSate", " prefix", " SayThis", " ToSciNo", " Trans", " DebugVar", " RunCmd", " SayRaw", " SayCTCPCommnad", " Leave", " Respawn", " Kill", " ChangeNick", " SayAction", " NoteJ", "Memes", " jtoggle", " Joke: Splatoon", "Joke: Attempt", " Joke: potato", " Joke: whatIs?", "Joke: getFinger", " Joke: GayDar"};
@@ -81,7 +82,7 @@ public class FozruciX extends ListenerAdapter {
     private final ExtendedDoubleEvaluator calc = new ExtendedDoubleEvaluator();
     private final StaticVariableSet<Double> variables = new StaticVariableSet<>();
     private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
-    private volatile BitSet bools = new BitSet(8); // true, false, null, null, null, false, true, true, false
+    private volatile BitSet bools = new BitSet(9); // true, false, null, null, null, false, true, true, false, false
     private String prefix = "!";
     private String currentNick = "Lil-G";
     private String currentUsername = "GameGenuis";
@@ -297,28 +298,26 @@ public class FozruciX extends ListenerAdapter {
     }
 
     private void loadData(Event event) {
+        String network;
         try {
-            String network = event.getBot().getServerInfo().getNetwork();
-            if (network == null) {
-                network = event.getBot().getServerHostname();
-                network = network.substring(network.indexOf(".") + 1, network.lastIndexOf("."));
-            }
+            do {
+                network = event.getBot().getServerInfo().getNetwork();
+            } while (network == null);
 
             BufferedReader br = new BufferedReader(new FileReader("Data/" + network + "-Data.json"));
             SaveDataStore save = gson.fromJson(br, SaveDataStore.class);
-            BufferedReader uniBr = new BufferedReader(new FileReader("Data/Data.json"));
-            SaveDataStore uniSave = gson.fromJson(uniBr, SaveDataStore.class);
-            noteList.set(uniSave.getNoteList());
+            noteList.set(save.getNoteList());
             authedUser = save.getAuthedUser();
             authedUserLevel = save.getAuthedUserLevel();
             DNDJoined = save.getDNDJoined();
             DNDList = save.getDNDList();
 
-            String avatarTemp = uniSave.getAvatarLink();
+            String avatarTemp = save.getAvatarLink();
             avatar.set((avatarTemp == null) ? avatarTemp : avatar.get());
 
-            memes.set(uniSave.getMemes());
-            FCList.set(uniSave.getFCList());
+            memes.set(save.getMemes());
+            FCList.set(save.getFCList());
+            bools.set(dataLoaded);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -2122,7 +2121,7 @@ public class FozruciX extends ListenerAdapter {
             if (checkPerm(event.getUser(), 9001)) {
                 //noinspection ConstantConditions
                 saveData(event);
-                event.getUser().send().notice("Disconnecting from server");
+                event.getUser().send().notice("Disconnecting from server and exiting");
                 new Thread(() -> {
                     if (arg.length > 1 + arrayOffset) {
                         manager.get().stop(argJoiner(arg, 1));
@@ -2742,21 +2741,20 @@ public class FozruciX extends ListenerAdapter {
     }
 
     private void saveData(MessageEvent event) {
+        if (!bools.get(dataLoaded)) {
+            System.out.print("Data save canceled because data hasn't been loaded yet");
+            return;
+        }
         try {
             String network = event.getBot().getServerInfo().getNetwork();
             if (network == null) {
                 network = event.getBot().getServerHostname();
                 network = network.substring(network.indexOf(".") + 1, network.lastIndexOf("."));
             }
-            SaveDataStore save = new SaveDataStore(authedUser, authedUserLevel, DNDJoined, DNDList);
-            SaveDataStore universalSave = new SaveDataStore(noteList.get(), avatar.get(), memes.get(), FCList.get());
+            SaveDataStore save = new SaveDataStore(authedUser, authedUserLevel, DNDJoined, DNDList, noteList.get(), avatar.get(), memes.get(), FCList.get());
             FileWriter writer = new FileWriter("Data/" + network + "-Data.json");
-            FileWriter uniWriter = new FileWriter("Data/Data.json");
             writer.write(gson.toJson(save));
             writer.close();
-
-            uniWriter.write(gson.toJson(universalSave));
-            uniWriter.close();
 
             //System.out.println("Data saved!");
         } catch (Exception e) {

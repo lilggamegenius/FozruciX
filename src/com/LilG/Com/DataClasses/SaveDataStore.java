@@ -26,14 +26,11 @@ public class SaveDataStore {
     private HashMap<String, String> FCList = new HashMap<>();
 
 
-    public SaveDataStore(List<String> authedUser, List<Integer> authedUserLevel, List<String> DNDJoined, List<DNDPlayer> DNDList) {
+    public SaveDataStore(List<String> authedUser, List<Integer> authedUserLevel, List<String> DNDJoined, List<DNDPlayer> DNDList, List<Note> noteList, String avatarLink, HashMap<String, Meme> memes, HashMap<String, String> FCList) {
         this.authedUser = authedUser;
         this.authedUserLevel = authedUserLevel;
         this.DNDJoined = DNDJoined;
         this.DNDList = DNDList;
-    }
-
-    public SaveDataStore(List<Note> noteList, String avatarLink, HashMap<String, Meme> memes, HashMap<String, String> FCList) {
         this.noteList = noteList;
         this.avatarLink = avatarLink;
         this.memes = memes;

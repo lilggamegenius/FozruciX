@@ -4,6 +4,7 @@ import com.LilG.Com.CMD.CommandLine;
 import com.LilG.Com.DataClasses.Meme;
 import com.LilG.Com.DataClasses.Note;
 import org.pircbotx.Configuration;
+import org.pircbotx.IdentServer;
 import org.pircbotx.MultiBotManager;
 import org.pircbotx.UtilSSLSocketFactory;
 import org.pircbotx.cap.EnableCapHandler;
@@ -32,6 +33,9 @@ public class FozConfig {
         String caffie = "irc.caffie.net";
         String esper = "irc.esper.net";
         int attempts = Integer.MAX_VALUE;
+
+        //Before anything else
+        IdentServer.startServer();
 
         //Bot universal variables
         List<Note> noteList = new ArrayList<>();
@@ -94,6 +98,7 @@ public class FozConfig {
                     .setRealName(realName)
                     .setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates())
                     .addAutoJoinChannel("#savespam")
+                    .setIdentServerEnabled(true)
                     .addListener(new FozruciX(manager, noteList, terminal, avatar, memes, js, FCList)); //Add our listener that will be called on Events
 
             manager.addBot(debugConfig.buildForServer(badnickNET, 6697));
@@ -159,7 +164,9 @@ public class FozConfig {
                     .setLogin(login)
                     .setRealName(realName)
                     .setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates())
-                    .addAutoJoinChannel("#savespam");
+                    .addAutoJoinChannel("#savespam")
+                    .setIdentServerEnabled(true)
+                    .addListener(new FozruciX(manager, noteList, terminal, avatar, memes, js, FCList)); //Add our listener that will be called on Events
 
             manager.addBot(normal.buildForServer(badnickNET, 6697));
             manager.addBot(normalSmwc.buildForServer(caffie, 6697));
