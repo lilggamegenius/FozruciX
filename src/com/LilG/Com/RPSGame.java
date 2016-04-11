@@ -3,6 +3,7 @@ package com.LilG.Com;
 /**
  * Created by ggonz on 12/13/2015.
  */
+@SuppressWarnings("SameParameterValue")
 class RPSGame {
 	private String player1;
 	private String player2;

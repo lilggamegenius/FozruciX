@@ -15,10 +15,12 @@ public class DNDPlayer{
     final int XPLevelDivider = 24;
 	private final int maxMoney = 0;
 	//
-	private final int[] stats = {10, 10, 10, 10, 10, 10};
-	//ToDo
-	private final boolean[] passives = {false, false, false, false, false, false};
-	private final List<String> inventory = new ArrayList<>();
+    @SuppressWarnings("MismatchedReadAndWriteOfArray")
+    private final int[] stats = {10, 10, 10, 10, 10, 10};
+    //ToDo
+    @SuppressWarnings("MismatchedReadAndWriteOfArray")
+    private final boolean[] passives = {false, false, false, false, false, false};
+    private final List<String> inventory = new ArrayList<>();
 	int maxHP = 100;
     int HP = maxHP;
     int XP = 0;
@@ -73,7 +75,7 @@ public class DNDPlayer{
      * @return Integer between min and max, inclusive.
      * @see java.util.Random#nextInt(int)
      */
-    public static int randInt(int min, int max) {
+    public static int randInt(@SuppressWarnings("SameParameterValue") int min, @SuppressWarnings("SameParameterValue") int max) {
 
         // NOTE: Usually this should be a field rather than a method
         // variable so that it is not re-seeded every call.

@@ -96,7 +96,7 @@ public class Dungeon {
 				if (pointB.x != pointA.x){
 					if (pointB.x > pointA.x) pointB.x--;
 					else pointB.x++;
-				} else if (pointB.y != pointA.y){
+				} else {
 					if (pointB.y > pointA.y) pointB.y--;
 					else pointB.y++;
 				}

@@ -21,7 +21,7 @@ import java.util.List;
 
 public class FozConfig {
 
-    final static boolean debug = false;
+    private final static boolean debug = false;
 
     public static void main(String[] args) throws Exception {
         //Configure what we want our bot to do
@@ -76,6 +76,7 @@ public class FozConfig {
                     .addAutoJoinChannel("#botTest")
                     .addAutoJoinChannel("#unix")
                     .addAutoJoinChannel("#smashbros")
+                    .addAutoJoinChannel("#homebrew")
                     .addListener(new FozruciX(manager, noteList, terminal, avatar, memes, js, FCList)); //Add our listener that will be called on Events
 
             Configuration.Builder twitchDebug = new Configuration.Builder()
@@ -137,6 +138,7 @@ public class FozConfig {
                     .addAutoJoinChannel("#botTest")
                     .addAutoJoinChannel("#unix")
                     .addAutoJoinChannel("#smashbros")
+                    .addAutoJoinChannel("#homebrew")
                     .addListener(new FozruciX(manager, noteList, terminal, avatar, memes, js, FCList)); //Add our listener that will be called on Events
 
             Configuration.Builder twitchNormal = new Configuration.Builder()

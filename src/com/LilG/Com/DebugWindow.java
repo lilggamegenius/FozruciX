@@ -151,7 +151,7 @@ class DebugWindow extends JFrame{
 
 	private void sendMessage(){
 		selectedChannel = (String) comboBox.getSelectedItem();
-        bot.send().message(selectedChannel, messageTF.getText());
+        bot.send().message(selectedChannel, FozruciX.getScramble(messageTF.getText()));
         messageTF.setText("");
     }
 

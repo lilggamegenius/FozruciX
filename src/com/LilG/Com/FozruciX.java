@@ -38,11 +38,13 @@ import io.nodyn.runtime.RuntimeFactory;
 import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
+import org.jsoup.UnsupportedMimeTypeException;
 import org.jsoup.nodes.Document;
 import org.pircbotx.*;
 import org.pircbotx.hooks.Event;
 import org.pircbotx.hooks.ListenerAdapter;
 import org.pircbotx.hooks.events.*;
+import org.pircbotx.hooks.types.GenericMessageEvent;
 import sun.misc.Unsafe;
 
 import javax.script.ScriptContext;
@@ -52,7 +54,7 @@ import javax.xml.bind.DatatypeConverter;
 import java.awt.*;
 import java.io.*;
 import java.lang.ref.WeakReference;
-import java.net.URI;
+import java.net.MalformedURLException;
 import java.nio.charset.Charset;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -65,54 +67,57 @@ import java.util.regex.Pattern;
 
 public class FozruciX extends ListenerAdapter {
     private final static File WIKTIONARY_DIRECTORY = new File("Data\\Wiktionary");
-    private final int jokeCommands = 0;
-    private final int prefixRan = 1;
-    private final int cleverBotInt = 2;
-    private final int pandoraBotInt = 3;
-    private final int jabberBotInt = 4;
-    private final int nickInUse = 5;
-    private final int color = 6;
-    private final int respondToPMs = 7;
-    private final int dataLoaded = 8;
-    private final String[] dictionary = {"i don't know what \"%s\" is, do i look like a dictionary?", "Go look it up yourself.", "Why not use your computer and look \"%s\" up.", "Google it.", "Nope.", "Get someone else to do it.", "Why not get that " + Colors.RED + "Other bot" + Colors.NORMAL + " to do it?", "There appears to be a error between your " + Colors.BOLD + "seat" + Colors.NORMAL + " and the " + Colors.BOLD + "Keyboard" + Colors.NORMAL + " >_>", "Uh oh, there appears to be a User error.", "error: Fuck count too low, Cannot give Fuck.", ">_>"};
-    private final String[] listOfNoes = {" It’s not a priority for me at this time.", "I’d rather stick needles in my eyes.", "My schedule is up in the air right now. SEE IT WAFTING GENTLY DOWN THE CORRIDOR.", "I don’t love it, which means I’m not the right person for it.", "I would prefer another option.", "I would be the absolute worst person to execute, are you on crack?!", "Life is too short TO DO THINGS YOU don’t LOVE.", "I no longer do things that make me want to kill myself", "You should do this yourself, you would be awesome sauce.", "I would love to say yes to everything, but that would be stupid", "Fuck no.", "Some things have come up that need my attention.", "There is a person who totally kicks ass at this. I AM NOT THAT PERSON.", "Shoot me now...", "It would cause the slow withering death of my soul.", "I’d rather remove my own gallbladder with an oyster fork.", "I'd love to but I did my own thing and now I've got to undo it."};
-    private final String[] commands = {"commands", " Time", " calcj", " randomNum", " StringToBytes", " Chat", " Temp", " BlockConv", " Hello", " Bot", " GetName", " recycle", " Login", " GetLogin", " GetID", " GetSate", " prefix", " SayThis", " ToSciNo", " Trans", " DebugVar", " RunCmd", " SayRaw", " SayCTCPCommnad", " Leave", " Respawn", " Kill", " ChangeNick", " SayAction", " NoteJ", "Memes", " jtoggle", " Joke: Splatoon", "Joke: Attempt", " Joke: potato", " Joke: whatIs?", "Joke: getFinger", " Joke: GayDar"};
-    private final String PASSWORD = setPassword(true);
-    private final ChatterBotFactory factory = new ChatterBotFactory();
-    private final ExtendedDoubleEvaluator calc = new ExtendedDoubleEvaluator();
-    private final StaticVariableSet<Double> variables = new StaticVariableSet<>();
-    private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
-    private volatile BitSet bools = new BitSet(9); // true, false, null, null, null, false, true, true, false, false
+    private final static int jokeCommands = 0;
+    private final static int prefixRan = 1;
+    private final static int cleverBotInt = 2;
+    private final static int pandoraBotInt = 3;
+    private final static int jabberBotInt = 4;
+    private final static int nickInUse = 5;
+    private final static int color = 6;
+    private final static int respondToPMs = 7;
+    private final static int dataLoaded = 8;
+    private final static int checkLinks = 9;
+    private final static String[] dictionary = {"i don't know what \"%s\" is, do i look like a dictionary?", "Go look it up yourself.", "Why not use your computer and look \"%s\" up.", "Google it.", "Nope.", "Get someone else to do it.", "Why not get that " + Colors.RED + "Other bot" + Colors.NORMAL + " to do it?", "There appears to be a error between your " + Colors.BOLD + "seat" + Colors.NORMAL + " and the " + Colors.BOLD + "Keyboard" + Colors.NORMAL + " >_>", "Uh oh, there appears to be a User error.", "error: Fuck count too low, Cannot give Fuck.", ">_>"};
+    private final static String[] listOfNoes = {" It’s not a priority for me at this time.", "I’d rather stick needles in my eyes.", "My schedule is up in the air right now. SEE IT WAFTING GENTLY DOWN THE CORRIDOR.", "I don’t love it, which means I’m not the right person for it.", "I would prefer another option.", "I would be the absolute worst person to execute, are you on crack?!", "Life is too short TO DO THINGS YOU don’t LOVE.", "I no longer do things that make me want to kill myself", "You should do this yourself, you would be awesome sauce.", "I would love to say yes to everything, but that would be stupid", "Fuck no.", "Some things have come up that need my attention.", "There is a person who totally kicks ass at this. I AM NOT THAT PERSON.", "Shoot me now...", "It would cause the slow withering death of my soul.", "I’d rather remove my own gallbladder with an oyster fork.", "I'd love to but I did my own thing and now I've got to undo it."};
+    private final static String[] commands = {"commands", " Time", " calcj", " randomNum", " StringToBytes", " Chat", " Temp", " BlockConv", " Hello", " Bot", " GetName", " recycle", " Login", " GetLogin", " GetID", " GetSate", " prefix", " SayThis", " ToSciNo", " Trans", " DebugVar", " RunCmd", " SayRaw", " SayCTCPCommnad", " Leave", " Respawn", " Kill", " ChangeNick", " SayAction", " NoteJ", "Memes", " jtoggle", " Joke: Splatoon", "Joke: Attempt", " Joke: potato", " Joke: whatIs?", "Joke: getFinger", " Joke: GayDar"};
+    private final static String PASSWORD = setPassword(true);
+    private final static ChatterBotFactory factory = new ChatterBotFactory();
+    private final static ExtendedDoubleEvaluator calc = new ExtendedDoubleEvaluator();
+    private final static StaticVariableSet<Double> variables = new StaticVariableSet<>();
+    private final static Gson gson = new GsonBuilder().setPrettyPrinting().create();
+    private static final List<RPSGame> rpsGames = new ArrayList<>();
+    private static ChatterBotSession cleverBotsession;
+    private static ChatterBotSession pandoraBotsession;
+    private static ChatterBotSession jabberBotsession;
+    private static GenericMessageEvent lastEvent;
+    private static runCMD singleCMD = null;
+    private static volatile AtomicReference<List<Note>> noteList;
+    private static List<String> authedUser = new ArrayList<>();
+    private static List<Integer> authedUserLevel = new ArrayList<>();
+    private static List<String> DNDJoined = new ArrayList<>();
+    private static List<DNDPlayer> DNDList = new ArrayList<>();
+    private static Dungeon DNDDungeon = new Dungeon();
+    private static DebugWindow debug;
+    private static int jokeCommandDebugVar = 30;
+    private static volatile CommandLine terminal;
+    private static String counter = "";
+    private static int countercount = 0;
+    private static JFrame frame = new JFrame();
+    private static MessageModes messageMode = MessageModes.normal;
+    private static int arrayOffset = 0;
+    private static volatile Thread js;
+    private final BitSet bools = new BitSet(10); // true, false, null, null, null, false, true, true, false, false
+    private final AtomicReference<String> avatar;
+    private final AtomicReference<HashMap<String, Meme>> memes;
+    private final AtomicReference<HashMap<String, String>> FCList;
+    private final AtomicReference<MultiBotManager> manager;
     private String prefix = "!";
     private String currentNick = "Lil-G";
     private String currentUsername = "GameGenuis";
     private String currentHost = "friendly.local.noob";
-    private ChatterBotSession cleverBotsession;
-    private ChatterBotSession pandoraBotsession;
-    private ChatterBotSession jabberBotsession;
-    private MessageEvent lastEvent;
-    private runCMD singleCMD = null;
-    private volatile AtomicReference<List<Note>> noteList;
-    private List<String> authedUser = new ArrayList<>();
-    private List<Integer> authedUserLevel = new ArrayList<>();
-    private List<String> DNDJoined = new ArrayList<>();
-    private List<DNDPlayer> DNDList = new ArrayList<>();
-    private Dungeon DNDDungeon = new Dungeon();
-    private DebugWindow debug;
-    private int jokeCommandDebugVar = 30;
-    private volatile CommandLine terminal;
-    private String counter = "";
-    private int countercount = 0;
-    private JFrame frame = new JFrame();
-    private MessageModes messageMode = MessageModes.normal;
-    private List<RPSGame> rpsGames = new ArrayList<>();
-    private volatile AtomicReference<String> avatar;
-    private volatile AtomicReference<HashMap<String, Meme>> memes;
-    private int arrayOffset = 0;
-    private volatile Thread js;
-    private volatile HashMap<UserHostmask, Integer> notifiedUserList = new HashMap<>();
-    private volatile AtomicReference<HashMap<String, String>> FCList;
-    private volatile AtomicReference<MultiBotManager> manager;
+    private UserHostmask lastJsUser;
+    private Channel lastJsChannel;
+
     @SuppressWarnings("unused")
     public FozruciX(MultiBotManager manager, List<Note> noteList, CommandLine terminal, String avatar, HashMap<String, Meme> memes, Thread js, HashMap<String, String> FCList) {
         // true, false, null, null, null, false, true, true
@@ -121,7 +126,7 @@ public class FozruciX extends ListenerAdapter {
         bools.set(respondToPMs);
 
         this.manager = new AtomicReference<>(manager);
-        this.noteList = new AtomicReference<>(noteList);
+        FozruciX.noteList = new AtomicReference<>(noteList);
         this.avatar = new AtomicReference<>(avatar);
         this.memes = new AtomicReference<>(memes);
         this.FCList = new AtomicReference<>(FCList);
@@ -141,7 +146,7 @@ public class FozruciX extends ListenerAdapter {
         bools.set(respondToPMs);
 
         this.manager = new AtomicReference<>(manager);
-        this.noteList = new AtomicReference<>(noteList);
+        FozruciX.noteList = new AtomicReference<>(noteList);
         this.avatar = new AtomicReference<>(avatar);
         this.memes = new AtomicReference<>(memes);
         this.FCList = new AtomicReference<>(FCList);
@@ -225,7 +230,7 @@ public class FozruciX extends ListenerAdapter {
         return Unsafe.getUnsafe();
     }
 
-    public static String setPassword(boolean password) {
+    static String setPassword(boolean password) {
         File file;
         if (password) {
             file = new File("pass.bin");
@@ -241,6 +246,7 @@ public class FozruciX extends ListenerAdapter {
             byte fileContent[] = new byte[(int) file.length()];
 
             // Reads up to certain bytes of data from this input stream into an array of bytes.
+            //noinspection ResultOfMethodCallIgnored
             fin.read(fileContent);
             //create string from byte array
             ret = new String(fileContent);
@@ -259,6 +265,42 @@ public class FozruciX extends ListenerAdapter {
             }
         }
         return ret;
+    }
+
+    static String getScramble(String msgToSend) {
+        if (msgToSend.contains("\r") || msgToSend.contains("\n")) {
+            msgToSend = msgToSend.replace("\r", "").replace("\n", "");
+        }
+        if (messageMode == MessageModes.reversed) {
+            msgToSend = new StringBuilder(msgToSend).reverse().toString();
+        } else if (messageMode == MessageModes.wordReversed) {
+            List<String> message = new ArrayList<>(Arrays.asList(msgToSend.split("\\s+")));
+            msgToSend = "";
+            for (int i = message.size() - 1; i >= 0; i--) {
+                msgToSend += message.get(i) + " ";
+            }
+        } else if (messageMode == MessageModes.scrambled) {
+            char[] msgChars = msgToSend.toCharArray();
+            ArrayList<Character> chars = new ArrayList<>();
+            for (char msgChar : msgChars) {
+                chars.add(msgChar);
+            }
+            msgToSend = "";
+            while (chars.size() != 0) {
+                int num = randInt(0, chars.size() - 1);
+                msgToSend += chars.get(num) + "";
+                chars.remove(num);
+            }
+        } else if (messageMode == MessageModes.wordScrambled) {
+            List<String> message = new ArrayList<>(Arrays.asList(msgToSend.split("\\s+")));
+            msgToSend = "";
+            while (message.size() != 0) {
+                int num = randInt(0, message.size() - 1);
+                msgToSend += message.get(num) + " ";
+                message.remove(num);
+            }
+        }
+        return msgToSend;
     }
 
     private void makeDebug(Event event) {
@@ -297,12 +339,16 @@ public class FozruciX extends ListenerAdapter {
         }*/
     }
 
-    private void loadData(Event event) {
-        String network;
+    @SuppressWarnings("UnusedReturnValue")
+    private boolean loadData(Event event) {
         try {
-            do {
-                network = event.getBot().getServerInfo().getNetwork();
-            } while (network == null);
+            String network = event.getBot().getServerInfo().getNetwork();
+            System.out.println(network);
+            network = event.getBot().getServerInfo().getNetwork();
+            if (network == null) {
+                return false;
+            }
+            bools.set(dataLoaded);
 
             BufferedReader br = new BufferedReader(new FileReader("Data/" + network + "-Data.json"));
             SaveDataStore save = gson.fromJson(br, SaveDataStore.class);
@@ -317,13 +363,14 @@ public class FozruciX extends ListenerAdapter {
 
             memes.set(save.getMemes());
             FCList.set(save.getFCList());
-            bools.set(dataLoaded);
+            return true;
         } catch (Exception e) {
             e.printStackTrace();
+            return false;
         }
     }
 
-    private void connectBot(Event event, String[] arg, boolean SSL) {
+    private void connectBot(GenericMessageEvent event, String[] arg, boolean SSL) {
         PircBotX bot = event.getBot();
         Configuration.Builder normal;
         if (SSL) {
@@ -351,13 +398,13 @@ public class FozruciX extends ListenerAdapter {
 
         if (arg.length == 2 + arrayOffset) {
             manager.get().addBot(normal.buildForServer(arg[1 + arrayOffset]));
-            sendMessage((MessageEvent) event, "Connecting bot to " + arg[1 + arrayOffset], false);
+            sendMessage(event, "Connecting bot to " + arg[1 + arrayOffset], false);
         } else if (arg.length == 3 + arrayOffset) {
             manager.get().addBot(normal.buildForServer(arg[1 + arrayOffset], Integer.parseInt(arg[2 + arrayOffset])));
-            sendMessage((MessageEvent) event, "Connecting bot to " + arg[1 + arrayOffset] + " To port " + arg[2 + arrayOffset], false);
+            sendMessage(event, "Connecting bot to " + arg[1 + arrayOffset] + " To port " + arg[2 + arrayOffset], false);
         } else if (arg.length == 4 + arrayOffset) {
             manager.get().addBot(normal.buildForServer(arg[1 + arrayOffset], Integer.parseInt(arg[2 + arrayOffset]), arg[3 + arrayOffset]));
-            sendMessage((MessageEvent) event, "Connecting bot to " + arg[1 + arrayOffset], false);
+            sendMessage(event, "Connecting bot to " + arg[1 + arrayOffset], false);
         }
     }
 
@@ -392,43 +439,7 @@ public class FozruciX extends ListenerAdapter {
         return ret;
     }
 
-    public String getScramble(String msgToSend) {
-        if (msgToSend.contains("\r") || msgToSend.contains("\n")) {
-            msgToSend = msgToSend.replace("\r", "").replace("\n", "");
-        }
-        if (messageMode == MessageModes.reversed) {
-            msgToSend = new StringBuilder(msgToSend).reverse().toString();
-        } else if (messageMode == MessageModes.wordReversed) {
-            List<String> message = new ArrayList<>(Arrays.asList(msgToSend.split("\\s+")));
-            msgToSend = "";
-            for (int i = message.size() - 1; i >= 0; i--) {
-                msgToSend += message.get(i) + " ";
-            }
-        } else if (messageMode == MessageModes.scrambled) {
-            char[] msgChars = msgToSend.toCharArray();
-            ArrayList<Character> chars = new ArrayList<>();
-            for (char msgChar : msgChars) {
-                chars.add(msgChar);
-            }
-            msgToSend = "";
-            while (chars.size() != 0) {
-                int num = randInt(0, chars.size() - 1);
-                msgToSend += chars.get(num) + "";
-                chars.remove(num);
-            }
-        } else if (messageMode == MessageModes.wordScrambled) {
-            List<String> message = new ArrayList<>(Arrays.asList(msgToSend.split("\\s+")));
-            msgToSend = "";
-            while (message.size() != 0) {
-                int num = randInt(0, message.size() - 1);
-                msgToSend += message.get(num) + " ";
-                message.remove(num);
-            }
-        }
-        return msgToSend;
-    }
-
-    private void sendPage(MessageEvent event, String[] arg, ArrayList<String> messagesToSend) {
+    private void sendPage(GenericMessageEvent event, String[] arg, ArrayList<String> messagesToSend) {
         try {
             UUID name = UUID.randomUUID();
             File f = new File("Data/site/temp/" + name + ".htm");
@@ -459,13 +470,13 @@ public class FozruciX extends ListenerAdapter {
         }
     }
 
-    private void sendMessage(MessageEvent event, String msgToSend, boolean addNick) {
+    private void sendMessage(GenericMessageEvent event, String msgToSend, boolean addNick) {
         msgToSend = getScramble(msgToSend);
 
         if (addNick) {
             event.respond(msgToSend);
         } else {
-            event.getChannel().send().message(msgToSend);
+            event.respondWith(msgToSend);
         }
     }
 
@@ -481,14 +492,15 @@ public class FozruciX extends ListenerAdapter {
         lastEvent.getBot().send().message(userToSendTo, msgToSend);
     }
 
-    @SuppressWarnings({"StatementWithEmptyBody", "ConstantConditions"})
-    @Override
-    public void onMessage(MessageEvent event) {
-        lastEvent = event;
+    @SuppressWarnings("ConstantConditions")
+    public void onGenericMessage(GenericMessageEvent event) {
+        String channel = ((MessageEvent) event).getChannel().getName();
         String[] arg = splitMessage(event.getMessage());
         debug.setCurrentNick(currentNick + "!" + currentUsername + "@" + currentHost);
-        //noinspection ConstantConditions
-        checkUserNote(event, event.getUser().getNick(), event.getChannel().getName());
+        if (!bools.get(dataLoaded)) {
+            loadData((Event) event);
+        }
+
 
 // !formatting - toggles color (Mostly in the errors)
         if (commandChecker(arg, "formatting")) {
@@ -502,10 +514,10 @@ public class FozruciX extends ListenerAdapter {
             }
         }
 
-// !helpme - redirect to !commands
-        if (commandChecker(arg, "helpme")) {
+// !HelpMe - redirect to !commands
+        if (commandChecker(arg, "HelpMe")) {
             if (checkPerm(event.getUser(), 0)) {
-                sendMessage(event, "This commands was changed to commands.", true);
+                sendMessage(event, "This command was changed to commands.", true);
             }
         }
 
@@ -538,7 +550,7 @@ public class FozruciX extends ListenerAdapter {
                 } else if (arg[1 + arrayOffset].equalsIgnoreCase("chat")) {
                     sendNotice(event.getUser().getNick(), "This command functions like ELIZA. Talk to it and it talks back.");
                     sendNotice(event.getUser().getNick(), "Usage: First parameter defines what service to use. it supports CleverBot, PandoraBot, and JabberWacky. Second parameter is the Message to send. Could also be the special param \"\\setup\" to actually start the bot.");
-                } else if (arg[1 + arrayOffset].equalsIgnoreCase("calcj")) {
+                } else if (arg[1 + arrayOffset].equalsIgnoreCase("CalcJ")) {
                     sendNotice(event.getUser().getNick(), "This command takes a expression and evaluates it. There are 2 different functions. Currently the only variable is \"x\"");
                     sendNotice(event.getUser().getNick(), "Usage 1: The simple way is to type out the expression without any variables. Usage 2: 1st param is what to start x at. 2nd is what to increment x by. 3rd is amount of times to increment x. last is the expression.");
                 } else if (arg[1 + arrayOffset].equalsIgnoreCase("CalcJS")) {
@@ -550,13 +562,13 @@ public class FozruciX extends ListenerAdapter {
                     sendNotice(event.getUser().getNick(), "Converts a String into a Byte array");
                 } else if (arg[1 + arrayOffset].equalsIgnoreCase("NoteJ")) {
                     sendNotice(event.getUser().getNick(), "Allows the user to leave notes");
-                    sendNotice(event.getUser().getNick(), "SubCommand add <Nick to leave note to> <message>: adds a note. Subcommand del <Given ID>: Deletes a set note Usage: . Subcommand list: Lists notes you've left");
+                    sendNotice(event.getUser().getNick(), "SubCommand add <Nick to leave note to> <message>: adds a note. SubCommand del <Given ID>: Deletes a set note Usage: . SubCommand list: Lists notes you've left");
                 } else if (arg[1 + arrayOffset].equalsIgnoreCase("Memes")) {
                     sendNotice(event.getUser().getNick(), "Meme database. To get a meme you simply have to do \"Memes <meme name>\"");
-                    sendNotice(event.getUser().getNick(), "Subcommand set <Meme Name> <The Meme>: Sets up a meme. Note, When Seting a meme that already exists, you have to be the creator to edit it.  Subcommand list: Lists all the memes in the database");
+                    sendNotice(event.getUser().getNick(), "SubCommand set <Meme Name> <The Meme>: Sets up a meme. Note, When Setting a meme that already exists, you have to be the creator to edit it.  SubCommand list: Lists all the memes in the database");
                 } else if (arg[1 + arrayOffset].equalsIgnoreCase("disasm")) {
                     sendNotice(event.getUser().getNick(), "Disassembles bytes from different CPUs");
-                    sendNotice(event.getUser().getNick(), "Usage: 1st param is the CPU to read from. 2nd param is the bytes to assemble. You can use M68k as a shorthand instead of typing 68000. List of avalible CPUs https://www.hex-rays.com/products/ida/support/idadoc/618.shtml");
+                    sendNotice(event.getUser().getNick(), "Usage: 1st param is the CPU to read from. 2nd param is the bytes to assemble. You can use M68k as a shorthand instead of typing 68000. List of available CPUs https://www.hex-rays.com/products/ida/support/idadoc/618.shtml");
                 } else {
                     sendNotice(event.getUser().getNick(), "That either isn't a command, or " + currentNick + " hasn't add that to the help yet.");
                 }
@@ -618,19 +630,14 @@ public class FozruciX extends ListenerAdapter {
         }
 
 
-
 // !setAvatar - sets the avatar of the bot
         if (commandChecker(arg, "setAvatar")) {
             if (checkPerm(event.getUser(), 9001)) {
                 avatar.set(arg[1 + arrayOffset]);
                 sendMessage(event, "Avatar set", false);
                 List<User> users = new ArrayList<>();
-                for (Channel channel : event.getBot().getUserBot().getChannels()) {
-                    for (User curUser : channel.getUsers()) {
-                        if (users.indexOf(curUser) == -1 && !curUser.getNick().equalsIgnoreCase(event.getBot().getNick())) {
-                            users.add(curUser);
-                        }
-                    }
+                for (Channel channels : event.getBot().getUserBot().getChannels()) {
+                    channels.getUsers().stream().filter(curUser -> users.indexOf(curUser) == -1 && !curUser.getNick().equalsIgnoreCase(event.getBot().getNick())).forEach(users::add);
                 }
                 for (int i = 0; users.size() >= i; i++) {
                     if (users.get(i).getRealName().startsWith("\u0003")) {
@@ -646,14 +653,7 @@ public class FozruciX extends ListenerAdapter {
 // !loadData - force a reload of the save data
         if (commandChecker(arg, "loadData")) {
             if (checkPerm(event.getUser(), 2)) {
-                loadData(event);
-            }
-        }
-
-// !rps - Rock! Paper! ehh you know the rest
-        if (commandChecker(arg, "rps")) {
-            if (checkPerm(event.getUser(), 0)) {
-                //todo
+                loadData((Event) event);
             }
         }
 
@@ -665,9 +665,7 @@ public class FozruciX extends ListenerAdapter {
                 int i;
                 for (i = list.length - 1 + arrayOffset; i > 0; i--) {
                     temp = list[0];
-                    for (int index = 1; i > index; index++) {
-                        list[index - 1] = list[index];
-                    }
+                    System.arraycopy(list, 1, list, 0, i - 1);
                     list[i] = temp;
                 }
                 list[i] = temp;
@@ -758,7 +756,7 @@ public class FozruciX extends ListenerAdapter {
                         messageMode = MessageModes.reversed;
                         sendMessage(event, "Message is now reversed", true);
                         break;
-                    case "wordreverse":
+                    case "WordReverse":
                         messageMode = MessageModes.wordReversed;
                         sendMessage(event, "Message words reversed", true);
                         break;
@@ -766,7 +764,7 @@ public class FozruciX extends ListenerAdapter {
                         messageMode = MessageModes.scrambled;
                         sendMessage(event, "Messages are scrambled", true);
                         break;
-                    case "wordscramble":
+                    case "WordScramble":
                         messageMode = MessageModes.wordScrambled;
                         sendMessage(event, "Message words are scrambled", true);
                         break;
@@ -778,42 +776,15 @@ public class FozruciX extends ListenerAdapter {
             }
         }
 
-// !getChannelName - Gets channel name, for debuging
-        if (commandChecker(arg, "GetChannelName")) {
-            if (checkPerm(event.getUser(), 0)) {
-                sendMessage(event, event.getChannel().getName(), true);
-            }
-        }
-
-// url checker - Checks if string contains a url and parses
-        String regex = "/((([A-Za-z]{3,9}:(?://)?)(?:[\\-;:&=\\+\\$,\\w]+@)?[A-Za-z0-9\\.\\-]+|(?:www\\.|[\\-;:&=\\+\\$,\\w]+@)[A-Za-z0-9\\.\\-]+)((?:/[\\+~%/\\.\\w\\-_]*)?\\??(?:[\\-\\+=&;%@\\.\\w_]*)#?(?:[\\.!/\\\\\\w]*))?)/";
-        String channel = event.getChannel().getName();
-        if (event.getMessage().matches(regex) && !channel.equalsIgnoreCase("#origami64") && !channel.equalsIgnoreCase("#retro")) {
-            Pattern pattern = Pattern.compile(regex);
-            Matcher matcher = pattern.matcher(event.getMessage());
-            if (matcher.find()) {
-                try {
-                    URI url = new URI(matcher.group(0));
-                    sendMessage(event, "Title: " + url.getHost(), false);
-                } catch (Exception e) {
-                    sendError(event, e);
-                }
-            }
-        }
 
 // !CheckLink - checks links, duh
         if (commandChecker(arg, "CheckLink")) {
             if (checkPerm(event.getUser(), 0)) {
                 try {
-                    Matcher match = Pattern.compile("/((([A-Za-z]{3,9}:(?://)?)(?:[\\-;:&=\\+\\$,\\w]+@)?[A-Za-z0-9\\.\\-]+|(?:www\\.|[\\-;:&=\\+\\$,\\w]+@)[A-Za-z0-9\\.\\-]+)((?:/[\\+~%/\\.\\w\\-_]*)?\\??(?:[\\-\\+=&;%@\\.\\w_]*)#?(?:[\\.!/\\\\\\w]*))?)/").matcher(event.getMessage());
-                    if (match.find()) {
-                        System.out.print("Matched");
-                        for (int i = 0; i < match.groupCount(); i++) {
-                            System.out.println("Found value: " + match.group(i));
-                        }
-                        Document doc = Jsoup.connect("http://example.com/").get();
-                        sendMessage(event, "Title: " + doc.title(), false);
-                    }
+                    Document doc = Jsoup.connect(arg[1 + arrayOffset]).get();
+                    sendMessage(event, "Title: " + doc.title(), false);
+                } catch (UnsupportedMimeTypeException e) {
+                    sendMessage(event, "type: " + e.getMimeType(), true);
                 } catch (Exception e) {
                     sendError(event, e);
                 }
@@ -900,8 +871,8 @@ public class FozruciX extends ListenerAdapter {
             }
         }
 
-// !calcj - calculate a expression
-        if (commandChecker(arg, "calcJ")) {
+// !CalcJ - calculate a expression
+        if (commandChecker(arg, "CalcJ")) {
             if (checkPerm(event.getUser(), 0)) {
                 try {
                     if (arg.length != 2 + arrayOffset) {
@@ -978,7 +949,15 @@ public class FozruciX extends ListenerAdapter {
         if (commandChecker(arg, "JS")) {
             if (checkPerm(event.getUser(), 0)) {
                 if (arg.length > 1) {
+                    Thread.UncaughtExceptionHandler exceptionHandler = (th, ex) -> {
+                        if (ex instanceof ThreadDeath) {
+                            lastJsChannel.send().message(event.getUser(), "JavaScript thread killed by " + lastJsUser.getNick() + " in " + ((MessageEvent) event).getChannel().getName());
+                        } else {
+                            sendError(event, ex);
+                        }
+                    };
                     if (js != null) {
+                        //noinspection deprecation
                         js.stop();
                     }
                     js = new Thread(() -> {
@@ -1007,7 +986,8 @@ public class FozruciX extends ListenerAdapter {
                             String factorialFunct = "function factorial(num) {  if (num < 0) {    return -1;  } else if (num == 0) {    return 1;  }  var tmp = num;  while (num-- > 2) {    tmp *= num;  }  return tmp;} " +
                                     "function getBit(num, bit) {  var result = (num >> bit) & 1; return result == 1} " +
                                     "function offset(array, offsetNum){array = eval(\"\" + array + \"\");var size = array.length * offsetNum;var result = [];for(var i = 0; i < array.length; i++){result[i] = parseInt(array[i], 16) + size} return result;} " +
-                                    "function solvefor(expr, solve){var eq = algebra.parse(expr); var ans = eq.solveFor(solve); return solve + \" = \" + ans.toString(); }  var life = 42; ";
+                                    "function solvefor(expr, solve){var eq = algebra.parse(expr); var ans = eq.solveFor(solve); return solve + \" = \" + ans.toString(); }  var life = 42; " +
+                                    "function roughSizeOf(e){for(var f=[],o=[e],t=0;o.length;){var n=o.pop();if(\"boolean\"==typeof n)t+=4;else if(\"string\"==typeof n)t+=2*n.length;else if(\"number\"==typeof n)t+=8;else if(\"object\"==typeof n&&-1===f.indexOf(n)){f.push(n);for(var r in n)o.push(n[r])}}return t}";
                             if (!checkPerm(event.getUser(), 9001)) {
                                 engine = new NashornScriptEngineFactory().getScriptEngine(requestedClass -> {
                                     for (String unsafeClass : unsafeClasses) {
@@ -1051,13 +1031,20 @@ public class FozruciX extends ListenerAdapter {
                                     sendMessage(event, basePrefix + eval, true);
                                     System.out.println("Outputting as base " + arg[2 + arrayOffset]);
                                 }
-                            } else {
+                            } else if (eval.length() < 240) {
                                 sendMessage(event, eval, true);
+                            } else {
+                                sendPage(event, arg, new ArrayList<>(Arrays.asList(eval)));
                             }
                         } catch (Exception e) {
                             sendError(event, e);
                         }
                     });
+                    js.setUncaughtExceptionHandler(exceptionHandler);
+
+                    lastJsUser = event.getUserHostmask();
+                    lastJsChannel = ((MessageEvent) event).getChannel();
+
                     js.start();
                 } else {
                     sendMessage(event, "Requires more arguments", true);
@@ -1223,6 +1210,7 @@ public class FozruciX extends ListenerAdapter {
                     }
 
                 } else if (arg[1 + arrayOffset].equalsIgnoreCase("jabber")) {
+
                     if (arg[2 + arrayOffset].equalsIgnoreCase("\\setup")) {
                         try {
                             ChatterBot jabberBot = factory.create(ChatterBotType.JABBERWACKY, "b0dafd24ee35a477");
@@ -1290,8 +1278,8 @@ public class FozruciX extends ListenerAdapter {
         }
 
 
-// !blockconv - Converts blocks to bytes
-        if (commandChecker(arg, "blockconv")) {
+// !BlockConv - Converts blocks to bytes
+        if (commandChecker(arg, "BlockConv")) {
             if (checkPerm(event.getUser(), 0)) {
                 int data = Integer.parseInt(arg[3 + arrayOffset]);
                 double ans = 0;
@@ -1337,7 +1325,7 @@ public class FozruciX extends ListenerAdapter {
 
 // !FC - Friend code database
         if (commandChecker(arg, "FC")) {
-            if (!event.getChannel().getName().equals("#deltasmash") && checkPerm(event.getUser(), 0)) {
+            if (!channel.equals("#deltasmash") && checkPerm(event.getUser(), 0)) {
                 try {
                     if (arg.length > 2) {
                         if (arg[1].equalsIgnoreCase("set")) {
@@ -1434,8 +1422,8 @@ public class FozruciX extends ListenerAdapter {
             }
         }
 
-// !notej - Leaves notes
-        if (commandChecker(arg, "notej")) {
+// !NoteJ - Leaves notes
+        if (commandChecker(arg, "NoteJ")) {
             if (checkPerm(event.getUser(), 0)) {
                 if (arg[1 + arrayOffset].equalsIgnoreCase("del")) {
                     try {
@@ -1478,7 +1466,7 @@ public class FozruciX extends ListenerAdapter {
                     event.getUser().send().notice(foundUUID.toString());
                 } else {
                     try {
-                        Note note = new Note(event.getUser().getNick(), arg[1 + arrayOffset], argJoiner(arg, 2), event.getChannel().getName());
+                        Note note = new Note(event.getUser().getNick(), arg[1 + arrayOffset], argJoiner(arg, 2), channel);
                         noteList.get().add(note);
                         sendMessage(event, "Left note \"" + argJoiner(arg, 2) + "\" for \"" + arg[1 + arrayOffset] + "\".", false);
                         event.getUser().send().notice("ID is \"" + noteList.get().get(noteList.get().indexOf(note)).getId().toString() + "\"");
@@ -1504,15 +1492,15 @@ public class FozruciX extends ListenerAdapter {
             }
         }
 
-// !getname - gets the name of the bot
-        if (commandChecker(arg, "getname")) {
+// !getName - gets the name of the bot
+        if (commandChecker(arg, "getName")) {
             if (checkPerm(event.getUser(), 0)) {
                 sendMessage(event, event.getBot().getUserBot().getRealName(), true);
             }
         }
 
 // !version - gets the version of the bot
-        if (commandChecker(arg, "version") && !event.getChannel().getName().equalsIgnoreCase("#deltasmash")) {
+        if (commandChecker(arg, "version") && !channel.equalsIgnoreCase("#deltasmash")) {
             if (checkPerm(event.getUser(), 0)) {
                 String VERSION = "PircBotX: " + PircBotX.VERSION + ". BotVersion: 2.1. Java version: " + System.getProperty("java.version");
 
@@ -1555,13 +1543,13 @@ public class FozruciX extends ListenerAdapter {
                     arg[1 + arrayOffset] = arg[1 + arrayOffset].substring(2);
                     num1 = Long.parseLong(arg[1 + arrayOffset], 16);
                 } else {
-                    num1 = Long.parseLong(arg[1 + arrayOffset], 9001);
+                    num1 = Long.parseLong(arg[1 + arrayOffset], 10);
                 }
                 if (arg[2 + arrayOffset].contains("0x")) {
                     arg[2 + arrayOffset] = arg[2 + arrayOffset].substring(2);
                     num2 = Long.parseLong(arg[2 + arrayOffset], 16);
                 } else {
-                    num2 = Long.parseLong(arg[2 + arrayOffset], 9001);
+                    num2 = Long.parseLong(arg[2 + arrayOffset], 10);
                 }
 
                 sendMessage(event, " " + randInt((int) num1, (int) num2), true);
@@ -1859,11 +1847,11 @@ public class FozruciX extends ListenerAdapter {
                         processor = "68000";
                     }
                     Process process = new ProcessBuilder("C:\\Program Files (x86)\\IDA 6.8\\idaq", "-B", "-p" + processor, "data\\temp.68k").start();
+                    //noinspection StatementWithEmptyBody
                     while (process.isAlive()) {
                     }
                     BufferedReader disasm = new BufferedReader(new FileReader("Data\\temp.asm"));
                     String disasmTemp;
-                    int lines = 0;
                     boolean fileIsEmpty = true;
                     ArrayList<String> messagesToSend = new ArrayList<>();
                     while ((disasmTemp = disasm.readLine()) != null) {
@@ -1883,7 +1871,6 @@ public class FozruciX extends ListenerAdapter {
                                 !disasmTemp.contains(".section") &&
                                 !disasmTemp.isEmpty()) {
                             messagesToSend.add(disasmTemp.replace("\t", " "));
-                            lines++;
                             if (fileIsEmpty) {
                                 fileIsEmpty = false;
                             }
@@ -2080,9 +2067,9 @@ public class FozruciX extends ListenerAdapter {
         if (commandChecker(arg, "leave")) {
             if (checkPerm(event.getUser(), 9001)) {
                 if (!commandChecker(arg, "leave")) {
-                    event.getChannel().send().part(argJoiner(arg, 2));
+                    ((MessageEvent) event).getChannel().send().part(argJoiner(arg, 2));
                 } else {
-                    event.getChannel().send().part();
+                    ((MessageEvent) event).getChannel().send().part();
                 }
             } else if (!event.getBot().getServerHostname().equalsIgnoreCase("irc.twitch.tv")) {
                 permErrorchn(event);
@@ -2104,15 +2091,15 @@ public class FozruciX extends ListenerAdapter {
         if (commandChecker(arg, "recycle")) {
             if (checkPerm(event.getUser(), 2)) {
                 saveData(event);
-                event.getChannel().send().cycle();
+                ((MessageEvent) event).getChannel().send().cycle();
             } else {
                 permErrorchn(event);
             }
         }
 // !revoice - gives everyone voice if they didn't get it
         if (commandChecker(arg, "revoice")) {
-            for (User user1 : event.getChannel().getUsers()) {
-                event.getBot().sendRaw().rawLineNow("mode " + event.getChannel().getName() + " +v " + user1.getNick());
+            for (User user1 : ((MessageEvent) event).getChannel().getUsers()) {
+                event.getBot().sendRaw().rawLineNow("mode " + channel + " +v " + user1.getNick());
             }
         }
 
@@ -2122,13 +2109,17 @@ public class FozruciX extends ListenerAdapter {
                 //noinspection ConstantConditions
                 saveData(event);
                 event.getUser().send().notice("Disconnecting from server and exiting");
-                new Thread(() -> {
+                Thread exit = new Thread(() -> {
                     if (arg.length > 1 + arrayOffset) {
                         manager.get().stop(argJoiner(arg, 1));
                     } else {
                         manager.get().stop("I'm only a year old and have already wasted my entire life.");
                     }
-                }).start();
+                });
+                exit.start();
+                //noinspection StatementWithEmptyBody
+                while (exit.isAlive()) {
+                }
                 System.exit(0);
             } else {
                 permErrorchn(event);
@@ -2156,7 +2147,7 @@ public class FozruciX extends ListenerAdapter {
         if (commandChecker(arg, "getUserLevels")) {
             if (checkPerm(event.getUser(), 0)) {
                 try {
-                    List<UserLevel> userLevels = Lists.newArrayList(event.getUser().getUserLevels(event.getChannel()).iterator());
+                    List<UserLevel> userLevels = Lists.newArrayList(event.getUser().getUserLevels(((MessageEvent) event).getChannel()).iterator());
                     sendMessage(event, userLevels.toString(), true);
                 } catch (Exception e) {
                     sendError(event, e);
@@ -2178,7 +2169,7 @@ public class FozruciX extends ListenerAdapter {
 // !SayAction - Makes the bot do a action
         if (commandChecker(arg, "SayAction")) {
             if (checkPerm(event.getUser(), 9001)) {
-                event.getChannel().send().action(argJoiner(arg, 2));
+                ((MessageEvent) event).getChannel().send().action(argJoiner(arg, 2));
             } else {
                 permErrorchn(event);
             }
@@ -2349,7 +2340,7 @@ public class FozruciX extends ListenerAdapter {
         if (commandChecker(arg, "GayDar")) {
             if (checkPerm(event.getUser(), 0) && !channel.equalsIgnoreCase("#retro")) {
                 if (bools.get(jokeCommands) || checkPerm(event.getUser(), 1)) {
-                    Iterator<User> user = event.getChannel().getUsers().iterator();
+                    Iterator<User> user = ((MessageEvent) event).getChannel().getUsers().iterator();
                     List<String> userList = new ArrayList<>();
                     while (user.hasNext()) {
                         userList.add(user.next().getNick());
@@ -2376,6 +2367,7 @@ public class FozruciX extends ListenerAdapter {
             }
         }
 
+        lastEvent = event;
         saveData(event);
         debug.setCurrentNick(currentNick + "!" + currentUsername + "@" + currentHost);
         String DNDDungeonMaster = "Null";
@@ -2383,15 +2375,66 @@ public class FozruciX extends ListenerAdapter {
         debug.setMessage(event.getUser().getNick() + ": " + event.getMessage());
     }
 
-    public void onPrivateMessage(PrivateMessageEvent PM) {
+    @SuppressWarnings({"StatementWithEmptyBody", "ConstantConditions"})
+    @Override
+    public void onMessage(MessageEvent event) {
+        String channel = event.getChannel().getName();
+        checkUserNote(event, event.getUser().getNick(), channel);
+        String[] arg = splitMessage(event.getMessage());
+        debug.setCurrentNick(currentNick + "!" + currentUsername + "@" + currentHost);
 
+// !getChannelName - Gets channel name, for debuging
+        if (commandChecker(arg, "GetChannelName")) {
+            if (checkPerm(event.getUser(), 0)) {
+                sendMessage(event, channel, true);
+            }
+        }
+
+// !checkLinks
+        if (commandChecker(arg, "checkLinks")) {
+            if (checkPerm(event.getUser(), 4)) {
+                bools.flip(checkLinks);
+                if (bools.get(checkLinks)) {
+                    sendMessage(event, "Link checking is on", false);
+                } else {
+                    sendMessage(event, "Link checking is off", false);
+                }
+            }
+        }
+
+// url checker - Checks if string contains a url and parses
+        if (!commandChecker(arg, "checkLink") && bools.get(checkLinks)) {
+            String regex = "[a-zA-Z]{3,}://[a-zA-Z0-9\\.]+/*[a-zA-Z0-9/\\\\%_.]*\\?*[a-zA-Z0-9/\\\\%_.=&amp;]*";
+            Matcher matcher = Pattern.compile(regex).matcher(event.getMessage());
+            if (matcher.find() && !channel.equalsIgnoreCase("#origami64") && !channel.equalsIgnoreCase("#retro") && !channel.equalsIgnoreCase("#pmd")) {
+                System.out.println("Found URL");
+                try {
+                    String title = Jsoup.connect(matcher.group(0)).get().title();
+                    if (title.isEmpty()) {
+                        sendMessage(event, "Title was empty", false);
+                    } else {
+                        sendMessage(event, "Title: " + title, false);
+                    }
+                } catch (UnsupportedMimeTypeException e) {
+                    sendMessage(event, "type: " + e.getMimeType(), true);
+                } catch (MalformedURLException e) {
+                    sendMessage(event, "Unsupported URL", true);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+    }
+
+    public void onPrivateMessage(PrivateMessageEvent PM) {
         String[] arg = splitMessage(PM.getMessage());
 
 // !rps - Rock! Paper! ehh you know the rest
         if (commandChecker(arg, "rps")) {
             //noinspection ConstantConditions
             String nick = PM.getUser().getNick();
-            if (checkPerm(PM.getUser(), 0)) {
+            if (checkPerm(PM.getUser(), 9001)) {
                 boolean found = false;
                 boolean isFirstPlayer = true;
                 RPSGame game = null;
@@ -2434,20 +2477,17 @@ public class FozruciX extends ListenerAdapter {
                 PM.getUser().send().message("password is incorrect.");
         }
         //Only allow me (Lil-G) to use PM commands except for the login command
-        else if (checkPerm(PM.getUser(), 6) &&
-                !commandChecker(arg, "login") &&
-                !commandChecker(arg, "rps") &&
-                arg[0].contains(prefix)) {
+        if (checkPerm(PM.getUser(), 6)) {
 
 
 // !SendTo - Tells the bot to say someting on a channel
             if (commandChecker(arg, "sendto")) {
-                PM.getBot().sendIRC().message(arg[1 + arrayOffset], argJoiner(arg, 2));
+                PM.getBot().sendIRC().message(arg[1 + arrayOffset], getScramble(argJoiner(arg, 2)));
             }
 
 // !sendAction - Tells the bot to make a action on a channel
             if (commandChecker(arg, "sendAction")) {
-                PM.getBot().sendIRC().action(arg[1 + arrayOffset], argJoiner(arg, 2));
+                PM.getBot().sendIRC().action(arg[1 + arrayOffset], getScramble(argJoiner(arg, 2)));
             }
 // !sendRaw - Tells the bot to say a raw line
             if (commandChecker(arg, "sendRaw")) {
@@ -2457,7 +2497,7 @@ public class FozruciX extends ListenerAdapter {
 // !part - leaves a channel
             if (commandChecker(arg, "part")) {
                 if (arg.length != 2 + arrayOffset) {
-                    PM.getBot().sendRaw().rawLineNow("part " + arg[1 + arrayOffset] + " " + arg[2 + arrayOffset]);
+                    PM.getBot().sendRaw().rawLineNow("part " + arg[1 + arrayOffset] + " " + getScramble(argJoiner(arg, 2)));
                 } else {
                     PM.getBot().sendRaw().rawLineNow("part " + arg[1 + arrayOffset]);
                 }
@@ -2505,19 +2545,8 @@ public class FozruciX extends ListenerAdapter {
                     PM.getBot().send().joinChannel(autoChannels.get(i));
                 }
             }
-        } else if (arg[0].startsWith(prefix) && bools.get(respondToPMs)) {
-            if (notifiedUserList.containsKey(PM.getUserHostmask())) {
-                if (notifiedUserList.get(PM.getUserHostmask()) < 3) {
-                    permError(PM.getUser());
-                    PM.getBot().sendIRC().notice(currentNick, "Attempted use of PM commands by " + PM.getUser().getNick() + ". The command used was \"" + PM.getMessage() + "\"");
-                    notifiedUserList.put(PM.getUserHostmask(), notifiedUserList.get(PM.getUserHostmask()) + 1);
-                }
-            } else {
-                notifiedUserList.put(PM.getUserHostmask(), 1);
-                permError(PM.getUser());
-                PM.getBot().sendIRC().notice(currentNick, "Attempted use of PM commands by " + PM.getUser().getNick() + ". The command used was \"" + PM.getMessage() + "\"");
-            }
         }
+
         debug.updateBot(PM.getBot());
         checkUserNote(PM, PM.getUser().getNick(), null);
         debug.setCurrentNick(currentNick + "!" + currentUsername + "@" + currentHost);
@@ -2582,6 +2611,7 @@ public class FozruciX extends ListenerAdapter {
     }
 
     public void onNickAlreadyInUse(NickAlreadyInUseEvent nick) {
+
         bools.set(nickInUse);
         nick.respond(nick.getUsedNick() + 1);
     }
@@ -2589,6 +2619,11 @@ public class FozruciX extends ListenerAdapter {
     public void onKick(KickEvent kick) {
         //noinspection ConstantConditions
         if (kick.getRecipient().getNick().equalsIgnoreCase(kick.getBot().getNick())) {
+            try {
+                wait(5000);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
             kick.getBot().send().joinChannel(kick.getChannel().getName());
         }
     }
@@ -2625,7 +2660,7 @@ public class FozruciX extends ListenerAdapter {
      *
      * @param event Channel that the user used the command in
      */
-    private void permErrorchn(MessageEvent event) {
+    private void permErrorchn(GenericMessageEvent event) {
         int num = randInt(0, listOfNoes.length - 1);
         String comeback = listOfNoes[num];
         sendMessage(event, comeback, true);
@@ -2646,7 +2681,7 @@ public class FozruciX extends ListenerAdapter {
                 if (authedUserLevel.get(index) >= requiredUserLevel) {
                     return true;
                 }
-                }
+            }
         } else {
             int index = authedUser.size() - 1;
             while (index > -1) {
@@ -2659,15 +2694,15 @@ public class FozruciX extends ListenerAdapter {
                         if (Hostname.equalsIgnoreCase(user.getHostname()) || Hostname.equalsIgnoreCase("*")) {
                             return authedUserLevel.get(index) >= requiredUserLevel;
                         }
-                        }
                     }
-                index--;
                 }
-            ArrayList<UserLevel> levels = Lists.newArrayList(user.getUserLevels(lastEvent.getChannel()).iterator());
+                index--;
+            }
+            ArrayList<UserLevel> levels = Lists.newArrayList(user.getUserLevels(((MessageEvent) lastEvent).getChannel()).iterator());
             if (requiredUserLevel <= getUserLevel(levels)) {
                 return true;
             }
-            }
+        }
         return false;
     }
 
@@ -2675,6 +2710,7 @@ public class FozruciX extends ListenerAdapter {
         return splitMessage(stringToSplit, 0);
     }
 
+    @SuppressWarnings("SameParameterValue")
     private String[] splitMessage(String stringToSplit, int amountToSplit) {
         if (stringToSplit == null)
             return new String[0];
@@ -2700,7 +2736,11 @@ public class FozruciX extends ListenerAdapter {
         return list.toArray(new String[list.size()]);
     }
 
-    private void sendError(MessageEvent event, Exception e) {
+    private void sendError(GenericMessageEvent event, Throwable t) {
+        sendError(event, new Exception(t));
+    }
+
+    private void sendError(GenericMessageEvent event, Exception e) {
         System.out.println("Error: " + e.getCause());
         String cause;
         if (bools.get(color)) {
@@ -2712,8 +2752,6 @@ public class FozruciX extends ListenerAdapter {
         if (cause.contains("jdk.nashorn.internal.runtime.ParserException") || from.contains("javax.script.ScriptException")) {
             if (cause.contains("Expected an operand but found eof")) {
                 sendMessage(event, "Your expression has spaces so it needs to be enclosed in quotes", false);
-            } else if (cause.contains("Expected an operand but found")) {
-                sendMessage(event, "There was a syntax error", false);
             } else if (cause.contains("TypeError: Cannot read property")) {
                 sendMessage(event, "There was a type error, Cannot read property", false);
             } else {
@@ -2740,7 +2778,7 @@ public class FozruciX extends ListenerAdapter {
         }
     }
 
-    private void saveData(MessageEvent event) {
+    private void saveData(GenericMessageEvent event) {
         if (!bools.get(dataLoaded)) {
             System.out.print("Data save canceled because data hasn't been loaded yet");
             return;
@@ -2798,7 +2836,7 @@ public class FozruciX extends ListenerAdapter {
 
     }
 
-    private void setDebugInfo(MessageEvent event) {
+    private void setDebugInfo(GenericMessageEvent event) {
         int index = DNDJoined.indexOf(currentNick);
 
         //noinspection ConstantConditions

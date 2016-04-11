@@ -1,6 +1,6 @@
 package com.LilG.Com.CMD;
 
-import org.pircbotx.hooks.events.MessageEvent;
+import org.pircbotx.hooks.types.GenericMessageEvent;
 
 import java.io.BufferedWriter;
 import java.io.OutputStreamWriter;
@@ -10,11 +10,11 @@ import java.util.Scanner;
  * Created by ggonz on 10/16/2015.
  */
 public class runCMD extends Thread {
-    private final MessageEvent event;
+    private final GenericMessageEvent event;
     private final String[] arg;
     private String console = "cmd.exe";
 
-    public runCMD(MessageEvent event, String[] arg) {
+    public runCMD(GenericMessageEvent event, String[] arg) {
         this.event = event;
         this.arg = arg;
     }
@@ -39,6 +39,7 @@ public class runCMD extends Thread {
             p = null;
         }
         //get stdin of shell
+        assert p != null;
         BufferedWriter p_stdin = new BufferedWriter(new OutputStreamWriter(p.getOutputStream()));
 
         //single execution

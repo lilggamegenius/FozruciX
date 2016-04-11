@@ -6,7 +6,7 @@ package com.LilG.Com.DataClasses;
  */
 
 public class Meme {
-    private String creator;
+    private final String creator;
     private String Meme;
 
     public Meme(String creator, String Meme) {

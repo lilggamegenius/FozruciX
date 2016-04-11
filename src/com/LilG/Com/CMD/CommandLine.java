@@ -1,6 +1,7 @@
 package com.LilG.Com.CMD;
 
 import org.pircbotx.hooks.events.MessageEvent;
+import org.pircbotx.hooks.types.GenericMessageEvent;
 
 import java.io.BufferedWriter;
 import java.io.OutputStreamWriter;
@@ -12,12 +13,12 @@ import java.util.Scanner;
  * this version does not close after it has run allowing it to have the same environment without having to set it again
  */
 public class CommandLine extends Thread {
-    private MessageEvent event;
+    private GenericMessageEvent event;
     private String command;
     private Process p;
     private BufferedWriter p_stdin;
 
-    public CommandLine(MessageEvent event, String[] arg) {
+    public CommandLine(GenericMessageEvent event, String[] arg) {
         this.event = event;
 
         boolean term;
@@ -37,6 +38,7 @@ public class CommandLine extends Thread {
             p = null;
         }
         try {
+            assert p != null;
             p_stdin = new BufferedWriter(new OutputStreamWriter(p.getOutputStream()));
         } catch (Exception e) {
             p_stdin = null;
@@ -45,6 +47,7 @@ public class CommandLine extends Thread {
         if (term) {
             try {
                 String termStr = "cd C:\\cygwin64\\bin && bash -c ";
+                assert p_stdin != null;
                 p_stdin.write(termStr);
             } catch (Exception e) {
                 sendError(event, e);
@@ -55,11 +58,11 @@ public class CommandLine extends Thread {
     public CommandLine() {
     } //Dummy constructor, only to "initialize a value to be overwritten later
 
-    private void sendError(MessageEvent event, Exception e){
-        event.getChannel().send().message("Error: " + e.getCause() + ". From " + e);
+    private void sendError(GenericMessageEvent event, Exception e) {
+        ((MessageEvent) event).getChannel().send().message("Error: " + e.getCause() + ". From " + e);
     }
 
-    public void doCommand(MessageEvent event, String command) {
+    public void doCommand(GenericMessageEvent event, String command) {
         this.event = event;
         this.command = command;
         System.out.print("Running.");

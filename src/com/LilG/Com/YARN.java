@@ -1,7 +1,7 @@
 package com.LilG.Com;
 
 class YARN {
-    private String str;
+    private final String str;
 
     public YARN(String str) {
         this.str = str;
