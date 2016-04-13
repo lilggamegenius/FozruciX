@@ -27,5 +27,10 @@
     </orderEntry>
     <orderEntry type="library" name="org.jsoup:jsoup:1.8.3" level="project" />
     <orderEntry type="library" name="org.pircbotx:pircbotx:2.1" level="project" />
+    <orderEntry type="library" name="WolframAlpha-1.1" level="project" />
+    <orderEntry type="library" name="org.apache.httpcomponents:httpcore:4.4.4" level="project" />
+    <orderEntry type="library" name="org.apache.httpcomponents:httpclient:4.5.2" level="project" />
+    <orderEntry type="library" name="commons-codec:commons-codec:1.10" level="project" />
+    <orderEntry type="library" name="commons-logging:commons-logging:1.2" level="project" />
   </component>
 </module>

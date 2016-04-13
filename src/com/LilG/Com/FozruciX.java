@@ -23,6 +23,7 @@ import com.rmtheis.yandtran.YandexTranslatorAPI;
 import com.rmtheis.yandtran.detect.Detect;
 import com.rmtheis.yandtran.language.Language;
 import com.rmtheis.yandtran.translate.Translate;
+import com.wolfram.alpha.*;
 import de.tudarmstadt.ukp.jwktl.JWKTL;
 import de.tudarmstadt.ukp.jwktl.api.IWiktionaryEdition;
 import de.tudarmstadt.ukp.jwktl.api.IWiktionaryEntry;
@@ -85,6 +86,7 @@ public class FozruciX extends ListenerAdapter {
     private final static ExtendedDoubleEvaluator calc = new ExtendedDoubleEvaluator();
     private final static StaticVariableSet<Double> variables = new StaticVariableSet<>();
     private final static Gson gson = new GsonBuilder().setPrettyPrinting().create();
+    private final static String appid = "RGHHEP-HQU7HL67W9";
     private static final List<RPSGame> rpsGames = new ArrayList<>();
     private static ChatterBotSession cleverBotsession;
     private static ChatterBotSession pandoraBotsession;
@@ -97,7 +99,6 @@ public class FozruciX extends ListenerAdapter {
     private static List<String> DNDJoined = new ArrayList<>();
     private static List<DNDPlayer> DNDList = new ArrayList<>();
     private static Dungeon DNDDungeon = new Dungeon();
-    private static DebugWindow debug;
     private static int jokeCommandDebugVar = 30;
     private static volatile CommandLine terminal;
     private static String counter = "";
@@ -111,6 +112,7 @@ public class FozruciX extends ListenerAdapter {
     private final AtomicReference<HashMap<String, Meme>> memes;
     private final AtomicReference<HashMap<String, String>> FCList;
     private final AtomicReference<MultiBotManager> manager;
+    private DebugWindow debug;
     private String prefix = "!";
     private String currentNick = "Lil-G";
     private String currentUsername = "GameGenuis";
@@ -867,6 +869,75 @@ public class FozruciX extends ListenerAdapter {
                         sendMessage(event, "User " + authedUser.get(place) + " Has permission level " + authedUserLevel.get(place), false);
                     }
 
+                }
+            }
+        }
+
+// !CalcA - Calculates with Wolfram Aplha
+        if (commandChecker(arg, "CalcA")) {
+            if (checkPerm(event.getUser(), 9001)) {
+                // The WAEngine is a factory for creating WAQuery objects,
+                // and it also used to perform those queries. You can set properties of
+                // the WAEngine (such as the desired API output format types) that will
+                // be inherited by all WAQuery objects created from it. Most applications
+                // will only need to crete one WAEngine object, which is used throughout
+                // the life of the application.
+                WAEngine engine;
+                try {
+                    engine = new WAEngine();
+                } catch (Exception e) {
+                    sendError(event, e);
+                    return;
+                }
+
+                // These properties will be set in all the WAQuery objects created from this WAEngine.
+                engine.setAppID(appid);
+                engine.addFormat("plaintext");
+
+                // Create the query.
+                WAQuery query = engine.createQuery();
+
+                // Set properties of the query.
+                query.setInput(argJoiner(arg, 1));
+
+                try {
+                    // For educational purposes, print out the URL we are about to send:
+                    System.out.println("Query URL:" + engine.toURL(query));
+                    System.out.println();
+
+                    // This sends the URL to the Wolfram|Alpha server, gets the XML result
+                    // and parses it into an object hierarchy held by the WAQueryResult object.
+                    WAQueryResult queryResult = engine.performQuery(query);
+
+                    if (queryResult.isError()) {
+                        System.out.println("Query error");
+                        System.out.println("  error code: " + queryResult.getErrorCode());
+                        System.out.println("  error message: " + queryResult.getErrorMessage());
+                    } else if (!queryResult.isSuccess()) {
+                        System.out.println("Query was not understood; no results available.");
+                    } else {
+                        // Got a result.
+                        System.out.println("Successful query. Pods follow:\n");
+                        for (WAPod pod : queryResult.getPods()) {
+                            if (!pod.isError()) {
+                                System.out.println(pod.getTitle());
+                                System.out.println("------------");
+                                for (WASubpod subpod : pod.getSubpods()) {
+                                    for (Object element : subpod.getContents()) {
+                                        if (element instanceof WAPlainText) {
+                                            System.out.println(((WAPlainText) element).getText());
+                                            System.out.println("");
+                                        }
+                                    }
+                                }
+                                System.out.println("");
+                            }
+                        }
+                        // We ignored many other types of Wolfram|Alpha output, such as warnings, assumptions, etc.
+                        // These can be obtained by methods of WAQueryResult or objects deeper in the hierarchy.
+                    }
+                } catch (WAException e) {
+                    sendError(event, e);
                 }
             }
         }
