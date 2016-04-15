@@ -2,9 +2,7 @@ package com.LilG.Com.DataClasses;
 
 import com.LilG.Com.DND.DNDPlayer;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by ggonz on 11/25/2015.
@@ -15,18 +13,15 @@ public class SaveDataStore {
 
     private List<String> authedUser = new ArrayList<>();
     private List<Integer> authedUserLevel = new ArrayList<>();
-
+    private String avatarLink = "http://puu.sh/oiLvW.gif";
+    private HashMap<String, Meme> memes = new HashMap<>();
+    private HashMap<String, String> FCList = new HashMap<>();
+    private Hashtable<String, Vector<String>> markovChain = new Hashtable<>();
     private List<String> DNDJoined = new ArrayList<>();
     private List<DNDPlayer> DNDList = new ArrayList<>();
 
-    private String avatarLink = "http://puu.sh/mh1mu.png";
 
-    private HashMap<String, Meme> memes = new HashMap<>();
-
-    private HashMap<String, String> FCList = new HashMap<>();
-
-
-    public SaveDataStore(List<String> authedUser, List<Integer> authedUserLevel, List<String> DNDJoined, List<DNDPlayer> DNDList, List<Note> noteList, String avatarLink, HashMap<String, Meme> memes, HashMap<String, String> FCList) {
+    public SaveDataStore(List<String> authedUser, List<Integer> authedUserLevel, List<String> DNDJoined, List<DNDPlayer> DNDList, List<Note> noteList, String avatarLink, HashMap<String, Meme> memes, HashMap<String, String> FCList, Hashtable<String, Vector<String>> markovChain) {
         this.authedUser = authedUser;
         this.authedUserLevel = authedUserLevel;
         this.DNDJoined = DNDJoined;
@@ -35,6 +30,11 @@ public class SaveDataStore {
         this.avatarLink = avatarLink;
         this.memes = memes;
         this.FCList = FCList;
+        this.markovChain = markovChain;
+    }
+
+    public Hashtable<String, Vector<String>> getMarkovChain() {
+        return markovChain;
     }
 
     public List<Note> getNoteList() {
