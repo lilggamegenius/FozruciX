@@ -88,6 +88,8 @@ public class FozruciX extends ListenerAdapter {
     private final static Gson gson = new GsonBuilder().setPrettyPrinting().create();
     private final static String appid = "RGHHEP-HQU7HL67W9";
     private static final List<RPSGame> rpsGames = new ArrayList<>();
+    public static Hashtable<String, Vector<String>> markovChain = new Hashtable<String, Vector<String>>();
+    static Random rnd = new Random();
     private static ChatterBotSession cleverBotsession;
     private static ChatterBotSession pandoraBotsession;
     private static ChatterBotSession jabberBotsession;
@@ -324,10 +326,11 @@ public class FozruciX extends ListenerAdapter {
 
         bot.sendRaw().rawLineNow("ns recover " + event.getBot().getConfiguration().getName() + " " + PASSWORD);
 
+        // Create the first two entries (k:_start, k:_end)
+        markovChain.put("_start", new Vector<>());
+        markovChain.put("_end", new Vector<>());
+
         loadData(event);
-
-
-
 
         /*boolean drawDungeon = false;
         if (drawDungeon) {
@@ -365,6 +368,8 @@ public class FozruciX extends ListenerAdapter {
 
             memes.set(save.getMemes());
             FCList.set(save.getFCList());
+            Hashtable<String, Vector<String>> markovTemp = SaveDataStore.getMarkovChain();
+            markovChain = (markovTemp == null) ? markovTemp : markovChain;
             return true;
         } catch (Exception e) {
             e.printStackTrace();
@@ -502,6 +507,8 @@ public class FozruciX extends ListenerAdapter {
         if (!bools.get(dataLoaded)) {
             loadData((Event) event);
         }
+
+        addWords(event.getMessage());
 
 
 // !formatting - toggles color (Mostly in the errors)
@@ -676,74 +683,104 @@ public class FozruciX extends ListenerAdapter {
             }
         }
 
+// !markov - makes Markov chains
+        if (commandChecker(arg, "markov")) {
+            if (checkPerm(event.getUser(), 0)) {
+                // Vector to hold the phrase
+                Vector<String> newPhrase = new Vector<String>();
+
+                // String for the next word
+                String nextWord = "";
+
+                // Select the first word
+                Vector<String> startWords = markovChain.get("_start");
+                int startWordsLen = startWords.size();
+                nextWord = startWords.get(rnd.nextInt(startWordsLen));
+                newPhrase.add(nextWord);
+
+                // Keep looping through the words until we've reached the end
+                while (nextWord.charAt(nextWord.length() - 1) != '.') {
+                    Vector<String> wordSelection = markovChain.get(nextWord);
+                    int wordSelectionLen = wordSelection.size();
+                    nextWord = wordSelection.get(rnd.nextInt(wordSelectionLen));
+                    newPhrase.add(nextWord);
+                }
+
+                sendMessage(event, newPhrase.toString(), true);
+
+            }
+        }
+
 // !8ball - ALL HAIL THE MAGIC 8-BALL
         if (commandChecker(arg, "8Ball")) {
-            int choice = randInt(1, 20);
-            String response = "";
+            if (checkPerm(event.getUser(), 0)) {
+                int choice = randInt(1, 20);
+                String response = "";
 
-            switch (choice) {
-                case 1:
-                    response = "It is certain";
-                    break;
-                case 2:
-                    response = "It is decidedly so";
-                    break;
-                case 3:
-                    response = "Without a doubt";
-                    break;
-                case 4:
-                    response = "Yes - definitely";
-                    break;
-                case 5:
-                    response = "You may rely on it";
-                    break;
-                case 6:
-                    response = "As I see it, yes";
-                    break;
-                case 7:
-                    response = "Most likely";
-                    break;
-                case 8:
-                    response = "Outlook good";
-                    break;
-                case 9:
-                    response = "Signs point to yes";
-                    break;
-                case 10:
-                    response = "Yes";
-                    break;
-                case 11:
-                    response = "Reply hazy, try again";
-                    break;
-                case 12:
-                    response = "Ask again later";
-                    break;
-                case 13:
-                    response = "Better not tell you now";
-                    break;
-                case 14:
-                    response = "Cannot predict now";
-                    break;
-                case 15:
-                    response = "Concentrate and ask again";
-                    break;
-                case 16:
-                    response = "Don't count on it";
-                    break;
-                case 17:
-                    response = "My reply is no";
-                    break;
-                case 18:
-                    response = "My sources say no";
-                    break;
-                case 19:
-                    response = "Outlook not so good";
-                    break;
-                case 20:
-                    response = "Very doubtful";
-                    break;
+                switch (choice) {
+                    case 1:
+                        response = "It is certain";
+                        break;
+                    case 2:
+                        response = "It is decidedly so";
+                        break;
+                    case 3:
+                        response = "Without a doubt";
+                        break;
+                    case 4:
+                        response = "Yes - definitely";
+                        break;
+                    case 5:
+                        response = "You may rely on it";
+                        break;
+                    case 6:
+                        response = "As I see it, yes";
+                        break;
+                    case 7:
+                        response = "Most likely";
+                        break;
+                    case 8:
+                        response = "Outlook good";
+                        break;
+                    case 9:
+                        response = "Signs point to yes";
+                        break;
+                    case 10:
+                        response = "Yes";
+                        break;
+                    case 11:
+                        response = "Reply hazy, try again";
+                        break;
+                    case 12:
+                        response = "Ask again later";
+                        break;
+                    case 13:
+                        response = "Better not tell you now";
+                        break;
+                    case 14:
+                        response = "Cannot predict now";
+                        break;
+                    case 15:
+                        response = "Concentrate and ask again";
+                        break;
+                    case 16:
+                        response = "Don't count on it";
+                        break;
+                    case 17:
+                        response = "My reply is no";
+                        break;
+                    case 18:
+                        response = "My sources say no";
+                        break;
+                    case 19:
+                        response = "Outlook not so good";
+                        break;
+                    case 20:
+                        response = "Very doubtful";
+                        break;
+                }
+                event.respond(response);
             }
-            event.respond(response);
         }
 
 // !setMessage - Sets different message formats
@@ -1719,8 +1756,8 @@ public class FozruciX extends ListenerAdapter {
                         if (DNDJoined.contains(event.getUser().getNick())) {
                             sendMessage(event, "You are already in the list!", true);
                         } else {
-                            if (arg.length == 5 + arrayOffset) {
-                                if (DNDPlayer.ifClassExists(arg[3 + arrayOffset])) {
+                            if (arg.length > 4 + arrayOffset && arg.length < 5 + arrayOffset) {
+                                if (DNDPlayer.ifClassExists(arg[4 + arrayOffset])) {
                                     DNDList.add(new DNDPlayer(arg[2 + arrayOffset], arg[3 + arrayOffset], arg[4 + arrayOffset], event.getUser().getNick()));
                                     DNDJoined.add(event.getUser().getNick());
                                     sendMessage(event, "Added \"" + arg[2 + arrayOffset] + "\" the " + arg[4 + arrayOffset] + " to the game", true);
@@ -1730,8 +1767,7 @@ public class FozruciX extends ListenerAdapter {
                                 } else {
                                     sendMessage(event, "That class doesn't exist!", true);
                                 }
-                            }
-                            if (arg.length == 7 + arrayOffset) {
+                            } else if (arg.length > 6 + arrayOffset) {
                                 if (DNDPlayer.ifClassExists(arg[4 + arrayOffset])) {
                                     if (DNDPlayer.ifSpeciesExists(arg[6 + arrayOffset])) {
                                         DNDList.add(new DNDPlayer(arg[2 + arrayOffset], arg[3 + arrayOffset], arg[4 + arrayOffset], event.getUser().getNick(), arg[5 + arrayOffset], arg[6 + arrayOffset]));
@@ -1749,7 +1785,7 @@ public class FozruciX extends ListenerAdapter {
                                     sendMessage(event, "Class doesn't exist", true);
                                 }
                             } else {
-                                sendMessage(event, "Invalid number of arguments", true);
+                                sendMessage(event, "Syntax: " + prefix + "DND join <Character name> <Race (can be anything right now)> <Class> {<Familiar name> <Familiar Species>}", true);
                             }
                         }
                     }
@@ -2860,7 +2896,7 @@ public class FozruciX extends ListenerAdapter {
                 network = event.getBot().getServerHostname();
                 network = network.substring(network.indexOf(".") + 1, network.lastIndexOf("."));
             }
-            SaveDataStore save = new SaveDataStore(authedUser, authedUserLevel, DNDJoined, DNDList, noteList.get(), avatar.get(), memes.get(), FCList.get());
+            SaveDataStore save = new SaveDataStore(authedUser, authedUserLevel, DNDJoined, DNDList, noteList.get(), avatar.get(), memes.get(), FCList.get(), markovChain);
             FileWriter writer = new FileWriter("Data/" + network + "-Data.json");
             writer.write(gson.toJson(save));
             writer.close();
@@ -2946,6 +2982,47 @@ public class FozruciX extends ListenerAdapter {
             //todo Make it check for bots nick
         }
         return false;
+    }
+
+    private void addWords(String phrase) {
+        // put each word into an array
+        String[] words = phrase.split(" ");
+
+        // Loop through each word, check if it's already added
+        // if its added, then get the suffix vector and add the word
+        // if it hasn't been added then add the word to the list
+        // if its the first or last word then select the _start / _end key
+
+        for (int i = 0; i < words.length; i++) {
+
+            // Add the start and end words to their own
+            if (i == 0) {
+                Vector<String> startWords = markovChain.get("_start");
+                startWords.add(words[i]);
+
+                Vector<String> suffix = markovChain.get(words[i]);
+                if (suffix == null) {
+                    suffix = new Vector<String>();
+                    suffix.add(words[i + 1]);
+                    markovChain.put(words[i], suffix);
+                }
+
+            } else if (i == words.length - 1) {
+                Vector<String> endWords = markovChain.get("_end");
+                endWords.add(words[i]);
+
+            } else {
+                Vector<String> suffix = markovChain.get(words[i]);
+                if (suffix == null) {
+                    suffix = new Vector<String>();
+                    suffix.add(words[i + 1]);
+                    markovChain.put(words[i], suffix);
+                } else {
+                    suffix.add(words[i + 1]);
+                    markovChain.put(words[i], suffix);
+                }
+            }
+        }
     }
 
     private String fullNameToString(Language language) {
