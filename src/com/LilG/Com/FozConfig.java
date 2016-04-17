@@ -40,7 +40,7 @@ public class FozConfig {
         //Bot universal variables
         List<Note> noteList = new ArrayList<>();
         CommandLine terminal = new CommandLine();
-        String avatar = "http://puu.sh/mhwsr.gif";
+        String avatar = "http://puu.sh/oiLYR.gif";
         HashMap<String, Meme> memes = new HashMap<>();
         Thread js = new Thread();
         HashMap<String, String> FCList = new HashMap<>();

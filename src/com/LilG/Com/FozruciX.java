@@ -85,11 +85,10 @@ public class FozruciX extends ListenerAdapter {
     private final static ChatterBotFactory factory = new ChatterBotFactory();
     private final static ExtendedDoubleEvaluator calc = new ExtendedDoubleEvaluator();
     private final static StaticVariableSet<Double> variables = new StaticVariableSet<>();
-    private final static Gson gson = new GsonBuilder().setPrettyPrinting().create();
     private final static String appid = "RGHHEP-HQU7HL67W9";
     private static final List<RPSGame> rpsGames = new ArrayList<>();
     public static Hashtable<String, Vector<String>> markovChain = new Hashtable<String, Vector<String>>();
-    static Random rnd = new Random();
+    private static Random rnd = new Random();
     private static ChatterBotSession cleverBotsession;
     private static ChatterBotSession pandoraBotsession;
     private static ChatterBotSession jabberBotsession;
@@ -109,6 +108,7 @@ public class FozruciX extends ListenerAdapter {
     private static MessageModes messageMode = MessageModes.normal;
     private static int arrayOffset = 0;
     private static volatile Thread js;
+    private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
     private final BitSet bools = new BitSet(10); // true, false, null, null, null, false, true, true, false, false
     private final AtomicReference<String> avatar;
     private final AtomicReference<HashMap<String, Meme>> memes;
@@ -322,8 +322,6 @@ public class FozruciX extends ListenerAdapter {
         PircBotX bot = event.getBot();
         bot.sendIRC().mode(event.getBot().getNick(), "+B");
 
-        makeDebug(event);
-
         bot.sendRaw().rawLineNow("ns recover " + event.getBot().getConfiguration().getName() + " " + PASSWORD);
 
         // Create the first two entries (k:_start, k:_end)
@@ -331,6 +329,7 @@ public class FozruciX extends ListenerAdapter {
         markovChain.put("_end", new Vector<>());
 
         loadData(event);
+        makeDebug(event);
 
         /*boolean drawDungeon = false;
         if (drawDungeon) {
@@ -353,7 +352,6 @@ public class FozruciX extends ListenerAdapter {
             if (network == null) {
                 return false;
             }
-            bools.set(dataLoaded);
 
             BufferedReader br = new BufferedReader(new FileReader("Data/" + network + "-Data.json"));
             SaveDataStore save = gson.fromJson(br, SaveDataStore.class);
@@ -375,6 +373,7 @@ public class FozruciX extends ListenerAdapter {
                 markovChain.put("_start", new Vector<>());
                 markovChain.put("_end", new Vector<>());
             }
+            bools.set(dataLoaded);
             return true;
         } catch (Exception e) {
             e.printStackTrace();
@@ -483,7 +482,7 @@ public class FozruciX extends ListenerAdapter {
     }
 
     private void sendMessage(GenericMessageEvent event, String msgToSend, boolean addNick) {
-        msgToSend = getScramble(msgToSend);
+        msgToSend = getScramble(msgToSend).replace("(Player)", event.getUser().getNick()).replace("(items)", commands[randInt(0, commands.length - 1)]);
 
         if (addNick) {
             event.respond(msgToSend);
@@ -511,12 +510,6 @@ public class FozruciX extends ListenerAdapter {
         debug.setCurrentNick(currentNick + "!" + currentUsername + "@" + currentHost);
         if (!bools.get(dataLoaded)) {
             loadData((Event) event);
-        }
-
-        try {
-            addWords(event.getMessage() + ".");
-        } catch (Exception e) {
-            e.printStackTrace();
         }
 
 
@@ -675,6 +668,13 @@ public class FozruciX extends ListenerAdapter {
             }
         }
 
+// !skipload - skips loading save data
+        if (commandChecker(arg, "skipload")) {
+            if (checkPerm(event.getUser(), 9001)) {
+                bools.set(dataLoaded);
+            }
+        }
+
 // !reverseList - Reverses a list
         if (commandChecker(arg, "reverseList")) {
             if (checkPerm(event.getUser(), 0)) {
@@ -698,31 +698,43 @@ public class FozruciX extends ListenerAdapter {
                 if (markovChain == null) {
                     markovChain = new Hashtable<String, Vector<String>>();
                 }
-                // Vector to hold the phrase
+                boolean loop = true;
                 String newPhrase = "";
+                while (loop) {
+                    // Vector to hold the phrase
+                    newPhrase = "";
 
-                // String for the next word
-                String nextWord = "";
+                    // String for the next word
+                    String nextWord;
 
-                // Select the first word
-                Vector<String> startWords = markovChain.get("_start");
-                int startWordsLen = startWords.size();
-                nextWord = startWords.get(rnd.nextInt(startWordsLen));
-                newPhrase += nextWord;
+                    for (int loops = 0; randInt(0, 3) == 1 && loops < 3; loops++) {
+                        if (loops > 0) {
+                            newPhrase += " ";
+                        }
+                        // Select the first word
+                        Vector<String> startWords = markovChain.get("_start");
+                        int startWordsLen = startWords.size();
+                        nextWord = startWords.get(rnd.nextInt(startWordsLen));
+                        newPhrase += nextWord;
 
-                // Keep looping through the words until we've reached the end
-                while (nextWord.charAt(nextWord.length() - 1) != '.') {
-                    Vector<String> wordSelection = markovChain.get(nextWord);
-                    int wordSelectionLen = wordSelection.size();
-                    nextWord = wordSelection.get(rnd.nextInt(wordSelectionLen));
-                    if (newPhrase.isEmpty()) {
-                        newPhrase = nextWord;
-                    } else {
-                        newPhrase += " " + nextWord;
+                        // Keep looping through the words until we've reached the end
+                        while (nextWord.charAt(nextWord.length() - 1) != '.') {
+                            Vector<String> wordSelection = markovChain.get(nextWord);
+                            int wordSelectionLen = wordSelection.size();
+                            nextWord = wordSelection.get(rnd.nextInt(wordSelectionLen));
+                            if (newPhrase.isEmpty()) {
+                                newPhrase = nextWord;
+                            } else {
+                                newPhrase += " " + nextWord;
+                            }
+                        }
+                        if (newPhrase.lastIndexOf(" ") != newPhrase.indexOf(" ") && !newPhrase.contains("!")) {
+                            loop = false;
+                        }
                     }
                 }
 
-                sendMessage(event, newPhrase, true);
+                sendMessage(event, "\u0002\u0002" + newPhrase.substring(0, newPhrase.length() - 1), false);
 
             }
         }
@@ -811,7 +823,7 @@ public class FozruciX extends ListenerAdapter {
                         messageMode = MessageModes.reversed;
                         sendMessage(event, "Message is now reversed", true);
                         break;
-                    case "WordReverse":
+                    case "wordreverse":
                         messageMode = MessageModes.wordReversed;
                         sendMessage(event, "Message words reversed", true);
                         break;
@@ -819,7 +831,7 @@ public class FozruciX extends ListenerAdapter {
                         messageMode = MessageModes.scrambled;
                         sendMessage(event, "Messages are scrambled", true);
                         break;
-                    case "WordScramble":
+                    case "wordscramble":
                         messageMode = MessageModes.wordScrambled;
                         sendMessage(event, "Message words are scrambled", true);
                         break;
@@ -2238,6 +2250,10 @@ public class FozruciX extends ListenerAdapter {
                     } else {
                         manager.get().stop("I'm only a year old and have already wasted my entire life.");
                     }
+                    try {
+                        wait(1000);
+                    } catch (Exception e) {
+                    }
                 });
                 exit.start();
                 //noinspection StatementWithEmptyBody
@@ -2491,6 +2507,11 @@ public class FozruciX extends ListenerAdapter {
         }
 
         lastEvent = event;
+        try {
+            addWords(event.getMessage() + ".");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         saveData(event);
         debug.setCurrentNick(currentNick + "!" + currentUsername + "@" + currentHost);
         String DNDDungeonMaster = "Null";
@@ -2693,11 +2714,16 @@ public class FozruciX extends ListenerAdapter {
                 event.getBot().sendIRC().notice(currentNick, "Got notice from " + event.getUser().getNick() + ". Notice was : " + event.getMessage());
             }
         }
+
         checkUserNote(event, event.getUser().getNick(), null);
         if (event.getBot().isConnected()) {
             debug.setCurrentNick(currentNick + "!" + currentUsername + "@" + currentHost);
         }
         debug.updateBot(event.getBot());
+    }
+
+    public void onAction(ActionEvent action) {
+        onGenericMessage(new MessageEvent(action.getBot(), action.getChannel(), action.getChannelSource(), action.getUserHostmask(), action.getUser(), action.getAction(), null));
     }
 
     public void onJoin(JoinEvent join) {
@@ -2887,6 +2913,7 @@ public class FozruciX extends ListenerAdapter {
         } else {
             sendMessage(event, cause + from, false);
         }
+        e.printStackTrace();
     }
 
     private String botTalk(String bot, String message) throws Exception {
@@ -2918,6 +2945,8 @@ public class FozruciX extends ListenerAdapter {
             writer.close();
 
             //System.out.println("Data saved!");
+        } catch (ConcurrentModificationException e) {
+            System.out.println("Data not saved. " + e.getMessage());
         } catch (Exception e) {
             sendError(event, e);
         }
