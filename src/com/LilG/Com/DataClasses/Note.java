@@ -8,7 +8,7 @@ import java.util.UUID;
  * Created by ggonz on 10/31/2015.
  */
 public class Note implements Serializable {
-    final String sender;
+    private final String sender;
     private final String receiver;
     private final String message;
     private final String date;

@@ -16,9 +16,9 @@ public class SaveDataStore {
     private String avatarLink = "http://puu.sh/oiLvW.gif";
     private HashMap<String, Meme> memes = new HashMap<>();
     private HashMap<String, String> FCList = new HashMap<>();
-    private Hashtable<String, Vector<String>> markovChain = new Hashtable<>();
     private List<String> DNDJoined = new ArrayList<>();
     private List<DNDPlayer> DNDList = new ArrayList<>();
+    private Hashtable<String, Vector<String>> markovChain = new Hashtable<>();
 
 
     public SaveDataStore(List<String> authedUser, List<Integer> authedUserLevel, List<String> DNDJoined, List<DNDPlayer> DNDList, List<Note> noteList, String avatarLink, HashMap<String, Meme> memes, HashMap<String, String> FCList, Hashtable<String, Vector<String>> markovChain) {

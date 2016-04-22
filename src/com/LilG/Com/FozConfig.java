@@ -99,6 +99,7 @@ public class FozConfig {
                     .setRealName(realName)
                     .setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates())
                     .addAutoJoinChannel("#savespam")
+                    .addAutoJoinChannel("#ducks")
                     .setIdentServerEnabled(true)
                     .addListener(new FozruciX(manager, noteList, terminal, avatar, memes, js, FCList)); //Add our listener that will be called on Events
 
@@ -167,6 +168,7 @@ public class FozConfig {
                     .setRealName(realName)
                     .setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates())
                     .addAutoJoinChannel("#savespam")
+                    .addAutoJoinChannel("#ducks")
                     .setIdentServerEnabled(true)
                     .addListener(new FozruciX(manager, noteList, terminal, avatar, memes, js, FCList)); //Add our listener that will be called on Events
 
