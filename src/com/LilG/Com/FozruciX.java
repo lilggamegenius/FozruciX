@@ -3,8 +3,8 @@ package com.LilG.Com; /**
  * Main bot class
  */
 
+import com.LilG.Com.CMD.CMD;
 import com.LilG.Com.CMD.CommandLine;
-import com.LilG.Com.CMD.runCMD;
 import com.LilG.Com.DND.DNDPlayer;
 import com.LilG.Com.DND.Dungeon;
 import com.LilG.Com.DataClasses.Meme;
@@ -80,20 +80,20 @@ public class FozruciX extends ListenerAdapter {
     private final static int checkLinks = 9;
     private final static String[] dictionary = {"i don't know what \"%s\" is, do i look like a dictionary?", "Go look it up yourself.", "Why not use your computer and look \"%s\" up.", "Google it.", "Nope.", "Get someone else to do it.", "Why not get that " + Colors.RED + "Other bot" + Colors.NORMAL + " to do it?", "There appears to be a error between your " + Colors.BOLD + "seat" + Colors.NORMAL + " and the " + Colors.BOLD + "Keyboard" + Colors.NORMAL + " >_>", "Uh oh, there appears to be a User error.", "error: Fuck count too low, Cannot give Fuck.", ">_>"};
     private final static String[] listOfNoes = {" It’s not a priority for me at this time.", "I’d rather stick needles in my eyes.", "My schedule is up in the air right now. SEE IT WAFTING GENTLY DOWN THE CORRIDOR.", "I don’t love it, which means I’m not the right person for it.", "I would prefer another option.", "I would be the absolute worst person to execute, are you on crack?!", "Life is too short TO DO THINGS YOU don’t LOVE.", "I no longer do things that make me want to kill myself", "You should do this yourself, you would be awesome sauce.", "I would love to say yes to everything, but that would be stupid", "Fuck no.", "Some things have come up that need my attention.", "There is a person who totally kicks ass at this. I AM NOT THAT PERSON.", "Shoot me now...", "It would cause the slow withering death of my soul.", "I’d rather remove my own gallbladder with an oyster fork.", "I'd love to but I did my own thing and now I've got to undo it."};
-    private final static String[] commands = {"commands", " Time", " calcj", " randomNum", " StringToBytes", " Chat", " Temp", " BlockConv", " Hello", " Bot", " GetName", " recycle", " Login", " GetLogin", " GetID", " GetSate", " prefix", " SayThis", " ToSciNo", " Trans", " DebugVar", " RunCmd", " SayRaw", " SayCTCPCommnad", " Leave", " Respawn", " Kill", " ChangeNick", " SayAction", " NoteJ", "Memes", " jtoggle", " Joke: Splatoon", "Joke: Attempt", " Joke: potato", " Joke: whatIs?", "Joke: getFinger", " Joke: GayDar"};
+    private final static String[] commands = {"commands", " Time", " calcj", " randomNum", " StringToBytes", " Chat", " Temp", " BlockConv", " Hello", " Bot", " GetName", " recycle", " Login", " GetLogin", " GetID", " GetSate", " prefix", " SayThis", " ToSciNo", " Trans", " DebugVar", " cmd", " SayRaw", " SayCTCPCommnad", " Leave", " Respawn", " Kill", " ChangeNick", " SayAction", " NoteJ", "Memes", " jtoggle", " Joke: Splatoon", "Joke: Attempt", " Joke: potato", " Joke: whatIs?", "Joke: getFinger", " Joke: GayDar"};
     private final static String PASSWORD = setPassword(true);
     private final static ChatterBotFactory factory = new ChatterBotFactory();
     private final static ExtendedDoubleEvaluator calc = new ExtendedDoubleEvaluator();
     private final static StaticVariableSet<Double> variables = new StaticVariableSet<>();
     private final static String appid = "RGHHEP-HQU7HL67W9";
     private static final List<RPSGame> rpsGames = new ArrayList<>();
-    public static Hashtable<String, Vector<String>> markovChain = new Hashtable<String, Vector<String>>();
+    public static Hashtable<String, ArrayList<String>> markovChain = new Hashtable<String, ArrayList<String>>();
     private static Random rnd = new Random();
     private static ChatterBotSession cleverBotsession;
     private static ChatterBotSession pandoraBotsession;
     private static ChatterBotSession jabberBotsession;
     private static GenericMessageEvent lastEvent;
-    private static runCMD singleCMD = null;
+    private static CMD singleCMD = null;
     private static volatile AtomicReference<List<Note>> noteList;
     private static List<String> authedUser = new ArrayList<>();
     private static List<Integer> authedUserLevel = new ArrayList<>();
@@ -101,27 +101,29 @@ public class FozruciX extends ListenerAdapter {
     private static List<DNDPlayer> DNDList = new ArrayList<>();
     private static Dungeon DNDDungeon = new Dungeon();
     private static int jokeCommandDebugVar = 30;
-    private static volatile CommandLine terminal;
+    private static volatile CommandLine terminal = new CommandLine(null, new String[]{"", "cmd"});
     private static String counter = "";
     private static int countercount = 0;
     private static JFrame frame = new JFrame();
     private static MessageModes messageMode = MessageModes.normal;
     private static int arrayOffset = 0;
     private static volatile Thread js;
+    private static String consolePrefix = ">";
     private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
     private final BitSet bools = new BitSet(10); // true, false, null, null, null, false, true, true, false, false
     private final AtomicReference<String> avatar;
     private final AtomicReference<HashMap<String, Meme>> memes;
     private final AtomicReference<HashMap<String, String>> FCList;
     private final AtomicReference<MultiBotManager> manager;
-    private DebugWindow debug;
     private String prefix = "!";
+    private DebugWindow debug;
     private String currentNick = "Lil-G";
     private String currentUsername = "GameGenuis";
     private String currentHost = "friendly.local.noob";
     private UserHostmask lastJsUser;
     private Channel lastJsChannel;
     private boolean twitch = false;
+    private Exception lastException;
 
     @SuppressWarnings("unused")
     public FozruciX(MultiBotManager manager, List<Note> noteList, CommandLine terminal, String avatar, HashMap<String, Meme> memes, Thread js, HashMap<String, String> FCList) {
@@ -326,15 +328,9 @@ public class FozruciX extends ListenerAdapter {
         PircBotX bot = event.getBot();
         bot.sendIRC().mode(event.getBot().getNick(), "+B");
 
-        if (!twitch) {
-            bot.sendRaw().rawLineNow("ns recover " + event.getBot().getConfiguration().getName() + " " + PASSWORD);
-            bot.sendRaw().rawLineNow("ns ghost " + event.getBot().getConfiguration().getName() + " " + PASSWORD);
-            bot.sendIRC().changeNick(event.getBot().getConfiguration().getName());
-        }
-
         // Create the first two entries (k:_start, k:_end)
-        markovChain.put("_start", new Vector<>());
-        markovChain.put("_end", new Vector<>());
+        markovChain.put("_start", new ArrayList<>());
+        markovChain.put("_end", new ArrayList<>());
 
         loadData(event);
         makeDebug(event);
@@ -374,12 +370,12 @@ public class FozruciX extends ListenerAdapter {
 
             memes.set(save.getMemes());
             FCList.set(save.getFCList());
-            Hashtable<String, Vector<String>> markovTemp = save.getMarkovChain();
+            Hashtable<String, ArrayList<String>> markovTemp = save.getMarkovChain();
             if (markovTemp == null) {
-                markovChain = new Hashtable<String, Vector<String>>();
+                markovChain = new Hashtable<String, ArrayList<String>>();
                 // Create the first two entries (k:_start, k:_end)
-                markovChain.put("_start", new Vector<>());
-                markovChain.put("_end", new Vector<>());
+                markovChain.put("_start", new ArrayList<>());
+                markovChain.put("_end", new ArrayList<>());
             }
             bools.set(dataLoaded);
             return true;
@@ -439,9 +435,7 @@ public class FozruciX extends ListenerAdapter {
                     break;
                 case HALFOP:
                     ret = 2;
-                    if (levels.get(levels.size() - 2) != UserLevel.OP) {
-                        break;
-                    }
+                    break;
                 case OP:
                     ret = 3;
                     break;
@@ -520,6 +514,21 @@ public class FozruciX extends ListenerAdapter {
         debug.setCurrentNick(currentNick + "!" + currentUsername + "@" + currentHost);
         if (!bools.get(dataLoaded)) {
             loadData((Event) event);
+        }
+        if (!twitch && bools.get(nickInUse)) {
+            if (!event.getBot().getNick().equalsIgnoreCase(event.getBot().getConfiguration().getName())) {
+                sendNotice(currentNick, "Ghost detected, recovering in 10 seconds");
+                new Thread(() -> {
+                    try {
+                        wait(10 * 1000);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    event.getBot().sendRaw().rawLineNow("ns recover " + event.getBot().getConfiguration().getName() + " " + PASSWORD);
+                    event.getBot().sendRaw().rawLineNow("ns ghost " + event.getBot().getConfiguration().getName() + " " + PASSWORD);
+                    event.getBot().sendIRC().changeNick(event.getBot().getConfiguration().getName());
+                }).run();
+            }
         }
 
 
@@ -719,36 +728,37 @@ public class FozruciX extends ListenerAdapter {
         if (commandChecker(arg, "markov")) {
             if (checkPerm(event.getUser(), 0) && !channel.equalsIgnoreCase("#origami64")) {
                 if (markovChain == null) {
-                    markovChain = new Hashtable<String, Vector<String>>();
+                    markovChain = new Hashtable<String, ArrayList<String>>();
                 }
                 boolean loop = true;
                 String newPhrase = "";
                 while (loop) {
-                    // Vector to hold the phrase
+                    // ArrayList to hold the phrase
                     newPhrase = "";
 
                     // String for the next word
                     String nextWord;
+
 
                     for (int loops = 0; randInt(0, 3) == 1 && loops < 3; loops++) {
                         if (loops > 0) {
                             newPhrase += " ";
                         }
                         // Select the first word
-                        Vector<String> startWords = markovChain.get("_start");
+                        ArrayList<String> startWords = markovChain.get("_start");
                         int startWordsLen = startWords.size();
                         nextWord = startWords.get(rnd.nextInt(startWordsLen));
-                        newPhrase += nextWord;
+                        newPhrase += nextWord.substring(0, 1) + "\u200B" + nextWord.substring(1, nextWord.length());
 
                         // Keep looping through the words until we've reached the end
                         while (nextWord.charAt(nextWord.length() - 1) != '.') {
-                            Vector<String> wordSelection = markovChain.get(nextWord);
+                            ArrayList<String> wordSelection = markovChain.get(nextWord);
                             int wordSelectionLen = wordSelection.size();
                             nextWord = wordSelection.get(rnd.nextInt(wordSelectionLen));
                             if (newPhrase.isEmpty()) {
-                                newPhrase = nextWord;
+                                newPhrase = nextWord.substring(0, 1) + "\u200B" + nextWord.substring(1, nextWord.length());
                             } else {
-                                newPhrase += " " + nextWord;
+                                newPhrase += " " + nextWord.substring(0, 1) + "\u200B" + nextWord.substring(1, nextWord.length());
                             }
                         }
                         if (newPhrase.lastIndexOf(" ") != newPhrase.indexOf(" ") && !newPhrase.contains("!")) {
@@ -757,8 +767,8 @@ public class FozruciX extends ListenerAdapter {
                     }
                 }
 
-                sendMessage(event, "\u0002\u0002" + newPhrase.substring(0, newPhrase.length() - 1), false);
-
+                sendMessage(event, "\u0002\u0002" + newPhrase, false);
+                System.out.println(newPhrase.replace('\u200B', '▮'));
             }
         }
 
@@ -2088,7 +2098,7 @@ public class FozruciX extends ListenerAdapter {
                         }
                     }
                 } catch (IllegalArgumentException e) {
-                    sendError(event, new Exception("That class doesn't exist!"));
+                    sendError(event, new Exception("That Language doesn't exist!"));
                 } catch (Exception e) {
                     sendError(event, e);
                 }
@@ -2143,13 +2153,13 @@ public class FozruciX extends ListenerAdapter {
             }
         }
 
-// !runcmd - Tells the bot to run a OS command
-        if (commandChecker(arg, "runcmd")) {
+// !cmd - Tells the bot to run a OS command
+        if (commandChecker(arg, "cmd")) {
             if (checkPerm(event.getUser(), 9001)) {
                 try {
                     if (!arg[1 + arrayOffset].equalsIgnoreCase("stop")) {
                         try {
-                            singleCMD = new runCMD(event, arg);
+                            singleCMD = new CMD(event, arg);
                             singleCMD.start();
                         } catch (Exception e) {
                             sendError(event, e);
@@ -2167,22 +2177,27 @@ public class FozruciX extends ListenerAdapter {
             }
         }
 
-// \ - runs commands without closing at the end
-        String consolePrefix = "\\";
+// > - runs commands without closing at the end
         if (arg[0].startsWith(consolePrefix)) {
             if (checkPerm(event.getUser(), 9001)) {
-                if (arg[0].equalsIgnoreCase("\\start")) {
+                if (arg[0].substring(consolePrefix.length()).equalsIgnoreCase(consolePrefix + "start")) {
                     terminal = new CommandLine(event, arg);
                     terminal.start();
-                    sendMessage(event, "Command line started", true);
-                } else if (arg[0].substring(1).equalsIgnoreCase("\\close")) {
+                    sendMessage(event, "Command line started", false);
+                } else if (arg[0].substring(consolePrefix.length()).equalsIgnoreCase(consolePrefix + "close")) {
                     terminal.doCommand(event, "exit");
-                } else if (arg[0].substring(1).equalsIgnoreCase("\\stop")) {
+                } else if (arg[0].substring(consolePrefix.length()).equalsIgnoreCase(consolePrefix + "stop")) {
                     terminal.interrupt();
+                } else if (arg[0].substring(consolePrefix.length()).equalsIgnoreCase(consolePrefix + "prefix")) {
+                    consolePrefix = arg[1];
+                    sendMessage(event, "Console Prefix is now " + consolePrefix, true);
                 } else {
                     terminal.doCommand(event, event.getMessage().substring(1));
                 }
             }
+        } else if (arg[0].equalsIgnoreCase("\\\\prefix")) {
+            consolePrefix = arg[1];
+            sendMessage(event, "Console Prefix is now " + consolePrefix, true);
         }
 
 // !SayRaw - Tells the bot to send a raw line
@@ -2807,6 +2822,14 @@ public class FozruciX extends ListenerAdapter {
         nick.respond(nick.getUsedNick() + 1);
     }
 
+    public void onQuit(QuitEvent quit) {
+        if (quit.getReason().contains("RECOVER")) { //Recover event
+            bools.set(nickInUse);
+        } else if (quit.getReason().contains("GHOST")) {  // Ghost event
+            bools.set(nickInUse);
+        }
+    }
+
     public void onKick(KickEvent kick) {
         //noinspection ConstantConditions
         if (kick.getRecipient().getNick().equalsIgnoreCase(kick.getBot().getNick())) {
@@ -3055,11 +3078,15 @@ public class FozruciX extends ListenerAdapter {
     }
 
     private void addWords(String phrase) {
+        if (phrase.contains(prefix) ||
+                phrase.contains("\\")) {
+            return;
+        }
         // put each word into an array
         String[] words = phrase.split(" ");
 
         // Loop through each word, check if it's already added
-        // if its added, then get the suffix vector and add the word
+        // if its added, then get the suffix ArrayList and add the word
         // if it hasn't been added then add the word to the list
         // if its the first or last word then select the _start / _end key
 
@@ -3067,12 +3094,12 @@ public class FozruciX extends ListenerAdapter {
 
             // Add the start and end words to their own
             if (i == 0) {
-                Vector<String> startWords = markovChain.get("_start");
+                ArrayList<String> startWords = markovChain.get("_start");
                 startWords.add(words[i]);
 
-                Vector<String> suffix = markovChain.get(words[i]);
+                ArrayList<String> suffix = markovChain.get(words[i]);
                 if (suffix == null) {
-                    suffix = new Vector<String>();
+                    suffix = new ArrayList<String>();
                     if (words.length == 1) {
                         return;
                     } else {
@@ -3082,13 +3109,13 @@ public class FozruciX extends ListenerAdapter {
                 }
 
             } else if (i == words.length - 1) {
-                Vector<String> endWords = markovChain.get("_end");
+                ArrayList<String> endWords = markovChain.get("_end");
                 endWords.add(words[i]);
 
             } else {
-                Vector<String> suffix = markovChain.get(words[i]);
+                ArrayList<String> suffix = markovChain.get(words[i]);
                 if (suffix == null) {
-                    suffix = new Vector<String>();
+                    suffix = new ArrayList<String>();
                     if (words.length == 1) {
                         return;
                     } else {

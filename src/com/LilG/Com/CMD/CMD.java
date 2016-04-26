@@ -3,60 +3,46 @@ package com.LilG.Com.CMD;
 import org.pircbotx.hooks.types.GenericMessageEvent;
 
 import java.io.BufferedWriter;
+import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.Scanner;
 
 /**
  * Created by ggonz on 10/16/2015.
  */
-public class runCMD extends Thread {
+public class CMD extends Thread {
     private final GenericMessageEvent event;
     private final String[] arg;
-    private String console = "cmd.exe";
+    private String console;
 
-    public runCMD(GenericMessageEvent event, String[] arg) {
+    public CMD(GenericMessageEvent event, String[] arg) {
         this.event = event;
         this.arg = arg;
     }
 
     @Override
     public void run() {
-        boolean term;
-        if (arg[1].equalsIgnoreCase("cmd") || arg[1].equalsIgnoreCase("command"))
-            term = false;
-        else if (arg[1].equalsIgnoreCase("term") || arg[1].equalsIgnoreCase("terminal"))
-            term = true;
-        else {
+        if (arg[1].equalsIgnoreCase("cmd") || arg[1].equalsIgnoreCase("command")) {
+            console = "cmd.exe";
+        } else if (arg[1].equalsIgnoreCase("term") || arg[1].equalsIgnoreCase("terminal")) {
+            console = "bash.exe";
+        } else if (arg[1].equalsIgnoreCase("ps") || arg[1].equalsIgnoreCase("powershell")) {
+            console = "powershell.exe";
+        } else {
             console = arg[1];
-            term = false;
         }
-        Process p;
         ProcessBuilder builder = new ProcessBuilder(console);
+        Process p;
         try {
             p = builder.start();
-        } catch (Exception e) {
-
+        } catch (IOException e) {
+            e.printStackTrace();
             p = null;
         }
-        //get stdin of shell
-        assert p != null;
-        BufferedWriter p_stdin = new BufferedWriter(new OutputStreamWriter(p.getOutputStream()));
-
-        //single execution
-        if (term) try{
-            String termStr = "bash -c ";
-            p_stdin.write(termStr + arg[2]);
-        } catch (Exception e){
-            e.printStackTrace();
-        }
-        else{
-            try {
-                p_stdin.write(arg[2]);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
         try {
+            BufferedWriter p_stdin = new BufferedWriter(new OutputStreamWriter(p.getOutputStream()));
+            //single execution
+            p_stdin.write(arg[2]);
             p_stdin.newLine();
             p_stdin.flush();
             // finally close the shell by execution exit command
@@ -65,6 +51,7 @@ public class runCMD extends Thread {
             p_stdin.flush();
         } catch (Exception e) {
             e.printStackTrace();
+
         }
 
         // write stdout of shell (=output of all commands)

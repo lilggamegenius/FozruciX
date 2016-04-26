@@ -1,6 +1,5 @@
 <component name="libraryTable">
-  <library name="de.tudarmstadt.ukp.jwktl:jwktl:1.0.1" type="repository">
-    <properties maven-id="de.tudarmstadt.ukp.jwktl:jwktl:1.0.1" />
+  <library name="de.tudarmstadt.ukp.jwktl:jwktl:1.0.1">
     <CLASSES>
       <root url="jar://$PROJECT_DIR$/lib/jwktl-1.0.1.jar!/" />
       <root url="jar://$PROJECT_DIR$/lib/je-5.0.73.jar!/" />

@@ -2,7 +2,10 @@ package com.LilG.Com.DataClasses;
 
 import com.LilG.Com.DND.DNDPlayer;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Hashtable;
+import java.util.List;
 
 /**
  * Created by ggonz on 11/25/2015.
@@ -18,10 +21,10 @@ public class SaveDataStore {
     private HashMap<String, String> FCList = new HashMap<>();
     private List<String> DNDJoined = new ArrayList<>();
     private List<DNDPlayer> DNDList = new ArrayList<>();
-    private Hashtable<String, Vector<String>> markovChain = new Hashtable<>();
+    private Hashtable<String, ArrayList<String>> markovChain = new Hashtable<>();
 
 
-    public SaveDataStore(List<String> authedUser, List<Integer> authedUserLevel, List<String> DNDJoined, List<DNDPlayer> DNDList, List<Note> noteList, String avatarLink, HashMap<String, Meme> memes, HashMap<String, String> FCList, Hashtable<String, Vector<String>> markovChain) {
+    public SaveDataStore(List<String> authedUser, List<Integer> authedUserLevel, List<String> DNDJoined, List<DNDPlayer> DNDList, List<Note> noteList, String avatarLink, HashMap<String, Meme> memes, HashMap<String, String> FCList, Hashtable<String, ArrayList<String>> markovChain) {
         this.authedUser = authedUser;
         this.authedUserLevel = authedUserLevel;
         this.DNDJoined = DNDJoined;
@@ -33,7 +36,7 @@ public class SaveDataStore {
         this.markovChain = markovChain;
     }
 
-    public Hashtable<String, Vector<String>> getMarkovChain() {
+    public Hashtable<String, ArrayList<String>> getMarkovChain() {
         return markovChain;
     }
 

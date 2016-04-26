@@ -1,6 +1,5 @@
 <component name="libraryTable">
-  <library name="com.fathzer:javaluator:3.0.1" type="repository">
-    <properties maven-id="com.fathzer:javaluator:3.0.1" />
+  <library name="com.fathzer:javaluator:3.0.1">
     <CLASSES>
       <root url="jar://$PROJECT_DIR$/lib/javaluator-3.0.1.jar!/" />
     </CLASSES>

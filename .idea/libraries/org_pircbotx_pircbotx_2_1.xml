@@ -1,6 +1,5 @@
 <component name="libraryTable">
-  <library name="org.pircbotx:pircbotx:2.1" type="repository">
-    <properties maven-id="org.pircbotx:pircbotx:2.1" />
+  <library name="org.pircbotx:pircbotx:2.1">
     <CLASSES>
       <root url="jar://$PROJECT_DIR$/lib/pircbotx-2.1.jar!/" />
       <root url="jar://$PROJECT_DIR$/lib/lombok-1.16.6.jar!/" />

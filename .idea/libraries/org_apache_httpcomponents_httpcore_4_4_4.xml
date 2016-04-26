@@ -1,6 +1,5 @@
 <component name="libraryTable">
-  <library name="org.apache.httpcomponents:httpcore:4.4.4" type="repository">
-    <properties maven-id="org.apache.httpcomponents:httpcore:4.4.4" />
+  <library name="org.apache.httpcomponents:httpcore:4.4.4">
     <CLASSES>
       <root url="jar://$PROJECT_DIR$/lib/httpcore-4.4.4.jar!/" />
     </CLASSES>
