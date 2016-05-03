@@ -57,9 +57,11 @@ import java.io.*;
 import java.lang.ref.WeakReference;
 import java.net.MalformedURLException;
 import java.nio.charset.Charset;
+import java.sql.*;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.*;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
@@ -67,6 +69,7 @@ import java.util.regex.Pattern;
 
 
 public class FozruciX extends ListenerAdapter {
+    private final static double VERSION = 2.2;
     private final static File WIKTIONARY_DIRECTORY = new File("Data\\Wiktionary");
     private final static int jokeCommands = 0;
     private final static int prefixRan = 1;
@@ -100,8 +103,9 @@ public class FozruciX extends ListenerAdapter {
     private static List<String> DNDJoined = new ArrayList<>();
     private static List<DNDPlayer> DNDList = new ArrayList<>();
     private static Dungeon DNDDungeon = new Dungeon();
+    private static String DNDDungeonMaster = "Null";
     private static int jokeCommandDebugVar = 30;
-    private static volatile CommandLine terminal = new CommandLine(null, new String[]{"", "cmd"});
+    private static volatile CommandLine terminal = new CommandLine(null, "cmd");
     private static String counter = "";
     private static int countercount = 0;
     private static JFrame frame = new JFrame();
@@ -109,6 +113,7 @@ public class FozruciX extends ListenerAdapter {
     private static int arrayOffset = 0;
     private static volatile Thread js;
     private static String consolePrefix = ">";
+    private static String DiscordNick = "Discord";
     private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
     private final BitSet bools = new BitSet(10); // true, false, null, null, null, false, true, true, false, false
     private final AtomicReference<String> avatar;
@@ -313,6 +318,37 @@ public class FozruciX extends ListenerAdapter {
         return msgToSend;
     }
 
+    /**
+     * Performs a wildcard matching for the text and pattern
+     * provided.
+     *
+     * @param text    the text to be tested for matches.
+     * @param pattern the pattern to be matched for.
+     *                This can contain the wildcard character '*' (asterisk).
+     * @return <tt>true</tt> if a match is found, <tt>false</tt>
+     * otherwise.
+     */
+    public static boolean wildCardMatch(String text, String pattern) {
+        // Create the cards by splitting using a RegEx. If more speed
+        // is desired, a simpler character based splitting can be done.
+        String[] cards = pattern.split("\\*");
+
+        // Iterate over the cards.
+        for (String card : cards) {
+            int idx = text.indexOf(card);
+
+            // Card not detected in the text.
+            if (idx == -1) {
+                return false;
+            }
+
+            // Move ahead, towards the right of the text.
+            text = text.substring(idx + card.length());
+        }
+
+        return true;
+    }
+
     private void makeDebug(Event event) {
         System.out.println("Creating Debug window");
         debug = new DebugWindow(event.getBot());
@@ -484,6 +520,9 @@ public class FozruciX extends ListenerAdapter {
     }
 
     private void sendMessage(GenericMessageEvent event, String msgToSend, boolean addNick) {
+        if (msgToSend.equals("\u0002\u0002")) {
+            return;
+        }
         msgToSend = getScramble(msgToSend).replace("(Player)", event.getUser().getNick()).replace("(items)", commands[randInt(0, commands.length - 1)]).replace("(Pokémon)", event.getBot().getNick());
 
         if (addNick) {
@@ -495,12 +534,18 @@ public class FozruciX extends ListenerAdapter {
 
     @SuppressWarnings("SameParameterValue")
     private void sendNotice(String userToSendTo, String msgToSend) {
+        if (userToSendTo.equalsIgnoreCase(DiscordNick)) {
+            sendMessage(lastEvent, msgToSend, false);
+        }
         msgToSend = getScramble(msgToSend);
         lastEvent.getBot().send().notice(userToSendTo, msgToSend);
     }
 
     @SuppressWarnings("SameParameterValue")
     private void sendMessage(String userToSendTo, String msgToSend) {
+        if (userToSendTo.equalsIgnoreCase(DiscordNick)) {
+            sendMessage(lastEvent, msgToSend, false);
+        }
         msgToSend = getScramble(msgToSend);
         lastEvent.getBot().send().message(userToSendTo, msgToSend);
     }
@@ -732,39 +777,43 @@ public class FozruciX extends ListenerAdapter {
                 }
                 boolean loop = true;
                 String newPhrase = "";
-                while (loop) {
-                    // ArrayList to hold the phrase
-                    newPhrase = "";
+                try {
+                    while (loop) {
+                        // ArrayList to hold the phrase
+                        newPhrase = "";
 
-                    // String for the next word
-                    String nextWord;
+                        // String for the next word
+                        String nextWord;
 
 
-                    for (int loops = 0; randInt(0, 3) == 1 && loops < 3; loops++) {
-                        if (loops > 0) {
-                            newPhrase += " ";
-                        }
-                        // Select the first word
-                        ArrayList<String> startWords = markovChain.get("_start");
-                        int startWordsLen = startWords.size();
-                        nextWord = startWords.get(rnd.nextInt(startWordsLen));
-                        newPhrase += nextWord.substring(0, 1) + "\u200B" + nextWord.substring(1, nextWord.length());
+                        for (int loops = 0; randInt(0, 3) == 1 && loops < 3; loops++) {
+                            if (loops > 0) {
+                                newPhrase += " ";
+                            }
+                            // Select the first word
+                            ArrayList<String> startWords = markovChain.get("_start");
+                            int startWordsLen = startWords.size();
+                            nextWord = startWords.get(rnd.nextInt(startWordsLen));
+                            newPhrase += nextWord.substring(0, 2) + "\u200B" + nextWord.substring(2, nextWord.length());
 
-                        // Keep looping through the words until we've reached the end
-                        while (nextWord.charAt(nextWord.length() - 1) != '.') {
-                            ArrayList<String> wordSelection = markovChain.get(nextWord);
-                            int wordSelectionLen = wordSelection.size();
-                            nextWord = wordSelection.get(rnd.nextInt(wordSelectionLen));
-                            if (newPhrase.isEmpty()) {
-                                newPhrase = nextWord.substring(0, 1) + "\u200B" + nextWord.substring(1, nextWord.length());
-                            } else {
-                                newPhrase += " " + nextWord.substring(0, 1) + "\u200B" + nextWord.substring(1, nextWord.length());
+                            // Keep looping through the words until we've reached the end
+                            while (nextWord.charAt(nextWord.length() - 1) != '.') {
+                                ArrayList<String> wordSelection = markovChain.get(nextWord);
+                                int wordSelectionLen = wordSelection.size();
+                                nextWord = wordSelection.get(rnd.nextInt(wordSelectionLen));
+                                if (newPhrase.isEmpty()) {
+                                    newPhrase = nextWord.substring(0, 2) + "\u200B" + nextWord.substring(2, nextWord.length());
+                                } else {
+                                    newPhrase += " " + nextWord.substring(0, 2) + "\u200B" + nextWord.substring(2, nextWord.length());
+                                }
+                            }
+                            if (newPhrase.lastIndexOf(" ") != newPhrase.indexOf(" ") && !newPhrase.contains("!")) {
+                                loop = false;
                             }
                         }
-                        if (newPhrase.lastIndexOf(" ") != newPhrase.indexOf(" ") && !newPhrase.contains("!")) {
-                            loop = false;
-                        }
                     }
+                } catch (Exception e) {
+                    sendError(event, e);
                 }
 
                 sendMessage(event, "\u0002\u0002" + newPhrase, false);
@@ -1548,6 +1597,46 @@ public class FozruciX extends ListenerAdapter {
             }
         }
 
+// !sql - execute sql statements
+        if (commandChecker(arg, "sql")) {
+            if (checkPerm(event.getUser(), 9001)) {
+                try {
+                    Connection conn = DriverManager.getConnection("jdbc:mysql://Lil-G-s_PC:3306/world?user=Lil-G&password=" + PASSWORD);
+
+                    Statement stmt = conn.createStatement();
+                    ResultSet rs = stmt.executeQuery(argJoiner(arg, 1));
+
+
+                    // or alternatively, if you don't know ahead of time that
+                    // the query will be a SELECT...
+
+                    if (stmt.execute(argJoiner(arg, 1))) {
+                        rs = stmt.getResultSet();
+                    }
+                    ArrayList<String> results = new ArrayList<>();
+                    while (rs.next()) {
+                        results.add(rs.getRef(rs.getRow()).toString());
+                        System.out.println(rs.getRow());
+                    }
+                    if (results.size() < 3) {
+                        for (int i = 0; i < rs.getRow(); i++) {
+                            sendMessage(event, results.get(i), true);
+                        }
+                    } else {
+                        sendPage(event, arg, results);
+                    }
+
+                } catch (SQLException ex) {
+                    // handle any errors
+                    String excepMsg = ex.getMessage();
+                    System.out.println("SQLException: " + excepMsg);
+                    System.out.println("SQLState: " + ex.getSQLState());
+                    System.out.println("VendorError: " + ex.getErrorCode());
+                    sendMessage(event, Colors.RED + "SQLException: " + excepMsg.substring(0, excepMsg.indexOf(": ") + 2) + "<SUPER SECRET PASSWORD>" + excepMsg.substring(excepMsg.indexOf(")"), excepMsg.length()) + " SQLState: " + ex.getSQLState() + " VendorError: " + ex.getErrorCode(), false);
+                }
+            }
+        }
+
 // !memes - Got all dem memes
         if (commandChecker(arg, "memes")) {
             if (checkPerm(event.getUser(), 0)) {
@@ -1670,9 +1759,9 @@ public class FozruciX extends ListenerAdapter {
 // !version - gets the version of the bot
         if (commandChecker(arg, "version") && !channel.equalsIgnoreCase("#deltasmash")) {
             if (checkPerm(event.getUser(), 0)) {
-                String VERSION = "PircBotX: " + PircBotX.VERSION + ". BotVersion: 2.1. Java version: " + System.getProperty("java.version");
+                String version = "PircBotX: " + PircBotX.VERSION + ". BotVersion: " + VERSION + ". Java version: " + System.getProperty("java.version");
 
-                sendMessage(event, "Version: " + VERSION, true);
+                sendMessage(event, "Version: " + version, true);
             }
         }
 
@@ -2181,7 +2270,7 @@ public class FozruciX extends ListenerAdapter {
         if (arg[0].startsWith(consolePrefix)) {
             if (checkPerm(event.getUser(), 9001)) {
                 if (arg[0].substring(consolePrefix.length()).equalsIgnoreCase(consolePrefix + "start")) {
-                    terminal = new CommandLine(event, arg);
+                    terminal = new CommandLine(event, arg[1]);
                     terminal.start();
                     sendMessage(event, "Command line started", false);
                 } else if (arg[0].substring(consolePrefix.length()).equalsIgnoreCase(consolePrefix + "close")) {
@@ -2563,15 +2652,17 @@ public class FozruciX extends ListenerAdapter {
             }
         }
 
+        bools.clear(nickInUse);
         lastEvent = event;
         try {
-            addWords(event.getMessage() + ".");
+            if (!((MessageEvent) event).getChannel().getName().equalsIgnoreCase("#retro2.0")) {
+                addWords(event.getMessage() + ".");
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
         saveData(event);
         debug.setCurrentNick(currentNick + "!" + currentUsername + "@" + currentHost);
-        String DNDDungeonMaster = "Null";
         debug.setCurrDM(DNDDungeonMaster);
         debug.setMessage(event.getUser().getNick() + ": " + event.getMessage());
     }
@@ -2604,7 +2695,7 @@ public class FozruciX extends ListenerAdapter {
         }
 
 // url checker - Checks if string contains a url and parses
-        if (!commandChecker(arg, "checkLink") && bools.get(checkLinks)) {
+        if (!commandChecker(arg, "checkLink") && bools.get(checkLinks) && !event.getUser().getNick().equalsIgnoreCase(DiscordNick)) {
             String regex = "[a-zA-Z]{3,}://[a-zA-Z0-9\\.]+/*[a-zA-Z0-9/\\\\%_.]*\\?*[a-zA-Z0-9/\\\\%_.=&amp;]*";
             Matcher matcher = Pattern.compile(regex).matcher(event.getMessage());
             if (matcher.find() && !channel.equalsIgnoreCase("#origami64") && !channel.equalsIgnoreCase("#retro") && !channel.equalsIgnoreCase("#pmd")) {
@@ -2902,10 +2993,10 @@ public class FozruciX extends ListenerAdapter {
                 String ident = authedUser.get(index);
                 String nick = ident.substring(0, ident.indexOf("!"));
                 String userName = ident.substring(ident.indexOf("!") + 1, ident.indexOf("@"));
-                String Hostname = ident.substring(ident.indexOf("@") + 1);
-                if (nick.equalsIgnoreCase(user.getNick()) || nick.equalsIgnoreCase("*")) {
-                    if (userName.equalsIgnoreCase(user.getLogin()) || userName.equalsIgnoreCase("*")) {
-                        if (Hostname.equalsIgnoreCase(user.getHostname()) || Hostname.equalsIgnoreCase("*")) {
+                String hostname = ident.substring(ident.indexOf("@") + 1);
+                if (wildCardMatch(user.getNick(), nick)) {
+                    if (wildCardMatch(user.getLogin(), userName)) {
+                        if (wildCardMatch(user.getHostname(), hostname)) {
                             return authedUserLevel.get(index) >= requiredUserLevel;
                         }
                     }
@@ -2979,6 +3070,7 @@ public class FozruciX extends ListenerAdapter {
             sendMessage(event, cause + from, false);
         }
         e.printStackTrace();
+        lastException = e;
     }
 
     private String botTalk(String bot, String message) throws Exception {

@@ -19,18 +19,18 @@ public class CommandLine extends Thread {
     private BufferedWriter p_stdin;
     private boolean echoOff = false;
 
-    public CommandLine(GenericMessageEvent event, String[] arg) {
+    public CommandLine(GenericMessageEvent event, String commandLine) {
         this.event = event;
 
         String console;
-        if (arg[1].equalsIgnoreCase("cmd") || arg[1].equalsIgnoreCase("command")) {
+        if (commandLine.equalsIgnoreCase("cmd") || commandLine.equalsIgnoreCase("command")) {
             console = "cmd.exe";
-        } else if (arg[1].equalsIgnoreCase("term") || arg[1].equalsIgnoreCase("terminal")) {
+        } else if (commandLine.equalsIgnoreCase("term") || commandLine.equalsIgnoreCase("terminal")) {
             console = "bash.exe";
-        } else if (arg[1].equalsIgnoreCase("ps") || arg[1].equalsIgnoreCase("powershell")) {
+        } else if (commandLine.equalsIgnoreCase("ps") || commandLine.equalsIgnoreCase("powershell")) {
             console = "powershell.exe";
         } else {
-            console = arg[1];
+            console = commandLine;
         }
         ProcessBuilder builder = new ProcessBuilder(console);
         try {
@@ -86,9 +86,11 @@ public class CommandLine extends Thread {
                             !output.equals(command) &&
                             !output.isEmpty()) {
 
-                        event.respond(output.replace(command, ""));
+                        event.respondWith(output.replace(command, ""));
                         try {
                             wait(1000);
+                        } catch (InterruptedException e) {
+                            sendError(event, e);
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
