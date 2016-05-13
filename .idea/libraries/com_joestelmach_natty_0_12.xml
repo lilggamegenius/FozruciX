@@ -1,0 +1,21 @@
+<component name="libraryTable">
+  <library name="com.joestelmach:natty:0.12" type="repository">
+    <properties maven-id="com.joestelmach:natty:0.12" />
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/lib/natty-0.12.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/antlr-runtime-3.5.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/ical4j-1.0.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/commons-logging-1.1.1.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/commons-codec-1.5.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/commons-lang-2.6.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/backport-util-concurrent-3.1.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/slf4j-api-1.7.10.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$PROJECT_DIR$/lib/natty-0.12-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$PROJECT_DIR$/lib/natty-0.12-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

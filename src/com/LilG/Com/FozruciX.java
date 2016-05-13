@@ -36,6 +36,7 @@ import io.nodyn.NoOpExitHandler;
 import io.nodyn.Nodyn;
 import io.nodyn.runtime.NodynConfig;
 import io.nodyn.runtime.RuntimeFactory;
+import jdk.nashorn.api.scripting.ClassFilter;
 import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
@@ -60,12 +61,15 @@ import java.nio.charset.Charset;
 import java.sql.*;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import com.joestelmach.natty.*;
 
 
 public class FozruciX extends ListenerAdapter {
@@ -105,13 +109,13 @@ public class FozruciX extends ListenerAdapter {
     private static Dungeon DNDDungeon = new Dungeon();
     private static String DNDDungeonMaster = "Null";
     private static int jokeCommandDebugVar = 30;
-    private static volatile CommandLine terminal = new CommandLine(null, "cmd");
+    private static volatile CommandLine terminal = new CommandLine();
     private static String counter = "";
     private static int countercount = 0;
     private static JFrame frame = new JFrame();
     private static MessageModes messageMode = MessageModes.normal;
     private static int arrayOffset = 0;
-    private static volatile Thread js;
+    private static volatile JavaScript js;
     private static String consolePrefix = ">";
     private static String DiscordNick = "Discord";
     private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
@@ -129,6 +133,7 @@ public class FozruciX extends ListenerAdapter {
     private Channel lastJsChannel;
     private boolean twitch = false;
     private Exception lastException;
+    private ScriptContext context;
 
     @SuppressWarnings("unused")
     public FozruciX(MultiBotManager manager, List<Note> noteList, CommandLine terminal, String avatar, HashMap<String, Meme> memes, Thread js, HashMap<String, String> FCList) {
@@ -552,6 +557,7 @@ public class FozruciX extends ListenerAdapter {
 
     @SuppressWarnings("ConstantConditions")
     public void onGenericMessage(GenericMessageEvent event) {
+        lastEvent = event;
         String channel = ((MessageEvent) event).getChannel().getName();
         String[] arg = splitMessage(event.getMessage());
         //String[] arguments = new String[0xFF];
@@ -656,7 +662,16 @@ public class FozruciX extends ListenerAdapter {
 // !getBotList - gets all bots
         if (commandChecker(arg, "getBotList")) {
             if (checkPerm(event.getUser(), 9001)) {
-                sendMessage(event, manager.get().getBots().toString(), true);
+                try {
+                    PircBotX[] temp = (PircBotX[]) manager.get().getBots().toArray();
+                    String bots = "";
+                    for (PircBotX aTemp : temp) {
+                        bots += "Server: " + aTemp.getServerInfo().getNetwork() + " Nick: " + aTemp.getNick();
+                    }
+                    sendMessage(event, bots, true);
+                }catch(Exception e){
+                    sendError(event, e);
+                }
             }
         }
 
@@ -758,11 +773,48 @@ public class FozruciX extends ListenerAdapter {
             }
         }
 
+// !getDate - test get date
+        if (commandChecker(arg, "getDate")) {
+            if (checkPerm(event.getUser(), 0)) {
+                try {
+                    Parser parser = new Parser();
+                    /*
+                    long time = System.currentTimeMillis();
+                    WaitForQueue queue = new WaitForQueue(event.getBot());
+                    event.getUser().send().ctcpCommand("TIME");
+
+                    //Infinate loop since we might recieve messages that aren't WaitTest's.
+                    while (System.currentTimeMillis() < time+5000) {
+
+                        //Use the waitFor() method to wait for a MessageEvent.
+                        //This will block (wait) until a message event comes in, ignoring
+                        //everything else
+                        NoticeEvent currentEvent = queue.waitFor(NoticeEvent.class);
+                        //Check if this message is the "ping" command
+                        if (currentEvent.getMessage().toLowerCase().contains("time")) {
+                            List<DateGroup> groups = parser.parse((currentEvent.getMessage()));
+                            ZonedDateTime time2 = groups.get(0).getDates().get(0);
+
+                            TimeZone.setDefault(new SimpleTimeZone(time2.getTimezoneOffset(), new ZoneId()));
+                        }
+                    }
+                    */
+
+
+                    List<DateGroup> groups = parser.parse(argJoiner(arg, 1));
+                    sendMessage(event, groups.get(0).getDates().get(0).toString(), true);
+                } catch (Exception e) {
+                    sendError(event, e);
+                }
+                System.out.println(ZonedDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+            }
+        }
+
 // !do nothing - does nothing
         if (commandChecker(arg, "do")) {
             if (checkPerm(event.getUser(), 0)) {
                 if (arg[1 + arrayOffset].equalsIgnoreCase("nothing")) {
-                    if (randInt(0, 5) == 0) {
+                    if (randInt(0, 3) == 0) {
                         sendMessage(event, "no", true);
                     }
                 }
@@ -784,34 +836,39 @@ public class FozruciX extends ListenerAdapter {
 
                         // String for the next word
                         String nextWord;
+                        boolean matches = arg.length > 1;
+                        do {
+                            for (int loops = 0; randInt(0, 3) == 1 && loops < 3; loops++) {
+                                if (loops > 0) {
+                                    newPhrase += " ";
+                                }
+                                // Select the first word
+                                ArrayList<String> startWords = markovChain.get("_start");
+                                int startWordsLen = startWords.size();
+                                nextWord = startWords.get(rnd.nextInt(startWordsLen));
+                                int greaterThanOne = nextWord.length() > 1 ? 2 : (nextWord.length() > 0 ? 1 : 0);
+                                newPhrase += nextWord.substring(0, greaterThanOne) + "\u200B" + nextWord.substring(greaterThanOne, nextWord.length());
 
-
-                        for (int loops = 0; randInt(0, 3) == 1 && loops < 3; loops++) {
-                            if (loops > 0) {
-                                newPhrase += " ";
-                            }
-                            // Select the first word
-                            ArrayList<String> startWords = markovChain.get("_start");
-                            int startWordsLen = startWords.size();
-                            nextWord = startWords.get(rnd.nextInt(startWordsLen));
-                            newPhrase += nextWord.substring(0, 2) + "\u200B" + nextWord.substring(2, nextWord.length());
-
-                            // Keep looping through the words until we've reached the end
-                            while (nextWord.charAt(nextWord.length() - 1) != '.') {
-                                ArrayList<String> wordSelection = markovChain.get(nextWord);
-                                int wordSelectionLen = wordSelection.size();
-                                nextWord = wordSelection.get(rnd.nextInt(wordSelectionLen));
-                                if (newPhrase.isEmpty()) {
-                                    newPhrase = nextWord.substring(0, 2) + "\u200B" + nextWord.substring(2, nextWord.length());
-                                } else {
-                                    newPhrase += " " + nextWord.substring(0, 2) + "\u200B" + nextWord.substring(2, nextWord.length());
+                                // Keep looping through the words until we've reached the end
+                                while (nextWord.charAt(nextWord.length() -1) != '.') {
+                                    ArrayList<String> wordSelection = markovChain.get(nextWord);
+                                    int wordSelectionLen = wordSelection.size();
+                                    nextWord = wordSelection.get(rnd.nextInt(wordSelectionLen));
+                                    greaterThanOne = nextWord.length() > 1 ? 2 : (nextWord.length() > 0 ? 1 : 0);
+                                    if (newPhrase.isEmpty()) {
+                                        newPhrase = nextWord.substring(0, greaterThanOne) + "\u200B" + nextWord.substring(greaterThanOne, nextWord.length());
+                                    } else {
+                                        newPhrase += " " + nextWord.substring(0, greaterThanOne) + "\u200B" + nextWord.substring(greaterThanOne, nextWord.length());
+                                    }
+                                }
+                                if (newPhrase.lastIndexOf(" ") != newPhrase.indexOf(" ") && !newPhrase.contains("!")) {
+                                    loop = false;
                                 }
                             }
-                            if (newPhrase.lastIndexOf(" ") != newPhrase.indexOf(" ") && !newPhrase.contains("!")) {
-                                loop = false;
-                            }
-                        }
+                        } while (matches);
                     }
+                } catch (IllegalArgumentException e) {
+                    sendError(event, new Exception("No words have been added to the database, Try saying something!"));
                 } catch (Exception e) {
                     sendError(event, e);
                 }
@@ -1174,90 +1231,11 @@ public class FozruciX extends ListenerAdapter {
                             sendError(event, ex);
                         }
                     };
-                    if (js != null) {
-                        //noinspection deprecation
-                        js.stop();
+                    if (js == null) {
+                        js = new JavaScript(event, arg);
+                    } else {
+                        js.runNewJavaScript(event, arg);
                     }
-                    js = new Thread(() -> {
-                        ScriptEngine engine;
-                        try {
-                            final String[] unsafeAttributes = {
-                                    "Java",
-                                    "JavaImporter",
-                                    "Packages",
-                                    "java",
-                                    "javax",
-                                    "javafx",
-                                    "org",
-                                    "com",
-                                    "net",
-                                    "edu",
-                                    "load",
-                                    "loadWithNewGlobal",
-                                    "exit",
-                                    "quit"
-                            };
-                            final String[] unsafeClasses = {
-                                    "java.lang.reflect",
-                                    "java.lang.invoke",
-                            };
-                            String factorialFunct = "function factorial(num) {  if (num < 0) {    return -1;  } else if (num == 0) {    return 1;  }  var tmp = num;  while (num-- > 2) {    tmp *= num;  }  return tmp;} " +
-                                    "function getBit(num, bit) {  var result = (num >> bit) & 1; return result == 1} " +
-                                    "function offset(array, offsetNum){array = eval(\"\" + array + \"\");var size = array.length * offsetNum;var result = [];for(var i = 0; i < array.length; i++){result[i] = parseInt(array[i], 16) + size} return result;} " +
-                                    "function solvefor(expr, solve){var eq = algebra.parse(expr); var ans = eq.solveFor(solve); return solve + \" = \" + ans.toString(); }  var life = 42; " +
-                                    "function roughSizeOf(e){for(var f=[],o=[e],t=0;o.length;){var n=o.pop();if(\"boolean\"==typeof n)t+=4;else if(\"string\"==typeof n)t+=2*n.length;else if(\"number\"==typeof n)t+=8;else if(\"object\"==typeof n&&-1===f.indexOf(n)){f.push(n);for(var r in n)o.push(n[r])}}return t}";
-                            if (!checkPerm(event.getUser(), 9001)) {
-                                engine = new NashornScriptEngineFactory().getScriptEngine(requestedClass -> {
-                                    for (String unsafeClass : unsafeClasses) {
-                                        if (requestedClass.equals(unsafeClass)) return false;
-                                    }
-                                    return true;
-                                });
-                                ScriptContext ctx = engine.getContext();
-                                int globalScope = ctx.getScopes().get(0);
-                                for (String unsafeAttribute : unsafeAttributes) {
-                                    ctx.removeAttribute(unsafeAttribute, globalScope);
-                                }
-                            } else {
-                                engine = new NashornScriptEngineFactory().getScriptEngine();
-                            }
-                            engine.eval(factorialFunct);
-                            engine.eval(new InputStreamReader(new FileInputStream("algebra.min.js")));
-                            String eval;
-                            eval = engine.eval(arg[1 + arrayOffset]).toString(); //todo
-                            if (isNumeric(eval)) {
-                                if (arg.length < 3 + arrayOffset) {
-                                    sendMessage(event, eval, true);
-                                    System.out.println("Outputting as decimal");
-                                } else {
-                                    String basePrefix = "";
-                                    switch (Integer.parseInt(arg[2 + arrayOffset])) {
-                                        case 2:
-                                            basePrefix = "0b";
-                                            break;
-                                        case 8:
-                                            basePrefix = "0";
-                                            break;
-                                        case 16:
-                                            basePrefix = "0x";
-                                            break;
-                                    }
-                                    eval = Long.toString(Long.parseLong(eval), Integer.parseInt(arg[2 + arrayOffset])).toUpperCase();
-                                    if (eval.length() % 2 == 1) {
-                                        eval = "0" + eval;
-                                    }
-                                    sendMessage(event, basePrefix + eval, true);
-                                    System.out.println("Outputting as base " + arg[2 + arrayOffset]);
-                                }
-                            } else if (eval.length() < 240) {
-                                sendMessage(event, eval, true);
-                            } else {
-                                sendPage(event, arg, new ArrayList<>(Arrays.asList(eval)));
-                            }
-                        } catch (Exception e) {
-                            sendError(event, e);
-                        }
-                    });
                     js.setUncaughtExceptionHandler(exceptionHandler);
 
                     lastJsUser = event.getUserHostmask();
@@ -2653,7 +2631,6 @@ public class FozruciX extends ListenerAdapter {
         }
 
         bools.clear(nickInUse);
-        lastEvent = event;
         try {
             if (!((MessageEvent) event).getChannel().getName().equalsIgnoreCase("#retro2.0")) {
                 addWords(event.getMessage() + ".");
@@ -2699,7 +2676,7 @@ public class FozruciX extends ListenerAdapter {
             String regex = "[a-zA-Z]{3,}://[a-zA-Z0-9\\.]+/*[a-zA-Z0-9/\\\\%_.]*\\?*[a-zA-Z0-9/\\\\%_.=&amp;]*";
             Matcher matcher = Pattern.compile(regex).matcher(event.getMessage());
             if (matcher.find() && !channel.equalsIgnoreCase("#origami64") && !channel.equalsIgnoreCase("#retro") && !channel.equalsIgnoreCase("#pmd")) {
-                System.out.println("Found URL");
+                System.out.println("Found URL - " + matcher.group(0));
                 try {
                     String title = Jsoup.connect(matcher.group(0)).get().title();
                     if (title.isEmpty()) {
@@ -3153,7 +3130,7 @@ public class FozruciX extends ListenerAdapter {
         for (; length > argToStartFrom; argToStartFrom++) {
             strToReturn += args[argToStartFrom] + " ";
         }
-        return strToReturn;
+        return strToReturn.substring(0, strToReturn.length()-1);
     }
 
     private boolean commandChecker(String[] args, String command) { //todo Make sure every command starts with this
@@ -3421,4 +3398,116 @@ public class FozruciX extends ListenerAdapter {
     }
 
 
+    private class JavaScript extends Thread {
+        private GenericMessageEvent event;
+        private String[] arg;
+        private ScriptEngine botOPEngine;
+        private ScriptEngine NormalUserEngine;
+        final String[] unsafeAttributes = {
+                "Java",
+                "JavaImporter",
+                "Packages",
+                "java",
+                "javax",
+                "javafx",
+                "org",
+                "com",
+                "net",
+                "edu",
+                "load",
+                "loadWithNewGlobal",
+                "exit",
+                "quit"
+        };
+        final String[] unsafeClasses = {
+                "java.lang.reflect",
+                "java.lang.invoke",
+        };
+        String factorialFunct = "function factorial(num) {  if (num < 0) {    return -1;  } else if (num == 0) {    return 1;  }  var tmp = num;  while (num-- > 2) {    tmp *= num;  }  return tmp;} " +
+                "function getBit(num, bit) {  var result = (num >> bit) & 1; return result == 1} " +
+                "function offset(array, offsetNum){array = eval(\"\" + array + \"\");var size = array.length * offsetNum;var result = [];for(var i = 0; i < array.length; i++){result[i] = parseInt(array[i], 16) + size} return result;} " +
+                "function solvefor(expr, solve){var eq = algebra.parse(expr); var ans = eq.solveFor(solve); return solve + \" = \" + ans.toString(); }  var life = 42; " +
+                "function roughSizeOf(e){for(var f=[],o=[e],t=0;o.length;){var n=o.pop();if(\"boolean\"==typeof n)t+=4;else if(\"string\"==typeof n)t+=2*n.length;else if(\"number\"==typeof n)t+=8;else if(\"object\"==typeof n&&-1===f.indexOf(n)){f.push(n);for(var r in n)o.push(n[r])}}return t}";
+
+        JavaScript(GenericMessageEvent event, String[] arg) {
+            this.event = event;
+            this.arg = arg;
+
+        }
+
+        void runNewJavaScript(GenericMessageEvent event, String[] arg){
+            this.event = event;
+            this.arg = arg;
+            run();
+        }
+
+        @Override
+        public void run() {
+            try {
+                ScriptEngine engine;
+                if (!checkPerm(event.getUser(), 9001)) {
+                    engine = new NashornScriptEngineFactory().getScriptEngine(new JSClassFilter());
+                    int globalScope = context.getScopes().get(0);
+                    for (String unsafeAttribute : unsafeAttributes) {
+                        context.removeAttribute(unsafeAttribute, globalScope);
+                    }
+                } else {
+                    engine = new NashornScriptEngineFactory().getScriptEngine();
+                }
+                if(context == null) {
+                    engine.eval(factorialFunct);
+                    engine.eval(new InputStreamReader(new FileInputStream("algebra.min.js")));
+                    context = engine.getContext();
+                } else {
+                    engine.setContext(context);
+                }
+                Object temp = engine.eval(arg[1 + arrayOffset]);
+                if(temp != null) {
+                    String eval = temp.toString();
+                    if (isNumeric(eval)) {
+                        if (arg.length < 3 + arrayOffset) {
+                            sendMessage(event, eval, true);
+                            System.out.println("Outputting as decimal");
+                        } else {
+                            String basePrefix = "";
+                            switch (Integer.parseInt(arg[2 + arrayOffset])) {
+                                case 2:
+                                    basePrefix = "0b";
+                                    break;
+                                case 8:
+                                    basePrefix = "0";
+                                    break;
+                                case 16:
+                                    basePrefix = "0x";
+                                    break;
+                            }
+                            eval = Long.toString(Long.parseLong(eval), Integer.parseInt(arg[2 + arrayOffset])).toUpperCase();
+                            if (eval.length() % 2 == 1) {
+                                eval = "0" + eval;
+                            }
+                            sendMessage(event, basePrefix + eval, true);
+                            System.out.println("Outputting as base " + arg[2 + arrayOffset]);
+                        }
+                    } else if (eval.length() < 240) {
+                        sendMessage(event, eval, true);
+                    } else {
+                        sendPage(event, arg, new ArrayList<>(Arrays.asList(eval)));
+                    }
+                }
+                context = engine.getContext();
+            } catch (Exception e) {
+                sendError(event, e);
+            }
+        }
+
+        private class JSClassFilter implements ClassFilter {
+            @Override
+            public boolean exposeToScripts(String requestedClass) {
+                for (String unsafeClass : unsafeClasses) {
+                    if (requestedClass.equals(unsafeClass)) return false;
+                }
+                return true;
+            }
+        }
+    }
 }
