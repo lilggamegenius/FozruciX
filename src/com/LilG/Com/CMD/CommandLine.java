@@ -22,33 +22,48 @@ public class CommandLine extends Thread {
     public CommandLine(GenericMessageEvent event, String commandLine) {
         this.event = event;
 
-        String console;
+        String console[] = new String[3];
         if (commandLine.equalsIgnoreCase("cmd") || commandLine.equalsIgnoreCase("command")) {
-            console = "cmd.exe";
+            console[0] = "cmd.exe";
         } else if (commandLine.equalsIgnoreCase("term") || commandLine.equalsIgnoreCase("terminal")) {
-            console = "bash.exe";
+            console[0] = "bash.exe";
+            console[1] = "";
         } else if (commandLine.equalsIgnoreCase("ps") || commandLine.equalsIgnoreCase("powershell")) {
-            console = "powershell.exe";
+            console[0] = "powershell.exe";
+            console[1] = "-Command";
+            console[2] = "-";
         } else {
-            console = commandLine;
+            console[0] = commandLine;
         }
         ProcessBuilder builder = new ProcessBuilder(console);
         try {
             p = builder.start();
             p_stdin = new BufferedWriter(new OutputStreamWriter(p.getOutputStream()));
-            p_stdin.write("echo off\n");
+            if (console[0].equals("cmd.exe")) {
+                p_stdin.write("@echo off\n");
+            }
         } catch (Exception e) {
             sendError(event, e);
         }
         run();
     }
 
+
     public CommandLine() {
-    } //Dummy constructor, only to "initialize" a value to be overwritten later
+        ProcessBuilder builder = new ProcessBuilder("cmd.exe");
+        try {
+            p = builder.start();
+            p_stdin = new BufferedWriter(new OutputStreamWriter(p.getOutputStream()));
+            p_stdin.write("@echo off\n");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        run();
+    }
 
     private void sendError(GenericMessageEvent event, Exception e) {
         ((MessageEvent) event).getChannel().send().message("Error: " + e.getCause() + ". From " + e);
-        e.printStackTrace(System.err);
+        e.printStackTrace();
     }
 
     public void doCommand(GenericMessageEvent event, String command) {
@@ -88,7 +103,7 @@ public class CommandLine extends Thread {
 
                         event.respondWith(output.replace(command, ""));
                         try {
-                            wait(1000);
+                            sleep(1000);
                         } catch (InterruptedException e) {
                             sendError(event, e);
                         } catch (Exception e) {

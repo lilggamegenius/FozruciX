@@ -57,7 +57,7 @@ public class FozConfig {
             .addAutoJoinChannel("#origami64")
             .addAutoJoinChannel("#FozruciX")
             .addAutoJoinChannel("#discordBotTest")
-            .addAutoJoinChannel("#retro2.0")
+            .addAutoJoinChannel("#idkwtf")
             .addListener(new FozruciX(manager, noteList, terminal, avatar, memes, js, FCList)); //Add our listener that will be called on Events
 
     private final static Configuration.Builder debugConfigSmwc = new Configuration.Builder()
@@ -119,7 +119,7 @@ public class FozConfig {
             .addAutoJoinChannel("#origami64")
             .addAutoJoinChannel("#FozruciX")
             .addAutoJoinChannel("#discordBotTest")
-            .addAutoJoinChannel("#retro2.0")
+            .addAutoJoinChannel("#idkwtf")
             .addListener(new FozruciX(manager, noteList, terminal, avatar, memes, js, FCList)); //Add our listener that will be called on Events
 
     private final static Configuration.Builder normalSmwc = new Configuration.Builder()
