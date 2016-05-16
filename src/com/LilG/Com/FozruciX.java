@@ -2188,31 +2188,37 @@ public class FozruciX extends ListenerAdapter {
                 String text;
                 System.out.println("Setting key");
                 YandexTranslatorAPI.setKey("trnsl.1.1.20150924T011621Z.e06050bb431b7175.e5452b78ee8d11e4b736035e5f99f2831a57d0e2");
+                String[] args = formatStringArgs(arg);
+                ArgumentParser parser = ArgumentParsers.newArgumentParser("Trans")
+                        .description("Translates from one language to another");
+                parser.addArgument("text").nargs("*")
+                        .help("Text to translate");
+                parser.addArgument("-t", "--to").type(String.class).setDefault("English")
+                        .help("Sets language to translate to");
+                parser.addArgument("-f", "--from").type(String.class).setDefault("detect")
+                        .help("Sets language to translate from");
+                parser.addArgument("-d", "--detect").type(Boolean.class).action(Arguments.storeTrue()).setDefault(false)
+                        .help("Kill the thread");
+                Namespace ns;
                 try {
-                    if (arg[1 + arrayOffset].equalsIgnoreCase("\\detect")) {
-                        sendMessage(event, fullNameToString(Detect.execute(argJoiner(arg, 2))), true);
+                    ns = parser.parseArgs(args);
+                    if (ns.getBoolean("detect")) {
+                        sendMessage(event, fullNameToString(Detect.execute(ns.getString("text"))), true);
                     } else {
-                        if (arg.length == 3 + arrayOffset) {
-                            Language to = Language.valueOf(arg[1 + arrayOffset].toUpperCase());
-                            Language from = Detect.execute(argJoiner(arg, 2));
-                            text = Translate.execute(argJoiner(arg, 2), from, to);
-                            System.out.print("Translating: " + text);
-                            if (argJoiner(arg, 2).contains(text)) {
-                                sendMessage(event, "Yandex couldn't translate that.", true);
-                            } else {
-                                sendMessage(event, text, true);
-                            }
-                        } else if (arg.length == 4 + arrayOffset) {
-                            Language to = Language.valueOf(arg[2 + arrayOffset].toUpperCase());
-                            Language from = Language.valueOf(arg[1 + arrayOffset].toUpperCase());
-                            text = Translate.execute(argJoiner(arg, 3), from, to);
-                            System.out.print("Translating: " + text);
-                            if (argJoiner(arg, 3).contains(text)) {
-                                sendMessage(event, "Yandex couldn't translate that.", true);
-                            } else {
-                                sendMessage(event, text, true);
-                            }
+                        Language to = Language.valueOf(ns.getString("to").toUpperCase());
+                        Language from;
+                        if (ns.getString("from").equals("detect")) {
+                            from = Detect.execute(ns.getString("from"));
+                        } else {
+                            from = Language.valueOf(ns.getString("from"));
                         }
+                        text = Translate.execute(ns.getString("text"), from, to);
+                            System.out.print("Translating: " + text);
+                        if (ns.getString("text").contains(text)) {
+                                sendMessage(event, "Yandex couldn't translate that.", true);
+                            } else {
+                                sendMessage(event, text, true);
+                            }
                     }
                 } catch (IllegalArgumentException e) {
                     sendError(event, new Exception("That Language doesn't exist!"));
@@ -3148,7 +3154,12 @@ public class FozruciX extends ListenerAdapter {
                 if (noteList.get(i).getReceiver().equalsIgnoreCase(user)) {
                     System.out.print("Found match! -> ");
                     if (channel != null) {
-                        sendMessage((GenericMessageEvent) event, user + ": " + noteList.get(i).displayMessage(), true);
+                        try {
+                            sendMessage((GenericMessageEvent) event, user + ": " + noteList.get(i).displayMessage(), true);
+                        } catch (ClassCastException e) {
+                            lastEvent = new MessageEvent(event.getBot(), ((JoinEvent) event).getChannel(), channel, ((JoinEvent) event).getUserHostmask(), ((JoinEvent) event).getUser(), null, null);
+                            sendMessage(((JoinEvent) event).getUser().getNick(), user + ": " + noteList.get(i).displayMessage());
+                        }
                     } else {
                         sendNotice(event, user, noteList.get(i).displayMessage());
                     }

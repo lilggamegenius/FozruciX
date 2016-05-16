@@ -22,12 +22,11 @@ public class CommandLine extends Thread {
     public CommandLine(GenericMessageEvent event, String commandLine) {
         this.event = event;
 
-        String console[] = new String[3];
+        String console[] = new String[]{null, "", ""};
         if (commandLine.equalsIgnoreCase("cmd") || commandLine.equalsIgnoreCase("command")) {
             console[0] = "cmd.exe";
-        } else if (commandLine.equalsIgnoreCase("term") || commandLine.equalsIgnoreCase("terminal")) {
+        } else if (commandLine.equalsIgnoreCase("term") || commandLine.equalsIgnoreCase("terminal") || commandLine.equalsIgnoreCase("bash")) {
             console[0] = "bash.exe";
-            console[1] = "";
         } else if (commandLine.equalsIgnoreCase("ps") || commandLine.equalsIgnoreCase("powershell")) {
             console[0] = "powershell.exe";
             console[1] = "-Command";
@@ -45,7 +44,6 @@ public class CommandLine extends Thread {
         } catch (Exception e) {
             sendError(event, e);
         }
-        run();
     }
 
 
@@ -77,7 +75,7 @@ public class CommandLine extends Thread {
     public void run() {
         try {
             if (command == null) {
-                command = "";
+                command = " ";
             }
             p_stdin.write(command);
             p_stdin.newLine();
