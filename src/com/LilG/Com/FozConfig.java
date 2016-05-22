@@ -54,10 +54,8 @@ public class FozConfig {
             .setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates())
             .addAutoJoinChannel("#Lil-G|bot") //Join the official #Lil-G|Bot channel
             .addAutoJoinChannel("#SSB")
-            .addAutoJoinChannel("#origami64")
             .addAutoJoinChannel("#FozruciX")
             .addAutoJoinChannel("#discordBotTest")
-            .addAutoJoinChannel("#idkwtf")
             .addListener(new FozruciX(manager, noteList, terminal, avatar, memes, js, FCList)); //Add our listener that will be called on Events
 
     private final static Configuration.Builder debugConfigSmwc = new Configuration.Builder()
@@ -70,12 +68,7 @@ public class FozConfig {
             .setRealName(realName)
             .setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates())
             .addAutoJoinChannel("#sm64")
-            .addAutoJoinChannel("#pmd")
             .addAutoJoinChannel("#botTest")
-            .addAutoJoinChannel("#unix")
-            .addAutoJoinChannel("#smashbros")
-            .addAutoJoinChannel("#homebrew")
-            .addAutoJoinChannel("#radbusiness")
             .addListener(new FozruciX(manager, noteList, terminal, avatar, memes, js, FCList)); //Add our listener that will be called on Events
 
     private final static Configuration.Builder twitchDebug = new Configuration.Builder()
@@ -98,7 +91,6 @@ public class FozConfig {
             .setRealName(realName)
             .setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates())
             .addAutoJoinChannel("#savespam")
-            .addAutoJoinChannel("#ducks")
             .setIdentServerEnabled(true)
             .addListener(new FozruciX(manager, noteList, terminal, avatar, memes, js, FCList)); //Add our listener that will be called on Events
 

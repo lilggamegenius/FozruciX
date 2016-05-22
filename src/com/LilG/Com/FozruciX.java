@@ -44,6 +44,7 @@ import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
 import net.sourceforge.argparse4j.ArgumentParsers;
 import net.sourceforge.argparse4j.impl.Arguments;
 import net.sourceforge.argparse4j.inf.ArgumentParser;
+import net.sourceforge.argparse4j.inf.ArgumentParserException;
 import net.sourceforge.argparse4j.inf.Namespace;
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
@@ -100,34 +101,34 @@ public class FozruciX extends ListenerAdapter {
     private final static StaticVariableSet<Double> variables = new StaticVariableSet<>();
     private final static String appid = "RGHHEP-HQU7HL67W9";
     private static final List<RPSGame> rpsGames = new ArrayList<>();
-    public static Hashtable<String, ArrayList<String>> markovChain = new Hashtable<>();
-    private static Random rnd = new Random();
-    private static ChatterBotSession cleverBotsession;
-    private static ChatterBotSession pandoraBotsession;
-    private static ChatterBotSession jabberBotsession;
-    private static GenericMessageEvent lastEvent;
-    private static CMD singleCMD = null;
-    private static List<Note> noteList;
-    private static List<String> authedUser = new ArrayList<>();
-    private static List<Integer> authedUserLevel = new ArrayList<>();
-    private static List<String> DNDJoined = new ArrayList<>();
-    private static List<DNDPlayer> DNDList = new ArrayList<>();
-    private static Dungeon DNDDungeon = new Dungeon();
-    private static String DNDDungeonMaster = "Null";
-    private static int jokeCommandDebugVar = 30;
+    public static volatile Hashtable<String, ArrayList<String>> markovChain = new Hashtable<>();
+    private static volatile Random rnd = new Random();
+    private static volatile ChatterBotSession cleverBotsession;
+    private static volatile ChatterBotSession pandoraBotsession;
+    private static volatile ChatterBotSession jabberBotsession;
+    private static volatile GenericMessageEvent lastEvent;
+    private static volatile CMD singleCMD = null;
+    private static volatile List<Note> noteList;
+    private static volatile List<String> authedUser = new ArrayList<>();
+    private static volatile List<Integer> authedUserLevel = new ArrayList<>();
+    private static volatile List<String> DNDJoined = new ArrayList<>();
+    private static volatile List<DNDPlayer> DNDList = new ArrayList<>();
+    private static volatile Dungeon DNDDungeon = new Dungeon();
+    private static volatile String DNDDungeonMaster = "Null";
+    private static volatile int jokeCommandDebugVar = 30;
     private static volatile CommandLine terminal = new CommandLine();
-    private static String counter = "";
-    private static int countercount = 0;
-    private static JFrame frame = new JFrame();
-    private static MessageModes messageMode = MessageModes.normal;
-    private static int arrayOffset = 0;
+    private static volatile String counter = "";
+    private static volatile int countercount = 0;
+    private static volatile JFrame frame = new JFrame();
+    private static volatile MessageModes messageMode = MessageModes.normal;
+    private static volatile int arrayOffset = 0;
     private static volatile JavaScript js;
-    private static String consolePrefix = ">";
-    private static String DiscordNick = "Discord";
-    private static String avatar;
-    private static HashMap<String, Meme> memes;
-    private static HashMap<String, String> FCList;
-    private static MultiBotManager manager;
+    private static volatile String consolePrefix = ">";
+    private static volatile String DiscordNick = "Discord";
+    private static volatile String avatar;
+    private static volatile HashMap<String, Meme> memes;
+    private static volatile HashMap<String, String> FCList;
+    private static volatile MultiBotManager manager;
     private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
     private final BitSet bools = new BitSet(10); // true, false, null, null, null, false, true, true, false, false
     private String prefix = "!";
@@ -588,8 +589,6 @@ public class FozruciX extends ListenerAdapter {
         lastEvent = event;
         String channel = ((MessageEvent) event).getChannel().getName();
         String[] arg = splitMessage(event.getMessage());
-        //String[] arguments = new String[0xFF];
-        //System.arraycopy(arg, 1, arguments, 0, arg.length);
         debug.setCurrentNick(currentNick + "!" + currentUsername + "@" + currentHost);
         if (!bools.get(dataLoaded)) {
             loadData((Event) event);
@@ -1263,14 +1262,12 @@ public class FozruciX extends ListenerAdapter {
                 Namespace ns;
                 try {
                     ns = parser.parseArgs(args);
-
+                    System.out.println(ns);
                     if (ns.getBoolean("kill")) {
                         //noinspection deprecation
-                        js.destroy();
+                        js.stop();
                         js = null;
                         sendMessage(event, "JavaScript Thread killed", false);
-                    } else if (ns.getBoolean("help")) {
-
                     } else {
                         if (arg.length > 1) {
                             Thread.UncaughtExceptionHandler exceptionHandler = (th, ex) -> {
@@ -1851,9 +1848,9 @@ public class FozruciX extends ListenerAdapter {
 // !prefix - Changes the command prefix when it isn't the standard "!"
         if (arg[0].equalsIgnoreCase("!prefix") && !prefix.equals("!")) {
             if (checkPerm(event.getUser(), 9001)) {
-                prefix = arg[1];
+                prefix = argJoiner(arg, 1);
                 if (prefix.length() > 1 && !prefix.endsWith(".")) {
-                    arrayOffset = 1;
+                    arrayOffset = StringUtils.countMatches(prefix, " ");
                 } else {
                     arrayOffset = 0;
                 }
@@ -2202,6 +2199,8 @@ public class FozruciX extends ListenerAdapter {
                 Namespace ns;
                 try {
                     ns = parser.parseArgs(args);
+
+                    System.out.println(ns);
                     if (ns.getBoolean("detect")) {
                         sendMessage(event, fullNameToString(Detect.execute(ns.getString("text"))), true);
                     } else {
@@ -2210,18 +2209,30 @@ public class FozruciX extends ListenerAdapter {
                         if (ns.getString("from").equals("detect")) {
                             from = Detect.execute(ns.getString("from"));
                         } else {
-                            from = Language.valueOf(ns.getString("from"));
+                            from = Language.valueOf(ns.getString("from").toUpperCase());
                         }
-                        text = Translate.execute(ns.getString("text"), from, to);
-                            System.out.print("Translating: " + text);
-                        if (ns.getString("text").contains(text)) {
-                                sendMessage(event, "Yandex couldn't translate that.", true);
-                            } else {
-                                sendMessage(event, text, true);
-                            }
+                        text = Translate.execute(argJoiner(ns.getList("text").toArray(new String[]{}), 0), from, to);
+                        System.out.println("Translating: " + text);
+                        if (argJoiner(ns.getList("text").toArray(new String[]{}), 0).contains(text)) {
+                            sendMessage(event, "Yandex couldn't translate that.", true);
+                        } else {
+                            sendMessage(event, text, true);
+                        }
                     }
                 } catch (IllegalArgumentException e) {
                     sendError(event, new Exception("That Language doesn't exist!"));
+                } catch (ArgumentParserException e) {
+                    try {
+                        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                        PrintWriter ps = new PrintWriter(new PrintStream(baos, true, "utf-8"));
+                        parser.printHelp(ps);
+                        String content = new String(baos.toByteArray(), java.nio.charset.StandardCharsets.UTF_8);
+                        System.out.println(content);
+                        String[] lines = splitMessage(content, 0, false);
+                        sendMessage(event, Arrays.toString(lines), true);
+                    } catch (Exception ex) {
+                        sendError(event, ex);
+                    }
                 } catch (Exception e) {
                     sendError(event, e);
                 }
@@ -2334,7 +2345,7 @@ public class FozruciX extends ListenerAdapter {
 
 // !SayNotice - Tells the bot to send a notice
         if (commandChecker(arg, "SayNotice")) {
-            if (checkPerm(event.getUser(), 9001)) {
+            if (checkPerm(event.getUser(), 6)) {
                 event.getBot().sendIRC().notice(arg[1 + arrayOffset], argJoiner(arg, 2));
             } else {
                 permErrorchn(event);
@@ -2826,7 +2837,7 @@ public class FozruciX extends ListenerAdapter {
                 PM.getBot().sendIRC().action(arg[1 + arrayOffset], getScramble(argJoiner(arg, 2)));
             }
 // !sendRaw - Tells the bot to say a raw line
-            if (commandChecker(arg, "sendRaw")) {
+            if (commandChecker(arg, "sendRaw") && checkPerm(PM.getUser(), 9001)) {
                 PM.getBot().sendRaw().rawLineNow(argJoiner(arg, 1));
             }
 
@@ -3055,6 +3066,10 @@ public class FozruciX extends ListenerAdapter {
 
     @SuppressWarnings("SameParameterValue")
     private String[] splitMessage(String stringToSplit, int amountToSplit) {
+        return splitMessage(stringToSplit, 0, true);
+    }
+
+    private String[] splitMessage(String stringToSplit, int amountToSplit, boolean removeQuotes) {
         if (stringToSplit == null)
             return new String[0];
 
@@ -3063,17 +3078,19 @@ public class FozruciX extends ListenerAdapter {
         while (argSep.find())
             list.add(argSep.group(1));
 
-        if (amountToSplit != 0) {
-            for (int i = 0; list.size() > i; i++) { // go through all of the
-                list.set(i, list.get(i).replaceAll("\"", "")); // remove quotes left in the string
-                list.set(i, list.get(i).replaceAll("''", "\"")); // replace double ' to quotes
-                // go to next string
-            }
-        } else {
-            for (int i = 0; list.size() > i || amountToSplit > i; i++) { // go through all of the
-                list.set(i, list.get(i).replaceAll("\"", "")); // remove quotes left in the string
-                list.set(i, list.get(i).replaceAll("''", "\"")); // replace double ' to quotes
-                // go to next string
+        if (removeQuotes) {
+            if (amountToSplit != 0) {
+                for (int i = 0; list.size() > i; i++) { // go through all of the
+                    list.set(i, list.get(i).replaceAll("\"", "")); // remove quotes left in the string
+                    list.set(i, list.get(i).replaceAll("''", "\"")); // replace double ' to quotes
+                    // go to next string
+                }
+            } else {
+                for (int i = 0; list.size() > i || amountToSplit > i; i++) { // go through all of the
+                    list.set(i, list.get(i).replaceAll("\"", "")); // remove quotes left in the string
+                    list.set(i, list.get(i).replaceAll("''", "\"")); // replace double ' to quotes
+                    // go to next string
+                }
             }
         }
         return list.toArray(new String[list.size()]);
@@ -3124,7 +3141,7 @@ public class FozruciX extends ListenerAdapter {
 
     private void saveData(GenericMessageEvent event) {
         if (!bools.get(dataLoaded)) {
-            System.out.print("Data save canceled because data hasn't been loaded yet");
+            System.out.println("Data save canceled because data hasn't been loaded yet");
             return;
         }
         try {
@@ -3168,7 +3185,11 @@ public class FozruciX extends ListenerAdapter {
                 }
             }
         } catch (Exception e) {
-            sendError(lastEvent, e);
+            if (event instanceof JoinEvent) {
+                e.printStackTrace();
+            } else {
+                sendError(lastEvent, e);
+            }
         }
         System.out.println(" | Ending checkusernote");
     }
@@ -3193,23 +3214,22 @@ public class FozruciX extends ListenerAdapter {
     }
 
     private String argJoiner(String[] args, int argToStartFrom) throws ArrayIndexOutOfBoundsException {
-        int length = args.length;
         String strToReturn = "";
-        for (; length > argToStartFrom; argToStartFrom++) {
+        for (int length = args.length; length > argToStartFrom; argToStartFrom++) {
             strToReturn += args[argToStartFrom] + " ";
         }
         return strToReturn.substring(0, strToReturn.length() - 1);
     }
 
-    private boolean commandChecker(String[] args, String command) { //todo Make sure every command starts with this
+    private boolean commandChecker(String[] args, String command) {
         if (args[0].startsWith(prefix)) {
             if (prefix.length() > 1 && !prefix.endsWith(".")) {
-                return args[1].equalsIgnoreCase(command);
+                return args[arrayOffset].equalsIgnoreCase(command);
             } else {
                 return args[0].equalsIgnoreCase(prefix + command);
             }
-        } else {
-            //todo Make it check for bots nick
+        } else if (args[0].startsWith(lastEvent.getBot().getNick())) {
+            return args[1].equalsIgnoreCase(command);
         }
         return false;
     }
@@ -3236,7 +3256,7 @@ public class FozruciX extends ListenerAdapter {
 
                 ArrayList<String> suffix = markovChain.get(words[i]);
                 if (suffix == null) {
-                    suffix = new ArrayList<String>();
+                    suffix = new ArrayList<>();
                     if (words.length == 1) {
                         return;
                     } else {
@@ -3487,7 +3507,7 @@ public class FozruciX extends ListenerAdapter {
                 "java.lang.reflect",
                 "java.lang.invoke",
         };
-        String factorialFunct = "function factorial(num) {  if (num < 0) {    return -1;  } else if (num == 0) {    return 1;  }  var tmp = num;  while (num-- > 2) {    tmp *= num;  }  return tmp;} " +
+        String factorialFunct = "function fact(num) {  if (num < 0) {    return -1;  } else if (num == 0) {    return 1;  }  var tmp = num;  while (num-- > 2) {    tmp *= num;  }  return tmp;} " +
                 "function getBit(num, bit) {  var result = (num >> bit) & 1; return result == 1} " +
                 "function offset(array, offsetNum){array = eval(\"\" + array + \"\");var size = array.length * offsetNum;var result = [];for(var i = 0; i < array.length; i++){result[i] = parseInt(array[i], 16) + size} return result;} " +
                 "function solvefor(expr, solve){var eq = algebra.parse(expr); var ans = eq.solveFor(solve); return solve + \" = \" + ans.toString(); }  var life = 42; " +

@@ -3,7 +3,6 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/FozruciX.iml" filepath="$PROJECT_DIR$/FozruciX.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../yandex-translator-java-api-master/yandex-translator-java-api.iml" filepath="$PROJECT_DIR$/../yandex-translator-java-api-master/yandex-translator-java-api.iml" />
     </modules>
   </component>
 </project>
