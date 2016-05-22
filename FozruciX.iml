@@ -34,6 +34,6 @@
     <orderEntry type="library" name="net.sourceforge.argparse4j:argparse4j:0.7.0" level="project" />
     <orderEntry type="library" name="com.joestelmach:natty:0.12" level="project" />
     <orderEntry type="library" name="yandex-translator-java-api" level="project" />
-    <orderEntry type="library" name="org.fusesource.jansi:jansi-windows64:1.6" level="project" />
+    <orderEntry type="library" name="org.fusesource.jansi:jansi:1.12" level="project" />
   </component>
 </module>
