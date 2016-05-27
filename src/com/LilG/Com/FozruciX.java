@@ -233,7 +233,7 @@ public class FozruciX extends ListenerAdapter {
         } else if (k > 1) {
             hrSize = dec.format(k).concat(" KB");
         } else {
-            hrSize = dec.format((double) size).concat(" Bytes");
+            hrSize = dec.format((double) size).concat(" B");
         }
 
         return hrSize;
@@ -458,44 +458,6 @@ public class FozruciX extends ListenerAdapter {
         }
     }
 
-    private void connectBot(GenericMessageEvent event, String[] arg, boolean SSL) {
-        PircBotX bot = event.getBot();
-        Configuration.Builder normal;
-        if (SSL) {
-            normal = new Configuration.Builder()
-                    .setEncoding(Charset.forName("UTF-8"))
-                    .setAutoReconnect(true)
-                    .setAutoReconnectAttempts(5)
-                    .setNickservPassword(FozruciX.setPassword(true))
-                    .setName(bot.getConfiguration().getName()) //Set the nick of the bot.
-                    .setLogin(bot.getConfiguration().getLogin())
-                    .setRealName(bot.getConfiguration().getRealName())
-                    .setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates())
-                    .addListener(new FozruciX(manager, noteList, terminal, avatar, memes, js, FCList));
-        } else {
-            normal = new Configuration.Builder()
-                    .setEncoding(Charset.forName("UTF-8"))
-                    .setAutoReconnect(true)
-                    .setAutoReconnectAttempts(5)
-                    .setNickservPassword(FozruciX.setPassword(true))
-                    .setName(bot.getConfiguration().getName()) //Set the nick of the bot.
-                    .setLogin(bot.getConfiguration().getLogin())
-                    .setRealName(bot.getConfiguration().getRealName())
-                    .addListener(new FozruciX(manager, noteList, terminal, avatar, memes, js, FCList));
-        }
-
-        if (arg.length == 2 + arrayOffset) {
-            manager.addBot(normal.buildForServer(arg[1 + arrayOffset]));
-            sendMessage(event, "Connecting bot to " + arg[1 + arrayOffset], false);
-        } else if (arg.length == 3 + arrayOffset) {
-            manager.addBot(normal.buildForServer(arg[1 + arrayOffset], Integer.parseInt(arg[2 + arrayOffset])));
-            sendMessage(event, "Connecting bot to " + arg[1 + arrayOffset] + " To port " + arg[2 + arrayOffset], false);
-        } else if (arg.length == 4 + arrayOffset) {
-            manager.addBot(normal.buildForServer(arg[1 + arrayOffset], Integer.parseInt(arg[2 + arrayOffset]), arg[3 + arrayOffset]));
-            sendMessage(event, "Connecting bot to " + arg[1 + arrayOffset], false);
-        }
-    }
-
     private int getUserLevel(ArrayList<UserLevel> levels) {
         int ret;
         if (levels.size() == 0) {
@@ -598,7 +560,9 @@ public class FozruciX extends ListenerAdapter {
         lastEvent = event;
         String channel = ((MessageEvent) event).getChannel().getName();
         String[] arg = splitMessage(event.getMessage());
+        setArrayOffset();
         debug.setCurrentNick(currentNick + "!" + currentUsername + "@" + currentHost);
+
         if (!bools.get(dataLoaded)) {
             loadData((Event) event);
         }
@@ -714,14 +678,50 @@ public class FozruciX extends ListenerAdapter {
 // !addServer - adds a bot to a server
         if (commandChecker(arg, "addServer")) {
             if (checkPerm(event.getUser(), 9001)) {
-                connectBot(event, arg, false);
-            }
-        }
-
-// !addServerSSL - adds a bot to a server
-        if (commandChecker(arg, "addServerSSL")) {
-            if (checkPerm(event.getUser(), 9001)) {
-                connectBot(event, arg, true);
+                String[] args = formatStringArgs(arg);
+                ArgumentParser parser = ArgumentParsers.newArgumentParser("addServer")
+                        .description("Connects the bot to a server");
+                parser.addArgument("address").type(String.class)
+                        .help("The server to connect to");
+                parser.addArgument("-k", "--key").type(String.class).setDefault((Object) null)
+                        .help("The server to connect to");
+                parser.addArgument("-p", "--port").type(Integer.class).setDefault(6667)
+                        .help("Sets what port to connect to");
+                parser.addArgument("-s", "--ssl").type(Boolean.class).action(Arguments.storeTrue()).setDefault(false)
+                        .help("Specifies if the server port is SSL");
+                Namespace ns;
+                try {
+                    ns = parser.parseArgs(args);
+                    log(Level.DEBUG, ns.toString());
+                    PircBotX bot = event.getBot();
+                    Configuration.Builder normal;
+                    if (ns.getBoolean("ssl")) {
+                        normal = new Configuration.Builder()
+                                .setEncoding(Charset.forName("UTF-8"))
+                                .setAutoReconnect(true)
+                                .setAutoReconnectAttempts(5)
+                                .setNickservPassword(FozruciX.setPassword(true))
+                                .setName(bot.getConfiguration().getName()) //Set the nick of the bot.
+                                .setLogin(bot.getConfiguration().getLogin())
+                                .setRealName(bot.getConfiguration().getRealName())
+                                .setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates())
+                                .addListener(new FozruciX(manager, noteList, terminal, avatar, memes, js, FCList));
+                    } else {
+                        normal = new Configuration.Builder()
+                                .setEncoding(Charset.forName("UTF-8"))
+                                .setAutoReconnect(true)
+                                .setAutoReconnectAttempts(5)
+                                .setNickservPassword(FozruciX.setPassword(true))
+                                .setName(bot.getConfiguration().getName()) //Set the nick of the bot.
+                                .setLogin(bot.getConfiguration().getLogin())
+                                .setRealName(bot.getConfiguration().getRealName())
+                                .addListener(new FozruciX(manager, noteList, terminal, avatar, memes, js, FCList));
+                    }
+                    manager.addBot(normal.buildForServer(ns.getString("address"), ns.getInt("port"), ns.getString("key")));
+                    sendMessage(event, "Connecting bot to " + ns.getString("address"), false);
+                } catch (Exception e) {
+                    sendError(event, e);
+                }
             }
         }
 
@@ -2222,20 +2222,17 @@ public class FozruciX extends ListenerAdapter {
                     if (ns.getBoolean("detect")) {
                         sendMessage(event, fullNameToString(Detect.execute(ns.getString("text"))), true);
                     } else {
+                        String textToTrans = argJoiner(ns.getList("text").toArray(new String[]{}), 0);
                         Language to = Language.valueOf(ns.getString("to").toUpperCase());
                         Language from;
                         if (ns.getString("from").equals("detect")) {
-                            from = Detect.execute(ns.getString("from"));
+                            from = Detect.execute(textToTrans);
                         } else {
                             from = Language.valueOf(ns.getString("from").toUpperCase());
                         }
-                        text = Translate.execute(argJoiner(ns.getList("text").toArray(new String[]{}), 0), from, to);
+                        text = Translate.execute(textToTrans, from, to);
                         log(Level.DEBUG, "Translating: " + text);
-                        if (argJoiner(ns.getList("text").toArray(new String[]{}), 0).contains(text)) {
-                            sendMessage(event, "Yandex couldn't translate that.", true);
-                        } else {
-                            sendMessage(event, text, true);
-                        }
+                        sendMessage(event, text, true);
                     }
                 } catch (IllegalArgumentException e) {
                     sendError(event, new Exception("That Language doesn't exist!"));
@@ -2485,6 +2482,14 @@ public class FozruciX extends ListenerAdapter {
             }
         }
 
+// !getMem - Gets various info about memory
+        if (commandChecker(arg, "getMem")) {
+            if (checkPerm(event.getUser(), 0)) {
+                Runtime runtime = Runtime.getRuntime();
+                String send = "Current memory usage: " + formatFileSize(runtime.totalMemory() - runtime.freeMemory()) + "/" + formatFileSize(runtime.totalMemory()) + ". Total memory that can be used: " + formatFileSize(runtime.maxMemory()) + ".  Available Processors: " + (runtime.availableProcessors());
+                sendMessage(event, send, false);
+            }
+        }
 
 // !changenick - Changes the nick of the bot
         if (commandChecker(arg, "changeNick")) {
@@ -2718,12 +2723,15 @@ public class FozruciX extends ListenerAdapter {
         bools.clear(nickInUse);
         try {
             if (!((MessageEvent) event).getChannel().getName().equalsIgnoreCase("#retro2.0")) {
-                addWords(event.getMessage() + ".");
+                if (event.getMessage().endsWith(".")) {
+                    addWords(event.getMessage());
+                } else {
+                    addWords(event.getMessage() + ".");
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        setArrayOffset();
         saveData(event);
         debug.setCurrentNick(currentNick + "!" + currentUsername + "@" + currentHost);
         debug.setCurrDM(DNDDungeonMaster);
@@ -3291,7 +3299,7 @@ public class FozruciX extends ListenerAdapter {
 
     private void addWords(String phrase) {
         if (phrase.contains(prefix) ||
-                phrase.contains("\\")) {
+                phrase.contains(consolePrefix)) {
             return;
         }
         // put each word into an array

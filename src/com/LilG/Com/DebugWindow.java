@@ -9,8 +9,11 @@ import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Iterator;
+
+import static com.LilG.Com.FozruciX.formatFileSize;
 
 /**
  * Created by ggonz on 11/4/2015.
@@ -18,9 +21,9 @@ import java.util.Iterator;
  */
 class DebugWindow extends JFrame{
     // Define constants, variables, and labels
-    private static final int WIDTH = 700;
-	private static final int HEIGHT = 200;
-	private final JTextField currentNickTF;
+    private static final int WIDTH = 800;
+    private static final int HEIGHT = 220;
+    private final JTextField currentNickTF;
 	private final JTextField lastMessageTF;
 	private final JTextField currDMTF;
 	private final JTextField myPlayerNameTF;
@@ -29,14 +32,17 @@ class DebugWindow extends JFrame{
 	private final JTextField myFamiliarTF;
 	private final JTextField myFamiliarHPTF;
 	private final JTextField myFamiliarXPTF;
-	private final JTextField messageTF;
+    private final JTextField memoryUsageTF = new JTextField(10);
+    private final JTextField messageTF;
 	private PircBotX bot;
 	private String[] channels = {"#null"};
 	private String selectedChannel = "#null";
 	private DefaultComboBoxModel<String> comboBox;
+    private Runtime runtime = Runtime.getRuntime();
+    private final Timer timer = new Timer(1000, (ActionListener) e -> memoryUsageTF.setText("Current memory usage: " + formatFileSize(runtime.totalMemory() - runtime.freeMemory()) + "/" + formatFileSize(runtime.totalMemory())));
 
-    public DebugWindow(PircBotX bot){
-        JLabel currentNickL, lastMessageL, currDML, myPlayerNameL, myPlayerHPL, myPlayerXPL, myFamiliarL, myFamiliarHPL, myFamiliarXPL;
+    DebugWindow(PircBotX bot) {
+        JLabel currentNickL, lastMessageL, currDML, myPlayerNameL, myPlayerHPL, myPlayerXPL, myFamiliarL, myFamiliarHPL, myFamiliarXPL, memoryUsageL;
         String network = bot.getServerInfo().getNetwork();
         if (network == null) {
             network = bot.getServerHostname();
@@ -49,13 +55,14 @@ class DebugWindow extends JFrame{
 
         currentNickL = new JLabel("Currently Registered User", SwingConstants.LEFT);
         lastMessageL = new JLabel("Last message", SwingConstants.LEFT);
-        currDML = new JLabel("Current com.LilG.Com.DND.Dungeon master", SwingConstants.LEFT);
+        currDML = new JLabel("Current Dungeon master", SwingConstants.LEFT);
         myPlayerNameL = new JLabel("My username", SwingConstants.LEFT);
         myPlayerHPL = new JLabel("HP", SwingConstants.LEFT);
         myPlayerXPL = new JLabel("XP", SwingConstants.LEFT);
         myFamiliarL = new JLabel("Familiar", SwingConstants.LEFT);
         myFamiliarHPL = new JLabel("Familiar HP", SwingConstants.LEFT);
         myFamiliarXPL = new JLabel("Familiar XP", SwingConstants.LEFT);
+        memoryUsageL = new JLabel("Memory Usage", SwingConstants.LEFT);
 
         currentNickTF = new JTextField(10);
         lastMessageTF = new JTextField(10);
@@ -80,7 +87,7 @@ class DebugWindow extends JFrame{
 
         //Create Grid layout for window
         Container pane = getContentPane();
-        pane.setLayout(new GridLayout(10, 2));
+        pane.setLayout(new GridLayout(11, 2));
 
 
         super.setAlwaysOnTop(true);
@@ -112,6 +119,9 @@ class DebugWindow extends JFrame{
         pane.add(myFamiliarXPL);
         pane.add(myFamiliarXPTF);
 
+        pane.add(memoryUsageL);
+        pane.add(memoryUsageTF);
+
         comboBox = new DefaultComboBoxModel<>(channels);
         comboBox.addListDataListener(new ListDataListener(){
             @Override
@@ -138,6 +148,8 @@ class DebugWindow extends JFrame{
         setVisible(true);
 
         selectedChannel = (String) comboBox.getSelectedItem();
+
+        timer.start();
     }
 
     private String[] getChannels(ImmutableSortedSet<Channel> channel){
@@ -158,8 +170,9 @@ class DebugWindow extends JFrame{
     public void updateBot(PircBotX bot){
         this.bot = bot;
         channels = getChannels(bot.getUserBot().getChannels());
-	    updateChannels();
-	    selectedChannel = (String) comboBox.getSelectedItem();
+        selectedChannel = (String) comboBox.getSelectedItem();
+        updateChannels();
+        comboBox.setSelectedItem(selectedChannel);
     }
 
 	private void updateChannels(){
