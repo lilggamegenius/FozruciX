@@ -21,7 +21,7 @@ import java.util.List;
 
 public class FozConfig {
 
-    private final static boolean debug = true;
+    private final static boolean debug = false;
     //Configure what we want our bot to do
     private final static String nick = "FozruciX";
     private final static String login = "SmugLeaf";
