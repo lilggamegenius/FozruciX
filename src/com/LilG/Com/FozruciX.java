@@ -937,7 +937,7 @@ public class FozruciX extends ListenerAdapter {
                                 nextWord = startWords.get(rnd.nextInt(startWordsLen));
 
                                 for (int i = 1; i < arg.length; i++) {
-                                    if (nextWord.contains(arg[i])) {
+                                    if (nextWord.contains(" " + arg[i] + " ")) {
                                         matches = false;
                                     }
                                 }
@@ -952,7 +952,7 @@ public class FozruciX extends ListenerAdapter {
                                     nextWord = wordSelection.get(rnd.nextInt(wordSelectionLen));
 
                                     for (int i = 1; i < arg.length; i++) {
-                                        if (nextWord.contains(arg[i])) {
+                                        if (nextWord.contains(" " + arg[i] + " ")) {
                                             matches = false;
                                         }
                                     }
@@ -1850,7 +1850,7 @@ public class FozruciX extends ListenerAdapter {
                             }
                         }
                         if (found) {
-                            if (event.getUser().getNick().equalsIgnoreCase(noteList.get(index).getSender())) {
+                            if (event.getUser().getNick().equalsIgnoreCase(noteList.get(index).getSender()) || checkPerm(event.getUser(), 9001)) {
                                 noteList.remove(index);
                                 sendMessage(event, "Note " + arg[2 + arrayOffset] + " Deleted", true);
                             } else {
@@ -2610,6 +2610,23 @@ public class FozruciX extends ListenerAdapter {
             }
         }
 
+// !quitServ - Tells the bot to disconnect from server
+        if (commandChecker(arg, "quitServ")) {
+            if (checkPerm(event.getUser(), 9001)) {
+                //noinspection ConstantConditions
+                saveData(event);
+                event.getUser().send().notice("Disconnecting from server");
+                if (arg.length > 1 + arrayOffset) {
+                    event.getBot().sendIRC().quitServer(argJoiner(arg, 1));
+                } else {
+                    event.getBot().sendIRC().quitServer("I'm only a year old and have already wasted my entire life.");
+                }
+
+            } else {
+                permErrorchn(event);
+            }
+        }
+
 // !getUserLevels - gets the user levels of the user
         if (commandChecker(arg, "getUserLevels")) {
             if (checkPerm(event.getUser(), 0)) {
@@ -2862,7 +2879,7 @@ public class FozruciX extends ListenerAdapter {
 
         bools.clear(nickInUse);
         try {
-            if (!((MessageEvent) event).getChannel().getName().equalsIgnoreCase("#retro2.0")) {
+            if (!((MessageEvent) event).getChannel().getName().equalsIgnoreCase("#retro2.0") && !(event.getMessage().startsWith(prefix) && event.getMessage().startsWith("."))) {
                 if (event.getMessage().endsWith(".")) {
                     addWords(event.getMessage());
                 } else {
@@ -3028,7 +3045,7 @@ public class FozruciX extends ListenerAdapter {
 // !part - leaves a channel
             if (commandChecker(arg, "part")) {
                 if (arg.length != 2 + arrayOffset) {
-                    PM.getBot().sendRaw().rawLineNow("part " + arg[1 + arrayOffset] + " " + getScramble(argJoiner(arg, 2)));
+                    PM.getBot().sendRaw().rawLineNow("part " + arg[1 + arrayOffset] + " " + argJoiner(arg, 2));
                 } else {
                     PM.getBot().sendRaw().rawLineNow("part " + arg[1 + arrayOffset]);
                 }
@@ -3352,7 +3369,7 @@ public class FozruciX extends ListenerAdapter {
         try {
             for (int i = 0; i < noteList.size(); i++) {
                 System.out.print("Checking if " + noteList.get(i).getReceiver() + " matches " + user + " -> ");
-                if (noteList.get(i).getReceiver().equalsIgnoreCase(user)) {
+                if (wildCardMatch(user.toLowerCase(), noteList.get(i).getReceiver().toLowerCase())) {
                     System.out.print("Found match! -> ");
                     if (channel != null) {
                         try {
@@ -3456,7 +3473,9 @@ public class FozruciX extends ListenerAdapter {
         // if its the first or last word then select the _start / _end key
 
         for (int i = 0; i < words.length; i++) {
-
+            if (words[i].isEmpty()) {
+                break;
+            }
             // Add the start and end words to their own
             if (i == 0) {
                 ArrayList<String> startWords = markovChain.get("_start");

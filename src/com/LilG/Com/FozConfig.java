@@ -26,10 +26,11 @@ public class FozConfig {
     private final static String nick = "FozruciX";
     private final static String login = "SmugLeaf";
     private final static String realName = "\u00034\u000F* What can I do for you, little buddy?";
-    private final static String badnickNET = "irc.badnik.net";
+    private final static String badnickNET = "irc.tcrf.net"; //TL;DR Shit went down
     private final static String twitch = "irc.twitch.tv";
     private final static String caffie = "irc.caffie.net";
     private final static String esper = "irc.esper.net";
+    private final static String nova = "irc.novasquirrel.net";
     private final static int attempts = Integer.MAX_VALUE;
 
     //Bot universal variables
@@ -94,6 +95,19 @@ public class FozConfig {
             .setIdentServerEnabled(true)
             .addListener(new FozruciX(manager, noteList, terminal, avatar, memes, js, FCList)); //Add our listener that will be called on Events
 
+    private final static Configuration.Builder debugConfigNova = new Configuration.Builder() //same as normal for now
+            .setEncoding(Charset.forName("UTF-8"))
+            .setAutoReconnect(true)
+            .setAutoReconnectAttempts(attempts)
+            .setNickservPassword(FozruciX.setPassword(true))
+            .setName(nick) //Set the nick of the bot.
+            .setLogin(login)
+            .setRealName(realName)
+            .setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates())
+            .addAutoJoinChannel("#bots")
+            .setIdentServerEnabled(true)
+            .addListener(new FozruciX(manager, noteList, terminal, avatar, memes, js, FCList)); //Add our listener that will be called on Events
+
     private final static Configuration.Builder normal = new Configuration.Builder()
             .setEncoding(Charset.forName("UTF-8"))
             .setAutoReconnect(true)
@@ -105,7 +119,6 @@ public class FozConfig {
             .setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates())
             .addAutoJoinChannel("#Lil-G|bot") //Join the official #Lil-G|Bot channel
             .addAutoJoinChannel("#pokemon")
-            .addAutoJoinChannel("#retro")
             .addAutoJoinChannel("#retrotech")
             .addAutoJoinChannel("#SSB")
             .addAutoJoinChannel("#origami64")
@@ -162,6 +175,20 @@ public class FozConfig {
             .setIdentServerEnabled(true)
             .addListener(new FozruciX(manager, noteList, terminal, avatar, memes, js, FCList)); //Add our listener that will be called on Events
 
+    private final static Configuration.Builder normalNova = new Configuration.Builder()
+            .setEncoding(Charset.forName("UTF-8"))
+            .setAutoReconnect(true)
+            .setAutoReconnectAttempts(attempts)
+            .setNickservPassword(FozruciX.setPassword(true))
+            .setName(nick) //Set the nick of the bot.
+            .setLogin(login)
+            .setRealName(realName)
+            .setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates())
+            .addAutoJoinChannel("#bots")
+            .setIdentServerEnabled(true)
+            .addListener(new FozruciX(manager, noteList, terminal, avatar, memes, js, FCList)); //Add our listener that will be called on Events
+
+
     public static void main(String[] args) throws Exception {
         Class.forName("com.mysql.jdbc.Driver").newInstance();
 
@@ -173,11 +200,13 @@ public class FozConfig {
             manager.addBot(debugConfigSmwc.buildForServer(caffie, 6697));
             manager.addBot(debugConfigEsper.buildForServer(esper, 6697));
             manager.addBot(twitchDebug.buildForServer(twitch, 6667, FozruciX.setPassword(false)));
+            manager.addBot(debugConfigNova.buildForServer(nova, 6697));
         } else {
             manager.addBot(normal.buildForServer(badnickNET, 6697));
             manager.addBot(normalSmwc.buildForServer(caffie, 6697));
             manager.addBot(normalEsper.buildForServer(esper, 6697));
             manager.addBot(twitchNormal.buildForServer(twitch, 6667, FozruciX.setPassword(false)));
+            manager.addBot(normalNova.buildForServer(nova, 6697));
         }
         //Connect to the server
         manager.start();
