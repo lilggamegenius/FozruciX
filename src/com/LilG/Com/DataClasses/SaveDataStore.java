@@ -2,29 +2,28 @@ package com.LilG.Com.DataClasses;
 
 import com.LilG.Com.DND.DNDPlayer;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Hashtable;
-import java.util.List;
+import java.util.LinkedList;
+import java.util.TreeMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created by ggonz on 11/25/2015.
  * Simple data class
  */
 public class SaveDataStore {
-    private List<Note> noteList = new ArrayList<>();
+    private LinkedList<Note> noteList = new LinkedList<>();
 
-    private List<String> authedUser = new ArrayList<>();
-    private List<Integer> authedUserLevel = new ArrayList<>();
+    private LinkedList<String> authedUser = new LinkedList<>();
+    private LinkedList<Integer> authedUserLevel = new LinkedList<>();
     private String avatarLink = "http://puu.sh/oiLvW.gif";
-    private HashMap<String, Meme> memes = new HashMap<>();
-    private HashMap<String, String> FCList = new HashMap<>();
-    private List<String> DNDJoined = new ArrayList<>();
-    private List<DNDPlayer> DNDList = new ArrayList<>();
-    private Hashtable<String, ArrayList<String>> markovChain = new Hashtable<>();
+    private TreeMap<String, Meme> memes = new TreeMap<>();
+    private TreeMap<String, String> FCList = new TreeMap<>();
+    private LinkedList<String> DNDJoined = new LinkedList<>();
+    private LinkedList<DNDPlayer> DNDList = new LinkedList<>();
+    private ConcurrentHashMap<String, LinkedList<String>> markovChain = new ConcurrentHashMap<>();
 
 
-    public SaveDataStore(List<String> authedUser, List<Integer> authedUserLevel, List<String> DNDJoined, List<DNDPlayer> DNDList, List<Note> noteList, String avatarLink, HashMap<String, Meme> memes, HashMap<String, String> FCList, Hashtable<String, ArrayList<String>> markovChain) {
+    public SaveDataStore(LinkedList<String> authedUser, LinkedList<Integer> authedUserLevel, LinkedList<String> DNDJoined, LinkedList<DNDPlayer> DNDList, LinkedList<Note> noteList, String avatarLink, TreeMap<String, Meme> memes, TreeMap<String, String> FCList, ConcurrentHashMap<String, LinkedList<String>> markovChain) {
         this.authedUser = authedUser;
         this.authedUserLevel = authedUserLevel;
         this.DNDJoined = DNDJoined;
@@ -36,27 +35,27 @@ public class SaveDataStore {
         this.markovChain = markovChain;
     }
 
-    public Hashtable<String, ArrayList<String>> getMarkovChain() {
+    public ConcurrentHashMap<String, LinkedList<String>> getMarkovChain() {
         return markovChain;
     }
 
-    public List<Note> getNoteList() {
+    public LinkedList<Note> getNoteList() {
         return noteList;
     }
 
-    public List<String> getAuthedUser() {
+    public LinkedList<String> getAuthedUser() {
         return authedUser;
     }
 
-    public List<Integer> getAuthedUserLevel() {
+    public LinkedList<Integer> getAuthedUserLevel() {
         return authedUserLevel;
     }
 
-    public List<String> getDNDJoined() {
+    public LinkedList<String> getDNDJoined() {
         return DNDJoined;
     }
 
-    public List<DNDPlayer> getDNDList() {
+    public LinkedList<DNDPlayer> getDNDList() {
         return DNDList;
     }
 
@@ -64,11 +63,11 @@ public class SaveDataStore {
         return avatarLink;
     }
 
-    public HashMap<String, Meme> getMemes() {
+    public TreeMap<String, Meme> getMemes() {
         return memes;
     }
 
-    public HashMap<String, String> getFCList() {
+    public TreeMap<String, String> getFCList() {
         return FCList;
     }
 }

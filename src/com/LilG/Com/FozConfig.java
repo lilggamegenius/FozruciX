@@ -4,15 +4,13 @@ import com.LilG.Com.CMD.CommandLine;
 import com.LilG.Com.DataClasses.Meme;
 import com.LilG.Com.DataClasses.Note;
 import org.pircbotx.Configuration;
-import org.pircbotx.IdentServer;
 import org.pircbotx.MultiBotManager;
 import org.pircbotx.UtilSSLSocketFactory;
 import org.pircbotx.cap.EnableCapHandler;
 
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.LinkedList;
+import java.util.TreeMap;
 
 /**
  * Created by ggonz on 10/12/2015.
@@ -31,20 +29,22 @@ public class FozConfig {
     private final static String caffie = "irc.caffie.net";
     private final static String esper = "irc.esper.net";
     private final static String nova = "irc.novasquirrel.net";
-    private final static int attempts = Integer.MAX_VALUE;
+    private final static int attempts = 20;
+    private final static int connectDelay = 5; //5 seconds
 
     //Bot universal variables
-    private final static List<Note> noteList = new ArrayList<>();
+    private final static LinkedList<Note> noteList = new LinkedList<>();
     private final static CommandLine terminal = new CommandLine();
     private final static String avatar = "http://puu.sh/oiLYR.gif";
-    private final static HashMap<String, Meme> memes = new HashMap<>();
+    private final static TreeMap<String, Meme> memes = new TreeMap<>();
     private final static Thread js = new Thread();
-    private final static HashMap<String, String> FCList = new HashMap<>();
+    private final static TreeMap<String, String> FCList = new TreeMap<>();
 
     //Create our bot with the configuration
     private final static MultiBotManager manager = new MultiBotManager();
 
     private final static Configuration.Builder debugConfig = new Configuration.Builder()
+            .setAutoReconnectDelay(connectDelay)
             .setEncoding(Charset.forName("UTF-8"))
             .setAutoReconnect(true)
             .setAutoReconnectAttempts(attempts)
@@ -60,6 +60,7 @@ public class FozConfig {
             .addListener(new FozruciX(manager, noteList, terminal, avatar, memes, js, FCList)); //Add our listener that will be called on Events
 
     private final static Configuration.Builder debugConfigSmwc = new Configuration.Builder()
+            .setAutoReconnectDelay(connectDelay)
             .setEncoding(Charset.forName("UTF-8"))
             .setAutoReconnect(true)
             .setAutoReconnectAttempts(attempts)
@@ -73,16 +74,17 @@ public class FozConfig {
             .addListener(new FozruciX(manager, noteList, terminal, avatar, memes, js, FCList)); //Add our listener that will be called on Events
 
     private final static Configuration.Builder twitchDebug = new Configuration.Builder()
+            .setAutoReconnectDelay(connectDelay)
             .setAutoReconnect(true)
             .setAutoReconnectAttempts(attempts)
             .setEncoding(Charset.forName("UTF-8"))
-            .setAutoReconnect(true)
             .setName(nick.toLowerCase()) //Set the nick of the bot.
             .setLogin(nick.toLowerCase())
             .addAutoJoinChannel("#lilggamegenuis") //Join lilggamegenuis's twitch chat
             .addListener(new FozruciX(true, manager, noteList, avatar, memes, FCList)); //Add our listener that will be called on Events
 
     private final static Configuration.Builder debugConfigEsper = new Configuration.Builder()
+            .setAutoReconnectDelay(connectDelay)
             .setEncoding(Charset.forName("UTF-8"))
             .setAutoReconnect(true)
             .setAutoReconnectAttempts(attempts)
@@ -92,10 +94,11 @@ public class FozConfig {
             .setRealName(realName)
             .setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates())
             .addAutoJoinChannel("#savespam")
-            .setIdentServerEnabled(true)
+            //.setIdentServerEnabled(true)
             .addListener(new FozruciX(manager, noteList, terminal, avatar, memes, js, FCList)); //Add our listener that will be called on Events
 
     private final static Configuration.Builder debugConfigNova = new Configuration.Builder() //same as normal for now
+            .setAutoReconnectDelay(connectDelay)
             .setEncoding(Charset.forName("UTF-8"))
             .setAutoReconnect(true)
             .setAutoReconnectAttempts(attempts)
@@ -105,10 +108,11 @@ public class FozConfig {
             .setRealName(realName)
             .setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates())
             .addAutoJoinChannel("#bots")
-            .setIdentServerEnabled(true)
+            //.setIdentServerEnabled(true)
             .addListener(new FozruciX(manager, noteList, terminal, avatar, memes, js, FCList)); //Add our listener that will be called on Events
 
     private final static Configuration.Builder normal = new Configuration.Builder()
+            .setAutoReconnectDelay(connectDelay)
             .setEncoding(Charset.forName("UTF-8"))
             .setAutoReconnect(true)
             .setAutoReconnectAttempts(attempts)
@@ -118,6 +122,7 @@ public class FozConfig {
             .setRealName(realName)
             .setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates())
             .addAutoJoinChannel("#Lil-G|bot") //Join the official #Lil-G|Bot channel
+            .addAutoJoinChannel("#retro")
             .addAutoJoinChannel("#pokemon")
             .addAutoJoinChannel("#retrotech")
             .addAutoJoinChannel("#SSB")
@@ -128,6 +133,7 @@ public class FozConfig {
             .addListener(new FozruciX(manager, noteList, terminal, avatar, memes, js, FCList)); //Add our listener that will be called on Events
 
     private final static Configuration.Builder normalSmwc = new Configuration.Builder()
+            .setAutoReconnectDelay(connectDelay)
             .setEncoding(Charset.forName("UTF-8"))
             .setAutoReconnect(true)
             .setAutoReconnectAttempts(attempts)
@@ -146,6 +152,7 @@ public class FozConfig {
             .addListener(new FozruciX(manager, noteList, terminal, avatar, memes, js, FCList)); //Add our listener that will be called on Events
 
     private final static Configuration.Builder twitchNormal = new Configuration.Builder()
+            .setAutoReconnectDelay(connectDelay)
             .setEncoding(Charset.forName("UTF-8"))
             .setAutoReconnect(true)
             .setAutoReconnectAttempts(attempts)
@@ -162,6 +169,7 @@ public class FozConfig {
             .addListener(new FozruciX(true, manager, noteList, avatar, memes, FCList)); //Add our listener that will be called on Events
 
     private final static Configuration.Builder normalEsper = new Configuration.Builder()
+            .setAutoReconnectDelay(connectDelay)
             .setEncoding(Charset.forName("UTF-8"))
             .setAutoReconnect(true)
             .setAutoReconnectAttempts(attempts)
@@ -172,10 +180,11 @@ public class FozConfig {
             .setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates())
             .addAutoJoinChannel("#savespam")
             .addAutoJoinChannel("#ducks")
-            .setIdentServerEnabled(true)
+            //.setIdentServerEnabled(true)
             .addListener(new FozruciX(manager, noteList, terminal, avatar, memes, js, FCList)); //Add our listener that will be called on Events
 
     private final static Configuration.Builder normalNova = new Configuration.Builder()
+            .setAutoReconnectDelay(connectDelay)
             .setEncoding(Charset.forName("UTF-8"))
             .setAutoReconnect(true)
             .setAutoReconnectAttempts(attempts)
@@ -185,7 +194,7 @@ public class FozConfig {
             .setRealName(realName)
             .setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates())
             .addAutoJoinChannel("#bots")
-            .setIdentServerEnabled(true)
+            //.setIdentServerEnabled(true)
             .addListener(new FozruciX(manager, noteList, terminal, avatar, memes, js, FCList)); //Add our listener that will be called on Events
 
 
@@ -193,7 +202,8 @@ public class FozConfig {
         Class.forName("com.mysql.jdbc.Driver").newInstance();
 
         //Before anything else
-        IdentServer.startServer();
+        //IdentServer.startServer();
+
 
         if (debug) {
             manager.addBot(debugConfig.buildForServer(badnickNET, 6697));

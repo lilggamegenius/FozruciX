@@ -46,6 +46,7 @@ import net.sourceforge.argparse4j.impl.Arguments;
 import net.sourceforge.argparse4j.inf.ArgumentParser;
 import net.sourceforge.argparse4j.inf.ArgumentParserException;
 import net.sourceforge.argparse4j.inf.Namespace;
+import org.apache.commons.lang.time.StopWatch;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Level;
 import org.apache.log4j.Priority;
@@ -79,6 +80,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -106,19 +108,19 @@ public class FozruciX extends ListenerAdapter {
     private final static ExtendedDoubleEvaluator calc = new ExtendedDoubleEvaluator();
     private final static StaticVariableSet<Double> variables = new StaticVariableSet<>();
     private final static String appid = "RGHHEP-HQU7HL67W9";
-    private final static List<RPSGame> rpsGames = new ArrayList<>();
-    public static volatile Hashtable<String, ArrayList<String>> markovChain = new Hashtable<>();
+    private final static LinkedList<RPSGame> rpsGames = new LinkedList<>();
+    public static volatile ConcurrentHashMap<String, LinkedList<String>> markovChain = new ConcurrentHashMap<>();
     private static volatile Random rnd = new Random();
     private static volatile ChatterBotSession cleverBotsession;
     private static volatile ChatterBotSession pandoraBotsession;
     private static volatile ChatterBotSession jabberBotsession;
     private static volatile GenericMessageEvent lastEvent;
     private static volatile CMD singleCMD = null;
-    private static volatile List<Note> noteList;
-    private static volatile List<String> authedUser = new ArrayList<>();
-    private static volatile List<Integer> authedUserLevel = new ArrayList<>();
-    private static volatile List<String> DNDJoined = new ArrayList<>();
-    private static volatile List<DNDPlayer> DNDList = new ArrayList<>();
+    private static volatile LinkedList<Note> noteList;
+    private static volatile LinkedList<String> authedUser = new LinkedList<>();
+    private static volatile LinkedList<Integer> authedUserLevel = new LinkedList<>();
+    private static volatile LinkedList<String> DNDJoined = new LinkedList<>();
+    private static volatile LinkedList<DNDPlayer> DNDList = new LinkedList<>();
     private static volatile Dungeon DNDDungeon = new Dungeon();
     private static volatile String DNDDungeonMaster = "Null";
     private static volatile int jokeCommandDebugVar = 30;
@@ -132,11 +134,12 @@ public class FozruciX extends ListenerAdapter {
     private static volatile String consolePrefix = ">";
     private static volatile String discordNick = "Discord";
     private static volatile String avatar;
-    private static volatile HashMap<String, Meme> memes;
-    private static volatile HashMap<String, String> FCList;
+    private static volatile TreeMap<String, Meme> memes;
+    private static volatile TreeMap<String, String> FCList;
     private static volatile MultiBotManager manager;
     private static volatile Level debuggingLevel = Level.toLevel("DEBUG");
     private static volatile TreeSet<String> qList = new TreeSet<>();
+    private static volatile StopWatch qTimer = new StopWatch();
     private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
     private final BitSet bools = new BitSet(10); // true, false, null, null, null, false, true, true, false, false
     private String lastDiscordUser;
@@ -150,7 +153,7 @@ public class FozruciX extends ListenerAdapter {
     private boolean twitch = false;
 
     @SuppressWarnings("unused")
-    public FozruciX(MultiBotManager manager, List<Note> noteList, CommandLine terminal, String avatar, HashMap<String, Meme> memes, Thread js, HashMap<String, String> FCList) {
+    public FozruciX(MultiBotManager manager, LinkedList<Note> noteList, CommandLine terminal, String avatar, TreeMap<String, Meme> memes, Thread js, TreeMap<String, String> FCList) {
         // true, false, null, null, null, false, true, true
         bools.set(jokeCommands);
         bools.set(color);
@@ -167,7 +170,7 @@ public class FozruciX extends ListenerAdapter {
 
 
     @SuppressWarnings("unused")
-    public FozruciX(boolean Twitch, MultiBotManager manager, List<Note> noteList, String avatar, HashMap<String, Meme> memes, HashMap<String, String> FCList) {
+    public FozruciX(boolean Twitch, MultiBotManager manager, LinkedList<Note> noteList, String avatar, TreeMap<String, Meme> memes, TreeMap<String, String> FCList) {
         if (Twitch) {
             currentNick = "lilggamegenuis";
             currentUsername = currentNick;
@@ -310,14 +313,14 @@ public class FozruciX extends ListenerAdapter {
         if (messageMode == MessageModes.reversed) {
             msgToSend = new StringBuilder(msgToSend).reverse().toString();
         } else if (messageMode == MessageModes.wordReversed) {
-            List<String> message = new ArrayList<>(Arrays.asList(msgToSend.split("\\s+")));
+            LinkedList<String> message = new LinkedList<>(Arrays.asList(msgToSend.split("\\s+")));
             msgToSend = "";
             for (int i = message.size() - 1; i >= 0; i--) {
                 msgToSend += message.get(i) + " ";
             }
         } else if (messageMode == MessageModes.scrambled) {
             char[] msgChars = msgToSend.toCharArray();
-            ArrayList<Character> chars = new ArrayList<>();
+            LinkedList<Character> chars = new LinkedList<>();
             for (char msgChar : msgChars) {
                 chars.add(msgChar);
             }
@@ -328,7 +331,7 @@ public class FozruciX extends ListenerAdapter {
                 chars.remove(num);
             }
         } else if (messageMode == MessageModes.wordScrambled) {
-            List<String> message = new ArrayList<>(Arrays.asList(msgToSend.split("\\s+")));
+            LinkedList<String> message = new LinkedList<>(Arrays.asList(msgToSend.split("\\s+")));
             msgToSend = "";
             while (message.size() != 0) {
                 int num = randInt(0, message.size() - 1);
@@ -404,8 +407,8 @@ public class FozruciX extends ListenerAdapter {
         bot.sendIRC().mode(event.getBot().getNick(), "+B");
 
         // Create the first two entries (k:_start, k:_end)
-        markovChain.put("_start", new ArrayList<>());
-        markovChain.put("_end", new ArrayList<>());
+        markovChain.put("_start", new LinkedList<>());
+        markovChain.put("_end", new LinkedList<>());
 
         loadData(event);
         makeDebug(event);
@@ -445,12 +448,12 @@ public class FozruciX extends ListenerAdapter {
 
             memes = save.getMemes();
             FCList = save.getFCList();
-            Hashtable<String, ArrayList<String>> markovTemp = save.getMarkovChain();
+            ConcurrentHashMap<String, LinkedList<String>> markovTemp = save.getMarkovChain();
             if (markovTemp == null) {
-                markovChain = new Hashtable<>();
+                markovChain = new ConcurrentHashMap<>();
                 // Create the first two entries (k:_start, k:_end)
-                markovChain.put("_start", new ArrayList<>());
-                markovChain.put("_end", new ArrayList<>());
+                markovChain.put("_start", new LinkedList<>());
+                markovChain.put("_end", new LinkedList<>());
             }
             bools.set(dataLoaded);
             return true;
@@ -489,7 +492,7 @@ public class FozruciX extends ListenerAdapter {
         return ret;
     }
 
-    private void sendPage(GenericMessageEvent event, String[] arg, ArrayList<String> messagesToSend) {
+    private void sendPage(GenericMessageEvent event, String[] arg, LinkedList<String> messagesToSend) {
         try {
             UUID name = UUID.randomUUID();
             File f = new File("Data/site/temp/" + name + ".htm");
@@ -639,50 +642,121 @@ public class FozruciX extends ListenerAdapter {
                 if (arg.length < 2 + arrayOffset) {
                     sendNotice(event.getUser().getNick(), "List of commands so far. for more info on these commands do " + prefix + "commands. commands with \"Joke: \" are joke commands that can be disabled");
                     sendNotice(event.getUser().getNick(), Arrays.asList(commands).toString());
-                } else if (arg[1 + arrayOffset].equalsIgnoreCase("commands")) {
-                    sendNotice(event.getUser().getNick(), "Really? ಠ_ಠ");
-                } else if (arg[1 + arrayOffset].equalsIgnoreCase("helpMe")) {
-                    sendNotice(event.getUser().getNick(), "Changed to commands (Except you already know that since you just used it...)");
-                } else if (arg[1 + arrayOffset].equalsIgnoreCase("time")) {
-                    sendNotice(event.getUser().getNick(), "Displays info from the Date class");
-                } else if (arg[1 + arrayOffset].equalsIgnoreCase("Hello")) {
-                    sendNotice(event.getUser().getNick(), "Just your average \"hello world!\" program");
-                } else if (arg[1 + arrayOffset].equalsIgnoreCase("Attempt")) {
-                    sendNotice(event.getUser().getNick(), "Its a inside-joke to my friends in school. If i'm not away, ask me and i'll tell you about it.");
-                } else if (arg[1 + arrayOffset].equalsIgnoreCase("RandomNum")) {
-                    sendNotice(event.getUser().getNick(), "Creates a random number between the 2 integers");
-                    sendNotice(event.getUser().getNick(), "Usage: first number sets the minimum number, second sets the maximum");
-                } else if (arg[1 + arrayOffset].equalsIgnoreCase("version")) {
-                    sendNotice(event.getUser().getNick(), "Displays the version of the bot");
-                } else if (arg[1 + arrayOffset].equalsIgnoreCase("StringToBytes")) {
-                    sendNotice(event.getUser().getNick(), "Converts a String into a Byte array");
-                } else if (arg[1 + arrayOffset].equalsIgnoreCase("temp")) {
-                    sendNotice(event.getUser().getNick(), "Converts a temperature unit to another unit.");
-                    sendNotice(event.getUser().getNick(), "Usage: First parameter is the unit its in. Second parameter is the unit to convert to. Third parameter is the number to convert to.");
-                } else if (arg[1 + arrayOffset].equalsIgnoreCase("chat")) {
-                    sendNotice(event.getUser().getNick(), "This command functions like ELIZA. Talk to it and it talks back.");
-                    sendNotice(event.getUser().getNick(), "Usage: First parameter defines what service to use. it supports CleverBot, PandoraBot, and JabberWacky. Second parameter is the Message to send. Could also be the special param \"\\setup\" to actually start the bot.");
-                } else if (arg[1 + arrayOffset].equalsIgnoreCase("CalcJ")) {
-                    sendNotice(event.getUser().getNick(), "This command takes a expression and evaluates it. There are 2 different functions. Currently the only variable is \"x\"");
-                    sendNotice(event.getUser().getNick(), "Usage 1: The simple way is to type out the expression without any variables. Usage 2: 1st param is what to start x at. 2nd is what to increment x by. 3rd is amount of times to increment x. last is the expression.");
-                } else if (arg[1 + arrayOffset].equalsIgnoreCase("CalcJS")) {
-                    sendNotice(event.getUser().getNick(), "Renamed to just \"JS\"");
-                } else if (arg[1 + arrayOffset].equalsIgnoreCase("JS")) {
-                    sendNotice(event.getUser().getNick(), "This command takes a expression and evaluates it using JavaScript's eval() function. that means that it can also run native JS Code as well.");
-                    sendNotice(event.getUser().getNick(), "Usage: simply enter a expression and it will evaluate it. if it contains spaces, enclose in quotes. After the expression you may also specify which radix to output to (default is 10)");
-                } else if (arg[1 + arrayOffset].equalsIgnoreCase("StringToBytes")) {
-                    sendNotice(event.getUser().getNick(), "Converts a String into a Byte array");
-                } else if (arg[1 + arrayOffset].equalsIgnoreCase("NoteJ")) {
-                    sendNotice(event.getUser().getNick(), "Allows the user to leave notes");
-                    sendNotice(event.getUser().getNick(), "SubCommand add <Nick to leave note to> <message>: adds a note. SubCommand del <Given ID>: Deletes a set note Usage: . SubCommand list: Lists notes you've left");
-                } else if (arg[1 + arrayOffset].equalsIgnoreCase("Memes")) {
-                    sendNotice(event.getUser().getNick(), "Meme database. To get a meme you simply have to do \"Memes <meme name>\"");
-                    sendNotice(event.getUser().getNick(), "SubCommand set <Meme Name> <The Meme>: Sets up a meme. Note, When Setting a meme that already exists, you have to be the creator to edit it.  SubCommand list: Lists all the memes in the database");
-                } else if (arg[1 + arrayOffset].equalsIgnoreCase("disasm")) {
-                    sendNotice(event.getUser().getNick(), "Disassembles bytes from different CPUs");
-                    sendNotice(event.getUser().getNick(), "Usage: 1st param is the CPU to read from. 2nd param is the bytes to assemble. You can use M68k as a shorthand instead of typing 68000. List of available CPUs https://www.hex-rays.com/products/ida/support/idadoc/618.shtml");
-                } else {
-                    sendNotice(event.getUser().getNick(), "That either isn't a command, or " + currentNick + " hasn't add that to the help yet.");
+                } else
+                    switch (arg[1 + arrayOffset].toLowerCase()) {
+                        case "commands":
+                            sendNotice(event.getUser().getNick(), "Really? ಠ_ಠ");
+                            break;
+                        case "helpMe":
+                            sendNotice(event.getUser().getNick(), "Changed to commands (Except you already know that since you just used it...)");
+                            break;
+                        case "time":
+                            sendNotice(event.getUser().getNick(), "Displays info from the Date class");
+                            break;
+                        case "Hello":
+                            sendNotice(event.getUser().getNick(), "Just your average \"hello world!\" program");
+                            break;
+                        case "RandomNum":
+                            sendNotice(event.getUser().getNick(), "Creates a random number between the 2 integers");
+                            sendNotice(event.getUser().getNick(), "Usage: first number sets the minimum number, second sets the maximum");
+                            break;
+                        case "version":
+                            sendNotice(event.getUser().getNick(), "Displays the version of the bot");
+                            break;
+                        case "StringToBytes":
+                            sendNotice(event.getUser().getNick(), "Converts a String into a Byte array");
+                            break;
+                        case "temp":
+                            sendNotice(event.getUser().getNick(), "Converts a temperature unit to another unit.");
+                            sendNotice(event.getUser().getNick(), "Usage: First parameter is the unit its in. Second parameter is the unit to convert to. Third parameter is the number to convert to.");
+                            break;
+                        case "chat":
+                            sendNotice(event.getUser().getNick(), "This command functions like ELIZA. Talk to it and it talks back.");
+                            sendNotice(event.getUser().getNick(), "Usage: First parameter defines what service to use. it supports CleverBot, PandoraBot, and JabberWacky. Second parameter is the Message to send. Could also be the special param \"\\setup\" to actually start the bot.");
+                            break;
+                        case "CalcJ":
+                            sendNotice(event.getUser().getNick(), "This command takes a expression and evaluates it. There are 2 different functions. Currently the only variable is \"x\"");
+                            sendNotice(event.getUser().getNick(), "Usage 1: The simple way is to type out the expression without any variables. Usage 2: 1st param is what to start x at. 2nd is what to increment x by. 3rd is amount of times to increment x. last is the expression.");
+                            break;
+                        case "CalcJS":
+                            sendNotice(event.getUser().getNick(), "Renamed to just \"JS\"");
+                        case "JS":
+                            sendNotice(event.getUser().getNick(), "This command takes a expression and evaluates it using JavaScript's eval() function. that means that it can also run native JS Code as well.");
+                            sendNotice(event.getUser().getNick(), "Usage: simply enter a expression and it will evaluate it. if it contains spaces, enclose in quotes. After the expression you may also specify which radix to output to (default is 10)");
+                            break;
+                        case "NoteJ":
+                            sendNotice(event.getUser().getNick(), "Allows the user to leave notes");
+                            sendNotice(event.getUser().getNick(), "SubCommand add <Nick to leave note to> <message>: adds a note. SubCommand del <Given ID>: Deletes a set note Usage: . SubCommand list: Lists notes you've left");
+                            break;
+                        case "Memes":
+                            sendNotice(event.getUser().getNick(), "Meme database. To get a meme you simply have to do \"Memes <meme name>\"");
+                            sendNotice(event.getUser().getNick(), "SubCommand set <Meme Name> <The Meme>: Sets up a meme. Note, When Setting a meme that already exists, you have to be the creator to edit it.  SubCommand list: Lists all the memes in the database");
+                            break;
+                        case "disasm":
+                            sendNotice(event.getUser().getNick(), "Disassembles bytes from different CPUs");
+                            sendNotice(event.getUser().getNick(), "Usage: 1st param is the CPU to read from. 2nd param is the bytes to assemble. You can use M68k as a shorthand instead of typing 68000. List of available CPUs https://www.hex-rays.com/products/ida/support/idadoc/618.shtml");
+                            break;
+                        case "attempt":
+                            sendNotice(event.getUser().getNick(), "Its a inside-joke with my friends in school. If i'm not away, ask me and i'll tell you about it.");
+                            break;
+                        case "reverseList":
+                            sendNotice(event.getUser().getNick(), "Reverses a list, pretty self explanitory");
+                            break;
+                        case "getDate":
+                            sendNotice(event.getUser().getNick(), "Gets the date");
+                            break;
+                        case "markov":
+                            sendNotice(event.getUser().getNick(), "Creates a markov chain from everything seen in chat");
+                            break;
+                        case "8Ball":
+                            sendNotice(event.getUser().getNick(), "Rolls the magic 8Ball");
+                            break;
+                        case "CheckLink":
+                            sendNotice(event.getUser().getNick(), "Checks links, what else");
+                            break;
+                        case "CalcA":
+                            sendNotice(event.getUser().getNick(), "Currently broken: Calculates math using Wolfram Alpha");
+                            break;
+                        case "SolveFor":
+                            sendNotice(event.getUser().getNick(), "Currently broken: Solves for a equation");
+                            break;
+                        case "count":
+                            sendNotice(event.getUser().getNick(), "");
+                            break;
+                        case "LookupWord":
+                            sendNotice(event.getUser().getNick(), "Looks up a word in the dictionary");
+                            break;
+                        case "Lookup":
+                            sendNotice(event.getUser().getNick(), "Currently broken: Looks up a word in the wikipedia");
+                            break;
+                        case "BlockConv":
+                            sendNotice(event.getUser().getNick(), "Converts blocks to a actually known format");
+                            break;
+                        case "FC":
+                            sendNotice(event.getUser().getNick(), "Stores FC codes in a database so you can retrieve it");
+                            break;
+                        case "q":
+                            sendNotice(event.getUser().getNick(), "Allows from syncing up something such as sync watching a show");
+                            break;
+                        case "ToSciNo":
+                            sendNotice(event.getUser().getNick(), "Converts a number to Scientific notation");
+                            break;
+                        case "DND":
+                            sendNotice(event.getUser().getNick(), "");
+                            break;
+                        case "acc":
+                        case "68kcyc":
+                        case "asmcyclecounter":
+                            sendNotice(event.getUser().getNick(), "Counts cycles for 68k asm instructions. Use || to seperate lines");
+                            break;
+                        case "Trans":
+                            sendNotice(event.getUser().getNick(), "Translates between languages. -t is to, -f is from, and -d is detect");
+                            break;
+                        case "BadTrans":
+                            sendNotice(event.getUser().getNick(), "Translates between languages... badly...");
+                            break;
+                        default:
+                            sendNotice(event.getUser().getNick(), "That either isn't a command, or " + currentNick + " hasn't add that to the help yet.");
                 }
             }
 
@@ -812,7 +886,7 @@ public class FozruciX extends ListenerAdapter {
             if (checkPerm(event.getUser(), 9001)) {
                 avatar = arg[1 + arrayOffset];
                 sendMessage(event, "Avatar set", false);
-                List<User> users = new ArrayList<>();
+                LinkedList<User> users = new LinkedList<>();
                 for (Channel channels : event.getBot().getUserBot().getChannels()) {
                     channels.getUsers().stream().filter(curUser -> users.indexOf(curUser) == -1 && !curUser.getNick().equalsIgnoreCase(event.getBot().getNick())).forEach(users::add);
                 }
@@ -857,7 +931,7 @@ public class FozruciX extends ListenerAdapter {
                     list[i] = temp;
                 }
                 list[i] = temp;
-                String str = new ArrayList<>(Arrays.asList(list)).toString();
+                String str = new LinkedList<>(Arrays.asList(list)).toString();
                 sendMessage(event, str, true);
             }
         }
@@ -881,7 +955,7 @@ public class FozruciX extends ListenerAdapter {
                         NoticeEvent currentEvent = queue.waitFor(NoticeEvent.class);
                         //Check if this message is the "ping" command
                         if (currentEvent.getMessage().toLowerCase().contains("time")) {
-                            List<DateGroup> groups = parser.parse((currentEvent.getMessage()));
+                            LinkedList<DateGroup> groups = parser.parse((currentEvent.getMessage()));
                             ZonedDateTime time2 = groups.get(0).getDates().get(0);
 
                             TimeZone.setDefault(new SimpleTimeZone(time2.getTimezoneOffset(), new ZoneId()));
@@ -914,47 +988,57 @@ public class FozruciX extends ListenerAdapter {
         if (commandChecker(arg, "markov")) {
             if (checkPerm(event.getUser(), 0) && !channel.equalsIgnoreCase("#origami64")) {
                 if (markovChain == null) {
-                    markovChain = new Hashtable<String, ArrayList<String>>();
+                    markovChain = new ConcurrentHashMap<String, LinkedList<String>>();
                 }
                 boolean loop = true;
                 String newPhrase = "";
                 try {
                     while (loop) {
                         // ArrayList to hold the phrase
-                        newPhrase = "";
 
                         // String for the next word
-                        String nextWord;
-                        boolean matches = arg.length > 1;
+                        String nextWord = null;
+                        //boolean matches = arg.length > 1+arrayOffset;
+                        boolean matches = false;
+                        int matchAttempts = 0;
                         do {
+                            newPhrase = "";
                             for (int loops = 0; randInt(0, 3) == 1 && loops < 3; loops++) {
                                 if (loops > 0) {
                                     newPhrase += " ";
                                 }
                                 // Select the first word
-                                ArrayList<String> startWords = markovChain.get("_start");
-                                int startWordsLen = startWords.size();
-                                nextWord = startWords.get(rnd.nextInt(startWordsLen));
+                                LinkedList<String> startWords = markovChain.get("_start");
 
-                                for (int i = 1; i < arg.length; i++) {
-                                    if (nextWord.contains(" " + arg[i] + " ")) {
+                                for (int i = 1 + arrayOffset; i < arg.length; i++) {
+                                    if (startWords.contains(arg[i])) {
                                         matches = false;
+                                        nextWord = startWords.get(startWords.indexOf(arg[i]));
                                     }
                                 }
+                                if (nextWord == null) {
+                                    int startWordsLen = startWords.size();
+                                    nextWord = startWords.get(rnd.nextInt(startWordsLen));
+                                }
+
 
                                 int greaterThanOne = nextWord.length() > 1 ? 2 : (nextWord.length() > 0 ? 1 : 0);
                                 newPhrase += nextWord.substring(0, greaterThanOne) + "\u200B" + nextWord.substring(greaterThanOne, nextWord.length());
 
                                 // Keep looping through the words until we've reached the end
                                 while (nextWord.charAt(nextWord.length() - 1) != '.') {
-                                    ArrayList<String> wordSelection = markovChain.get(nextWord);
-                                    int wordSelectionLen = wordSelection.size();
-                                    nextWord = wordSelection.get(rnd.nextInt(wordSelectionLen));
+                                    LinkedList<String> wordSelection = markovChain.get(nextWord);
+                                    nextWord = null;
 
                                     for (int i = 1; i < arg.length; i++) {
-                                        if (nextWord.contains(" " + arg[i] + " ")) {
+                                        if (startWords.contains(arg[i])) {
                                             matches = false;
+                                            nextWord = startWords.get(startWords.indexOf(arg[i]));
                                         }
+                                    }
+                                    if (nextWord == null) {
+                                        int wordSelectionLen = wordSelection.size();
+                                        nextWord = wordSelection.get(rnd.nextInt(wordSelectionLen));
                                     }
 
                                     greaterThanOne = nextWord.length() > 1 ? 2 : (nextWord.length() > 0 ? 1 : 0);
@@ -968,7 +1052,8 @@ public class FozruciX extends ListenerAdapter {
                                     loop = false;
                                 }
                             }
-                        } while (matches);
+                            matchAttempts++;
+                        } while (matches || matchAttempts > 50);
                     }
                     sendMessage(event, "\u0002\u0002" + newPhrase, false);
                     log(Level.DEBUG, newPhrase.replace('\u200B', '▮'));
@@ -1253,26 +1338,42 @@ public class FozruciX extends ListenerAdapter {
 // !CalcJ - calculate a expression
         if (commandChecker(arg, "CalcJ")) {
             if (checkPerm(event.getUser(), 0)) {
+                String[] args = formatStringArgs(arg);
+                ArgumentParser parser = ArgumentParsers.newArgumentParser("CalcJ")
+                        .description("Calculates an expression");
+                parser.addArgument("expression").nargs("*")
+                        .help("The expression to evaluate");
+                parser.addArgument("-v", "--Val").type(Double.class).setDefault(-1)
+                        .help("Sets what the variable starts at");
+                parser.addArgument("-c", "--char").type(String.class).setDefault("x")
+                        .help("Sets what character the variable is");
+                parser.addArgument("-s", "--step").type(Double.class).setDefault(1)
+                        .help("Sets How much to increase x at");
+                parser.addArgument("-a", "--amount").type(Integer.class).setDefault(3)
+                        .help("Sets How many times to increase");
+                Namespace ns;
                 try {
-                    if (arg.length != 2 + arrayOffset) {
-                        double x = Double.parseDouble(arg[1 + arrayOffset]);
-                        double step = Double.parseDouble(arg[2 + arrayOffset]);
-                        double calcAmount = Double.parseDouble(arg[3 + arrayOffset]) - 1;
-                        if (calcAmount > 5) {
+                    ns = parser.parseArgs(args);
+                    log(Level.DEBUG, ns.toString());
+                    if (containsAny(event.getMessage(), "-v", "-c", "-s", "-a", "--Val", "--char", "--step", "--amount")) {
+                        double x = ns.getDouble("Val");
+                        double step = ns.getDouble("step");
+                        double calcAmount = ns.getInt("amount");
+                        if (calcAmount > 5 && !checkPerm(event.getUser(), 8)) {
                             calcAmount = 5;
                         }
                         int count = 0;
-                        ArrayList<Double> eval = new ArrayList<>(0);
+                        LinkedList<Double> eval = new LinkedList<>();
 
                         while (count <= calcAmount) {
-                            variables.set("x", x);
-                            eval.add(calc.evaluate(argJoiner(arg, 4).toLowerCase(), variables));
+                            variables.set(ns.get("char"), x);
+                            eval.add(calc.evaluate(argJoiner(ns.getList("expression").toArray(new String[]{}), 0).toLowerCase(), variables));
                             x += step;
                             count++;
                         }
                         sendMessage(event, eval.toString(), true);
                     } else {
-                        double eval = calc.evaluate(arg[1 + arrayOffset]);
+                        double eval = calc.evaluate(argJoiner(ns.getList("expression").toArray(new String[]{}), 0));
                         sendMessage(event, "" + eval, true);
                     }
                 } catch (Exception e) {
@@ -1696,7 +1797,7 @@ public class FozruciX extends ListenerAdapter {
                         }
                     }
                 } catch (NullPointerException e) {
-                    FCList = new HashMap<>();
+                    FCList = new TreeMap<>();
                     sendMessage(event, "Try the command again", true);
                 } catch (Exception e) {
                     sendError(event, e);
@@ -1720,7 +1821,7 @@ public class FozruciX extends ListenerAdapter {
                     if (stmt.execute(argJoiner(arg, 1))) {
                         rs = stmt.getResultSet();
                     }
-                    ArrayList<String> results = new ArrayList<>();
+                    LinkedList<String> results = new LinkedList<>();
                     while (rs.next()) {
                         results.add(rs.getRef(rs.getRow()).toString());
                         log(Level.DEBUG, rs.getRow() + "");
@@ -1808,8 +1909,10 @@ public class FozruciX extends ListenerAdapter {
                         sendMessage(event, "Current people in Q: " + qList.toString().replace("[", "").replace("]", ""), true);
                     } else if (arg[1 + arrayOffset].equalsIgnoreCase("clear")) {
                         qList.clear();
+                        qTimer = new StopWatch();
                         sendMessage(event, "Q has been qilled", true);
                     } else if (arg[1 + arrayOffset].equalsIgnoreCase("start")) {
+                        qTimer = new StopWatch();
                         int time = 10;
                         if (arg.length > 1 + arrayOffset) {
                             time = Integer.parseInt(arg[2 + arrayOffset]);
@@ -1824,6 +1927,11 @@ public class FozruciX extends ListenerAdapter {
                         sendMessage(event, "1", false);
                         pause(1);
                         sendMessage(event, "GO! " + qList.toString().replace("[", "").replace("]", ""), false);
+                        qTimer = new StopWatch();
+                        qTimer.start();
+                    } else if (arg[1 + arrayOffset].equalsIgnoreCase("time")) {
+
+                        sendMessage(event, "Current time: " + qTimer.toString(), true);
                     }
                 } catch (InterruptedException ex) {
                     Thread.currentThread().interrupt();
@@ -1861,8 +1969,8 @@ public class FozruciX extends ListenerAdapter {
                         }
                     } else if (arg[1 + arrayOffset].equalsIgnoreCase("list")) {
                         int i = 0;
-                        List<String> found = new ArrayList<>();
-                        List<String> foundUUID = new ArrayList<>();
+                        LinkedList<String> found = new LinkedList<>();
+                        LinkedList<String> foundUUID = new LinkedList<>();
                         while (noteList.size() > i) {
                             if (noteList.get(i).getSender().equalsIgnoreCase(event.getUser().getNick())) {
                                 found.add(noteList.get(i).getMessageForList());
@@ -2000,6 +2108,15 @@ public class FozruciX extends ListenerAdapter {
             }
         }
         bools.clear(prefixRan);
+
+// !highlightAll - Highlights everyone
+        if (commandChecker(arg, "highlightAll")) {
+            if (checkPerm(event.getUser(), 6)) {
+                sendMessage(event, argJoiner(arg, 1 + arrayOffset), false);
+            } else {
+                permErrorchn(event);
+            }
+        }
 
 // !Saythis - Tells the bot to say someting
         if (commandChecker(arg, "saythis")) {
@@ -2254,11 +2371,11 @@ public class FozruciX extends ListenerAdapter {
                     //noinspection StatementWithEmptyBody
                     process.waitFor();
                     Scanner s = new Scanner(process.getInputStream());
-                    ArrayList<String> output = new ArrayList<>();
+                    LinkedList<String> output = new LinkedList<>();
                     while (s.hasNext()) {
                         output.add(s.nextLine());
                     }
-                    output = new ArrayList<>(output.subList(0, output.size() / 2));
+                    output = new LinkedList<>(output.subList(0, output.size() / 2));
                     log(Level.DEBUG, output.toString());
                     if (output.size() > 3) {
                         sendPage(event, arg, output);
@@ -2294,7 +2411,7 @@ public class FozruciX extends ListenerAdapter {
                     BufferedReader disasm = new BufferedReader(new FileReader("Data\\temp.asm"));
                     String disasmTemp;
                     boolean fileIsEmpty = true;
-                    ArrayList<String> messagesToSend = new ArrayList<>();
+                    LinkedList<String> messagesToSend = new LinkedList<>();
                     while ((disasmTemp = disasm.readLine()) != null) {
                         if (!disasmTemp.startsWith(";") &&          // Check for comments
                                 !disasmTemp.startsWith(" #") &&
@@ -2544,7 +2661,6 @@ public class FozruciX extends ListenerAdapter {
             if (checkPerm(event.getUser(), 5)) {
                 saveData(event);
                 event.getBot().sendIRC().quitServer("Died! Respawning in about 5 seconds");
-                event.getBot().stopBotReconnect();
             } else {
                 permErrorchn(event);
             }
@@ -2604,24 +2720,7 @@ public class FozruciX extends ListenerAdapter {
                 } else {
                     event.getBot().sendIRC().quitServer("I'm only a year old and have already wasted my entire life.");
                 }
-
-            } else {
-                permErrorchn(event);
-            }
-        }
-
-// !quitServ - Tells the bot to disconnect from server
-        if (commandChecker(arg, "quitServ")) {
-            if (checkPerm(event.getUser(), 9001)) {
-                //noinspection ConstantConditions
-                saveData(event);
-                event.getUser().send().notice("Disconnecting from server");
-                if (arg.length > 1 + arrayOffset) {
-                    event.getBot().sendIRC().quitServer(argJoiner(arg, 1));
-                } else {
-                    event.getBot().sendIRC().quitServer("I'm only a year old and have already wasted my entire life.");
-                }
-
+                event.getBot().stopBotReconnect();
             } else {
                 permErrorchn(event);
             }
@@ -2851,7 +2950,7 @@ public class FozruciX extends ListenerAdapter {
             if (checkPerm(event.getUser(), 0) && !channel.equalsIgnoreCase("#retro")) {
                 if (bools.get(jokeCommands) || checkPerm(event.getUser(), 1)) {
                     Iterator<User> user = ((MessageEvent) event).getChannel().getUsers().iterator();
-                    List<String> userList = new ArrayList<>();
+                    LinkedList<String> userList = new LinkedList<>();
                     while (user.hasNext()) {
                         userList.add(user.next().getNick());
                     }
@@ -3267,14 +3366,14 @@ public class FozruciX extends ListenerAdapter {
 
     @SuppressWarnings("SameParameterValue")
     private String[] splitMessage(String stringToSplit, int amountToSplit) {
-        return splitMessage(stringToSplit, 0, true);
+        return splitMessage(stringToSplit, amountToSplit, true);
     }
 
     private String[] splitMessage(String stringToSplit, int amountToSplit, boolean removeQuotes) {
         if (stringToSplit == null)
             return new String[0];
 
-        List<String> list = new ArrayList<>();
+        LinkedList<String> list = new LinkedList<>();
         Matcher argSep = Pattern.compile("([^\"]\\S*|\".+?\")\\s*").matcher(stringToSplit);
         while (argSep.find())
             list.add(argSep.group(1));
@@ -3313,8 +3412,6 @@ public class FozruciX extends ListenerAdapter {
         if (cause.contains("jdk.nashorn.internal.runtime.ParserException") || from.contains("javax.script.ScriptException")) {
             if (cause.contains("TypeError: Cannot read property")) {
                 sendMessage(event, "There was a type error, Cannot read property", false);
-            } else if (e instanceof IndexOutOfBoundsException) {
-                sendMessage(event, "Not enough arguments, try doing !commands <command> for help", false);
             } else {
                 if (cause.contains("\r") || cause.contains("\n")) {
                     sendMessage(event, cause.substring(0, cause.indexOf("\r")), false);
@@ -3322,6 +3419,8 @@ public class FozruciX extends ListenerAdapter {
                     sendMessage(event, cause, false);
                 }
             }
+        } else if (e instanceof ArrayIndexOutOfBoundsException) {
+            sendMessage(event, "Not enough arguments, try doing !commands <command> for help", false);
         } else {
             sendMessage(event, cause + from, false);
         }
@@ -3459,6 +3558,15 @@ public class FozruciX extends ListenerAdapter {
         }
     }
 
+    private boolean containsAny(String check, String... contain) {
+        for (String aContain : contain) {
+            if (check.contains(aContain)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private void addWords(String phrase) {
         if (phrase.contains(prefix) ||
                 phrase.contains(consolePrefix)) {
@@ -3478,12 +3586,12 @@ public class FozruciX extends ListenerAdapter {
             }
             // Add the start and end words to their own
             if (i == 0) {
-                ArrayList<String> startWords = markovChain.get("_start");
+                LinkedList<String> startWords = markovChain.get("_start");
                 startWords.add(words[i]);
 
-                ArrayList<String> suffix = markovChain.get(words[i]);
+                LinkedList<String> suffix = markovChain.get(words[i]);
                 if (suffix == null) {
-                    suffix = new ArrayList<>();
+                    suffix = new LinkedList<>();
                     if (words.length == 1) {
                         return;
                     } else {
@@ -3493,13 +3601,13 @@ public class FozruciX extends ListenerAdapter {
                 }
 
             } else if (i == words.length - 1) {
-                ArrayList<String> endWords = markovChain.get("_end");
+                LinkedList<String> endWords = markovChain.get("_end");
                 endWords.add(words[i]);
 
             } else {
-                ArrayList<String> suffix = markovChain.get(words[i]);
+                LinkedList<String> suffix = markovChain.get(words[i]);
                 if (suffix == null) {
-                    suffix = new ArrayList<>();
+                    suffix = new LinkedList<>();
                     if (words.length == 1) {
                         return;
                     } else {
@@ -3812,7 +3920,7 @@ public class FozruciX extends ListenerAdapter {
                     } else if (eval.length() < 240) {
                         sendMessage(event, eval, true);
                     } else {
-                        sendPage(event, new String[]{"!JS", arg, "" + radix}, new ArrayList<>(Arrays.asList(eval)));
+                        sendPage(event, new String[]{"!JS", arg, "" + radix}, new LinkedList<>(Arrays.asList(eval)));
                     }
                 }
             } catch (Exception e) {
