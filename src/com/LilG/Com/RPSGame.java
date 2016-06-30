@@ -1,5 +1,7 @@
 package com.LilG.Com;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * Created by ggonz on 12/13/2015.
  */
@@ -16,11 +18,11 @@ class RPSGame {
 		this.player2 = player2;
 	}
 
-	public boolean isInGame(String playerToCheck){
+	public boolean isInGame(@NotNull String playerToCheck) {
 		return playerToCheck.equalsIgnoreCase(player1) || playerToCheck.equalsIgnoreCase(player2);
 	}
 
-	public boolean isFirstPlayer(String playerToCheck){
+	public boolean isFirstPlayer(@NotNull String playerToCheck) {
 		return playerToCheck.equalsIgnoreCase(player1);
 	}
 

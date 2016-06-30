@@ -1,5 +1,7 @@
 package com.LilG.Com.DataClasses;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * The thing that makes the world go round
  * Better than left shark
@@ -26,6 +28,7 @@ public class Meme {
         Meme = meme;
     }
 
+    @NotNull
     public String toString() {
         return "Creator: " + creator + " - " + Meme;
     }

@@ -1,5 +1,7 @@
 package com.LilG.Com.DataClasses;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.io.Serializable;
 import java.util.Date;
 import java.util.UUID;
@@ -13,6 +15,7 @@ public class Note implements Serializable {
     private final String message;
     private final String date;
     private final String channel;
+    @NotNull
     private final UUID id;
 
     public Note(String sender, String receiver, String message, String channel) {
@@ -25,11 +28,13 @@ public class Note implements Serializable {
         this.id = UUID.randomUUID();
     }
 
+    @NotNull
     public String displayMessage() {
         return "\"" + message + "\". Message left by " + sender + " in " + channel + " at " + date + ". ";
 
     }
 
+    @NotNull
     public UUID getId() {
         return id;
     }
@@ -42,15 +47,18 @@ public class Note implements Serializable {
         return receiver;
     }
 
+    @NotNull
     public String getMessageForList() {
         return "to: " + receiver + "| Message: " + message;
     }
 
+    @NotNull
     public String getUUIDForList() {
         return "to: " + receiver + "| UUID: " + id;
     }
 
 
+    @NotNull
     public String toString() {
         return "Sender: " + sender + ". Receiver: " + receiver + ". Date: " + date + ". Channel: " + channel + ". Message: " + message + ".";
     }

@@ -18,20 +18,18 @@ import java.util.TreeMap;
  */
 
 public class FozConfig {
-
-    private final static boolean debug = false;
+    public final static boolean debug = false;
+    public final static String badnik = "irc.badnik.zone"; //TL;DR Shit went down
+    public final static String twitch = "irc.twitch.tv";
+    public final static String caffie = "irc.caffie.net";
+    public final static String esper = "irc.esper.net";
+    public final static String nova = "irc.novasquirrel.net";
     //Configure what we want our bot to do
     private final static String nick = "FozruciX";
     private final static String login = "SmugLeaf";
     private final static String realName = "\u00034\u000F* What can I do for you, little buddy?";
-    private final static String badnickNET = "irc.tcrf.net"; //TL;DR Shit went down
-    private final static String twitch = "irc.twitch.tv";
-    private final static String caffie = "irc.caffie.net";
-    private final static String esper = "irc.esper.net";
-    private final static String nova = "irc.novasquirrel.net";
     private final static int attempts = 20;
     private final static int connectDelay = 5; //5 seconds
-
     //Bot universal variables
     private final static LinkedList<Note> noteList = new LinkedList<>();
     private final static CommandLine terminal = new CommandLine();
@@ -39,11 +37,9 @@ public class FozConfig {
     private final static TreeMap<String, Meme> memes = new TreeMap<>();
     private final static Thread js = new Thread();
     private final static TreeMap<String, String> FCList = new TreeMap<>();
-
     //Create our bot with the configuration
     private final static MultiBotManager manager = new MultiBotManager();
-
-    private final static Configuration.Builder debugConfig = new Configuration.Builder()
+    public final static Configuration.Builder debugConfig = new Configuration.Builder()
             .setAutoReconnectDelay(connectDelay)
             .setEncoding(Charset.forName("UTF-8"))
             .setAutoReconnect(true)
@@ -58,8 +54,7 @@ public class FozConfig {
             .addAutoJoinChannel("#FozruciX")
             .addAutoJoinChannel("#discordBotTest")
             .addListener(new FozruciX(manager, noteList, terminal, avatar, memes, js, FCList)); //Add our listener that will be called on Events
-
-    private final static Configuration.Builder debugConfigSmwc = new Configuration.Builder()
+    public final static Configuration.Builder debugConfigSmwc = new Configuration.Builder()
             .setAutoReconnectDelay(connectDelay)
             .setEncoding(Charset.forName("UTF-8"))
             .setAutoReconnect(true)
@@ -72,8 +67,7 @@ public class FozConfig {
             .addAutoJoinChannel("#sm64")
             .addAutoJoinChannel("#botTest")
             .addListener(new FozruciX(manager, noteList, terminal, avatar, memes, js, FCList)); //Add our listener that will be called on Events
-
-    private final static Configuration.Builder twitchDebug = new Configuration.Builder()
+    public final static Configuration.Builder twitchDebug = new Configuration.Builder()
             .setAutoReconnectDelay(connectDelay)
             .setAutoReconnect(true)
             .setAutoReconnectAttempts(attempts)
@@ -82,8 +76,7 @@ public class FozConfig {
             .setLogin(nick.toLowerCase())
             .addAutoJoinChannel("#lilggamegenuis") //Join lilggamegenuis's twitch chat
             .addListener(new FozruciX(true, manager, noteList, avatar, memes, FCList)); //Add our listener that will be called on Events
-
-    private final static Configuration.Builder debugConfigEsper = new Configuration.Builder()
+    public final static Configuration.Builder debugConfigEsper = new Configuration.Builder()
             .setAutoReconnectDelay(connectDelay)
             .setEncoding(Charset.forName("UTF-8"))
             .setAutoReconnect(true)
@@ -96,8 +89,7 @@ public class FozConfig {
             .addAutoJoinChannel("#savespam")
             //.setIdentServerEnabled(true)
             .addListener(new FozruciX(manager, noteList, terminal, avatar, memes, js, FCList)); //Add our listener that will be called on Events
-
-    private final static Configuration.Builder debugConfigNova = new Configuration.Builder() //same as normal for now
+    public final static Configuration.Builder debugConfigNova = new Configuration.Builder() //same as normal for now
             .setAutoReconnectDelay(connectDelay)
             .setEncoding(Charset.forName("UTF-8"))
             .setAutoReconnect(true)
@@ -110,8 +102,7 @@ public class FozConfig {
             .addAutoJoinChannel("#bots")
             //.setIdentServerEnabled(true)
             .addListener(new FozruciX(manager, noteList, terminal, avatar, memes, js, FCList)); //Add our listener that will be called on Events
-
-    private final static Configuration.Builder normal = new Configuration.Builder()
+    public final static Configuration.Builder normal = new Configuration.Builder()
             .setAutoReconnectDelay(connectDelay)
             .setEncoding(Charset.forName("UTF-8"))
             .setAutoReconnect(true)
@@ -131,8 +122,7 @@ public class FozConfig {
             .addAutoJoinChannel("#discordBotTest")
             .addAutoJoinChannel("#idkwtf")
             .addListener(new FozruciX(manager, noteList, terminal, avatar, memes, js, FCList)); //Add our listener that will be called on Events
-
-    private final static Configuration.Builder normalSmwc = new Configuration.Builder()
+    public final static Configuration.Builder normalSmwc = new Configuration.Builder()
             .setAutoReconnectDelay(connectDelay)
             .setEncoding(Charset.forName("UTF-8"))
             .setAutoReconnect(true)
@@ -150,8 +140,7 @@ public class FozConfig {
             .addAutoJoinChannel("#homebrew")
             .addAutoJoinChannel("#radbusiness")
             .addListener(new FozruciX(manager, noteList, terminal, avatar, memes, js, FCList)); //Add our listener that will be called on Events
-
-    private final static Configuration.Builder twitchNormal = new Configuration.Builder()
+    public final static Configuration.Builder twitchNormal = new Configuration.Builder()
             .setAutoReconnectDelay(connectDelay)
             .setEncoding(Charset.forName("UTF-8"))
             .setAutoReconnect(true)
@@ -167,8 +156,7 @@ public class FozConfig {
             .addAutoJoinChannel("#lilggamegenuis") //Join lilggamegenuis's twitch chat
             .addAutoJoinChannel("#deltasmash")
             .addListener(new FozruciX(true, manager, noteList, avatar, memes, FCList)); //Add our listener that will be called on Events
-
-    private final static Configuration.Builder normalEsper = new Configuration.Builder()
+    public final static Configuration.Builder normalEsper = new Configuration.Builder()
             .setAutoReconnectDelay(connectDelay)
             .setEncoding(Charset.forName("UTF-8"))
             .setAutoReconnect(true)
@@ -182,8 +170,7 @@ public class FozConfig {
             .addAutoJoinChannel("#ducks")
             //.setIdentServerEnabled(true)
             .addListener(new FozruciX(manager, noteList, terminal, avatar, memes, js, FCList)); //Add our listener that will be called on Events
-
-    private final static Configuration.Builder normalNova = new Configuration.Builder()
+    public final static Configuration.Builder normalNova = new Configuration.Builder()
             .setAutoReconnectDelay(connectDelay)
             .setEncoding(Charset.forName("UTF-8"))
             .setAutoReconnect(true)
@@ -197,6 +184,9 @@ public class FozConfig {
             //.setIdentServerEnabled(true)
             .addListener(new FozruciX(manager, noteList, terminal, avatar, memes, js, FCList)); //Add our listener that will be called on Events
 
+    static {
+        System.loadLibrary("JNIThing");
+    }
 
     public static void main(String[] args) throws Exception {
         Class.forName("com.mysql.jdbc.Driver").newInstance();
@@ -206,13 +196,13 @@ public class FozConfig {
 
 
         if (debug) {
-            manager.addBot(debugConfig.buildForServer(badnickNET, 6697));
+            manager.addBot(debugConfig.buildForServer(badnik, 6697));
             manager.addBot(debugConfigSmwc.buildForServer(caffie, 6697));
             manager.addBot(debugConfigEsper.buildForServer(esper, 6697));
             manager.addBot(twitchDebug.buildForServer(twitch, 6667, FozruciX.setPassword(false)));
             manager.addBot(debugConfigNova.buildForServer(nova, 6697));
         } else {
-            manager.addBot(normal.buildForServer(badnickNET, 6697));
+            manager.addBot(normal.buildForServer(badnik, 6697));
             manager.addBot(normalSmwc.buildForServer(caffie, 6697));
             manager.addBot(normalEsper.buildForServer(esper, 6697));
             manager.addBot(twitchNormal.buildForServer(twitch, 6667, FozruciX.setPassword(false)));

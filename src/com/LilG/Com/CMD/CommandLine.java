@@ -1,5 +1,6 @@
 package com.LilG.Com.CMD;
 
+import org.jetbrains.annotations.NotNull;
 import org.pircbotx.hooks.events.MessageEvent;
 import org.pircbotx.hooks.types.GenericMessageEvent;
 
@@ -19,7 +20,7 @@ public class CommandLine extends Thread {
     private BufferedWriter p_stdin;
     private boolean echoOff = false;
 
-    public CommandLine(GenericMessageEvent event, String commandLine) {
+    public CommandLine(@NotNull GenericMessageEvent event, @NotNull String commandLine) {
         this.event = event;
 
         String console[] = new String[]{null, "", ""};
@@ -59,7 +60,7 @@ public class CommandLine extends Thread {
         run();
     }
 
-    private void sendError(GenericMessageEvent event, Exception e) {
+    private void sendError(@NotNull GenericMessageEvent event, @NotNull Exception e) {
         ((MessageEvent) event).getChannel().send().message("Error: " + e.getCause() + ". From " + e);
         e.printStackTrace();
     }

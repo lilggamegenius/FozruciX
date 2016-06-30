@@ -4,6 +4,7 @@ import com.fathzer.soft.javaluator.DoubleEvaluator;
 import com.fathzer.soft.javaluator.Function;
 import com.fathzer.soft.javaluator.Operator;
 import com.fathzer.soft.javaluator.Parameters;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Iterator;
 
@@ -31,6 +32,7 @@ class ExtendedDoubleEvaluator extends DoubleEvaluator{
      * Defines the new function (Convert to base).
      */
     private static final Function BASE = new Function("base", 2);
+    @NotNull
     private static final Parameters PARAMS;
 
     static {
@@ -49,7 +51,7 @@ class ExtendedDoubleEvaluator extends DoubleEvaluator{
     }
 
     @Override
-    protected Double evaluate(Function function, Iterator<Double> arguments, Object evaluationContext) {
+    protected Double evaluate(Function function, @NotNull Iterator<Double> arguments, Object evaluationContext) {
         if (function == SQRT) {
             // Implements the new function
             return Math.sqrt(arguments.next());

@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="jWmi">
+    <CLASSES>
+      <root url="file://$USER_HOME$/Downloads/irc bot/jWmi/bin" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="file://$USER_HOME$/Downloads/irc bot/jWmi/src" />
+    </SOURCES>
+  </library>
+</component>

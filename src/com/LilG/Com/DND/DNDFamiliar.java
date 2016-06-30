@@ -1,5 +1,7 @@
 package com.LilG.Com.DND;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * Created by ggonz on 10/30/2015.
  */
@@ -18,6 +20,7 @@ public class DNDFamiliar extends DNDPlayer {
         return name;
     }
 
+    @NotNull
     public String toString() {
         return "Name: " + name + ". Owner: " + owner + " HP: " + HP + "/" + maxHP + ". Level: " + level + ". XP: " + XP + "/" + XPLevelDivider * level + ". Species: " + species.name();
     }

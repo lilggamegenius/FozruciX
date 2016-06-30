@@ -1,6 +1,8 @@
 package com.LilG.Com;
 
 import com.google.common.collect.ImmutableSortedSet;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.pircbotx.Channel;
 import org.pircbotx.PircBotX;
 
@@ -23,25 +25,38 @@ class DebugWindow extends JFrame{
     // Define constants, variables, and labels
     private static final int WIDTH = 800;
     private static final int HEIGHT = 220;
+    @NotNull
     private final JTextField currentNickTF;
-	private final JTextField lastMessageTF;
-	private final JTextField currDMTF;
-	private final JTextField myPlayerNameTF;
-	private final JTextField myPlayerHPTF;
-	private final JTextField myPlayerXPTF;
-	private final JTextField myFamiliarTF;
-	private final JTextField myFamiliarHPTF;
-	private final JTextField myFamiliarXPTF;
+    @NotNull
+    private final JTextField lastMessageTF;
+    @NotNull
+    private final JTextField currDMTF;
+    @NotNull
+    private final JTextField myPlayerNameTF;
+    @NotNull
+    private final JTextField myPlayerHPTF;
+    @NotNull
+    private final JTextField myPlayerXPTF;
+    @NotNull
+    private final JTextField myFamiliarTF;
+    @NotNull
+    private final JTextField myFamiliarHPTF;
+    @NotNull
+    private final JTextField myFamiliarXPTF;
     private final JTextField memoryUsageTF = new JTextField(10);
+    @NotNull
     private final JTextField messageTF;
-	private PircBotX bot;
-	private String[] channels = {"#null"};
-	private String selectedChannel = "#null";
-	private DefaultComboBoxModel<String> comboBox;
+    @Nullable
+    private PircBotX bot;
+    @NotNull
+    private String[] channels = {"#null"};
+    @NotNull
+    private String selectedChannel = "#null";
+    private DefaultComboBoxModel<String> comboBox;
     private Runtime runtime = Runtime.getRuntime();
     private final Timer timer = new Timer(1000, (ActionListener) e -> memoryUsageTF.setText("Current memory usage: " + formatFileSize(runtime.totalMemory() - runtime.freeMemory()) + "/" + formatFileSize(runtime.totalMemory())));
 
-    DebugWindow(PircBotX bot) {
+    DebugWindow(@NotNull PircBotX bot) {
         JLabel currentNickL, lastMessageL, currDML, myPlayerNameL, myPlayerHPL, myPlayerXPL, myFamiliarL, myFamiliarHPL, myFamiliarXPL, memoryUsageL;
         String network = bot.getServerInfo().getNetwork();
         if (network == null) {
@@ -152,7 +167,10 @@ class DebugWindow extends JFrame{
         timer.start();
     }
 
-    private String[] getChannels(ImmutableSortedSet<Channel> channel){
+    private String[] getChannels(@Nullable ImmutableSortedSet<Channel> channel) {
+        if (channel == null) {
+            throw new NullPointerException(this.getClass().getName() + ": ImmutableSortedSet Channel cannot be null");
+        }
         Iterator<Channel> channels = channel.iterator();
         ArrayList<String> channelList = new ArrayList<>();
         while (channels.hasNext()){
@@ -167,7 +185,7 @@ class DebugWindow extends JFrame{
         messageTF.setText("");
     }
 
-    public void updateBot(PircBotX bot){
+    public void updateBot(@NotNull PircBotX bot) {
         this.bot = bot;
         channels = getChannels(bot.getUserBot().getChannels());
         selectedChannel = (String) comboBox.getSelectedItem();

@@ -1,5 +1,7 @@
 package com.LilG.Com.DND;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -95,8 +97,8 @@ public class DNDPlayer{
         return playerName;
     }
 
-	private String getClassName(DNDClasses stat){
-		return stat.name();
+    private String getClassName(@NotNull DNDClasses stat) {
+        return stat.name();
 	}
 
 	public void addHP(int HP){
@@ -156,12 +158,14 @@ public class DNDPlayer{
         }
     }
 
-	public String getHPAmounts(){
-		return HP + "/" + maxHP;
+    @NotNull
+    public String getHPAmounts() {
+        return HP + "/" + maxHP;
 	}
 
-	public String getXPAmounts(){
-		return XP + "/" + XPLevelDivider * level;
+    @NotNull
+    public String getXPAmounts() {
+        return XP + "/" + XPLevelDivider * level;
 	}
 
 	public enum DNDStats{

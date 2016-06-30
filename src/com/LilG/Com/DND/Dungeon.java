@@ -1,5 +1,8 @@
 package com.LilG.Com.DND;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -163,6 +166,7 @@ public class Dungeon {
         }
     }
 
+	@Nullable
 	private int[] FindClosestRoom(int[] room){
 		int[] mid = {
                 room[0] + (room[2] / 2),
@@ -197,8 +201,9 @@ public class Dungeon {
         currentPoint.translate(x, y);
     }
 
-    public int[] getSurrounding() {
-        int[] temp = new int[9];
+	@NotNull
+	public int[] getSurrounding() {
+		int[] temp = new int[9];
         temp[0] = map[(int) currentPoint.getX()][(int) currentPoint.getY() + 1];
         temp[1] = map[(int) currentPoint.getX() + 1][(int) currentPoint.getY() + 1];
         temp[2] = map[(int) currentPoint.getX() + 1][(int) currentPoint.getY()];
@@ -211,8 +216,9 @@ public class Dungeon {
         return temp;
     }
 
-    public int[][] getMap() {
-        return map;
+	@NotNull
+	public int[][] getMap() {
+		return map;
     }
 
     public int getMap_size() {
