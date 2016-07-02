@@ -34,6 +34,7 @@
     </JAVADOC>
     <SOURCES>
       <root url="jar://$PROJECT_DIR$/lib/de.tudarmstadt.ukp.wikipedia.api-1.0.0-sources.jar!/" />
+      <root url="jar://$USER_HOME$/.ideaLibSources/log4j-1.2.16-sources.jar!/" />
     </SOURCES>
   </library>
 </component>
