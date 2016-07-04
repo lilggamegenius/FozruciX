@@ -28,6 +28,6 @@ public class SizedArray<T> extends LinkedList<T> {
     }
 
     public T get() {
-        return super.get(size());
+        return super.get(size() - 1);
     }
 }

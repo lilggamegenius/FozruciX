@@ -1,16 +1,19 @@
 package com.LilG.Com;
 
-import com.LilG.Com.CMD.CommandLine;
-import com.LilG.Com.DataClasses.Meme;
-import com.LilG.Com.DataClasses.Note;
+import com.LilG.Com.DataClasses.SaveDataStore;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import org.jetbrains.annotations.NotNull;
 import org.pircbotx.Configuration;
 import org.pircbotx.MultiBotManager;
 import org.pircbotx.UtilSSLSocketFactory;
 import org.pircbotx.cap.EnableCapHandler;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.nio.charset.Charset;
-import java.util.LinkedList;
-import java.util.TreeMap;
 
 /**
  * Created by ggonz on 10/12/2015.
@@ -30,15 +33,10 @@ public class FozConfig {
     private final static String realName = "\u00034\u000F* What can I do for you, little buddy?";
     private final static int attempts = 20;
     private final static int connectDelay = 5; //5 seconds
-    //Bot universal variables
-    private final static LinkedList<Note> noteList = new LinkedList<>();
-    private final static CommandLine terminal = new CommandLine();
-    private final static String avatar = "http://puu.sh/oiLYR.gif";
-    private final static TreeMap<String, Meme> memes = new TreeMap<>();
-    private final static Thread js = new Thread();
-    private final static TreeMap<String, String> FCList = new TreeMap<>();
     //Create our bot with the configuration
     private final static MultiBotManager manager = new MultiBotManager();
+    private final static SaveDataStore save = loadData(new GsonBuilder().setPrettyPrinting().create());
+
     public final static Configuration.Builder debugConfig = new Configuration.Builder()
             .setAutoReconnectDelay(connectDelay)
             .setEncoding(Charset.forName("UTF-8"))
@@ -53,7 +51,7 @@ public class FozConfig {
             .addAutoJoinChannel("#SSB")
             .addAutoJoinChannel("#FozruciX")
             .addAutoJoinChannel("#discordBotTest")
-            .addListener(new FozruciX(manager, noteList, terminal, avatar, memes, js, FCList)); //Add our listener that will be called on Events
+            .addListener(new FozruciX(manager, save)); //Add our listener that will be called on Events
     public final static Configuration.Builder debugConfigSmwc = new Configuration.Builder()
             .setAutoReconnectDelay(connectDelay)
             .setEncoding(Charset.forName("UTF-8"))
@@ -66,7 +64,7 @@ public class FozConfig {
             .setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates())
             .addAutoJoinChannel("#sm64")
             .addAutoJoinChannel("#botTest")
-            .addListener(new FozruciX(manager, noteList, terminal, avatar, memes, js, FCList)); //Add our listener that will be called on Events
+            .addListener(new FozruciX(manager, save)); //Add our listener that will be called on Events
     public final static Configuration.Builder twitchDebug = new Configuration.Builder()
             .setAutoReconnectDelay(connectDelay)
             .setAutoReconnect(true)
@@ -75,7 +73,7 @@ public class FozConfig {
             .setName(nick.toLowerCase()) //Set the nick of the bot.
             .setLogin(nick.toLowerCase())
             .addAutoJoinChannel("#lilggamegenuis") //Join lilggamegenuis's twitch chat
-            .addListener(new FozruciX(true, manager, noteList, avatar, memes, FCList)); //Add our listener that will be called on Events
+            .addListener(new FozruciX(true, manager, save)); //Add our listener that will be called on Events
     public final static Configuration.Builder debugConfigEsper = new Configuration.Builder()
             .setAutoReconnectDelay(connectDelay)
             .setEncoding(Charset.forName("UTF-8"))
@@ -88,7 +86,7 @@ public class FozConfig {
             .setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates())
             .addAutoJoinChannel("#savespam")
             //.setIdentServerEnabled(true)
-            .addListener(new FozruciX(manager, noteList, terminal, avatar, memes, js, FCList)); //Add our listener that will be called on Events
+            .addListener(new FozruciX(manager, save)); //Add our listener that will be called on Events
     public final static Configuration.Builder debugConfigNova = new Configuration.Builder() //same as normal for now
             .setAutoReconnectDelay(connectDelay)
             .setEncoding(Charset.forName("UTF-8"))
@@ -101,7 +99,7 @@ public class FozConfig {
             .setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates())
             .addAutoJoinChannel("#bots")
             //.setIdentServerEnabled(true)
-            .addListener(new FozruciX(manager, noteList, terminal, avatar, memes, js, FCList)); //Add our listener that will be called on Events
+            .addListener(new FozruciX(manager, save)); //Add our listener that will be called on Events
     public final static Configuration.Builder normal = new Configuration.Builder()
             .setAutoReconnectDelay(connectDelay)
             .setEncoding(Charset.forName("UTF-8"))
@@ -121,7 +119,7 @@ public class FozConfig {
             .addAutoJoinChannel("#FozruciX")
             .addAutoJoinChannel("#discordBotTest")
             .addAutoJoinChannel("#idkwtf")
-            .addListener(new FozruciX(manager, noteList, terminal, avatar, memes, js, FCList)); //Add our listener that will be called on Events
+            .addListener(new FozruciX(manager, save)); //Add our listener that will be called on Events
     public final static Configuration.Builder normalSmwc = new Configuration.Builder()
             .setAutoReconnectDelay(connectDelay)
             .setEncoding(Charset.forName("UTF-8"))
@@ -139,7 +137,7 @@ public class FozConfig {
             .addAutoJoinChannel("#smashbros")
             .addAutoJoinChannel("#homebrew")
             .addAutoJoinChannel("#radbusiness")
-            .addListener(new FozruciX(manager, noteList, terminal, avatar, memes, js, FCList)); //Add our listener that will be called on Events
+            .addListener(new FozruciX(manager, save)); //Add our listener that will be called on Events
     public final static Configuration.Builder twitchNormal = new Configuration.Builder()
             .setAutoReconnectDelay(connectDelay)
             .setEncoding(Charset.forName("UTF-8"))
@@ -155,7 +153,7 @@ public class FozConfig {
             .setLogin(nick.toLowerCase())
             .addAutoJoinChannel("#lilggamegenuis") //Join lilggamegenuis's twitch chat
             .addAutoJoinChannel("#deltasmash")
-            .addListener(new FozruciX(true, manager, noteList, avatar, memes, FCList)); //Add our listener that will be called on Events
+            .addListener(new FozruciX(true, manager, save)); //Add our listener that will be called on Events
     public final static Configuration.Builder normalEsper = new Configuration.Builder()
             .setAutoReconnectDelay(connectDelay)
             .setEncoding(Charset.forName("UTF-8"))
@@ -169,7 +167,7 @@ public class FozConfig {
             .addAutoJoinChannel("#savespam")
             .addAutoJoinChannel("#ducks")
             //.setIdentServerEnabled(true)
-            .addListener(new FozruciX(manager, noteList, terminal, avatar, memes, js, FCList)); //Add our listener that will be called on Events
+            .addListener(new FozruciX(manager, save)); //Add our listener that will be called on Events
     public final static Configuration.Builder normalNova = new Configuration.Builder()
             .setAutoReconnectDelay(connectDelay)
             .setEncoding(Charset.forName("UTF-8"))
@@ -182,7 +180,7 @@ public class FozConfig {
             .setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates())
             .addAutoJoinChannel("#bots")
             //.setIdentServerEnabled(true)
-            .addListener(new FozruciX(manager, noteList, terminal, avatar, memes, js, FCList)); //Add our listener that will be called on Events
+            .addListener(new FozruciX(manager, save)); //Add our listener that will be called on Events
 
     static {
         System.loadLibrary("JNIThing");
@@ -212,5 +210,21 @@ public class FozConfig {
         manager.start();
     }
 
+    public static synchronized SaveDataStore loadData(Gson GSON) {
+        BufferedReader br;
+        try {
+            br = new BufferedReader(new FileReader("Data/Data.json"));
+            return GSON.fromJson(br, SaveDataStore.class);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public static synchronized void saveData(@NotNull SaveDataStore save, Gson GSON) throws IOException {
+        FileWriter writer = new FileWriter("Data/Data.json");
+        writer.write(GSON.toJson(save));
+        writer.close();
+    }
 
 }
