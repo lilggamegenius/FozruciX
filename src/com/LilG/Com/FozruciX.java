@@ -71,7 +71,9 @@ import javax.swing.*;
 import javax.xml.bind.DatatypeConverter;
 import java.awt.*;
 import java.io.*;
+import java.lang.management.ManagementFactory;
 import java.lang.ref.WeakReference;
+import java.math.BigDecimal;
 import java.net.MalformedURLException;
 import java.nio.charset.Charset;
 import java.sql.*;
@@ -106,7 +108,7 @@ public class FozruciX extends ListenerAdapter {
     private final static String[] LIST_OF_NOES = {" It’s not a priority for me at this time.", "I’d rather stick needles in my eyes.", "My schedule is up in the air right now. SEE IT WAFTING GENTLY DOWN THE CORRIDOR.", "I don’t love it, which means I’m not the right person for it.", "I would prefer another option.", "I would be the absolute worst person to execute, are you on crack?!", "Life is too short TO DO THINGS YOU don’t LOVE.", "I no longer do things that make me want to kill myself", "You should do this yourself, you would be awesome sauce.", "I would love to say yes to everything, but that would be stupid", "Fuck no.", "Some things have come up that need my attention.", "There is a person who totally kicks ass at this. I AM NOT THAT PERSON.", "Shoot me now...", "It would cause the slow withering death of my soul.", "I’d rather remove my own gallbladder with an oyster fork.", "I'd love to but I did my own thing and now I've got to undo it."};
     private final static String[] COMMANDS = {"COMMANDS", " Time", " calcj", " randomNum", " StringToBytes", " Chat", " Temp", " BlockConv", " Hello", " Bot", " GetName", " recycle", " Login", " GetLogin", " GetID", " GetSate", " prefix", " SayThis", " ToSciNo", " Trans", " DebugVar", " cmd", " SayRaw", " SayCTCPCommnad", " Leave", " Respawn", " Kill", " ChangeNick", " SayAction", " NoteJ", "Memes", " jToggle", " Joke: Splatoon", "Joke: Attempt", " Joke: potato", " Joke: whatIs?", "Joke: getFinger", " Joke: GayDar"};
     private final static ChatterBotFactory BOT_FACTORY = new ChatterBotFactory();
-    private final static ExtendedDoubleEvaluator EVALUATOR = new ExtendedDoubleEvaluator();
+    private final static ArbitraryPrecisionEvaluator EVALUATOR = new ArbitraryPrecisionEvaluator();
     private final static StaticVariableSet<Double> VARIABLE_SET = new StaticVariableSet<>();
     private final static String APP_ID = "RGHHEP-HQU7HL67W9";
     private final static LinkedList<RPSGame> RPS_GAMES = new LinkedList<>();
@@ -122,7 +124,7 @@ public class FozruciX extends ListenerAdapter {
     private static volatile ChatterBotSession jabberBotSession;
     @SuppressWarnings("ConstantConditions")
     @NotNull
-    private static volatile GenericMessageEvent lastEvent = null;
+    private static volatile SizedArray<GenericMessageEvent> lastEvents = new SizedArray<>();
     @Nullable
     private static volatile CMD singleCMD = null;
     private static volatile LinkedList<Note> noteList;
@@ -188,6 +190,9 @@ public class FozruciX extends ListenerAdapter {
         FozruciX.FCList = FCList;
         AnsiConsole.systemInstall();
         LOGGER.setLevel(Level.ALL);
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            saveData(lastEvents.get());
+        }, "Shutdown-thread"));
     }
 
 
@@ -212,6 +217,9 @@ public class FozruciX extends ListenerAdapter {
         FozruciX.FCList = FCList;
         AnsiConsole.systemInstall();
         LOGGER.setLevel(Level.ALL);
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            saveData(lastEvents.get());
+        }, "Shutdown-thread"));
     }
 
     /**
@@ -229,6 +237,7 @@ public class FozruciX extends ListenerAdapter {
         // NOTE: Usually this should be a field rather than a method
         // variable so that it is not re-seeded every call.
         Random rand = new Random();
+
 
         // nextInt is normally exclusive of the top value,
         // so add 1 to make it inclusive
@@ -397,10 +406,18 @@ public class FozruciX extends ListenerAdapter {
     }
 
     private synchronized static void sendMessage(@NotNull GenericMessageEvent event, @NotNull String msgToSend, boolean addNick) {
+        sendMessage(event, msgToSend, addNick, false);
+    }
+
+    private synchronized static void sendMessage(@NotNull GenericMessageEvent event, @NotNull String msgToSend, boolean addNick, boolean splitMessage) {
         if (msgToSend.equals("\u0002\u0002")) {
             return;
         }
         msgToSend = getScramble(msgToSend).replace("(Player)", event.getUser().getNick()).replace("(items)", COMMANDS[randInt(0, COMMANDS.length - 1)]).replace("(Pokémon)", event.getBot().getNick());
+
+        if (!splitMessage && msgToSend.length() > 460) {
+            msgToSend = msgToSend.substring(0, 460) + "-(snip)-";
+        }
 
         if (addNick && !event.getUser().getNick().equals(discordNick)) {
             event.respond(msgToSend);
@@ -418,19 +435,19 @@ public class FozruciX extends ListenerAdapter {
     @SuppressWarnings("SameParameterValue")
     private synchronized static void sendNotice(@NotNull String userToSendTo, @NotNull String msgToSend) {
         if (userToSendTo.equalsIgnoreCase(discordNick)) {
-            sendMessage(lastEvent, msgToSend, false);
+            sendMessage(lastEvents.get(), msgToSend, false);
         }
         msgToSend = getScramble(msgToSend);
-        lastEvent.getBot().send().notice(userToSendTo, msgToSend);
+        lastEvents.get().getBot().send().notice(userToSendTo, msgToSend);
     }
 
     @SuppressWarnings("SameParameterValue")
     private synchronized static void sendMessage(@NotNull String userToSendTo, @NotNull String msgToSend) {
         if (userToSendTo.equalsIgnoreCase(discordNick)) {
-            sendMessage(lastEvent, msgToSend, false);
+            sendMessage(lastEvents.get(), msgToSend, false);
         }
         msgToSend = getScramble(msgToSend);
-        lastEvent.getBot().send().message(userToSendTo, msgToSend);
+        lastEvents.get().getBot().send().message(userToSendTo, msgToSend);
     }
 
     private static boolean checkOP(@NotNull Channel chn) {
@@ -513,7 +530,7 @@ public class FozruciX extends ListenerAdapter {
     private static String argJoiner(@NotNull String[] args, int argToStartFrom) throws ArrayIndexOutOfBoundsException {
         String strToReturn = "";
         for (int length = args.length; length > argToStartFrom; argToStartFrom++) {
-            strToReturn += args[argToStartFrom] + " ";
+            strToReturn += getArg(args, argToStartFrom) + " ";
         }
         return strToReturn.substring(0, strToReturn.length() - 1);
     }
@@ -738,6 +755,10 @@ public class FozruciX extends ListenerAdapter {
         return lang;
     }
 
+    private static String getArg(String[] args, int index) {
+        return args[index + arrayOffset];
+    }
+
     /**
      * Performs a wildcard matching for the text and pattern
      * provided.
@@ -825,8 +846,7 @@ public class FozruciX extends ListenerAdapter {
     private synchronized boolean loadData(@NotNull Event event) {
         try {
             String network = event.getBot().getServerInfo().getNetwork();
-            LOGGER.debug(network);
-            network = event.getBot().getServerInfo().getNetwork();
+            LOGGER.debug(network + ": " + event.getBot().getServerHostname());
             if (network == null) {
                 return false;
             }
@@ -891,7 +911,7 @@ public class FozruciX extends ListenerAdapter {
 
     @SuppressWarnings("ConstantConditions")
     public void onGenericMessage(@NotNull final GenericMessageEvent event) {
-        lastEvent = event;
+        lastEvents.add(event);
         String channel = ((MessageEvent) event).getChannel().getName();
         String[] arg = splitMessage(event.getMessage());
         setArrayOffset();
@@ -972,7 +992,7 @@ public class FozruciX extends ListenerAdapter {
                     sendNotice(event.getUser().getNick(), "List of COMMANDS so far. for more info on these COMMANDS do " + prefix + "COMMANDS. COMMANDS with \"Joke: \" are joke COMMANDS that can be disabled");
                     sendNotice(event.getUser().getNick(), Arrays.asList(COMMANDS).toString());
                 } else
-                    switch (arg[1 + arrayOffset].toLowerCase()) {
+                    switch (getArg(arg, 1).toLowerCase()) {
                         case "COMMANDS":
                             sendNotice(event.getUser().getNick(), "Really? ಠ_ಠ");
                             break;
@@ -1095,12 +1115,17 @@ public class FozruciX extends ListenerAdapter {
         if (commandChecker(arg, "getBotList")) {
             if (checkPerm(event.getUser(), 9001)) {
                 try {
-                    PircBotX[] temp = (PircBotX[]) manager.getBots().toArray();
+                    Object[] temp = manager.getBots().toArray();
                     String bots = "";
-                    for (PircBotX aTemp : temp) {
-                        bots += "Server: " + aTemp.getServerInfo().getNetwork() + " Nick: " + aTemp.getNick();
+                    for (Object aTemp : temp) {
+                        String server = ((PircBotX) aTemp).getServerInfo().getNetwork();
+                        if (server == null) {
+                            server = ((PircBotX) aTemp).getServerHostname();
+                        }
+                        String nick = ((PircBotX) aTemp).getNick();
+                        bots += "Server: " + server + " Nick: " + nick + " | ";
                     }
-                    sendMessage(event, bots, true);
+                    sendMessage(event, bots.substring(0, bots.lastIndexOf("|")), true);
                 } catch (Exception e) {
                     sendError(event, e);
                 }
@@ -1247,7 +1272,7 @@ public class FozruciX extends ListenerAdapter {
 // !Connect - joins a channel
         if (commandChecker(arg, "Connect")) {
             if (checkPerm(event.getUser(), 9001)) {
-                event.getBot().send().joinChannel(arg[1 + arrayOffset]);
+                event.getBot().send().joinChannel(getArg(arg, 1));
             } else {
                 permErrorchn(event);
             }
@@ -1256,7 +1281,7 @@ public class FozruciX extends ListenerAdapter {
         // !setDebugLevel - sets debugging level
         if (commandChecker(arg, "setDebugLevel")) {
             if (checkPerm(event.getUser(), 9001)) {
-                LOGGER.setLevel(Level.toLevel(arg[1 + arrayOffset].toUpperCase()));
+                LOGGER.setLevel(Level.toLevel(getArg(arg, 1).toUpperCase()));
                 sendMessage(event, "Set debug level to " + LOGGER.getLevel().toString(), true);
             } else {
                 permErrorchn(event);
@@ -1266,7 +1291,7 @@ public class FozruciX extends ListenerAdapter {
 // !setAvatar - sets the avatar of the bot
         if (commandChecker(arg, "setAvatar")) {
             if (checkPerm(event.getUser(), 9001)) {
-                avatar = arg[1 + arrayOffset];
+                avatar = getArg(arg, 1);
                 sendMessage(event, "Avatar set", false);
                 LinkedList<User> users = new LinkedList<>();
                 for (Channel channels : event.getBot().getUserBot().getChannels()) {
@@ -1358,7 +1383,7 @@ public class FozruciX extends ListenerAdapter {
 // !do nothing - does nothing
         if (commandChecker(arg, "do")) {
             if (checkPerm(event.getUser(), 0)) {
-                if (arg[1 + arrayOffset].equalsIgnoreCase("nothing")) {
+                if (getArg(arg, 1).equalsIgnoreCase("nothing")) {
                     if (randInt(0, 2) == 0) {
                         sendMessage(event, "no", true);
                     }
@@ -1522,7 +1547,7 @@ public class FozruciX extends ListenerAdapter {
 // !setMessage - Sets different message formats
         if (commandChecker(arg, "setMessage")) {
             if (checkPerm(event.getUser(), 9001)) {
-                switch (arg[1 + arrayOffset].toLowerCase()) {
+                switch (getArg(arg, 1).toLowerCase()) {
                     case "normal":
                         messageMode = MessageModes.normal;
                         sendMessage(event, "Message mode set back to normal", true);
@@ -1556,7 +1581,7 @@ public class FozruciX extends ListenerAdapter {
         if (commandChecker(arg, "CheckLink")) {
             if (checkPerm(event.getUser(), 0)) {
                 try {
-                    Document doc = Jsoup.connect(arg[1 + arrayOffset]).get();
+                    Document doc = Jsoup.connect(getArg(arg, 1)).userAgent("FozruciX").timeout(5000).get();
                     sendMessage(event, "Title: " + doc.title(), false);
                 } catch (UnsupportedMimeTypeException e) {
                     sendMessage(event, "type: " + e.getMimeType(), true);
@@ -1589,47 +1614,47 @@ public class FozruciX extends ListenerAdapter {
 // !perms - edit privileged users
         if (commandChecker(arg, "perms")) {
             if (checkPerm(event.getUser(), Integer.MAX_VALUE)) {
-                if (arg[1 + arrayOffset].equalsIgnoreCase("set")) {
+                if (getArg(arg, 1).equalsIgnoreCase("set")) {
                     try {
-                        if (authedUser.contains(arg[2 + arrayOffset])) {
+                        if (authedUser.contains(getArg(arg, 2))) {
                             try {
-                                authedUserLevel.set(authedUser.indexOf(arg[2 + arrayOffset]), Integer.parseInt(arg[3 + arrayOffset]));
+                                authedUserLevel.set(authedUser.indexOf(getArg(arg, 2)), Integer.parseInt(getArg(arg, 3)));
                             } catch (Exception e) {
                                 sendError(event, e);
                             }
-                            sendMessage(event, "Set " + arg[2 + arrayOffset] + " To level " + arg[3 + arrayOffset], true);
+                            sendMessage(event, "Set " + getArg(arg, 2) + " To level " + getArg(arg, 3), true);
                         } else {
                             try {
-                                authedUser.add(arg[2 + arrayOffset]);
-                                authedUserLevel.add(Integer.parseInt(arg[3 + arrayOffset]));
+                                authedUser.add(getArg(arg, 2));
+                                authedUserLevel.add(Integer.parseInt(getArg(arg, 3)));
                             } catch (Exception e) {
                                 sendError(event, e);
                             }
-                            sendMessage(event, "Added " + arg[2 + arrayOffset] + " To authed users with level " + arg[3 + arrayOffset], true);
+                            sendMessage(event, "Added " + getArg(arg, 2) + " To authed users with level " + getArg(arg, 3), true);
                         }
                     } catch (Exception e) {
                         sendError(event, e);
                     }
-                } else if (arg[1 + arrayOffset].equalsIgnoreCase("del")) {
+                } else if (getArg(arg, 1).equalsIgnoreCase("del")) {
                     try {
-                        int index = authedUser.indexOf(arg[2 + arrayOffset]);
+                        int index = authedUser.indexOf(getArg(arg, 2));
                         authedUserLevel.remove(index);
                         authedUser.remove(index);
                     } catch (Exception e) {
                         sendError(event, e);
                     }
-                    sendMessage(event, "Removed " + arg[2 + arrayOffset] + " from the authed user list", true);
-                } else if (arg[1 + arrayOffset].equalsIgnoreCase("clear")) {
+                    sendMessage(event, "Removed " + getArg(arg, 2) + " from the authed user list", true);
+                } else if (getArg(arg, 1).equalsIgnoreCase("clear")) {
                     authedUser.clear();
                     authedUserLevel.clear();
                     sendMessage(event, "Permission list cleared", true);
-                } else if (arg[1 + arrayOffset].equalsIgnoreCase("List")) {
+                } else if (getArg(arg, 1).equalsIgnoreCase("List")) {
                     sendMessage(event, authedUser.toString(), true);
                 } else {
                     int place = -1;
                     try {
                         for (int i = 0; authedUser.size() >= i; i++) {
-                            if (authedUser.get(i).equalsIgnoreCase(arg[1 + arrayOffset])) {
+                            if (authedUser.get(i).equalsIgnoreCase(getArg(arg, 1))) {
                                 place = i;
                             }
                         }
@@ -1744,7 +1769,7 @@ public class FozruciX extends ListenerAdapter {
                             calcAmount = 5;
                         }
                         int count = 0;
-                        LinkedList<Double> eval = new LinkedList<>();
+                        LinkedList<BigDecimal> eval = new LinkedList<>();
 
                         while (count <= calcAmount) {
                             VARIABLE_SET.set(ns.get("char"), x);
@@ -1756,8 +1781,8 @@ public class FozruciX extends ListenerAdapter {
                         sendMessage(event, eval.toString().replace("[", "").replace("]", "").replace(", ", " | "), true);
                     } else {
                         //noinspection SuspiciousToArrayCall
-                        double eval = EVALUATOR.evaluate(argJoiner(ns.getList("expression").toArray(new String[]{}), 0));
-                        sendMessage(event, "" + eval, true);
+                        BigDecimal eval = EVALUATOR.evaluate(argJoiner(ns.getList("expression").toArray(new String[]{}), 0));
+                        sendMessage(event, eval.toEngineeringString(), true);
                     }
                 } catch (Exception e) {
                     sendError(event, e);
@@ -1795,8 +1820,8 @@ public class FozruciX extends ListenerAdapter {
 // !SolveFor - Solves for a equation
         if (commandChecker(arg, "SolveFor")) {
             if (checkPerm(event.getUser(), 0)) {
-                String expression = arg[1 + arrayOffset];
-                String solveFor = arg[2 + arrayOffset];
+                String expression = getArg(arg, 1);
+                String solveFor = getArg(arg, 2);
                 // Use DynJS runtime
                 RuntimeFactory factory = RuntimeFactory.init(FozruciX.class.getClassLoader(), RuntimeFactory.RuntimeType.DYNJS);
                 // Set config to run main.js
@@ -1877,10 +1902,10 @@ public class FozruciX extends ListenerAdapter {
 // !count - counts amount of something
         if (commandChecker(arg, "count")) {
             if (checkPerm(event.getUser(), 1)) {
-                if (arg.length != 1 + arrayOffset && arg[1 + arrayOffset].equalsIgnoreCase("setup")) {
-                    counter = arg[2 + arrayOffset];
+                if (arg.length != 1 + arrayOffset && getArg(arg, 1).equalsIgnoreCase("setup")) {
+                    counter = getArg(arg, 2);
                     if (arg.length == 4 + arrayOffset) {
-                        counterCount = Integer.parseInt(arg[3 + arrayOffset]);
+                        counterCount = Integer.parseInt(getArg(arg, 3));
                     }
                 }
                 if (commandChecker(arg, "count")) {
@@ -1913,12 +1938,12 @@ public class FozruciX extends ListenerAdapter {
                     LOGGER.debug("Opening DICTIONARY");
                     IWiktionaryEdition wkt = JWKTL.openEdition(WIKTIONARY_DIRECTORY);
                     LOGGER.debug("Getting page for word");
-                    IWiktionaryPage page = wkt.getPageForWord(arg[1 + arrayOffset]);
+                    IWiktionaryPage page = wkt.getPageForWord(getArg(arg, 1));
                     if (page != null) {
                         LOGGER.debug("Getting entry");
                         IWiktionaryEntry entry;
-                        if (arg.length > 2 + arrayOffset && isNumeric(arg[2 + arrayOffset])) {
-                            entry = page.getEntry(Integer.parseInt(arg[2 + arrayOffset]));
+                        if (arg.length > 2 + arrayOffset && isNumeric(getArg(arg, 2))) {
+                            entry = page.getEntry(Integer.parseInt(getArg(arg, 2)));
                         } else {
                             entry = page.getEntry(0);
                         }
@@ -1927,7 +1952,7 @@ public class FozruciX extends ListenerAdapter {
                         LOGGER.debug("getting Plain text");
                         if (arg.length > 2 + arrayOffset) {
                             int subCommandNum = 2;
-                            if (isNumeric(arg[2 + arrayOffset])) {
+                            if (isNumeric(getArg(arg, 2))) {
                                 subCommandNum++;
                             }
                             if (arg.length > subCommandNum + arrayOffset && arg[subCommandNum - 1].equalsIgnoreCase("Example")) {
@@ -1970,8 +1995,8 @@ public class FozruciX extends ListenerAdapter {
                     info.bliki.api.User user = new info.bliki.api.User("", "", "http://en.wikipedia.org/w/api.php");
                     user.login();
                     List<Page> pages = user.queryContent(listOfTitleStrings);
-                    startOfIf:
-                    if (pages.size() > 0) {
+                    boolean found = false;
+                    while (pages.size() > 0) {
                         Page page = pages.get(0);
                         if (page.toString().contains("#REDIRECT")) {
                             LOGGER.debug("Found redirect");
@@ -1979,8 +2004,9 @@ public class FozruciX extends ListenerAdapter {
                             link = link.substring(link.indexOf("[[") + 2, link.indexOf("]]"));
                             LOGGER.debug("Going to " + link);
                             pages = user.queryContent(new String[]{link});
-                            break startOfIf;
+                            continue;
                         }
+                        found = true;
                         WikiModel wikiModel = new WikiModel("${image}", "${title}");
                         String plainStr = page.toString();
                         LinkedList<String> related = null;
@@ -2007,9 +2033,12 @@ public class FozruciX extends ListenerAdapter {
                             for (int i = 0; i < related.size() && i < 5; i++) {
                                 plainStr += related.get(i).replace("* ", "").replace("*", "") + "; ";
                             }
-                            plainStr = plainStr.substring(0, plainStr.lastIndexOf(","));
+                            int lastIndex = plainStr.lastIndexOf(",");
+                            if (lastIndex != -1)
+                                plainStr = plainStr.substring(0, lastIndex);
                         } else {
                             plainStr = page.getCurrentContent();
+
                         }
                         plainStr = wikiModel.render(new PlainTextConverter(), plainStr);
                         if (related == null) {
@@ -2022,9 +2051,6 @@ public class FozruciX extends ListenerAdapter {
                                 plainStr = plainStr.substring(0, charIndex);
                             }
                         }
-                        if (plainStr.length() > 470) {
-                            plainStr = plainStr.substring(0, 470) + "-(snip)-";
-                        }
                         Pattern pattern = Pattern.compile("[^.]*");
                         Matcher matcher = pattern.matcher(plainStr);
                         if (matcher.find()) {
@@ -2035,7 +2061,9 @@ public class FozruciX extends ListenerAdapter {
                                 sendMessage(event, plainStr + ".", true);
                             }
                         }
-                    } else {
+                        break;
+                    }
+                    if (!found) {
                         sendMessage(event, "That page couldn't be found.", true);
                     }
                 } catch (IndexOutOfBoundsException e) {
@@ -2052,7 +2080,7 @@ public class FozruciX extends ListenerAdapter {
 // !chat - chat's with a internet conversation bot
         if (commandChecker(arg, "chat")) {
             if (checkPerm(event.getUser(), 0)) {
-                if (arg[1 + arrayOffset].equalsIgnoreCase("clever")) {
+                if (getArg(arg, 1).equalsIgnoreCase("clever")) {
                     if (!BOOLS.get(CLEVER_BOT_INT)) {
                         try {
                             chatterBotSession = BOT_FACTORY.create(ChatterBotType.CLEVERBOT).createSession();
@@ -2068,7 +2096,7 @@ public class FozruciX extends ListenerAdapter {
                     } catch (Exception e) {
                         sendMessage(event, "Error: Problem with bot. Error was: " + e, true);
                     }
-                } else if (arg[1 + arrayOffset].equalsIgnoreCase("pandora")) {
+                } else if (getArg(arg, 1).equalsIgnoreCase("pandora")) {
                     if (!BOOLS.get(PANDORA_BOT_INT)) {
                         try {
                             ChatterBot pandoraBot = BOT_FACTORY.create(ChatterBotType.PANDORABOTS, "b0dafd24ee35a477");
@@ -2085,7 +2113,7 @@ public class FozruciX extends ListenerAdapter {
                     } catch (Exception e) {
                         sendMessage(event, "Error: Problem with bot. Error was: " + e, true);
                     }
-                } else if (arg[1 + arrayOffset].equalsIgnoreCase("jabber")) {
+                } else if (getArg(arg, 1).equalsIgnoreCase("jabber")) {
                     if (!BOOLS.get(JABBER_BOT_INT)) {
                         try {
                             ChatterBot jabberBot = BOT_FACTORY.create(ChatterBotType.JABBERWACKY, "b0dafd24ee35a477");
@@ -2109,30 +2137,30 @@ public class FozruciX extends ListenerAdapter {
 // !temp - Converts a unit of temperature to another
         if (commandChecker(arg, "temp")) {
             if (checkPerm(event.getUser(), 0)) {
-                int temp = Integer.parseInt(arg[3 + arrayOffset]);
+                int temp = Integer.parseInt(getArg(arg, 3));
                 double ans = 0;
                 String unit = "err";
-                if (arg[1 + arrayOffset].equalsIgnoreCase("F")) {
-                    if (arg[2 + arrayOffset].equalsIgnoreCase("C")) {
+                if (getArg(arg, 1).equalsIgnoreCase("F")) {
+                    if (getArg(arg, 2).equalsIgnoreCase("C")) {
                         ans = (temp - 32) * 5 / 9;
                         unit = "C";
-                    } else if (arg[2 + arrayOffset].equalsIgnoreCase("K")) {
+                    } else if (getArg(arg, 2).equalsIgnoreCase("K")) {
                         ans = (temp - 32) * 5 / 9 + 273.15;
                         unit = "K";
                     }
-                } else if (arg[1 + arrayOffset].equalsIgnoreCase("C")) {
-                    if (arg[2 + arrayOffset].equalsIgnoreCase("F")) {
+                } else if (getArg(arg, 1).equalsIgnoreCase("C")) {
+                    if (getArg(arg, 2).equalsIgnoreCase("F")) {
                         ans = (temp * 9 / 5) + 32;
                         unit = "F";
-                    } else if (arg[2 + arrayOffset].equalsIgnoreCase("K") && temp < 0) {
+                    } else if (getArg(arg, 2).equalsIgnoreCase("K") && temp < 0) {
                         ans = temp + 273.15;
                         unit = "K";
                     }
-                } else if (arg[1 + arrayOffset].equalsIgnoreCase("K")) {
-                    if (arg[2 + arrayOffset].equalsIgnoreCase("F")) {
+                } else if (getArg(arg, 1).equalsIgnoreCase("K")) {
+                    if (getArg(arg, 2).equalsIgnoreCase("F")) {
                         ans = (temp - 273.15) * 9 / 5 + 32;
                         unit = "F";
-                    } else if (arg[2 + arrayOffset].equalsIgnoreCase("C")) {
+                    } else if (getArg(arg, 2).equalsIgnoreCase("C")) {
                         ans = temp - 273.15;
                         unit = "C";
                     }
@@ -2149,31 +2177,31 @@ public class FozruciX extends ListenerAdapter {
 // !BlockConv - Converts blocks to bytes
         if (commandChecker(arg, "BlockConv")) {
             if (checkPerm(event.getUser(), 0)) {
-                int data = Integer.parseInt(arg[3 + arrayOffset]);
+                int data = Integer.parseInt(getArg(arg, 3));
                 double ans = 0;
                 String unit = "err";
                 boolean notify = true;
                 int BLOCKS = 128;
-                if (arg[1 + arrayOffset].equalsIgnoreCase("blocks")) {
-                    if (arg[2 + arrayOffset].equalsIgnoreCase("kb")) {
+                if (getArg(arg, 1).equalsIgnoreCase("blocks")) {
+                    if (getArg(arg, 2).equalsIgnoreCase("kb")) {
                         ans = BLOCKS * data;
                         unit = "KB";
                         notify = false;
                     }
-                } else if (arg[1 + arrayOffset].equalsIgnoreCase("kb")) {
-                    if (arg[2 + arrayOffset].equalsIgnoreCase("blocks")) {
+                } else if (getArg(arg, 1).equalsIgnoreCase("kb")) {
+                    if (getArg(arg, 2).equalsIgnoreCase("blocks")) {
                         ans = data / BLOCKS;
                         unit = "Blocks";
                         notify = false;
                     }
-                } else if (arg[1 + arrayOffset].equalsIgnoreCase("mb")) {
-                    if (arg[2 + arrayOffset].equalsIgnoreCase("blocks")) {
+                } else if (getArg(arg, 1).equalsIgnoreCase("mb")) {
+                    if (getArg(arg, 2).equalsIgnoreCase("blocks")) {
                         int BLOCKS_MB = 8 * BLOCKS;
                         ans = data / BLOCKS_MB;
                         unit = "Blocks";
                     }
-                } else if (arg[1 + arrayOffset].equalsIgnoreCase("gb")) {
-                    if (arg[2 + arrayOffset].equalsIgnoreCase("blocks")) {
+                } else if (getArg(arg, 1).equalsIgnoreCase("gb")) {
+                    if (getArg(arg, 2).equalsIgnoreCase("blocks")) {
                         int BLOCKS_GB = 8192 * BLOCKS;
                         ans = data / BLOCKS_GB;
                         unit = "Blocks";
@@ -2197,7 +2225,7 @@ public class FozruciX extends ListenerAdapter {
                     if (arg.length > 2) {
                         if (arg[1].equalsIgnoreCase("set")) {
                             if (FCList.containsKey(event.getUser().getNick().toLowerCase())) {
-                                String fc = arg[2 + arrayOffset].replaceAll("[^\\d]", "");
+                                String fc = getArg(arg, 2).replaceAll("[^\\d]", "");
                                 if (fc.length() == 12) {
                                     FCList.put(event.getUser().getNick().toLowerCase(), fc);
                                     sendMessage(event, "FC Edited", true);
@@ -2205,10 +2233,10 @@ public class FozruciX extends ListenerAdapter {
                                     sendMessage(event, "Incorrect FC", true);
                                 }
                             } else {
-                                String fc = arg[2 + arrayOffset].replaceAll("[^\\d]", "");
+                                String fc = getArg(arg, 2).replaceAll("[^\\d]", "");
                                 if (fc.length() == 12) {
                                     FCList.put(event.getUser().getNick().toLowerCase(), arg[2].replaceAll("[^\\d]", ""));
-                                    sendMessage(event, "Added " + event.getUser().getNick() + "'s FC to the DB as " + arg[2 + arrayOffset].replaceAll("[^\\d]", ""), true);
+                                    sendMessage(event, "Added " + event.getUser().getNick() + "'s FC to the DB as " + getArg(arg, 2).replaceAll("[^\\d]", ""), true);
                                 } else {
                                     sendMessage(event, "Incorrect FC", true);
                                 }
@@ -2227,13 +2255,13 @@ public class FozruciX extends ListenerAdapter {
                             }
 
                         } else if (FCList.containsKey(arg[1].toLowerCase())) {
-                            String fc = FCList.get(arg[1 + arrayOffset].toLowerCase());
+                            String fc = FCList.get(getArg(arg, 1).toLowerCase());
                             String fcParts[] = new String[3];
                             fcParts[0] = fc.substring(0, 4);
                             fcParts[1] = fc.substring(4, 8);
                             fcParts[2] = fc.substring(8);
                             fc = fcParts[0] + "-" + fcParts[1] + "-" + fcParts[2];
-                            sendMessage(event, arg[1 + arrayOffset] + ": " + fc, false);
+                            sendMessage(event, getArg(arg, 1) + ": " + fc, false);
                         } else {
                             sendMessage(event, "That user hasn't entered their FC yet", false);
                         }
@@ -2305,30 +2333,30 @@ public class FozruciX extends ListenerAdapter {
             if (checkPerm(event.getUser(), 0)) {
                 if (arg.length > 1 + arrayOffset) {
                     try {
-                        if (arg[1 + arrayOffset].equalsIgnoreCase("set")) {
-                            if (memes.containsKey(arg[2 + arrayOffset].toLowerCase().replace("\u0001", ""))) {
-                                Meme meme = memes.get(arg[2 + arrayOffset].toLowerCase());
+                        if (getArg(arg, 1).equalsIgnoreCase("set")) {
+                            if (memes.containsKey(getArg(arg, 2).toLowerCase().replace("\u0001", ""))) {
+                                Meme meme = memes.get(getArg(arg, 2).toLowerCase());
                                 if (checkPerm(event.getUser(), 9001) || meme.getCreator().equalsIgnoreCase(event.getUser().getNick())) {
                                     if (arg.length == 3 + arrayOffset) {
-                                        memes.remove(arg[2 + arrayOffset].toLowerCase().replace("\u0001", ""));
-                                        sendMessage(event, "Meme " + arg[2 + arrayOffset] + " Deleted!", true);
+                                        memes.remove(getArg(arg, 2).toLowerCase().replace("\u0001", ""));
+                                        sendMessage(event, "Meme " + getArg(arg, 2) + " Deleted!", true);
                                     } else {
                                         meme.setMeme(argJoiner(arg, 3));
-                                        memes.put(arg[2 + arrayOffset].toLowerCase().replace("\u0001", ""), meme);
-                                        sendMessage(event, "Meme " + arg[2 + arrayOffset] + " Edited!", true);
+                                        memes.put(getArg(arg, 2).toLowerCase().replace("\u0001", ""), meme);
+                                        sendMessage(event, "Meme " + getArg(arg, 2) + " Edited!", true);
                                     }
                                 } else {
                                     sendMessage(event, "Sorry, Only the creator of the meme can edit it", true);
                                 }
                             } else {
-                                memes.put(arg[2 + arrayOffset].toLowerCase().replace("\u0001", ""), new Meme(event.getUser().getNick(), argJoiner(arg, 3).replace("\u0001", "")));
-                                sendMessage(event, "Meme " + arg[2 + arrayOffset] + " Created as " + argJoiner(arg, 3), true);
+                                memes.put(getArg(arg, 2).toLowerCase().replace("\u0001", ""), new Meme(event.getUser().getNick(), argJoiner(arg, 3).replace("\u0001", "")));
+                                sendMessage(event, "Meme " + getArg(arg, 2) + " Created as " + argJoiner(arg, 3), true);
                             }
-                        } else if (arg[1 + arrayOffset].equalsIgnoreCase("list")) {
+                        } else if (getArg(arg, 1).equalsIgnoreCase("list")) {
                             sendMessage(event, memes.toString().replace("\u0001", ""), true);
                         } else {
-                            if (memes.containsKey(arg[1 + arrayOffset].toLowerCase())) {
-                                sendMessage(event, arg[1 + arrayOffset].replace("\u0001", "") + ": " + memes.get(arg[1 + arrayOffset].toLowerCase()).getMeme().replace("\u0001", ""), false);
+                            if (memes.containsKey(getArg(arg, 1).toLowerCase())) {
+                                sendMessage(event, getArg(arg, 1).replace("\u0001", "") + ": " + memes.get(getArg(arg, 1).toLowerCase()).getMeme().replace("\u0001", ""), false);
                             } else {
                                 sendMessage(event, "That Meme doesn't exist!", true);
                             }
@@ -2346,29 +2374,29 @@ public class FozruciX extends ListenerAdapter {
         if (commandChecker(arg, "q")) {
             if (checkPerm(event.getUser(), 0)) {
                 try {
-                    if (arg[1 + arrayOffset].equalsIgnoreCase("del") || arg[1 + arrayOffset].equalsIgnoreCase("pop") || arg[1 + arrayOffset].equalsIgnoreCase("rem")) {
+                    if (getArg(arg, 1).equalsIgnoreCase("del") || getArg(arg, 1).equalsIgnoreCase("pop") || getArg(arg, 1).equalsIgnoreCase("rem")) {
                         if (qList.remove(event.getUser().getNick())) {
                             sendMessage(event, "Removed from Q", true);
                         } else {
                             sendMessage(event, "You weren't in Q!", true);
                         }
-                    } else if (arg[1 + arrayOffset].equalsIgnoreCase("add") || arg[1 + arrayOffset].equalsIgnoreCase("push")) {
+                    } else if (getArg(arg, 1).equalsIgnoreCase("add") || getArg(arg, 1).equalsIgnoreCase("push")) {
                         if (qList.add(event.getUser().getNick())) {
                             sendMessage(event, "Added to Q", true);
                         } else {
                             sendMessage(event, "You are already in Q!", true);
                         }
-                    } else if (arg[1 + arrayOffset].equalsIgnoreCase("list")) {
+                    } else if (getArg(arg, 1).equalsIgnoreCase("list")) {
                         sendMessage(event, "Current people in Q: " + qList.toString().replace("[", "").replace("]", ""), true);
-                    } else if (arg[1 + arrayOffset].equalsIgnoreCase("clear")) {
+                    } else if (getArg(arg, 1).equalsIgnoreCase("clear")) {
                         qList.clear();
                         qTimer = new StopWatch();
                         sendMessage(event, "Q has been qilled", true);
-                    } else if (arg[1 + arrayOffset].equalsIgnoreCase("start")) {
+                    } else if (getArg(arg, 1).equalsIgnoreCase("start")) {
                         qTimer = new StopWatch();
                         int time = 10;
                         if (arg.length > 1 + arrayOffset) {
-                            time = Integer.parseInt(arg[2 + arrayOffset]);
+                            time = Integer.parseInt(getArg(arg, 2));
                             time = time > 60 ? 30 : time;
                         }
                         sendMessage(event, "READY?!?!1/1 " + (time != 10 ? "starting in " + time + " sec!!!! " : "") + qList.toString().replace("[", "").replace("]", ""), false);
@@ -2382,7 +2410,7 @@ public class FozruciX extends ListenerAdapter {
                         sendMessage(event, "GO! " + qList.toString().replace("[", "").replace("]", ""), false);
                         qTimer = new StopWatch();
                         qTimer.start();
-                    } else if (arg[1 + arrayOffset].equalsIgnoreCase("time")) {
+                    } else if (getArg(arg, 1).equalsIgnoreCase("time")) {
 
                         sendMessage(event, "Current time: " + qTimer.toString(), true);
                     }
@@ -2398,12 +2426,12 @@ public class FozruciX extends ListenerAdapter {
         if (commandChecker(arg, "NoteJ")) {
             if (checkPerm(event.getUser(), 0)) {
                 try {
-                    if (arg[1 + arrayOffset].equalsIgnoreCase("del")) {
+                    if (getArg(arg, 1).equalsIgnoreCase("del")) {
                         int i = 0;
                         int index = -1;
                         boolean found = false;
                         while (i < noteList.size() && !found) {
-                            if (noteList.get(i).getId().toString().equals(arg[2 + arrayOffset])) {
+                            if (noteList.get(i).getId().toString().equals(getArg(arg, 2))) {
                                 found = true;
                                 index = i;
                             } else {
@@ -2413,14 +2441,14 @@ public class FozruciX extends ListenerAdapter {
                         if (found) {
                             if (event.getUser().getNick().equalsIgnoreCase(noteList.get(index).getSender()) || checkPerm(event.getUser(), 9001)) {
                                 noteList.remove(index);
-                                sendMessage(event, "Note " + arg[2 + arrayOffset] + " Deleted", true);
+                                sendMessage(event, "Note " + getArg(arg, 2) + " Deleted", true);
                             } else {
                                 sendMessage(event, "Nick didn't match nick that left note, as of right now there is no alias system so if you did leave this note; switch to the nick you used when you left it", true);
                             }
                         } else {
                             sendMessage(event, "That ID wasn't found.", true);
                         }
-                    } else if (arg[1 + arrayOffset].equalsIgnoreCase("list")) {
+                    } else if (getArg(arg, 1).equalsIgnoreCase("list")) {
                         int i = 0;
                         LinkedList<String> found = new LinkedList<>();
                         LinkedList<String> foundUUID = new LinkedList<>();
@@ -2434,9 +2462,9 @@ public class FozruciX extends ListenerAdapter {
                         sendMessage(event, found.toString(), true);
                         event.getUser().send().notice(foundUUID.toString());
                     } else {
-                        Note note = new Note(event.getUser().getNick(), arg[1 + arrayOffset], argJoiner(arg, 2), channel);
+                        Note note = new Note(event.getUser().getNick(), getArg(arg, 1), argJoiner(arg, 2), channel);
                         noteList.add(note);
-                        sendMessage(event, "Left note \"" + argJoiner(arg, 2) + "\" for \"" + arg[1 + arrayOffset] + "\".", false);
+                        sendMessage(event, "Left note \"" + argJoiner(arg, 2) + "\" for \"" + getArg(arg, 1) + "\".", false);
                         event.getUser().send().notice("ID is \"" + noteList.get(noteList.indexOf(note)).getId().toString() + "\"");
                     }
                     saveData(event);
@@ -2509,17 +2537,17 @@ public class FozruciX extends ListenerAdapter {
         if (commandChecker(arg, "RandomNum")) {
             if (checkPerm(event.getUser(), 0)) {
                 long num1, num2;
-                if (arg[1 + arrayOffset].contains("0x")) {
-                    arg[1 + arrayOffset] = arg[1 + arrayOffset].substring(2);
-                    num1 = Long.parseLong(arg[1 + arrayOffset], 16);
+                if (getArg(arg, 1).contains("0x")) {
+                    String num = getArg(arg, 1).substring(2);
+                    num1 = Long.parseLong(num, 16);
                 } else {
-                    num1 = Long.parseLong(arg[1 + arrayOffset], 10);
+                    num1 = Long.parseLong(getArg(arg, 1), 10);
                 }
-                if (arg[2 + arrayOffset].contains("0x")) {
-                    arg[2 + arrayOffset] = arg[2 + arrayOffset].substring(2);
-                    num2 = Long.parseLong(arg[2 + arrayOffset], 16);
+                if (getArg(arg, 2).contains("0x")) {
+                    String num = getArg(arg, 2).substring(2);
+                    num2 = Long.parseLong(num, 16);
                 } else {
-                    num2 = Long.parseLong(arg[2 + arrayOffset], 10);
+                    num2 = Long.parseLong(getArg(arg, 2), 10);
                 }
 
                 sendMessage(event, " " + randInt((int) num1, (int) num2), true);
@@ -2548,7 +2576,7 @@ public class FozruciX extends ListenerAdapter {
 // !prefix - Changes the command prefix
         if (commandChecker(arg, "prefix") && !BOOLS.get(PREFIX_RAN)) {
             if (checkPerm(event.getUser(), 9001)) {
-                prefix = arg[1 + arrayOffset];
+                prefix = getArg(arg, 1);
                 if (prefix.length() > 1 && !prefix.endsWith(".")) {
                     arrayOffset = 1;
                 } else {
@@ -2592,7 +2620,7 @@ public class FozruciX extends ListenerAdapter {
 // !LoopSay - Tells the bot to say something and loop it
         if (commandChecker(arg, "LoopSay")) {
             if (checkPerm(event.getUser(), 9001)) {
-                int i = Integer.parseInt(arg[1 + arrayOffset]);
+                int i = Integer.parseInt(getArg(arg, 1));
                 int loopCount = 0;
                 try {
                     while (i > loopCount) {
@@ -2612,7 +2640,7 @@ public class FozruciX extends ListenerAdapter {
             if (checkPerm(event.getUser(), 0)) {
                 NumberFormat formatter = new DecimalFormat("0.######E0");
 
-                long num = Long.parseLong(arg[1 + arrayOffset]);
+                long num = Long.parseLong(getArg(arg, 1));
                 try {
                     sendMessage(event, formatter.format(num), true);
                 } catch (Exception e) {
@@ -2628,15 +2656,15 @@ public class FozruciX extends ListenerAdapter {
                 if (commandChecker(arg, "DND join")) {
                     sendMessage(event, "Syntax: " + prefix + "DND join <Character name> <Race (can be anything right now)> <Class> {<Familiar name> <Familiar Species>}", true);
                 } else {
-                    if (arg[1 + arrayOffset].equalsIgnoreCase("join")) {
+                    if (getArg(arg, 1).equalsIgnoreCase("join")) {
                         if (DNDJoined.contains(event.getUser().getNick())) {
                             sendMessage(event, "You are already in the list!", true);
                         } else {
                             if (arg.length > 4 + arrayOffset && arg.length < 5 + arrayOffset) {
-                                if (DNDPlayer.ifClassExists(arg[4 + arrayOffset])) {
-                                    DNDList.add(new DNDPlayer(arg[2 + arrayOffset], arg[3 + arrayOffset], arg[4 + arrayOffset], event.getUser().getNick()));
+                                if (DNDPlayer.ifClassExists(getArg(arg, 4))) {
+                                    DNDList.add(new DNDPlayer(getArg(arg, 2), getArg(arg, 3), getArg(arg, 4), event.getUser().getNick()));
                                     DNDJoined.add(event.getUser().getNick());
-                                    sendMessage(event, "Added \"" + arg[2 + arrayOffset] + "\" the " + arg[4 + arrayOffset] + " to the game", true);
+                                    sendMessage(event, "Added \"" + getArg(arg, 2) + "\" the " + getArg(arg, 4) + " to the game", true);
                                     if (event.getUser().getNick().equalsIgnoreCase(currentNick)) {
                                         debug.setPlayerName(DNDList.get(DNDJoined.indexOf(currentNick)).getPlayerName());
                                     }
@@ -2644,11 +2672,11 @@ public class FozruciX extends ListenerAdapter {
                                     sendMessage(event, "That class doesn't exist!", true);
                                 }
                             } else if (arg.length > 6 + arrayOffset) {
-                                if (DNDPlayer.ifClassExists(arg[4 + arrayOffset])) {
-                                    if (DNDPlayer.ifSpeciesExists(arg[6 + arrayOffset])) {
-                                        DNDList.add(new DNDPlayer(arg[2 + arrayOffset], arg[3 + arrayOffset], arg[4 + arrayOffset], event.getUser().getNick(), arg[5 + arrayOffset], arg[6 + arrayOffset]));
+                                if (DNDPlayer.ifClassExists(getArg(arg, 4))) {
+                                    if (DNDPlayer.ifSpeciesExists(getArg(arg, 6))) {
+                                        DNDList.add(new DNDPlayer(getArg(arg, 2), getArg(arg, 3), getArg(arg, 4), event.getUser().getNick(), getArg(arg, 5), getArg(arg, 6)));
                                         DNDJoined.add(event.getUser().getNick());
-                                        sendMessage(event, "Added \"" + arg[2 + arrayOffset] + "\" the " + arg[4 + arrayOffset] + " with " + arg[5 + arrayOffset] + " The " + arg[6 + arrayOffset] + " to the game", true);
+                                        sendMessage(event, "Added \"" + getArg(arg, 2) + "\" the " + getArg(arg, 4) + " with " + getArg(arg, 5) + " The " + getArg(arg, 6) + " to the game", true);
 
                                         if (event.getUser().getNick().equalsIgnoreCase(currentNick)) {
                                             debug.setPlayerName(DNDList.get(DNDJoined.indexOf(currentNick)).getPlayerName());
@@ -2666,7 +2694,7 @@ public class FozruciX extends ListenerAdapter {
                         }
                     }
                 }
-                if (arg[1 + arrayOffset].equalsIgnoreCase("info")) {
+                if (getArg(arg, 1).equalsIgnoreCase("info")) {
                     try {
                         int index = DNDJoined.indexOf(event.getUser().getNick());
                         if (index > -1) {
@@ -2679,7 +2707,7 @@ public class FozruciX extends ListenerAdapter {
                         sendError(event, e);
                     }
                 }
-                if (arg[1 + arrayOffset].equalsIgnoreCase("List")) {
+                if (getArg(arg, 1).equalsIgnoreCase("List")) {
                     try {
                         sendMessage(event, DNDList.toString(), true);
                     } catch (Exception e) {
@@ -2688,60 +2716,60 @@ public class FozruciX extends ListenerAdapter {
 
                     setDebugInfo(event);
                 }
-                if (arg[1 + arrayOffset].equalsIgnoreCase("ListClass")) {
+                if (getArg(arg, 1).equalsIgnoreCase("ListClass")) {
                     sendMessage(event, "List of classes: " + Arrays.toString(DNDPlayer.DNDClasses.values()), true);
                 }
-                if (arg[1 + arrayOffset].equalsIgnoreCase("ListSpecies")) {
+                if (getArg(arg, 1).equalsIgnoreCase("ListSpecies")) {
                     sendMessage(event, "List of classes: " + Arrays.toString(DNDPlayer.DNDFamiliars.values()), true);
                 }
                 //noinspection StatementWithEmptyBody
-                if (arg[1 + arrayOffset].equalsIgnoreCase("DM") && checkPerm(event.getUser(), 5)) {
+                if (getArg(arg, 1).equalsIgnoreCase("DM") && checkPerm(event.getUser(), 5)) {
                     DNDDungeonMaster = argJoiner(arg, 2);
                 }
-                if (arg[1 + arrayOffset].equalsIgnoreCase("Test")) { //testing COMMANDS.
+                if (getArg(arg, 1).equalsIgnoreCase("Test")) { //testing COMMANDS.
                     //checkPerm(event.getUser())
                     try {
                         int index = DNDJoined.indexOf(event.getUser().getNick());
-                        if (arg[2 + arrayOffset].equalsIgnoreCase("addItem")) {
-                            DNDList.get(index).addInventory(arg[3 + arrayOffset]);
-                            sendMessage(event, "Added " + arg[3 + arrayOffset] + " to your inventory", true);
+                        if (getArg(arg, 2).equalsIgnoreCase("addItem")) {
+                            DNDList.get(index).addInventory(getArg(arg, 3));
+                            sendMessage(event, "Added " + getArg(arg, 3) + " to your inventory", true);
                         }
-                        if (arg[2 + arrayOffset].equalsIgnoreCase("getItems")) {
+                        if (getArg(arg, 2).equalsIgnoreCase("getItems")) {
                             sendMessage(event, DNDList.get(index).getInventory(), true);
                         }
-                        if (arg[2 + arrayOffset].equalsIgnoreCase("delItem")) {
-                            DNDList.get(index).removeFromInventory(arg[3 + arrayOffset]);
-                            sendMessage(event, "removed " + arg[3 + arrayOffset] + " to your inventory", true);
+                        if (getArg(arg, 2).equalsIgnoreCase("delItem")) {
+                            DNDList.get(index).removeFromInventory(getArg(arg, 3));
+                            sendMessage(event, "removed " + getArg(arg, 3) + " to your inventory", true);
                         }
-                        if (arg[2 + arrayOffset].equalsIgnoreCase("addXP")) {
-                            DNDList.get(index).addXP(Integer.parseInt(arg[3 + arrayOffset]));
-                            sendMessage(event, "Added " + arg[3 + arrayOffset] + " to your XP", true);
+                        if (getArg(arg, 2).equalsIgnoreCase("addXP")) {
+                            DNDList.get(index).addXP(Integer.parseInt(getArg(arg, 3)));
+                            sendMessage(event, "Added " + getArg(arg, 3) + " to your XP", true);
                         }
-                        if (arg[2 + arrayOffset].equalsIgnoreCase("addHP")) {
-                            DNDList.get(index).addHP(Integer.parseInt(arg[3 + arrayOffset]));
-                            sendMessage(event, "Added " + arg[3 + arrayOffset] + " to your HP", true);
+                        if (getArg(arg, 2).equalsIgnoreCase("addHP")) {
+                            DNDList.get(index).addHP(Integer.parseInt(getArg(arg, 3)));
+                            sendMessage(event, "Added " + getArg(arg, 3) + " to your HP", true);
                         }
-                        if (arg[2 + arrayOffset].equalsIgnoreCase("subHP")) {
-                            DNDList.get(index).hit(Integer.parseInt(arg[3 + arrayOffset]));
-                            sendMessage(event, "Subbed " + arg[3 + arrayOffset] + " from your HP", true);
+                        if (getArg(arg, 2).equalsIgnoreCase("subHP")) {
+                            DNDList.get(index).hit(Integer.parseInt(getArg(arg, 3)));
+                            sendMessage(event, "Subbed " + getArg(arg, 3) + " from your HP", true);
                         }
-                        if (arg[2 + arrayOffset].equalsIgnoreCase("addXPFam")) {
-                            DNDList.get(index).getFamiliar().addXP(Integer.parseInt(arg[3 + arrayOffset]));
-                            sendMessage(event, "Added " + arg[3 + arrayOffset] + " to your familiar's XP", true);
+                        if (getArg(arg, 2).equalsIgnoreCase("addXPFam")) {
+                            DNDList.get(index).getFamiliar().addXP(Integer.parseInt(getArg(arg, 3)));
+                            sendMessage(event, "Added " + getArg(arg, 3) + " to your familiar's XP", true);
                         }
-                        if (arg[2 + arrayOffset].equalsIgnoreCase("addHPFam")) {
-                            DNDList.get(index).getFamiliar().addHP(Integer.parseInt(arg[3 + arrayOffset]));
-                            sendMessage(event, "Added " + arg[3 + arrayOffset] + " to your familiar's HP", true);
+                        if (getArg(arg, 2).equalsIgnoreCase("addHPFam")) {
+                            DNDList.get(index).getFamiliar().addHP(Integer.parseInt(getArg(arg, 3)));
+                            sendMessage(event, "Added " + getArg(arg, 3) + " to your familiar's HP", true);
                         }
-                        if (arg[2 + arrayOffset].equalsIgnoreCase("subHPFam")) {
-                            DNDList.get(index).getFamiliar().hit(Integer.parseInt(arg[3 + arrayOffset]));
-                            sendMessage(event, "Subbed " + arg[3 + arrayOffset] + " from your familiar's HP", true);
+                        if (getArg(arg, 2).equalsIgnoreCase("subHPFam")) {
+                            DNDList.get(index).getFamiliar().hit(Integer.parseInt(getArg(arg, 3)));
+                            sendMessage(event, "Subbed " + getArg(arg, 3) + " from your familiar's HP", true);
                         }
-                        if (arg[2 + arrayOffset].equalsIgnoreCase("getFamiliar")) {
+                        if (getArg(arg, 2).equalsIgnoreCase("getFamiliar")) {
                             sendMessage(event, DNDList.get(index).getFamiliar().toString(), true);
                         }
 
-                        if (arg[2 + arrayOffset].equalsIgnoreCase("clearList")) {
+                        if (getArg(arg, 2).equalsIgnoreCase("clearList")) {
                             if (checkPerm(event.getUser(), 9001)) {
                                 DNDJoined.clear();
                                 DNDList.clear();
@@ -2749,32 +2777,32 @@ public class FozruciX extends ListenerAdapter {
                             }
                         }
 
-                        if (arg[2 + arrayOffset].equalsIgnoreCase("DelChar")) {
+                        if (getArg(arg, 2).equalsIgnoreCase("DelChar")) {
                             if (checkPerm(event.getUser(), 9001)) {
-                                if (DNDJoined.contains(arg[3 + arrayOffset])) {
+                                if (DNDJoined.contains(getArg(arg, 3))) {
                                     DNDJoined.remove(index);
                                 }
                             }
                         }
 
-                        if (arg[2 + arrayOffset].equalsIgnoreCase("setPos")) {
-                            DNDDungeon.setLocation(Integer.parseInt(arg[3 + arrayOffset]), Integer.parseInt(arg[4 + arrayOffset]));
+                        if (getArg(arg, 2).equalsIgnoreCase("setPos")) {
+                            DNDDungeon.setLocation(Integer.parseInt(getArg(arg, 3)), Integer.parseInt(getArg(arg, 4)));
                             sendMessage(event, "Pos is now: " + DNDDungeon.toString(), true);
 
                         }
 
-                        if (arg[2 + arrayOffset].equalsIgnoreCase("getPos")) {
+                        if (getArg(arg, 2).equalsIgnoreCase("getPos")) {
                             Point temp = DNDDungeon.getLocation();
                             sendMessage(event, "Current location: (" + temp.x + "," + temp.y + ")", true);
                         }
 
-                        if (arg[2 + arrayOffset].equalsIgnoreCase("movePos")) {
-                            DNDDungeon.move(Integer.parseInt(arg[3 + arrayOffset]), Integer.parseInt(arg[4 + arrayOffset]));
+                        if (getArg(arg, 2).equalsIgnoreCase("movePos")) {
+                            DNDDungeon.move(Integer.parseInt(getArg(arg, 3)), Integer.parseInt(getArg(arg, 4)));
                             Point temp = DNDDungeon.getLocation();
                             sendMessage(event, "New location: (" + temp.x + "," + temp.y + ")", true);
                         }
 
-                        if (arg[2 + arrayOffset].equalsIgnoreCase("getSurroundings")) {
+                        if (getArg(arg, 2).equalsIgnoreCase("getSurroundings")) {
                             int[] tiles = DNDDungeon.getSurrounding();
                             sendMessage(event, " | " + tiles[7] + " | " + tiles[0] + " | " + tiles[1] + " | ", true);
                             sendMessage(event, " | " + tiles[6] + " | " + tiles[8] + " | " + tiles[2] + " | ", true);
@@ -2783,7 +2811,7 @@ public class FozruciX extends ListenerAdapter {
 
                         int frameWidth = 300;
                         int frameHeight = 300;
-                        if (arg[2 + arrayOffset].equalsIgnoreCase("genDungeon")) {
+                        if (getArg(arg, 2).equalsIgnoreCase("genDungeon")) {
                             DNDDungeon = new Dungeon();
                             sendMessage(event, "Generated new dungeon", true);
                             frame.dispose();
@@ -2796,7 +2824,7 @@ public class FozruciX extends ListenerAdapter {
                             frame.paintAll(frame.getGraphics());
                         }
 
-                        if (arg[2 + arrayOffset].equalsIgnoreCase("draw")) {
+                        if (getArg(arg, 2).equalsIgnoreCase("draw")) {
                             frame.dispose();
                             frame = new JFrame();
                             frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
@@ -2852,7 +2880,7 @@ public class FozruciX extends ListenerAdapter {
                     BufferedWriter delFile = new BufferedWriter(new FileWriter("Data\\temp.asm", false));
                     delFile.close();
                     fos.write(bytes);
-                    String processor = arg[1 + arrayOffset];
+                    String processor = getArg(arg, 1);
                     if (processor.equalsIgnoreCase("M68K")) {
                         processor = "68000";
                     } else if (processor.equalsIgnoreCase("x86")) {
@@ -2999,13 +3027,13 @@ public class FozruciX extends ListenerAdapter {
 // !DebugVar - changes a variable to the value
         if (commandChecker(arg, "DebugVar")) {
             if (checkPerm(event.getUser(), 9001)) {
-                switch (arg[1 + arrayOffset].toLowerCase()) { //Make sure strings are lowercase
+                switch (getArg(arg, 1).toLowerCase()) { //Make sure strings are lowercase
                     case "i":
-                        int i = Integer.parseInt(arg[2 + arrayOffset]);
+                        int i = Integer.parseInt(getArg(arg, 2));
                         sendMessage(event, "DEBUG: Var \"i\" is now \"" + i + "\"", true);
                         break;
                     case "jokenum":
-                        jokeCommandDebugVar = Integer.parseInt(arg[2 + arrayOffset]);
+                        jokeCommandDebugVar = Integer.parseInt(getArg(arg, 2));
                         sendMessage(event, "DEBUG: Var \"jokeCommandDebugVar\" is now \"" + jokeCommandDebugVar + "\"", true);
                 }
             } else {
@@ -3017,7 +3045,7 @@ public class FozruciX extends ListenerAdapter {
         if (commandChecker(arg, "cmd")) {
             if (checkPerm(event.getUser(), 9001)) {
                 try {
-                    if (!arg[1 + arrayOffset].equalsIgnoreCase("stop")) {
+                    if (!getArg(arg, 1).equalsIgnoreCase("stop")) {
                         try {
                             singleCMD = new CMD(event, arg);
                             singleCMD.start();
@@ -3025,7 +3053,7 @@ public class FozruciX extends ListenerAdapter {
                             sendError(event, e);
                         }
                     }
-                    if (arg[1 + arrayOffset].equalsIgnoreCase("stop")) {
+                    if (getArg(arg, 1).equalsIgnoreCase("stop")) {
                         sendMessage(event, "Stopping", true);
                         singleCMD.interrupt();
                     }
@@ -3072,7 +3100,7 @@ public class FozruciX extends ListenerAdapter {
 // !SayNotice - Tells the bot to send a notice
         if (commandChecker(arg, "SayNotice")) {
             if (checkPerm(event.getUser(), 6)) {
-                event.getBot().sendIRC().notice(arg[1 + arrayOffset], argJoiner(arg, 2));
+                event.getBot().sendIRC().notice(getArg(arg, 1), argJoiner(arg, 2));
             } else {
                 permErrorchn(event);
             }
@@ -3081,7 +3109,7 @@ public class FozruciX extends ListenerAdapter {
 // !SayCTCPCommand - Tells the bot to send a CTCP Command
         if (commandChecker(arg, "SayCTCPCommand")) {
             if (checkPerm(event.getUser(), 9001)) {
-                event.getBot().sendIRC().ctcpCommand(arg[1 + arrayOffset], argJoiner(arg, 2));
+                event.getBot().sendIRC().ctcpCommand(getArg(arg, 1), argJoiner(arg, 2));
             } else {
                 permErrorchn(event);
             }
@@ -3235,7 +3263,7 @@ public class FozruciX extends ListenerAdapter {
         if (commandChecker(arg, "getMem")) {
             if (checkPerm(event.getUser(), 0)) {
                 Runtime runtime = Runtime.getRuntime();
-                String send = "Current memory usage: " + formatFileSize(runtime.totalMemory() - runtime.freeMemory()) + "/" + formatFileSize(runtime.totalMemory()) + ". Total memory that can be used: " + formatFileSize(runtime.maxMemory()) + ".  Available Processors: " + (runtime.availableProcessors());
+                String send = "Current memory usage: " + formatFileSize(runtime.totalMemory() - runtime.freeMemory()) + "/" + formatFileSize(runtime.totalMemory()) + ". Total memory that can be used: " + formatFileSize(runtime.maxMemory()) + ".  Active Threads: " + Thread.activeCount() + "/" + ManagementFactory.getThreadMXBean().getThreadCount() + ".  Available Processors: " + runtime.availableProcessors();
                 sendMessage(event, send, false);
             }
         }
@@ -3243,7 +3271,7 @@ public class FozruciX extends ListenerAdapter {
 // !jniTest - Test method with JNI
         if (commandChecker(arg, "jniTest")) {
             if (checkPerm(event.getUser(), 0)) {
-                System.out.print("Starting test");
+                LOGGER.trace("Starting test");
                 jniTest();
             }
         }
@@ -3251,8 +3279,8 @@ public class FozruciX extends ListenerAdapter {
 // !ChangeNick - Changes the nick of the bot
         if (commandChecker(arg, "changeNick")) {
             if (checkPerm(event.getUser(), 9001)) {
-                event.getBot().sendIRC().changeNick(arg[1 + arrayOffset]);
-                debug.setNick(arg[1 + arrayOffset]);
+                event.getBot().sendIRC().changeNick(getArg(arg, 1));
+                debug.setNick(getArg(arg, 1));
             } else {
                 permErrorchn(event);
             }
@@ -3269,7 +3297,7 @@ public class FozruciX extends ListenerAdapter {
 
 // !jToggle - toggle joke COMMANDS
         if (commandChecker(arg, "jToggle")) {
-            if (arg[1 + arrayOffset].equalsIgnoreCase("toggle")) {
+            if (getArg(arg, 1).equalsIgnoreCase("toggle")) {
                 if (checkPerm(event.getUser(), 2)) {
                     BOOLS.flip(JOKE_COMMANDS);
                     if (BOOLS.get(JOKE_COMMANDS)) {
@@ -3347,7 +3375,7 @@ public class FozruciX extends ListenerAdapter {
         if (commandChecker(arg, "eat")) {
             if (checkPerm(event.getUser(), 0)) {
                 if (BOOLS.get(JOKE_COMMANDS) || checkPerm(event.getUser(), 1)) {
-                    if ((arg[1 + arrayOffset] + arg[2 + arrayOffset] + arg[3 + arrayOffset] + arg[4 + arrayOffset]).equalsIgnoreCase("EatABowlOfDicks"))
+                    if ((getArg(arg, 1) + getArg(arg, 2) + getArg(arg, 3) + getArg(arg, 4)).equalsIgnoreCase("EatABowlOfDicks"))
                         sendMessage(event, "no u", true);
                 }
             }
@@ -3358,52 +3386,52 @@ public class FozruciX extends ListenerAdapter {
             if (checkPerm(event.getUser(), 0)) {
                 if (BOOLS.get(JOKE_COMMANDS) || checkPerm(event.getUser(), 1))
                     if (!channel.equalsIgnoreCase("#origami64")) {
-                        if (arg[1 + arrayOffset].equalsIgnoreCase("DickSize")) {
+                        if (getArg(arg, 1).equalsIgnoreCase("DickSize")) {
                             if (event.getUser().getNick().equalsIgnoreCase(currentNick)) {
                                 sendMessage(event, "Error: IntegerOutOfBoundsException: Greater than Integer.MAX_VALUE", true);
                             } else {
                                 int size = randInt(0, jokeCommandDebugVar);
                                 sendMessage(event, "8" + StringUtils.leftPad("D", size, "=") + " - " + size, true);
                             }
-                        } else if (arg[1 + arrayOffset].equalsIgnoreCase("vaginaDepth")) {
+                        } else if (getArg(arg, 1).equalsIgnoreCase("vaginaDepth")) {
                             if (event.getUser().getNick().equalsIgnoreCase(currentNick)) {
                                 sendMessage(event, "Error: IntegerOutOfBoundsException: Less than Integer.MIN_VALUE", true);
                             } else {
                                 int size = randInt(0, jokeCommandDebugVar);
                                 sendMessage(event, "|" + StringUtils.leftPad("{0}", size, "=") + " -  -" + size, true);
                             }
-                        } else if (arg[1 + arrayOffset].equalsIgnoreCase("BallCount")) {
+                        } else if (getArg(arg, 1).equalsIgnoreCase("BallCount")) {
                             if (event.getUser().getNick().equalsIgnoreCase(currentNick)) {
                                 sendMessage(event, "Error: IntegerOutOfBoundsException: Greater than Integer.MAX_VALUE", true);
                             } else {
                                 int size = randInt(0, jokeCommandDebugVar);
                                 sendMessage(event, StringUtils.leftPad("", size, "8") + " - " + size, true);
                             }
-                        } else if (arg[1 + arrayOffset].equalsIgnoreCase("xdLength")) {
+                        } else if (getArg(arg, 1).equalsIgnoreCase("xdLength")) {
                             int size = randInt(0, jokeCommandDebugVar);
                             sendMessage(event, "X" + StringUtils.leftPad("", size, "D") + " - " + size, true);
-                        } else if (arg[1 + arrayOffset].equalsIgnoreCase("ass")) {
+                        } else if (getArg(arg, 1).equalsIgnoreCase("ass")) {
                             sendMessage(event, "No.", true);
-                        } else if (arg[1 + arrayOffset].equalsIgnoreCase("iq")) {
+                        } else if (getArg(arg, 1).equalsIgnoreCase("iq")) {
                             if (event.getUser().getNick().equalsIgnoreCase(currentNick)) {
                                 sendMessage(event, "Error: IntegerOutOfBoundsException: Greater than Integer.MAX_VALUE", true);
                             } else {
                                 sendMessage(event, "Your IQ is: " + randInt(0, jokeCommandDebugVar * 10), true);
                             }
-                        } else if (arg[1 + arrayOffset].equalsIgnoreCase("powerLevel")) {
+                        } else if (getArg(arg, 1).equalsIgnoreCase("powerLevel")) {
                             if (checkPerm(event.getUser(), 9001)) {
                                 sendMessage(event, "Its OVER 9000!!!!", true);
                             } else {
                                 sendMessage(event, "The scouter says their power level is... " + randInt(-1, 9000) + "!", true);
                             }
-                        } else if (arg[1 + arrayOffset].equalsIgnoreCase("bullshit")) {
+                        } else if (getArg(arg, 1).equalsIgnoreCase("bullshit")) {
                             String[] listOfBullshit = {"Not bullshit", "A little bullshit", "Almost not bullshit", "Normal bullshit", "Put on your boots", "High bullshit", "Get the shovel", "Total bullshit", "Get a vest", "Holy shit", "Super bullshit", "Fucking bullshit", "GET IN THE LIFE BOATS"};
                             if (arg.length > 2 + arrayOffset) {
-                                sendMessage(event, "Bullshit reading: " + listOfBullshit[hash(argJoiner(arg, 2 + arrayOffset), listOfBullshit.length)], true);
+                                sendMessage(event, "Bullshit reading: " + listOfBullshit[hash(argJoiner(arg, 2), listOfBullshit.length)], true);
                             } else {
                                 sendMessage(event, "Bullshit reading: " + listOfBullshit[randInt(0, listOfBullshit.length - 1)], true);
                             }
-                        } else if (arg[1 + arrayOffset].equalsIgnoreCase("help")) {
+                        } else if (getArg(arg, 1).equalsIgnoreCase("help")) {
                             sendMessage(event, "Current things you can measure are: DickSize, VaginaDepth, BallCount, xdLength, ass (>_>), iq, powerLevel, bullShit", true);
 
                         }
@@ -3442,9 +3470,9 @@ public class FozruciX extends ListenerAdapter {
         if (commandChecker(arg, "rip")) {
             if (checkPerm(event.getUser(), 0)) {
                 if (BOOLS.get(JOKE_COMMANDS) || checkPerm(event.getUser(), 1)) {
-                    if (arg[1 + arrayOffset].equalsIgnoreCase(currentNick)) {
+                    if (getArg(arg, 1).equalsIgnoreCase(currentNick)) {
                         sendMessage(event, currentNick + " Will live forever!", false);
-                    } else if (arg[1 + arrayOffset].equalsIgnoreCase(event.getBot().getNick())) {
+                    } else if (getArg(arg, 1).equalsIgnoreCase(event.getBot().getNick())) {
                         sendMessage(event, ">_>", false);
                     } else {
                         sendMessage(event, "Rest in spaghetti, never forgetti. May the pasta be with " + argJoiner(arg, 1), false);
@@ -3526,7 +3554,7 @@ public class FozruciX extends ListenerAdapter {
         try {
             System.arraycopy(arg, (1 + arrayOffset), ret, 0, ret.length);
         } catch (Exception e) {
-            sendError(lastEvent, e);
+            sendError(lastEvents.get(), e);
         }
 
         return ret;
@@ -3644,7 +3672,7 @@ public class FozruciX extends ListenerAdapter {
                     } while (matcher.find());
                     LOGGER.debug("Found URL - " + currentURL);
                     try {
-                        String title = Jsoup.connect(currentURL).get().title();
+                        String title = Jsoup.connect(currentURL).userAgent("FozruciX").timeout(5000).get().title();
                         if (title.isEmpty()) {
                             sendMessage(event, "Title was empty", false);
                         } else {
@@ -3685,7 +3713,7 @@ public class FozruciX extends ListenerAdapter {
                 }
                 if (found) {
                     if (arg.length > 1 + arrayOffset) {
-                        switch (arg[1 + arrayOffset]) {
+                        switch (getArg(arg, 1)) {
                             case "r":
                                 if (isFirstPlayer) {
                                     game.setP1Choice(1);
@@ -3694,9 +3722,9 @@ public class FozruciX extends ListenerAdapter {
                                 }
                         }
                     }
-                } else if (arg.length > 1 + arrayOffset && !(arg[1 + arrayOffset].equalsIgnoreCase("r") || arg[1 + arrayOffset].equalsIgnoreCase("p") || arg[1 + arrayOffset].equalsIgnoreCase("s"))) {
-                    RPS_GAMES.add(new RPSGame(PM.getUser().getNick(), arg[1 + arrayOffset]));
-                    PM.getUser().send().notice("Created a game with " + arg[1 + arrayOffset]);
+                } else if (arg.length > 1 + arrayOffset && !(getArg(arg, 1).equalsIgnoreCase("r") || getArg(arg, 1).equalsIgnoreCase("p") || getArg(arg, 1).equalsIgnoreCase("s"))) {
+                    RPS_GAMES.add(new RPSGame(PM.getUser().getNick(), getArg(arg, 1)));
+                    PM.getUser().send().notice("Created a game with " + getArg(arg, 1));
                 } else {
                     PM.getUser().send().notice("You aren't in a game!");
                 }
@@ -3705,7 +3733,7 @@ public class FozruciX extends ListenerAdapter {
 
 // !login - Sets the authed named to the new name ...if the password is right
         if (commandChecker(arg, "login")) {
-            if (arg[1 + arrayOffset].equals(PASSWORD)) {
+            if (getArg(arg, 1).equals(PASSWORD)) {
                 currentNick = PM.getUser().getNick();
                 currentUsername = PM.getUser().getLogin();
                 currentHost = PM.getUser().getHostname();
@@ -3718,12 +3746,12 @@ public class FozruciX extends ListenerAdapter {
 
 // !SendTo - Tells the bot to say something on a channel
             if (commandChecker(arg, "SendTo")) {
-                PM.getBot().sendIRC().message(arg[1 + arrayOffset], getScramble(argJoiner(arg, 2)));
+                PM.getBot().sendIRC().message(getArg(arg, 1), getScramble(argJoiner(arg, 2)));
             }
 
 // !sendAction - Tells the bot to make a action on a channel
             if (commandChecker(arg, "sendAction")) {
-                PM.getBot().sendIRC().action(arg[1 + arrayOffset], getScramble(argJoiner(arg, 2)));
+                PM.getBot().sendIRC().action(getArg(arg, 1), getScramble(argJoiner(arg, 2)));
             }
 // !sendRaw - Tells the bot to say a raw line
             if (commandChecker(arg, "sendRaw") && checkPerm(PM.getUser(), 9001)) {
@@ -3733,11 +3761,11 @@ public class FozruciX extends ListenerAdapter {
 // !part - leaves a channel
             if (commandChecker(arg, "part")) {
                 if (arg.length != 2 + arrayOffset) {
-                    PM.getBot().sendRaw().rawLineNow("part " + arg[1 + arrayOffset] + " " + argJoiner(arg, 2));
+                    PM.getBot().sendRaw().rawLineNow("part " + getArg(arg, 1) + " :" + argJoiner(arg, 2));
                 } else {
-                    PM.getBot().sendRaw().rawLineNow("part " + arg[1 + arrayOffset]);
+                    PM.getBot().sendRaw().rawLineNow("part " + getArg(arg, 1));
                 }
-                PM.getUser().send().notice("Successfully Disconnected to " + arg[1 + arrayOffset]);
+                PM.getUser().send().notice("Successfully Disconnected to " + getArg(arg, 1));
             }
 
 // !ChangeNick- Changes the nick of the bot
@@ -3750,11 +3778,11 @@ public class FozruciX extends ListenerAdapter {
 // !Connect - Tells the bot to connect to specified channel
             if (commandChecker(arg, "connect")) {
                 if (arg.length != 2 + arrayOffset) {
-                    PM.getBot().sendIRC().joinChannel(arg[1 + arrayOffset], arg[2 + arrayOffset]);
+                    PM.getBot().sendIRC().joinChannel(getArg(arg, 1), getArg(arg, 2));
                 } else {
-                    PM.getBot().sendIRC().joinChannel(arg[1 + arrayOffset]);
+                    PM.getBot().sendIRC().joinChannel(getArg(arg, 1));
                 }
-                PM.getUser().send().notice("Successfully connected to " + arg[1 + arrayOffset]);
+                PM.getUser().send().notice("Successfully connected to " + getArg(arg, 1));
             }
 
 // !QuitServ - Tells the bot to disconnect from server
@@ -3917,7 +3945,7 @@ public class FozruciX extends ListenerAdapter {
                 }
                 index--;
             }
-            ArrayList<UserLevel> levels = Lists.newArrayList(user.getUserLevels(((MessageEvent) lastEvent).getChannel()).iterator());
+            ArrayList<UserLevel> levels = Lists.newArrayList(user.getUserLevels(((MessageEvent) lastEvents.get()).getChannel()).iterator());
             if (requiredUserLevel <= getUserLevel(levels)) {
                 return true;
             }
@@ -3981,7 +4009,7 @@ public class FozruciX extends ListenerAdapter {
     }
 
     private void checkNote(@NotNull Event event, @NotNull String user, @Nullable String channel) {
-        System.out.print("Starting checkNote -> ");
+        System.out.print("Debug: Starting checkNote -> ");
         try {
             for (int i = 0; i < noteList.size(); i++) {
                 System.out.print("Checking if " + noteList.get(i).getReceiver() + " matches " + user + " -> ");
@@ -3992,7 +4020,7 @@ public class FozruciX extends ListenerAdapter {
                             sendMessage((GenericMessageEvent) event, user + ": " + noteList.get(i).displayMessage(), true);
                         } catch (ClassCastException e) {
                             //noinspection ConstantConditions
-                            lastEvent = new MessageEvent(event.getBot(), ((JoinEvent) event).getChannel(), channel, ((JoinEvent) event).getUserHostmask(), ((JoinEvent) event).getUser(), null, null);
+                            lastEvents.add(new MessageEvent(event.getBot(), ((JoinEvent) event).getChannel(), channel, ((JoinEvent) event).getUserHostmask(), ((JoinEvent) event).getUser(), null, null));
                             //noinspection ConstantConditions
                             sendMessage(((JoinEvent) event).getUser().getNick(), user + ": " + noteList.get(i).displayMessage());
                         }
@@ -4007,10 +4035,10 @@ public class FozruciX extends ListenerAdapter {
             if (event instanceof JoinEvent) {
                 e.printStackTrace();
             } else {
-                sendError(lastEvent, e);
+                sendError(lastEvents.get(), e);
             }
         }
-        LOGGER.debug(" | Ending checkNote\n");
+        System.out.println(" | Ending checkNote");
     }
 
     private synchronized void setDebugInfo(@NotNull GenericMessageEvent event) {
@@ -4035,11 +4063,11 @@ public class FozruciX extends ListenerAdapter {
     private boolean commandChecker(String[] args, String command) {
         if (args[0].startsWith(prefix)) {
             if (prefix.length() > 1 && !prefix.endsWith(".")) {
-                return args[arrayOffset].equalsIgnoreCase(command);
+                return getArg(args, 0).equalsIgnoreCase(command);
             } else {
                 return args[0].equalsIgnoreCase(prefix + command);
             }
-        } else if (args[0].startsWith(lastEvent.getBot().getNick())) {
+        } else if (args[0].startsWith(lastEvents.get().getBot().getNick())) {
             setArrayOffset(args[0] + " ");
             return args[1].equalsIgnoreCase(command);
         }
