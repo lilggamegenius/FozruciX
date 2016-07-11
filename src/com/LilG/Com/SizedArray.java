@@ -28,6 +28,9 @@ public class SizedArray<T> extends LinkedList<T> {
     }
 
     public T get() {
+        if (size() == 0) {
+            return null;
+        }
         return super.get(size() - 1);
     }
 }

@@ -3,8 +3,7 @@ package com.LilG.Com.DataClasses;
 import com.LilG.Com.DND.DNDPlayer;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.LinkedList;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -29,23 +28,41 @@ public class SaveDataStore {
     @NotNull
     private LinkedList<DNDPlayer> DNDList = new LinkedList<>();
     @NotNull
+    private HashMap<String, ArrayList<String>> allowedCommands = new HashMap<>();
+    @NotNull
     private ConcurrentHashMap<String, LinkedList<String>> markovChain = new ConcurrentHashMap<>();
 
 
-    public SaveDataStore(@NotNull LinkedList<String> authedUser, @NotNull LinkedList<Integer> authedUserLevel, @NotNull LinkedList<String> DNDJoined, @NotNull LinkedList<DNDPlayer> DNDList, @NotNull LinkedList<Note> noteList, @NotNull String avatarLink, @NotNull TreeMap<String, Meme> memes, @NotNull TreeMap<String, String> FCList, @NotNull ConcurrentHashMap<String, @NotNull LinkedList<String>> markovChain) {
+    public SaveDataStore(@NotNull LinkedList<String> authedUser, @NotNull LinkedList<Integer> authedUserLevel, @NotNull LinkedList<String> DNDJoined, @NotNull LinkedList<DNDPlayer> DNDList, @NotNull LinkedList<Note> noteList, @NotNull String avatarLink, @NotNull TreeMap<String, Meme> memes, @NotNull TreeMap<String, String> FCList, @NotNull ConcurrentHashMap<String, @NotNull LinkedList<String>> markovChain, @NotNull HashMap<String, ArrayList<String>> allowedCommands) {
+        if (authedUser != null)
         this.authedUser = authedUser;
+        if (authedUserLevel != null)
         this.authedUserLevel = authedUserLevel;
+        if (DNDJoined != null)
         this.DNDJoined = DNDJoined;
+        if (DNDList != null)
         this.DNDList = DNDList;
+        if (noteList != null)
         this.noteList = noteList;
+        if (avatarLink != null)
         this.avatarLink = avatarLink;
+        if (memes != null)
         this.memes = memes;
+        if (FCList != null)
         this.FCList = FCList;
+        if (markovChain != null)
         this.markovChain = markovChain;
+        if (allowedCommands != null)
+            this.allowedCommands = allowedCommands;
     }
 
     @NotNull
     public ConcurrentHashMap<String, LinkedList<String>> getMarkovChain() {
+        // Create the first two entries (k:_start, k:_end)
+        if (markovChain.isEmpty()) {
+            markovChain.put("_start", new LinkedList<>());
+            markovChain.put("_end", new LinkedList<>());
+        }
         return markovChain;
     }
 
@@ -87,5 +104,16 @@ public class SaveDataStore {
     @NotNull
     public TreeMap<String, String> getFCList() {
         return FCList;
+    }
+
+    @NotNull
+    public HashMap<String, ArrayList<String>> getAllowedCommands() {
+        if (allowedCommands.isEmpty()) {
+            allowedCommands.put("#retro", new ArrayList<>(Arrays.asList("GayDar", "url checker")));
+            allowedCommands.put("#origami64", new ArrayList<>(Arrays.asList("markov", "my", "url checker")));
+            allowedCommands.put("#deltasmash", new ArrayList<>(Arrays.asList("FC", "version")));
+            allowedCommands.put("#pmd", new ArrayList<>(Collections.singletonList("url checker")));
+        }
+        return allowedCommands;
     }
 }
