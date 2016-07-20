@@ -32,6 +32,5 @@
   </component>
   <component name="EclipseCompilerSettings">
     <option name="GENERATE_NO_WARNINGS" value="true" />
-    <option name="ADDITIONAL_OPTIONS_STRING" value="-target 1.8" />
   </component>
 </project>

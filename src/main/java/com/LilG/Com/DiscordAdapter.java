@@ -3,12 +3,14 @@ package com.LilG.Com;
 import com.LilG.Com.utils.CryptoUtil;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedSet;
+import com.google.gson.GsonBuilder;
 import lombok.NonNull;
 import net.dv8tion.jda.JDA;
 import net.dv8tion.jda.JDABuilder;
 import net.dv8tion.jda.entities.TextChannel;
 import net.dv8tion.jda.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.hooks.ListenerAdapter;
+import net.dv8tion.jda.managers.AccountManager;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.pircbotx.Channel;
@@ -16,6 +18,7 @@ import org.pircbotx.PircBotX;
 import org.pircbotx.User;
 import org.pircbotx.UserHostmask;
 import org.pircbotx.hooks.events.MessageEvent;
+import org.pircbotx.hooks.events.PrivateMessageEvent;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,57 +31,103 @@ public class DiscordAdapter extends ListenerAdapter {
     private static final String currentDiscordID = "131494148350935040";
     private static FozruciX bot;
     private static PircBotX pircBotX;
+    private static JDA jda;
+    private static Thread game;
 
-    public DiscordAdapter(FozruciX bot, PircBotX pircBotX) {
+    public DiscordAdapter(PircBotX pircBotX) {
         try {
             LOGGER.setLevel(Level.ALL);
-            JDA jda = new JDABuilder()
+            jda = new JDABuilder()
                     .setBotToken(CryptoUtil.decrypt(FozConfig.setPassword(FozConfig.Password.discord)))
                     .buildBlocking();
             jda.addEventListener(this);
             jda.setAutoReconnect(true);
-
-            DiscordAdapter.bot = bot;
+            DiscordAdapter.bot = new FozruciX(FozConfig.getManager(), FozConfig.loadData(new GsonBuilder().setPrettyPrinting().create()));
             DiscordAdapter.pircBotX = pircBotX;
+            game = new Thread(() -> {
+                AccountManager accountManager = jda.getAccountManager();
+                String[] listOfGames = {"With bleach", "With fire", "With matches", "The Bleach Drinking Game", "The smallest violin", "In the blood of my enemies", "On top of the corpses of my enemies"};
+                while (!Thread.currentThread().isInterrupted()) {
+                    try {
+                        accountManager.setGame(listOfGames[FozruciX.randInt(0, listOfGames.length - 1)]);
+                        FozruciX.pause(FozruciX.randInt(10, 30));
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+            game.start();
+            LOGGER.trace("DiscordAdapter created");
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
+    public JDA getJda() {
+        return jda;
+    }
+
     @Override
     public void onMessageReceived(MessageReceivedEvent event) {
-        if (event.isPrivate()) {
-            LOGGER.debug(String.format("[PM] %s: %s", event.getAuthor().getUsername(),
-                    event.getMessage().getContent()));
-        } else {
-            LOGGER.debug(String.format("[%s][%s] %s: %s", event.getGuild().getName(),
-                    event.getTextChannel().getName(), event.getAuthor().getUsername(),
-                    event.getMessage().getContent()));
-        }
-        MessageEvent lastEvent = bot.getLastEvent();
         String discordNick = event.getAuthorName();
         String discordUsername = event.getAuthor().getUsername();
         String discordHostmask = event.getAuthor().getId(); //misnomer but it acts as the same thing
         DiscordUserHostmask discordUserHostmask = new DiscordUserHostmask(pircBotX, discordNick + "!" + discordUsername + "@" + discordHostmask);
-        bot.onMessage(new DiscordMessageEvent(pircBotX, new DiscordChannel(pircBotX, event.getTextChannel().getName()).setChannel(event.getTextChannel()), event.getTextChannel().getName(), discordUserHostmask, new DiscordUser(discordUserHostmask), event.getMessage().getContent(), null).setDiscordEvent(event));
+
+        if (event.isPrivate()) {
+            LOGGER.info(String.format("[PM] %s: %s", discordUserHostmask.getHostmask(), event.getMessage().getContent()));
+            bot.onPrivateMessage(new DiscordPrivateMessageEvent(pircBotX, discordUserHostmask, new DiscordUser(discordUserHostmask), event.getMessage().getContent(), event));
+        } else {
+            LOGGER.info(String.format("[%s][%s] %s: %s", event.getGuild().getName(),
+                    event.getTextChannel().getName(), discordUserHostmask.getHostmask(),
+                    event.getMessage().getContent()));
+            bot.onMessage(new DiscordMessageEvent(pircBotX, new DiscordChannel(pircBotX, event.getTextChannel().getName()).setChannel(event.getTextChannel()), event.getTextChannel().getName(), discordUserHostmask, new DiscordUser(discordUserHostmask), event.getMessage().getContent(), null, event));
+        }
+
     }
 }
 
 class DiscordMessageEvent extends MessageEvent {
     private MessageReceivedEvent discordEvent;
 
-    public DiscordMessageEvent(PircBotX bot, @NonNull Channel channel, @NonNull String channelSource, @NonNull UserHostmask userHostmask, User user, @NonNull String message, ImmutableMap<String, String> tags) {
+    public DiscordMessageEvent(PircBotX bot, @NonNull Channel channel, @NonNull String channelSource, @NonNull UserHostmask userHostmask, User user, @NonNull String message, ImmutableMap<String, String> tags, MessageReceivedEvent discordEvent) {
         super(bot, channel, channelSource, userHostmask, user, message, tags);
+        this.discordEvent = discordEvent;
     }
 
-    public DiscordMessageEvent setDiscordEvent(MessageReceivedEvent event) {
-        discordEvent = event;
-        return this;
+    public MessageReceivedEvent getDiscordEvent() {
+        return discordEvent;
     }
+
 
     @Override
     public void respond(String response) {
         discordEvent.getChannel().sendMessage(discordEvent.getAuthorName() + ": " + response);
+    }
+
+    @Override
+    public void respondWith(String fullLine) {
+        discordEvent.getChannel().sendMessage(fullLine);
+    }
+}
+
+class DiscordPrivateMessageEvent extends PrivateMessageEvent {
+    private MessageReceivedEvent discordEvent;
+
+    public DiscordPrivateMessageEvent(PircBotX bot, @NonNull UserHostmask userHostmask, User user, @NonNull String message, MessageReceivedEvent discordEvent) {
+        super(bot, userHostmask, user, message);
+        this.discordEvent = discordEvent;
+    }
+
+    public MessageReceivedEvent getDiscordEvent() {
+        return discordEvent;
+    }
+
+
+    @Override
+    public void respond(String response) {
     }
 
     @Override

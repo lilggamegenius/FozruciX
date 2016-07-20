@@ -57,7 +57,7 @@ public class CommandLine extends Thread {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        run();
+        start();
     }
 
     private void sendError(@NotNull GenericMessageEvent event, @NotNull Exception e) {
@@ -69,7 +69,7 @@ public class CommandLine extends Thread {
         this.event = event;
         this.command = command;
         System.out.println("Running.");
-        run();
+        start();
     }
 
     @Override

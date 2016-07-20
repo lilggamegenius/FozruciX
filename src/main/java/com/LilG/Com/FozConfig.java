@@ -13,6 +13,8 @@ import org.pircbotx.cap.EnableCapHandler;
 
 import java.io.*;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 
 /**
  * Created by ggonz on 10/12/2015.
@@ -25,15 +27,15 @@ public class FozConfig {
     public final static String twitch = "irc.twitch.tv";
     public final static String caffie = "irc.caffie.net";
     public final static String esper = "irc.esper.net";
-    public final static String nova = "irc.novasquirrel.net";
+    public final static String nova = "irc.novasquirrel.com";
     //Configure what we want our bot to do
     private final static String nick = "FozruciX";
     private final static String login = "SmugLeaf";
     private final static String realName = "\u00034\u000F* What can I do for you, little buddy?";
     private final static Logger LOGGER = Logger.getLogger(FozConfig.class);
     final static String PASSWORD = setPassword(Password.normal);
-    private final static int attempts = 20;
-    private final static int connectDelay = 5; //5 seconds
+    private final static int attempts = Integer.MAX_VALUE;
+    private final static int connectDelay = 5 * 1000; //5 seconds
     //Create our bot with the configuration
     private final static MultiBotManager manager = new MultiBotManager();
     private final static SaveDataStore save = loadData(new GsonBuilder().setPrettyPrinting().create());
@@ -257,9 +259,7 @@ public class FozConfig {
     }
 
     public static synchronized SaveDataStore loadData(Gson GSON) {
-        BufferedReader br;
-        try {
-            br = new BufferedReader(new FileReader("Data/Data.json"));
+        try (BufferedReader br = new BufferedReader(new FileReader("Data/Data.json"))) {
             SaveDataStore save = GSON.fromJson(br, SaveDataStore.class);
             if (save == null) throw new FileNotFoundException("Couldn't find save data");
             save = new SaveDataStore(save.getAuthedUser(), save.getAuthedUserLevel(), save.getDNDJoined(), save.getDNDList(), save.getNoteList(), save.getAvatarLink(), save.getMemes(), save.getFCList(), save.getMarkovChain(), save.getAllowedCommands());
@@ -272,9 +272,16 @@ public class FozConfig {
     }
 
     public static synchronized void saveData(@NotNull SaveDataStore save, Gson GSON) throws IOException {
-        FileWriter writer = new FileWriter("Data/Data.json");
+        File bak = new File("Data/DataBak.json");
+        File saveFile = new File("Data/Data.json");
+        FileWriter writer = new FileWriter(bak);
         writer.write(GSON.toJson(save));
         writer.close();
+        Files.move(bak.toPath(), saveFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+    }
+
+    public static MultiBotManager getManager() {
+        return manager;
     }
 
     public enum Password {
