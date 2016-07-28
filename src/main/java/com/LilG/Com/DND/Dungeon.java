@@ -15,13 +15,23 @@ import java.util.Random;
 
 public class Dungeon {
     private final List<int[]> rooms = new ArrayList<>();
-    private final int map_size = 64;
-    private final int[][] map = new int[map_size][map_size];
+    private final int map_size;
+    private final int[][] map;
     private boolean currentPointSet = false;
     private Point currentPoint;
 
 
     public Dungeon() {
+        this(64);
+    }
+
+    public Dungeon(int maxSize) {
+        if (maxSize % 2 == 0) {
+            map_size = maxSize;
+        } else {
+            map_size = maxSize * 2;
+        }
+        map = new int[map_size][map_size];
         generate();
     }
 

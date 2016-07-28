@@ -22,7 +22,7 @@ import java.nio.file.StandardCopyOption;
  */
 
 public class FozConfig {
-    public final static boolean debug = false;
+    public final static boolean debug = true;
     public final static String badnik = "irc.badnik.zone"; //TL;DR Shit went down
     public final static String twitch = "irc.twitch.tv";
     public final static String caffie = "irc.caffie.net";
@@ -37,6 +37,8 @@ public class FozConfig {
     private final static int attempts = Integer.MAX_VALUE;
     private final static int connectDelay = 5 * 1000; //5 seconds
     //Create our bot with the configuration
+    private final static File bak = new File("Data/DataBak.json");
+    private final static File saveFile = new File("Data/Data.json");
     private final static MultiBotManager manager = new MultiBotManager();
     private final static SaveDataStore save = loadData(new GsonBuilder().setPrettyPrinting().create());
 
@@ -76,7 +78,7 @@ public class FozConfig {
             .setName(nick.toLowerCase()) //Set the nick of the bot.
             .setLogin(nick.toLowerCase())
             .addAutoJoinChannel("#lilggamegenuis") //Join lilggamegenuis's twitch chat
-            .addListener(new FozruciX(true, manager, save)); //Add our listener that will be called on Events
+            .addListener(new FozruciX(FozruciX.Network.twitch, manager, save)); //Add our listener that will be called on Events
     public final static Configuration.Builder debugConfigEsper = new Configuration.Builder()
             .setAutoReconnectDelay(connectDelay)
             .setEncoding(Charset.forName("UTF-8"))
@@ -156,7 +158,7 @@ public class FozConfig {
             .setLogin(nick.toLowerCase())
             .addAutoJoinChannel("#lilggamegenuis") //Join lilggamegenuis's twitch chat
             .addAutoJoinChannel("#deltasmash")
-            .addListener(new FozruciX(true, manager, save)); //Add our listener that will be called on Events
+            .addListener(new FozruciX(FozruciX.Network.twitch, manager, save)); //Add our listener that will be called on Events
     public final static Configuration.Builder normalEsper = new Configuration.Builder()
             .setAutoReconnectDelay(connectDelay)
             .setEncoding(Charset.forName("UTF-8"))
@@ -259,7 +261,14 @@ public class FozConfig {
     }
 
     public static synchronized SaveDataStore loadData(Gson GSON) {
-        try (BufferedReader br = new BufferedReader(new FileReader("Data/Data.json"))) {
+        if (!saveFile.exists()) {
+            try {
+                Files.move(bak.toPath(), saveFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        try (BufferedReader br = new BufferedReader(new FileReader(saveFile))) {
             SaveDataStore save = GSON.fromJson(br, SaveDataStore.class);
             if (save == null) throw new FileNotFoundException("Couldn't find save data");
             save = new SaveDataStore(save.getAuthedUser(), save.getAuthedUserLevel(), save.getDNDJoined(), save.getDNDList(), save.getNoteList(), save.getAvatarLink(), save.getMemes(), save.getFCList(), save.getMarkovChain(), save.getAllowedCommands());
@@ -272,8 +281,6 @@ public class FozConfig {
     }
 
     public static synchronized void saveData(@NotNull SaveDataStore save, Gson GSON) throws IOException {
-        File bak = new File("Data/DataBak.json");
-        File saveFile = new File("Data/Data.json");
         FileWriter writer = new FileWriter(bak);
         writer.write(GSON.toJson(save));
         writer.close();

@@ -28,12 +28,12 @@ public class SaveDataStore {
     @NotNull
     private LinkedList<DNDPlayer> DNDList = new LinkedList<>();
     @NotNull
-    private HashMap<String, ArrayList<String>> allowedCommands = new HashMap<>();
+    private HashMap<String, HashMap<String, ArrayList<String>>> allowedCommands = new HashMap<>();
     @NotNull
     private ConcurrentHashMap<String, LinkedList<String>> markovChain = new ConcurrentHashMap<>();
 
 
-    public SaveDataStore(@NotNull LinkedList<String> authedUser, @NotNull LinkedList<Integer> authedUserLevel, @NotNull LinkedList<String> DNDJoined, @NotNull LinkedList<DNDPlayer> DNDList, @NotNull LinkedList<Note> noteList, @NotNull String avatarLink, @NotNull TreeMap<String, Meme> memes, @NotNull TreeMap<String, String> FCList, @NotNull ConcurrentHashMap<String, @NotNull LinkedList<String>> markovChain, @NotNull HashMap<String, ArrayList<String>> allowedCommands) {
+    public SaveDataStore(@NotNull LinkedList<String> authedUser, @NotNull LinkedList<Integer> authedUserLevel, @NotNull LinkedList<String> DNDJoined, @NotNull LinkedList<DNDPlayer> DNDList, @NotNull LinkedList<Note> noteList, @NotNull String avatarLink, @NotNull TreeMap<String, Meme> memes, @NotNull TreeMap<String, String> FCList, @NotNull ConcurrentHashMap<String, @NotNull LinkedList<String>> markovChain, @NotNull HashMap<String, HashMap<String, ArrayList<String>>> allowedCommands) {
         if (authedUser != null)
             this.authedUser = authedUser;
         if (authedUserLevel != null)
@@ -107,15 +107,25 @@ public class SaveDataStore {
     }
 
     @NotNull
-    public HashMap<String, ArrayList<String>> getAllowedCommands() {
+    public HashMap<String, HashMap<String, ArrayList<String>>> getAllowedCommands() {
         if (allowedCommands == null) {
             allowedCommands = new HashMap<>();
         }
         if (allowedCommands.isEmpty()) {
-            allowedCommands.put("#retro", new ArrayList<>(Arrays.asList("GayDar", "url checker")));
-            allowedCommands.put("#origami64", new ArrayList<>(Arrays.asList("markov", "my", "url checker")));
-            allowedCommands.put("#deltasmash", new ArrayList<>(Arrays.asList("FC", "version")));
-            allowedCommands.put("#pmd", new ArrayList<>(Collections.singletonList("url checker")));
+            HashMap<String, ArrayList<String>> temp = new HashMap<>();
+            temp.put("#retro", new ArrayList<>(Arrays.asList("GayDar", "url checker")));
+            temp.put("#origami64", new ArrayList<>(Arrays.asList("markov", "my", "url checker")));
+            allowedCommands.put("BadnikZONE", temp);
+            temp = new HashMap<>();
+            temp.put("#deltasmash", new ArrayList<>(Arrays.asList("FC", "version")));
+            allowedCommands.put("twitch", temp);
+            temp = new HashMap<>();
+            temp.put("#pmd", new ArrayList<>(Collections.singletonList("url checker")));
+            allowedCommands.put("CaffieNET", temp);
+            temp = new HashMap<>();
+            temp.put("#general", new ArrayList<>(Collections.singletonList("url checker")));
+            temp.put("#development", new ArrayList<>(Collections.singletonList("url checker")));
+            allowedCommands.put("Discord Bots", temp);
         }
         return allowedCommands;
     }

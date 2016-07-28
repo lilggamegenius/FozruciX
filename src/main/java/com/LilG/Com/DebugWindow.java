@@ -283,6 +283,5 @@ class DrawWindow extends Component {
             e.printStackTrace();
         }
 
-
     }
 }
