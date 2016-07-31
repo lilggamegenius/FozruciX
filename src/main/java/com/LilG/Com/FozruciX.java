@@ -1,9 +1,4 @@
 package com.LilG.Com;
-/**
- * Created by Lil-G on 10/11/2015.
- * Main bot class
- */
-
 
 import com.LilG.Com.CMD.CMD;
 import com.LilG.Com.CMD.CommandLine;
@@ -99,7 +94,10 @@ import java.util.stream.Collectors;
 
 import static com.citumpe.ctpTools.jWMI.getWMIValue;
 
-
+/**
+ * Created by Lil-G on 10/11/2015.
+ * Main bot class
+ */
 public class FozruciX extends ListenerAdapter {
     private final static double VERSION = 2.2;
     private final static File WIKTIONARY_DIRECTORY = new File("Data\\Wiktionary");
@@ -122,7 +120,8 @@ public class FozruciX extends ListenerAdapter {
     private final static String APP_ID = "RGHHEP-HQU7HL67W9";
     private final static LinkedList<RPSGame> RPS_GAMES = new LinkedList<>();
     private final static Logger LOGGER = Logger.getLogger(FozruciX.class);
-
+    private final static Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+    private final static BitSet BOOLS = new BitSet(10); // true, false, null, null, null, false, true, true, false, false
     public static volatile ConcurrentHashMap<String, LinkedList<String>> markovChain = null;
     @NotNull
     private static volatile Random rnd = new Random();
@@ -173,8 +172,6 @@ public class FozruciX extends ListenerAdapter {
     private static volatile StopWatch qTimer = new StopWatch();
     private static volatile DiscordAdapter discord;
     private static volatile boolean updateAvatar = false;
-    private final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
-    private final BitSet BOOLS = new BitSet(10); // true, false, null, null, null, false, true, true, false, false
     @NotNull
     private String prefix = "!";
     private DebugWindow debug;
@@ -387,7 +384,7 @@ public class FozruciX extends ListenerAdapter {
     private synchronized static void sendMessage(@NotNull GenericMessageEvent event, @NotNull String msgToSend, boolean addNick, boolean splitMessage) {
         int textSizeLimit = 460; // irc limit
         if (event instanceof DiscordMessageEvent) {
-            textSizeLimit = 2000; // discord
+            textSizeLimit = 700; // discord
         }
         if (msgToSend.equals("\u0002\u0002")) {
             return;
@@ -518,7 +515,7 @@ public class FozruciX extends ListenerAdapter {
     }
 
     private static void addCooldown(User user) {
-        addCooldown(user, 5L);
+        addCooldown(user, 7L);
     }
 
     private static void addCooldown(User user, long cooldownTime) {
@@ -976,6 +973,44 @@ public class FozruciX extends ListenerAdapter {
         Thread.sleep(time * 1000);
     }
 
+    public synchronized static void sendError(@NotNull MessageEvent event, Throwable t) {
+        sendError(event, new Exception(t));
+    }
+
+    public synchronized static void sendError(@NotNull MessageEvent event, @NotNull Exception e) {
+        LOGGER.error("Error: " + e.getCause());
+        String color = "";
+        String cause = "";
+        String from;
+        if (BOOLS.get(COLOR)) {
+            color = Colors.RED;
+        }
+        if (e.getCause() != null) {
+            cause = "Error: " + e.getCause();
+        }
+        if (cause.isEmpty()) {
+            from = "Error: " + e;
+        } else {
+            from = ". From " + e;
+        }
+        if (cause.contains("jdk.nashorn.internal.runtime.ParserException") || from.contains("javax.script.ScriptException")) {
+            if (cause.contains("TypeError: Cannot read property")) {
+                sendMessage(event, color + "There was a type error, Cannot read property", false);
+            } else {
+                if (cause.contains("\r") || cause.contains("\n")) {
+                    sendMessage(event, color + cause.substring(0, cause.indexOf("\r")), false);
+                } else {
+                    sendMessage(event, color + cause, false);
+                }
+            }
+        } else if (e instanceof ArrayIndexOutOfBoundsException) {
+            sendMessage(event, color + "Not enough arguments, try doing the command \"COMMANDS <command>\" for help", false);
+        } else {
+            sendMessage(event, color + cause + from, false);
+        }
+        e.printStackTrace();
+    }
+
     @SuppressWarnings("SameParameterValue")
     private synchronized void sendNotice(@NotNull GenericEvent event, String userToSendTo, String msgToSend) {
         msgToSend = getScramble(msgToSend);
@@ -1023,7 +1058,7 @@ public class FozruciX extends ListenerAdapter {
 
     public synchronized void onConnect(@NotNull ConnectEvent event) throws Exception {
         bot = event.getBot();
-        bot.sendIRC().mode(bot.getNick(), "+B");
+        bot.sendIRC().mode(bot.getNick(), "+BI");
 
 
         loadData(true);
@@ -1373,13 +1408,13 @@ public class FozruciX extends ListenerAdapter {
                             }
                             if (mode == -1) {
                                 allowedCommands.get(chan).remove(command);
-                                sendMessage(event, "Removed " + command + " From channel " + chan, true);
+                                sendMessage(event, "Removed command ban on " + command + " For channel " + chan, true);
                             } else if (mode == 1) {
                                 if (!allowedCommands.containsKey(chan)) {
                                     allowedCommands.put(chan, new ArrayList<>());
                                 }
                                 allowedCommands.get(chan).add(command);
-                                sendMessage(event, "Added " + command + " to channel " + chan, true);
+                                sendMessage(event, "Added command ban on " + command + " for channel " + chan, true);
                             } else {
                                 sendMessage(event, "The command " + command + " is " + (allowedCommands.get(chan).contains(command) ? "" : "not ") + "Banned from " + chan, true);
                             }
@@ -3534,10 +3569,12 @@ public class FozruciX extends ListenerAdapter {
             else if (arg[0].startsWith(consolePrefix)) {
                 if (checkPerm(event.getUser(), 9001)) {
                     if (arg[0].substring(consolePrefix.length()).equalsIgnoreCase(consolePrefix + "start")) {
+                        terminal.interrupt();
                         terminal = new CommandLine(event, arg[1]);
                         terminal.start();
                         sendMessage(event, "Command line started", false);
                     } else if (arg[0].substring(consolePrefix.length()).equalsIgnoreCase(consolePrefix + "close")) {
+                        terminal.interrupt();
                         terminal.doCommand(event, "exit");
                     } else if (arg[0].substring(consolePrefix.length()).equalsIgnoreCase(consolePrefix + "stop")) {
                         terminal.interrupt();
@@ -3545,7 +3582,9 @@ public class FozruciX extends ListenerAdapter {
                         consolePrefix = arg[1];
                         sendMessage(event, "Console Prefix is now " + consolePrefix, true);
                     } else {
-                        terminal.doCommand(event, event.getMessage().substring(1));
+                        String command = event.getMessage().substring(1);
+                        terminal.doCommand(event, command);
+                        LOGGER.debug("Running " + command);
                     }
                 }
             } else if (arg[0].equalsIgnoreCase("\\\\prefix")) {
@@ -4045,7 +4084,7 @@ public class FozruciX extends ListenerAdapter {
                                             message = message.replaceFirst(find, replace);
                                         }
                                         sendMessage(event, "What " + last.getUser().getNick() + " meant to say was: " + message, false, false);
-                                        addCooldown(event.getUser(), 10);
+                                        addCooldown(event.getUser(), 15);
                                         return;
                                     }
                                 }
@@ -4339,44 +4378,6 @@ public class FozruciX extends ListenerAdapter {
             }
         }
         return false;
-    }
-
-    public synchronized void sendError(@NotNull MessageEvent event, Throwable t) {
-        sendError(event, new Exception(t));
-    }
-
-    public synchronized void sendError(@NotNull MessageEvent event, @NotNull Exception e) {
-        LOGGER.error("Error: " + e.getCause());
-        String color = "";
-        String cause = "";
-        String from;
-        if (BOOLS.get(COLOR)) {
-            color = Colors.RED;
-        }
-        if (e.getCause() != null) {
-            cause = "Error: " + e.getCause();
-        }
-        if (cause.isEmpty()) {
-            from = "Error: " + e;
-        } else {
-            from = ". From " + e;
-        }
-        if (cause.contains("jdk.nashorn.internal.runtime.ParserException") || from.contains("javax.script.ScriptException")) {
-            if (cause.contains("TypeError: Cannot read property")) {
-                sendMessage(event, color + "There was a type error, Cannot read property", false);
-            } else {
-                if (cause.contains("\r") || cause.contains("\n")) {
-                    sendMessage(event, color + cause.substring(0, cause.indexOf("\r")), false);
-                } else {
-                    sendMessage(event, color + cause, false);
-                }
-            }
-        } else if (e instanceof ArrayIndexOutOfBoundsException) {
-            sendMessage(event, color + "Not enough arguments, try doing " + prefix + "COMMANDS <command> for help", false);
-        } else {
-            sendMessage(event, color + cause + from, false);
-        }
-        e.printStackTrace();
     }
 
     private synchronized void loadData() {
