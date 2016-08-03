@@ -1,17 +1,18 @@
 package com.LilG.Com.CMD;
 
 import com.LilG.Com.FozruciX;
-import com.jcraft.jsch.JSch;
-import com.jcraft.jsch.Session;
+import com.jcraft.jsch.*;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.pircbotx.hooks.events.MessageEvent;
 import org.pircbotx.hooks.types.GenericMessageEvent;
 
-import java.io.*;
-import java.util.Properties;
-import java.util.Scanner;
+import javax.swing.*;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 
 /**
  * Created by Lil-G on 11/13/2015.
@@ -20,13 +21,15 @@ import java.util.Scanner;
  */
 public class CommandLine extends Thread {
     private final static Logger LOGGER = Logger.getLogger(CommandLine.class);
-    Session sshSession;
     private volatile GenericMessageEvent event;
     private volatile String command;
     private boolean newCommand = false;
     private Process p;
     private BufferedWriter p_stdin;
+    private BufferedReader p_inputStream;
     private boolean echoOff = false;
+    private Session sshSession = null;
+    private Channel sshChannel = null;
     private boolean ssh = false;
 
     public CommandLine(@NotNull GenericMessageEvent event, @NotNull String... commandLine) {
@@ -44,22 +47,6 @@ public class CommandLine extends Thread {
             console[2] = "-";
         } else if (commandLine[0].equalsIgnoreCase("ssh")) {
             ssh = true;
-            Scanner scanner = new Scanner(System.in);
-            System.out.print("Enter Address");
-            String addr = scanner.nextLine();
-            System.out.print("Enter Username");
-            String username = scanner.nextLine();
-            System.out.print("Enter port");
-            int port = scanner.nextInt();
-            try {
-                sshSession = (new JSch()).getSession(username, addr, port);
-                Properties config = new Properties();
-                config.put("userauth", "keyboard-interactive");
-                sshSession.setConfig(config);
-                sshSession.connect();
-            } catch (Exception e) {
-                sendError(event, e);
-            }
         }
         try {
             if (!ssh) {
@@ -68,8 +55,51 @@ public class CommandLine extends Thread {
                 if (console[0].equals("cmd.exe")) {
                     p_stdin.write("@echo off\n");
                 }
+                p_inputStream = new BufferedReader(new InputStreamReader(p.getInputStream()));
             } else {
+                String host = JOptionPane.showInputDialog("Enter username@hostname", "lil-g@ssh.lilggamegenuis.tk");
+                String user = host.substring(0, host.indexOf('@'));
+                host = host.substring(host.indexOf('@') + 1);
+                try {
+                    sshSession = (new JSch()).getSession(user, host, 22);
+                    String passwd = JOptionPane.showInputDialog("Enter password");
+                    sshSession.setPassword(passwd);
+                    UserInfo ui = new MyUserInfo() {
+                        public void showMessage(String message) {
+                            JOptionPane.showMessageDialog(null, message);
+                        }
 
+                        public boolean promptYesNo(String message) {
+                            Object[] options = {"yes", "no"};
+                            int foo = JOptionPane.showOptionDialog(null,
+                                    message,
+                                    "Warning",
+                                    JOptionPane.DEFAULT_OPTION,
+                                    JOptionPane.WARNING_MESSAGE,
+                                    null, options, options[0]);
+                            return foo == 0;
+                        }
+
+                        // If password is not given before the invocation of Session#connect(),
+                        // implement also following methods,
+                        //   * UserInfo#getPassword(),
+                        //   * UserInfo#promptPassword(String message) and
+                        //   * UIKeyboardInteractive#promptKeyboardInteractive()
+
+                    };
+
+                    sshSession.setUserInfo(ui);
+                    sshSession.connect();
+                    sshChannel = sshSession.openChannel("shell");
+                    p_stdin = new BufferedWriter(new OutputStreamWriter(sshChannel.getOutputStream()));
+                    sshChannel.connect();
+                    p_inputStream = new BufferedReader(new InputStreamReader(sshChannel.getInputStream()));
+                } catch (Exception e) {
+                    sendError(event, e);
+                }
+            }
+            if (ssh || console[0].equals("bash.exe")) {
+                p_stdin.write("export PS1=''\n");
             }
         } catch (Exception e) {
             sendError(event, e);
@@ -84,6 +114,7 @@ public class CommandLine extends Thread {
             p = builder.start();
             p_stdin = new BufferedWriter(new OutputStreamWriter(p.getOutputStream()));
             p_stdin.write("@echo off\n");
+            p_inputStream = new BufferedReader(new InputStreamReader(p.getInputStream()));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -115,21 +146,21 @@ public class CommandLine extends Thread {
                         p_stdin.write(command);
                         p_stdin.newLine();
                         p_stdin.flush();
-                        InputStream p_inputStream = p.getInputStream();
                         try {
-                            BufferedReader s = new BufferedReader(new InputStreamReader(p_inputStream));
                             String output;
                             long end = System.currentTimeMillis() + (5 * 1000);
                             while (System.currentTimeMillis() < end) {
-                                if (s.ready()) {
-                                    output = s.readLine();
-                                    LOGGER.debug(command + " -> " + output);
+                                if (p_inputStream.ready()) {
+                                    output = p_inputStream.readLine();
+                                    LOGGER.debug(command + " -> ■" + output + "■ chars: " + output.length());
                                     if (!output.contains(">") &&
                                             !output.contains("Microsoft Windows") &&
                                             !output.contains("Microsoft Corporation. All rights reserved") &&
                                             !output.contains("Windows PowerShell") &&
                                             !output.contains("Copyright") &&
+                                            !output.contains("export PS1=''") &&
                                             !output.equals(" ") &&
+                                            !output.equals("\0") &&
                                             !output.equals(command) &&
                                             !output.isEmpty()) {
 
@@ -159,6 +190,19 @@ public class CommandLine extends Thread {
                 } catch (Exception e) {
                     sendError(event, e);
                 }
+            } else {
+                try {
+                    int count = 0;
+                    while (p_inputStream.ready()) {
+                        p_inputStream.read();
+                        count++;
+                    }
+                    if (count > 0) {
+                        LOGGER.trace("Read " + count + " bytes");
+                    }
+                } catch (Exception e) {
+                    LOGGER.error(e);
+                }
             }
         }
         try {
@@ -166,14 +210,53 @@ public class CommandLine extends Thread {
             p_stdin.newLine();
             p_stdin.flush();
             p_stdin.close();
-            p.getInputStream().close();
-            if (p.isAlive()) {
-                wait(5000);
-                p.destroy();
+            if (!ssh) {
+                p.getInputStream().close();
+                if (p.isAlive()) {
+                    wait(5000);
+                    p.destroy();
+                }
+            } else {
+                ssh = false;
+                sshChannel.disconnect();
+                sshSession.disconnect();
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
         LOGGER.info("Exiting > thread");
+    }
+
+    public static abstract class MyUserInfo implements UserInfo, UIKeyboardInteractive {
+        public String getPassword() {
+            return null;
+        }
+
+        public boolean promptYesNo(String str) {
+            return false;
+        }
+
+        public String getPassphrase() {
+            return null;
+        }
+
+        public boolean promptPassphrase(String message) {
+            return false;
+        }
+
+        public boolean promptPassword(String message) {
+            return false;
+        }
+
+        public void showMessage(String message) {
+        }
+
+        public String[] promptKeyboardInteractive(String destination,
+                                                  String name,
+                                                  String instruction,
+                                                  String[] prompt,
+                                                  boolean[] echo) {
+            return null;
+        }
     }
 }

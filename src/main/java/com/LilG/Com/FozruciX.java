@@ -3118,7 +3118,12 @@ public class FozruciX extends ListenerAdapter {
                                 if (getArg(arg, 6) != null) {
                                     if (DNDPlayer.ifClassExists(getArg(arg, 4))) {
                                         if (DNDPlayer.ifSpeciesExists(getArg(arg, 6))) {
-                                            DNDList.add(new DNDPlayer(getArg(arg, 2), getArg(arg, 3), getArg(arg, 4), event.getUser().getNick(), getArg(arg, 5), getArg(arg, 6)));
+                                            DNDList.add(new DNDPlayer(getArg(arg, 2),
+                                                    getArg(arg, 3),
+                                                    getArg(arg, 4),
+                                                    event.getUser().getNick(),
+                                                    getArg(arg, 5),
+                                                    getArg(arg, 6)));
                                             DNDJoined.add(event.getUser().getNick());
                                             sendMessage(event, "Added \"" + getArg(arg, 2) + "\" the " + getArg(arg, 4) + " with " + getArg(arg, 5) + " The " + getArg(arg, 6) + " to the game", true);
 
@@ -3134,7 +3139,10 @@ public class FozruciX extends ListenerAdapter {
                                     }
                                 } else if (getArg(arg, 5) != null) {
                                     if (DNDPlayer.ifClassExists(getArg(arg, 4))) {
-                                        DNDList.add(new DNDPlayer(getArg(arg, 2), getArg(arg, 3), getArg(arg, 4), event.getUser().getNick()));
+                                        DNDList.add(new DNDPlayer(getArg(arg, 2),
+                                                getArg(arg, 3),
+                                                getArg(arg, 4),
+                                                event.getUser().getNick()));
                                         DNDJoined.add(event.getUser().getNick());
                                         sendMessage(event, "Added \"" + getArg(arg, 2) + "\" the " + getArg(arg, 4) + " to the game", true);
                                         if (event.getUser().getNick().equalsIgnoreCase(currentNick)) {
