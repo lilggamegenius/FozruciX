@@ -22,7 +22,7 @@ import java.nio.file.StandardCopyOption;
  */
 
 public class FozConfig {
-    public final static boolean debug = true;
+    public final static boolean debug = false;
     public final static String badnik = "irc.badnik.zone"; //TL;DR Shit went down
     public final static String twitch = "irc.twitch.tv";
     public final static String caffie = "irc.caffie.net";
@@ -54,8 +54,6 @@ public class FozConfig {
             .setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates())
             .addAutoJoinChannel("#Lil-G|bot") //Join the official #Lil-G|Bot channel
             .addAutoJoinChannel("#SSB")
-            .addAutoJoinChannel("#FozruciX")
-            .addAutoJoinChannel("#discordBotTest")
             .addListener(new FozruciX(manager, save)); //Add our listener that will be called on Events
     public final static Configuration.Builder debugConfigSmwc = new Configuration.Builder()
             .setAutoReconnectDelay(connectDelay)
@@ -121,8 +119,6 @@ public class FozConfig {
             .addAutoJoinChannel("#retrotech")
             .addAutoJoinChannel("#SSB")
             .addAutoJoinChannel("#origami64")
-            .addAutoJoinChannel("#FozruciX")
-            .addAutoJoinChannel("#discordBotTest")
             .addAutoJoinChannel("#idkwtf")
             .addListener(new FozruciX(manager, save)); //Add our listener that will be called on Events
     public final static Configuration.Builder normalSmwc = new Configuration.Builder()
@@ -140,6 +136,7 @@ public class FozConfig {
             .addAutoJoinChannel("#botTest")
             .addAutoJoinChannel("#unix")
             .addAutoJoinChannel("#smashbros")
+            .addAutoJoinChannel("#undertale")
             .addAutoJoinChannel("#homebrew")
             .addAutoJoinChannel("#radbusiness")
             .addListener(new FozruciX(manager, save)); //Add our listener that will be called on Events

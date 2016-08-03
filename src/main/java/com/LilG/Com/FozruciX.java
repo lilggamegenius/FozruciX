@@ -1130,9 +1130,13 @@ public class FozruciX extends ListenerAdapter {
 
     @NotNull
     private String[] formatStringArgs(@NotNull String[] arg) {
-        String[] ret = new String[arg.length - (1 + arrayOffset)];
+        return trimFrontOfArray(arg, 1 + arrayOffset);
+    }
+
+    private String[] trimFrontOfArray(@NotNull String[] arg, int amount) {
+        String[] ret = new String[arg.length - amount];
         try {
-            System.arraycopy(arg, (1 + arrayOffset), ret, 0, ret.length);
+            System.arraycopy(arg, amount, ret, 0, ret.length);
         } catch (Exception e) {
             sendError(lastEvents.get(), e);
         }
@@ -3545,17 +3549,16 @@ public class FozruciX extends ListenerAdapter {
             else if (commandChecker(event, arg, "cmd")) {
                 if (checkPerm(event.getUser(), 9001)) {
                     try {
-                        if (!getArg(arg, 1).equalsIgnoreCase("stop")) {
+                        if (getArg(arg, 1).equalsIgnoreCase("stop")) {
+                            sendMessage(event, "Stopping", true);
+                            singleCMD.interrupt();
+                        } else {
                             try {
                                 singleCMD = new CMD(event, arg);
                                 singleCMD.start();
                             } catch (Exception e) {
                                 sendError(event, e);
                             }
-                        }
-                        if (getArg(arg, 1).equalsIgnoreCase("stop")) {
-                            sendMessage(event, "Stopping", true);
-                            singleCMD.interrupt();
                         }
                     } catch (Exception e) {
                         sendError(event, e);
@@ -3570,11 +3573,10 @@ public class FozruciX extends ListenerAdapter {
                 if (checkPerm(event.getUser(), 9001)) {
                     if (arg[0].substring(consolePrefix.length()).equalsIgnoreCase(consolePrefix + "start")) {
                         terminal.interrupt();
-                        terminal = new CommandLine(event, arg[1]);
+                        terminal = new CommandLine(event, trimFrontOfArray(arg, 1));
                         terminal.start();
                         sendMessage(event, "Command line started", false);
                     } else if (arg[0].substring(consolePrefix.length()).equalsIgnoreCase(consolePrefix + "close")) {
-                        terminal.interrupt();
                         terminal.doCommand(event, "exit");
                     } else if (arg[0].substring(consolePrefix.length()).equalsIgnoreCase(consolePrefix + "stop")) {
                         terminal.interrupt();
