@@ -256,13 +256,11 @@ class DrawWindow extends Component {
 
     public void paint(Graphics g) {
         Graphics2D g2d = (Graphics2D) g;
-        int dx = 0;
-        int dy = 0;
         int scale = 5;
         g2d.scale(scale, scale);
         try {
-            while (dy < map_size) {
-                while (dx < map_size) {
+            for (int dy = 0; dy < map_size; dy++) {
+                for (int dx = 0; dx < map_size; dx++) {
                     if (dx == currentPoint.x && dy == currentPoint.y) {
                         g2d.setColor(Color.RED);
                     } else if (map[dx][dy] == 0) {
@@ -273,11 +271,9 @@ class DrawWindow extends Component {
                         g2d.setColor(Color.MAGENTA);
                     }
                     g2d.drawLine(dx, dy, dx, dy);
-                    dx++;
-                    Thread.sleep(5);                 //1000 milliseconds is one second.
+                    //Thread.sleep(5);                 //1000 milliseconds is one second.
                 }
-                dy++;
-                dx = 0;
+
             }
         } catch (Exception e) {
             e.printStackTrace();

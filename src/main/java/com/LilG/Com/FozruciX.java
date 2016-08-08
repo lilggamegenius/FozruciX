@@ -3938,7 +3938,7 @@ public class FozruciX extends ListenerAdapter {
                             }
                         } else if (getArg(arg, 1).equalsIgnoreCase("vaginaDepth")) {
                             if (event.getUser().getNick().equalsIgnoreCase(currentNick)) {
-                                sendMessage(event, "Error: IntegerOutOfBoundsException: Less than Integer.MIN_VALUE", true);
+                                sendMessage(event, Color.RED + "Error: IntegerOutOfBoundsException: Less than Integer.MIN_VALUE", true);
                             } else {
                                 int size = randInt(0, jokeCommandDebugVar);
                                 sendMessage(event, "|" + StringUtils.leftPad("{0}", size, "=") + " -  -" + size, true);
