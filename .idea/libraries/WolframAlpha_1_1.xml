@@ -6,7 +6,6 @@
     <JAVADOC />
     <SOURCES>
       <root url="file://$PROJECT_DIR$/lib/WolframAlphaJavaLibrary/Source" />
-      <root url="jar://$PROJECT_DIR$/lib/WolframAlphaJavaLibrary/WolframAlpha-1.1.jar!/" />
     </SOURCES>
   </library>
 </component>

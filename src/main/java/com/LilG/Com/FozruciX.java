@@ -31,10 +31,6 @@ import de.tudarmstadt.ukp.jwktl.api.IWiktionarySense;
 import info.bliki.api.Page;
 import info.bliki.wiki.filter.PlainTextConverter;
 import info.bliki.wiki.model.WikiModel;
-import io.nodyn.NoOpExitHandler;
-import io.nodyn.Nodyn;
-import io.nodyn.runtime.NodynConfig;
-import io.nodyn.runtime.RuntimeFactory;
 import jdk.nashorn.api.scripting.ClassFilter;
 import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
 import net.dv8tion.jda.MessageBuilder;
@@ -904,7 +900,7 @@ public class FozruciX extends ListenerAdapter {
                 path = String.format("%02d", (today.get(Calendar.MONTH) + 1)) + "." + String.format("%02d", today.get(Calendar.DATE)) + ".txt";
                 File file = new File(parent, path);
                 String minute = String.format("%02d", today.get(Calendar.MINUTE));
-                if (message.length() < 2) {
+                if (minute.length() < 2) {
                     minute = "0" + minute;
                 }
                 PrintWriter out;
@@ -1041,19 +1037,27 @@ public class FozruciX extends ListenerAdapter {
         bot.send().message(userToSendTo, msgToSend);
     }
 
-    private synchronized void makeDebug() {
-        makeDebug(bot);
-    }
-
-    private synchronized void makeDebug(@NotNull PircBotX bot) {
+    private synchronized void makeDebug(@NotNull ConnectEvent event) {
         LOGGER.debug("Creating Debug window");
-        debug = new DebugWindow(bot);
+        debug = new DebugWindow(event);
         LOGGER.debug("Debug window created");
         debug.setCurrentNick(currentNick + "!" + currentUsername + "@" + currentHost);
     }
 
+    private synchronized void makeDebug() {
+        makeDebug(debug.getConnectEvent());
+    }
+
+    private synchronized void makeDiscord() {
+        if (discord == null && network != Network.discord) {
+            discord = DiscordAdapter.makeDiscord(bot);
+        }
+    }
+
     public synchronized void onDisconnect(DisconnectEvent DC) {
-        debug.dispose();
+        if (debug != null) {
+            debug.dispose();
+        }
     }
 
     public synchronized void onConnect(@NotNull ConnectEvent event) throws Exception {
@@ -1062,12 +1066,8 @@ public class FozruciX extends ListenerAdapter {
 
 
         loadData(true);
-        makeDebug();
-        synchronized (FozruciX.class) {
-            if (discord == null && network != Network.discord) {
-                discord = new DiscordAdapter(bot);
-            }
-        }
+        makeDebug(event);
+        makeDiscord();
         /*boolean drawDungeon = false;
         if (drawDungeon) {
             SwingUtilities.invokeLater(() -> {
@@ -1158,10 +1158,10 @@ public class FozruciX extends ListenerAdapter {
         checkNote(event, event.getUser().getNick(), event.getChannel().getName());
         if (debug == null) {
             if (bot == null) {
-                makeDebug(event.getBot());
-            } else {
-                makeDebug();
+                bot = event.getBot();
             }
+            makeDebug();
+
         }
         lastEvents.add(event);
         if (!BOOLS.get(DATA_LOADED)) {
@@ -2189,30 +2189,6 @@ public class FozruciX extends ListenerAdapter {
                 }
             }
 
-// !SolveFor - Solves for a equation
-            else if (commandChecker(event, arg, "SolveFor")) {
-                if (checkPerm(event.getUser(), 0)) {
-                    String expression = getArg(arg, 1);
-                    String solveFor = getArg(arg, 2);
-                    // Use DynJS runtime
-                    RuntimeFactory factory = RuntimeFactory.init(FozruciX.class.getClassLoader(), RuntimeFactory.RuntimeType.DYNJS);
-                    // Set config to run main.js
-                    NodynConfig config = new NodynConfig(new String[]{"-e", "var algebra = require('algebra.js'); var exp = new algebra.parse(\"" + expression + "\"); var ans = eq.solveFor(\"" + solveFor + "\"); eq.toString()   " + solveFor + " = ans.toString()"});
-                    // Create a new Nodyn and run it
-                    Nodyn nodyn = factory.newRuntime(config);
-                    nodyn.setExitHandler(new NoOpExitHandler());
-                    try {
-                        int exitValue = nodyn.run();
-                        LOGGER.debug(exitValue);
-                        sendMessage(event, nodyn.toString(), true);
-                    } catch (Throwable t) {
-                        //noinspection ConstantConditions
-                        sendError(event, (Exception) t);
-                    }
-                    addCooldown(event.getUser());
-                }
-            }
-
 // !JS - evaluates a expression in JavaScript
             else if (commandChecker(event, arg, "JS")) {
                 if (checkPerm(event.getUser(), 0)) {
@@ -3073,6 +3049,19 @@ public class FozruciX extends ListenerAdapter {
                 }
             }
 
+// !makeDiscord - reCreates the discord connection
+            else if (commandChecker(event, arg, "makeDiscord")) {
+                if (checkPerm(event.getUser(), 9001)) {
+                    try {
+                        makeDiscord();
+                    } catch (Exception e) {
+                        sendError(event, e);
+                    }
+                } else {
+                    permErrorchn(event);
+                }
+            }
+
 // !LoopSay - Tells the bot to say something and loop it
             else if (commandChecker(event, arg, "LoopSay")) {
                 if (checkPerm(event.getUser(), 9001)) {
@@ -3798,6 +3787,17 @@ public class FozruciX extends ListenerAdapter {
                 }
             }
 
+// !getDiscordStatus - does what it says
+            else if (commandChecker(event, arg, "getDiscordStatus")) {
+                if (checkPerm(event.getUser(), 0)) {
+                    try {
+                        sendMessage(event, DiscordAdapter.getJda().getStatus().toString(), false);
+                    } catch (Exception e) {
+                        sendError(event, e);
+                    }
+                }
+            }
+
 // !jniTest - Test method with JNI
             else if (commandChecker(event, arg, "jniTest")) {
                 if (checkPerm(event.getUser(), 0)) {
@@ -3811,7 +3811,7 @@ public class FozruciX extends ListenerAdapter {
             else if (commandChecker(event, arg, "changeNick")) {
                 if (checkPerm(event.getUser(), 9001)) {
                     if (event instanceof DiscordMessageEvent) {
-                        discord.getJda().getAccountManager().setNickname(((DiscordMessageEvent) event).getDiscordEvent().getGuild(), getArg(arg, 1));
+                        DiscordAdapter.getJda().getAccountManager().setNickname(((DiscordMessageEvent) event).getDiscordEvent().getGuild(), getArg(arg, 1));
                     } else {
                         bot.sendIRC().changeNick(getArg(arg, 1));
                         debug.setNick(getArg(arg, 1));
@@ -4274,6 +4274,9 @@ public class FozruciX extends ListenerAdapter {
     public void onNotice(@NotNull NoticeEvent event) {
         String message = event.getMessage();
         //noinspection ConstantConditions
+        if (event.getUser() == null) {
+            return;
+        }
         if (!event.getUser().getNick().equalsIgnoreCase("NickServ") || !event.getUser().getNick().equalsIgnoreCase("irc.badnik.net")) {
             //noinspection StatementWithEmptyBody
             if (message.contains("*** Found your hostname") ||
@@ -4315,8 +4318,10 @@ public class FozruciX extends ListenerAdapter {
         //noinspection ConstantConditions
         log(join);
         checkNote(join, join.getUser().getNick(), join.getChannel().getName());
-        debug.updateBot(bot);
-        debug.setCurrentNick(currentNick + "!" + currentUsername + "@" + currentHost);
+        if (debug != null) {
+            debug.updateBot(bot);
+            debug.setCurrentNick(currentNick + "!" + currentUsername + "@" + currentHost);
+        }
     }
 
     public synchronized void onNickChange(@NotNull NickChangeEvent nick) {
@@ -4375,7 +4380,9 @@ public class FozruciX extends ListenerAdapter {
             bot.send().notice(line, "\u0001AVATAR " + avatar + "\u0001");
         }
         LOGGER.debug("Received unknown: " + event.getLine());
-        debug.setCurrentNick(currentNick + "!" + currentUsername + "@" + currentHost);
+        if (debug != null) {
+            debug.setCurrentNick(currentNick + "!" + currentUsername + "@" + currentHost);
+        }
     }
 
     /**

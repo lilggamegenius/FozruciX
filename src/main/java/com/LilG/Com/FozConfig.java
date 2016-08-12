@@ -22,7 +22,7 @@ import java.nio.file.StandardCopyOption;
  */
 
 public class FozConfig {
-    public final static boolean debug = false;
+    public final static boolean debug = true;
     public final static String badnik = "irc.badnik.zone"; //TL;DR Shit went down
     public final static String twitch = "irc.twitch.tv";
     public final static String caffie = "irc.caffie.net";

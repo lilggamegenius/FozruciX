@@ -219,11 +219,6 @@
             <version>19.0</version>
         </dependency>
         <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava-parent</artifactId>
-            <version>19.0</version>
-        </dependency>
-        <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpcomponents-core</artifactId>
             <version>4.3.3</version>
@@ -461,7 +456,8 @@
         <dependency>
             <groupId>net.dv8tion</groupId>
             <artifactId>JDA</artifactId>
-            <version>1.2.2_139</version>
+            <version>2.2.0_345</version>
+            <type>pom</type>
         </dependency>
         <dependency>
             <groupId>commons-io</groupId>

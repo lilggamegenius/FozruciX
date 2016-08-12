@@ -1,10 +1,14 @@
 package com.LilG.Com;
 
 import com.google.common.collect.ImmutableSortedSet;
+import net.dv8tion.jda.JDA;
+import net.dv8tion.jda.entities.Guild;
+import net.dv8tion.jda.entities.TextChannel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.pircbotx.Channel;
 import org.pircbotx.PircBotX;
+import org.pircbotx.hooks.events.ConnectEvent;
 
 import javax.swing.*;
 import javax.swing.event.ListDataEvent;
@@ -14,7 +18,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.stream.Collectors;
 
 import static com.LilG.Com.FozruciX.formatFileSize;
 
@@ -49,6 +53,10 @@ class DebugWindow extends JFrame {
     private final JTextField messageTF;
     @Nullable
     private PircBotX bot;
+    @Nullable
+    private JDA jda;
+    @Nullable
+    private ConnectEvent connectEvent;
     @NotNull
     private String[] channels = {"#null"};
     @NotNull
@@ -57,16 +65,22 @@ class DebugWindow extends JFrame {
     private Runtime runtime = Runtime.getRuntime();
     private final Timer timer = new Timer(1000, (ActionListener) e -> memoryUsageTF.setText("Current memory usage: " + formatFileSize(runtime.totalMemory() - runtime.freeMemory()) + "/" + formatFileSize(runtime.totalMemory()) + ". Total memory that can be used: " + formatFileSize(runtime.maxMemory()) + ".  Active Threads: " + Thread.activeCount() + "/" + ManagementFactory.getThreadMXBean().getThreadCount() + ".  Available Processors: " + runtime.availableProcessors()));
 
-    DebugWindow(@NotNull PircBotX bot) {
+    DebugWindow(@NotNull ConnectEvent event) {
+        this.bot = event.getBot();
         JLabel currentNickL, lastMessageL, currDML, myPlayerNameL, myPlayerHPL, myPlayerXPL, myFamiliarL, myFamiliarHPL, myFamiliarXPL, memoryUsageL;
         String network = bot.getServerInfo().getNetwork();
+        String nick = bot.getNick();
         if (network == null) {
-            network = bot.getServerHostname();
-            network = network.substring(network.indexOf(".") + 1, network.lastIndexOf("."));
+            if (event instanceof DiscordConnectEvent) {
+                network = "Discord";
+                nick = ((DiscordConnectEvent) event).getReadyEvent().getJDA().getSelfInfo().getUsername();
+            } else {
+                network = bot.getServerHostname();
+                network = network.substring(network.indexOf(".") + 1, network.lastIndexOf("."));
+            }
         }
-        setTitle(bot.getNick() + " @ " + network);
-        this.bot = bot;
-        channels = getChannels(bot.getUserBot().getChannels());
+        setTitle(nick + " @ " + network);
+        channels = getChannels(event);
 
 
         currentNickL = new JLabel("Currently Registered User", SwingConstants.LEFT);
@@ -168,14 +182,30 @@ class DebugWindow extends JFrame {
         timer.start();
     }
 
-    private String[] getChannels(@Nullable ImmutableSortedSet<Channel> channel) {
-        if (channel == null) {
-            throw new NullPointerException(this.getClass().getName() + ": ImmutableSortedSet Channel cannot be null");
+    @Nullable
+    public ConnectEvent getConnectEvent() {
+        return connectEvent;
+    }
+
+    private String[] getChannels(ConnectEvent event) {
+        if (event instanceof DiscordConnectEvent) {
+            jda = ((DiscordConnectEvent) event).getReadyEvent().getJDA();
         }
-        Iterator<Channel> channels = channel.iterator();
+        return getChannels();
+    }
+
+    private String[] getChannels() {
         ArrayList<String> channelList = new ArrayList<>();
-        while (channels.hasNext()) {
-            channelList.add(channels.next().getName());
+
+        if (jda != null) {
+            java.util.List<Guild> guildList = jda.getGuilds();
+            for (Guild guild : guildList) {
+                java.util.List<TextChannel> channels = guild.getTextChannels();
+                channelList.addAll(channels.stream().map(channel -> guild.getName() + ": #" + channel.getName()).collect(Collectors.toList()));
+            }
+        } else {
+            ImmutableSortedSet<Channel> channel = bot.getUserBot().getChannels();
+            channelList.addAll(channel.stream().map(Channel::getName).collect(Collectors.toList()));
         }
         return channelList.toArray(new String[channelList.size()]);
     }
@@ -188,7 +218,7 @@ class DebugWindow extends JFrame {
 
     public void updateBot(@NotNull PircBotX bot) {
         this.bot = bot;
-        channels = getChannels(bot.getUserBot().getChannels());
+        channels = getChannels();
         selectedChannel = (String) comboBox.getSelectedItem();
         updateChannels();
         comboBox.setSelectedItem(selectedChannel);
@@ -199,6 +229,7 @@ class DebugWindow extends JFrame {
         for (String channel : channels) {
             comboBox.addElement(channel);
         }
+        comboBox.setSelectedItem(selectedChannel);
     }
 
     public void setCurrentNick(String nick) {

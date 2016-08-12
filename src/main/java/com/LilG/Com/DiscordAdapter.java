@@ -8,6 +8,7 @@ import lombok.NonNull;
 import net.dv8tion.jda.JDA;
 import net.dv8tion.jda.JDABuilder;
 import net.dv8tion.jda.entities.TextChannel;
+import net.dv8tion.jda.events.ReadyEvent;
 import net.dv8tion.jda.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.hooks.ListenerAdapter;
 import net.dv8tion.jda.managers.AccountManager;
@@ -36,25 +37,24 @@ import static com.LilG.Com.DiscordAdapter.avatarFile;
  */
 public class DiscordAdapter extends ListenerAdapter {
     private final static Logger LOGGER = Logger.getLogger(DiscordAdapter.class);
-    private static final String currentDiscordID = "131494148350935040";
     public static File avatarFile;
+    private static DiscordAdapter discordAdapter = null;
     private static FozruciX bot;
     private static PircBotX pircBotX;
     private static JDA jda;
     private static Thread game;
     private static Thread avatar;
 
-    public DiscordAdapter(PircBotX pircBotX) {
+    private DiscordAdapter(PircBotX pircBotX) {
         try {
-            LOGGER.setLevel(Level.ALL);
+            LOGGER.trace("Calling JDA Builder");
             jda = new JDABuilder()
                     .setBotToken(CryptoUtil.decrypt(FozConfig.setPassword(FozConfig.Password.discord)))
                     .setAutoReconnect(true)
                     .setAudioEnabled(false)
                     .setEnableShutdownHook(true)
-                    .buildBlocking();
-            jda.addEventListener(this);
-            jda.setAutoReconnect(true);
+                    .addListener(this)
+                    .buildAsync();
             DiscordAdapter.bot = new FozruciX(FozruciX.Network.discord, FozConfig.getManager(), FozConfig.loadData(new GsonBuilder().setPrettyPrinting().create()));
             DiscordAdapter.pircBotX = pircBotX;
             game = new GameThread(jda.getAccountManager());
@@ -62,6 +62,7 @@ public class DiscordAdapter extends ListenerAdapter {
 
             avatar = new AvatarThread(jda.getAccountManager(), bot);
             avatar.start();
+            LOGGER.trace("Calling onConnect() method");
             bot.onConnect(new ConnectEvent(pircBotX));
             LOGGER.trace("DiscordAdapter created");
         } catch (Exception e) {
@@ -69,8 +70,31 @@ public class DiscordAdapter extends ListenerAdapter {
         }
     }
 
-    public JDA getJda() {
+    static synchronized DiscordAdapter makeDiscord(PircBotX pircBotX) {
+        LOGGER.setLevel(Level.ALL);
+        try {
+            LOGGER.trace("Making Discord connection");
+            if (discordAdapter == null) {
+                LOGGER.trace("Constructing...");
+                discordAdapter = new DiscordAdapter(pircBotX);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return discordAdapter;
+    }
+
+    static JDA getJda() {
         return jda;
+    }
+
+    @Override
+    public void onReady(ReadyEvent event) {
+        try {
+            bot.onConnect(new DiscordConnectEvent(pircBotX).setReadyEvent(event));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -136,11 +160,12 @@ class DiscordPrivateMessageEvent extends PrivateMessageEvent {
 
     @Override
     public void respond(String response) {
+        discordEvent.getAuthor().getPrivateChannel().sendMessage(discordEvent.getAuthorName() + ": " + response);
     }
 
     @Override
     public void respondWith(String fullLine) {
-        discordEvent.getChannel().sendMessage(fullLine);
+        discordEvent.getAuthor().getPrivateChannel().sendMessage(fullLine);
     }
 }
 
@@ -169,6 +194,30 @@ class DiscordChannel extends Channel {
     }
 }
 
+class DiscordConnectEvent extends ConnectEvent {
+
+    ReadyEvent ready;
+
+    /**
+     * Default constructor to setup object. Timestamp is automatically set to
+     * current time as reported by {@link System#currentTimeMillis() }
+     *
+     * @param bot
+     */
+    public DiscordConnectEvent(PircBotX bot) {
+        super(bot);
+    }
+
+    public ReadyEvent getReadyEvent() {
+        return ready;
+    }
+
+    public DiscordConnectEvent setReadyEvent(ReadyEvent ready) {
+        this.ready = ready;
+        return this;
+    }
+}
+
 class DiscordUser extends User {
     private net.dv8tion.jda.entities.User discordUser;
 
@@ -180,6 +229,10 @@ class DiscordUser extends User {
         this.discordUser = user;
         return this;
     }
+
+    public net.dv8tion.jda.entities.User getDiscordUser() {
+        return discordUser;
+    }
 }
 
 class DiscordUserHostmask extends UserHostmask {
@@ -189,6 +242,9 @@ class DiscordUserHostmask extends UserHostmask {
         super(bot, rawHostmask);
     }
 
+    public net.dv8tion.jda.entities.User getDiscordUser() {
+        return discordUser;
+    }
 
 }
 
@@ -204,7 +260,7 @@ class GameThread extends Thread {
 
     @Override
     public void run() {
-        String[] listOfGames = {"With bleach", "With fire", "With matches", "The Bleach Drinking Game", "The smallest violin", "In the blood of my enemies", "On top of the corpses of my enemies"};
+        String[] listOfGames = {"With bleach", "With fire", "With matches", "The Bleach Drinking Game", "The smallest violin", "In the blood of my enemies", "On top of the corpses of my enemies", "In the trash can where i belong", "The waiting game", "The game of life", "baseball with the head of my enemies", "basketball with the head of my enemies", "football with the head of my enemies"};
         while (!Thread.currentThread().isInterrupted()) {
             try {
                 accountManager.setGame(listOfGames[FozruciX.randInt(0, listOfGames.length - 1)]);
