@@ -1,6 +1,7 @@
 package com.LilG.Com.DND;
 
 import org.jetbrains.annotations.NotNull;
+import org.pircbotx.User;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,11 +19,12 @@ public class DNDPlayer {
     private final int maxMoney = 0;
     //
     @SuppressWarnings("MismatchedReadAndWriteOfArray")
-    private final int[] stats = {10, 10, 10, 10, 10, 10};
+    private final int[] stats = {10, 10, 10, 10, 10};
     //ToDo
     @SuppressWarnings("MismatchedReadAndWriteOfArray")
     private final boolean[] passives = {false, false, false, false, false, false};
     private final List<String> inventory = new ArrayList<>();
+    User player;
     int maxHP = 100;
     int HP = maxHP;
     int XP = 0;
@@ -34,21 +36,22 @@ public class DNDPlayer {
     private int XPToGain = 0;
 
     DNDPlayer() {
-
     }
 
-    public DNDPlayer(String playerName, String race, String Class, String usersName) {
+    public DNDPlayer(String playerName, String race, String Class, User user) {
         this.playerName = playerName;
+        this.player = user;
         this.race = race;
         this.Class = getClassFromString(Class);
         //this.passives = passives;
     }
 
-    public DNDPlayer(String playerName, String race, String Class, String usersName, String familiarName, String familiar) {
+    public DNDPlayer(String playerName, String race, String Class, User user, String familiarName, String familiar) {
         this.playerName = playerName;
+        this.player = user;
         this.race = race;
         this.Class = getClassFromString(Class);
-        this.familiar = new DNDFamiliar(familiarName, playerName, DNDFamiliars.valueOf(familiar));
+        this.familiar = new DNDFamiliar(familiarName, this, DNDFamiliars.valueOf(familiar));
     }
 
     public static boolean ifClassExists(String str) {
@@ -95,6 +98,10 @@ public class DNDPlayer {
 
     public String getPlayerName() {
         return playerName;
+    }
+
+    public User getPlayer() {
+        return player;
     }
 
     private String getClassName(@NotNull DNDClasses stat) {
@@ -169,15 +176,120 @@ public class DNDPlayer {
     }
 
     public enum DNDStats {
-        Dexterity
+        Attack(0),
+        Defense(1),
+        Intelligence(2),
+        Speed(3),
+        Mana(4);
+
+        private int numVal;
+
+        DNDStats(int numVal) {
+            this.numVal = numVal;
+        }
+
+        public int val() {
+            return numVal;
+        }
     }
 
     public enum DNDClasses {
-        Barbarian, Bard, Cleric, Druid, Wizard, Mage, Monk_Mystic, Paladin, Ranger, Sorcerer, Thief_Rogue, Warlock
+        Barbarian(10, 7, 4, 5, 2, PreferredWeaponType.HeavyMelee),
+        Cleric(7, 5, 7, 6, 7, PreferredWeaponType.Spellbook),
+        Druid(8, 6, 5, 6, 4, PreferredWeaponType.Melee),
+        Wizard(8, 5, 10, 5, 10, PreferredWeaponType.Spellbook),
+        Mage(6, 6, 9, 5, 9, PreferredWeaponType.Spellbook),
+        Monk_Mystic(6, 5, 5, 5, 6, PreferredWeaponType.Spellbook),
+        Paladin(8, 5, 9, 5, 9, PreferredWeaponType.Spellbook),
+        Ranger(9, 7, 4, 7, 4, PreferredWeaponType.Melee),
+        Sorcerer(7, 6, 10, 4, 10, PreferredWeaponType.Spellbook),
+        Thief_Rogue(6, 6, 7, 10, 4, PreferredWeaponType.Projectile),
+        Warlock(10, 6, 3, 7, 1, PreferredWeaponType.Spellbook);
+
+        final int baseAttack;
+        final int baseDefense;
+        final int baseIntelligence;
+        final int baseSpeed;
+        final int baseMana;
+        final PreferredWeaponType weaponType;
+
+        DNDClasses(int baseAttack, int baseDefense, int baseIntelligence, int baseSpeed, int baseMana, PreferredWeaponType weaponType) {
+            this.baseAttack = baseAttack;
+            this.baseDefense = baseDefense;
+            this.baseIntelligence = baseIntelligence;
+            this.baseSpeed = baseSpeed;
+            this.baseMana = baseMana;
+            this.weaponType = weaponType;
+        }
+
+        public int[] getBaseStats() {
+            return new int[]{baseAttack, baseDefense, baseIntelligence, baseSpeed, baseMana};
+        }
+
+        public int getBaseAttack() {
+            return baseAttack;
+        }
+
+        public int getBaseDefense() {
+            return baseDefense;
+        }
+
+        public int getBaseIntelligence() {
+            return baseIntelligence;
+        }
+
+        public int getBaseSpeed() {
+            return baseSpeed;
+        }
+
+        public int getBaseMana() {
+            return baseMana;
+        }
+
+        public PreferredWeaponType getWeaponType() {
+            return weaponType;
+        }
     }
 
     public enum DNDFamiliars {
         Bat, Cat, Hawk, Lizard, Owl, Rat, Raven, Toad, Weasel, Ferret, Hedgehog, Mouse, Thrush, Leopard, Wolverine, Albatross, Parrot, SeaSnake, ArcticFox, Fox, Dog, Monkey, Platypus, Rabbit, Squirrel, Badger, Chipmunk, Eagle, Groundhog, Otter, Pokemon
+    }
+
+    public enum PreferredWeaponType {
+        Melee, HeavyMelee, Projectile, Spellbook
+    }
+
+    public enum Items {
+        Potion(0.25f, ItemType.Healing),
+        GreatPotion(0.5f, ItemType.Healing),
+        GreaterPotion(0.75f, ItemType.Healing),
+        FullPotion(1f, ItemType.Healing),
+        ManaPotion(0.3f, ItemType.Mana),
+        GreatManaPotion(0.6f, ItemType.Mana),
+        GreaterManaPotion(0.8f, ItemType.Mana),
+        FullManaPotion(1f, ItemType.Mana),
+        Revive(0.5f, ItemType.Revive),
+        FullRevive(1f, ItemType.Revive);
+
+        final ItemType itemType;
+        final float multiplier;
+
+        Items(float multiplier, ItemType itemType) {
+            this.multiplier = multiplier;
+            this.itemType = itemType;
+        }
+
+        public ItemType getItemType() {
+            return itemType;
+        }
+
+        public float getMultiplier() {
+            return multiplier;
+        }
+    }
+
+    public enum ItemType {
+        Healing, Mana, Revive
     }
 
 }

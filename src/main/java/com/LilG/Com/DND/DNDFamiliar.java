@@ -7,10 +7,11 @@ import org.jetbrains.annotations.NotNull;
  */
 public class DNDFamiliar extends DNDPlayer {
     private final String name;
-    private final String owner;
+    private final DNDPlayer owner;
     private final DNDFamiliars species;
 
-    public DNDFamiliar(String name, String owner, DNDFamiliars species) {
+    DNDFamiliar(String name, DNDPlayer owner, DNDFamiliars species) {
+        super();
         this.name = name;
         this.owner = owner;
         this.species = species;

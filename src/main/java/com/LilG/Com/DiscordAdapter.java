@@ -54,7 +54,7 @@ public class DiscordAdapter extends ListenerAdapter {
                     .setAudioEnabled(false)
                     .setEnableShutdownHook(true)
                     .addListener(this)
-                    .buildAsync();
+                    .buildBlocking();
             DiscordAdapter.bot = new FozruciX(FozruciX.Network.discord, FozConfig.getManager(), FozConfig.loadData(new GsonBuilder().setPrettyPrinting().create()));
             DiscordAdapter.pircBotX = pircBotX;
             game = new GameThread(jda.getAccountManager());
@@ -124,12 +124,12 @@ public class DiscordAdapter extends ListenerAdapter {
 class DiscordMessageEvent extends MessageEvent {
     private MessageReceivedEvent discordEvent;
 
-    public DiscordMessageEvent(PircBotX bot, @NonNull Channel channel, @NonNull String channelSource, @NonNull UserHostmask userHostmask, User user, @NonNull String message, ImmutableMap<String, String> tags, MessageReceivedEvent discordEvent) {
+    DiscordMessageEvent(PircBotX bot, @NonNull Channel channel, @NonNull String channelSource, @NonNull UserHostmask userHostmask, User user, @NonNull String message, ImmutableMap<String, String> tags, MessageReceivedEvent discordEvent) {
         super(bot, channel, channelSource, userHostmask, user, message, tags);
         this.discordEvent = discordEvent;
     }
 
-    public MessageReceivedEvent getDiscordEvent() {
+    MessageReceivedEvent getDiscordEvent() {
         return discordEvent;
     }
 
@@ -148,7 +148,7 @@ class DiscordMessageEvent extends MessageEvent {
 class DiscordPrivateMessageEvent extends PrivateMessageEvent {
     private MessageReceivedEvent discordEvent;
 
-    public DiscordPrivateMessageEvent(PircBotX bot, @NonNull UserHostmask userHostmask, User user, @NonNull String message, MessageReceivedEvent discordEvent) {
+    DiscordPrivateMessageEvent(PircBotX bot, @NonNull UserHostmask userHostmask, User user, @NonNull String message, MessageReceivedEvent discordEvent) {
         super(bot, userHostmask, user, message);
         this.discordEvent = discordEvent;
     }
@@ -196,7 +196,7 @@ class DiscordChannel extends Channel {
 
 class DiscordConnectEvent extends ConnectEvent {
 
-    ReadyEvent ready;
+    private ReadyEvent ready;
 
     /**
      * Default constructor to setup object. Timestamp is automatically set to
@@ -204,15 +204,15 @@ class DiscordConnectEvent extends ConnectEvent {
      *
      * @param bot
      */
-    public DiscordConnectEvent(PircBotX bot) {
+    DiscordConnectEvent(PircBotX bot) {
         super(bot);
     }
 
-    public ReadyEvent getReadyEvent() {
+    ReadyEvent getReadyEvent() {
         return ready;
     }
 
-    public DiscordConnectEvent setReadyEvent(ReadyEvent ready) {
+    DiscordConnectEvent setReadyEvent(ReadyEvent ready) {
         this.ready = ready;
         return this;
     }
@@ -254,7 +254,7 @@ class GameThread extends Thread {
     private GameThread() {
     }
 
-    public GameThread(AccountManager accountManager) {
+    GameThread(AccountManager accountManager) {
         this.accountManager = accountManager;
     }
 
