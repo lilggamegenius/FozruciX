@@ -2,8 +2,7 @@ package com.LilG.Com;
 
 import com.LilG.Com.DataClasses.SaveDataStore;
 import com.LilG.Com.utils.CryptoUtil;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import com.thoughtworks.xstream.XStream;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.pircbotx.Configuration;
@@ -32,15 +31,15 @@ public class FozConfig {
     private final static String nick = "FozruciX";
     private final static String login = "SmugLeaf";
     private final static String realName = "\u00034\u000F* What can I do for you, little buddy?";
-    private final static Logger LOGGER = Logger.getLogger(FozConfig.class);
-    final static String PASSWORD = setPassword(Password.normal);
+    private transient final static Logger LOGGER = Logger.getLogger(FozConfig.class);
+    transient final static String PASSWORD = setPassword(Password.normal);
     private final static int attempts = Integer.MAX_VALUE;
     private final static int connectDelay = 5 * 1000; //5 seconds
     //Create our bot with the configuration
-    private final static File bak = new File("Data/DataBak.json");
-    private final static File saveFile = new File("Data/Data.json");
+    private final static File bak = new File("Data/DataBak.xml");
+    private final static File saveFile = new File("Data/Data.xml");
     private final static MultiBotManager manager = new MultiBotManager();
-    private final static SaveDataStore save = loadData(new GsonBuilder().setPrettyPrinting().create());
+    private final static SaveDataStore save = loadData(new XStream());
 
     public final static Configuration.Builder debugConfig = new Configuration.Builder()
             .setAutoReconnectDelay(connectDelay)
@@ -241,9 +240,9 @@ public class FozConfig {
             //create string from byte array
             ret = new String(fileContent);
         } catch (FileNotFoundException e) {
-            LOGGER.error("File not found" + e);
+            LOGGER.error("File not found", e);
         } catch (IOException ioe) {
-            LOGGER.error("Exception while reading file " + ioe);
+            LOGGER.error("Exception while reading file", ioe);
         } finally {
             // close the streams using close method
             try {
@@ -251,36 +250,48 @@ public class FozConfig {
                     fin.close();
                 }
             } catch (IOException ioe) {
-                LOGGER.error("Error while closing stream: " + ioe);
+                LOGGER.error("Error while closing stream", ioe);
             }
         }
         return ret;
     }
 
-    public static synchronized SaveDataStore loadData(Gson GSON) {
+    public static synchronized SaveDataStore loadData(XStream xstream) {
+        LOGGER.info("Starting to loadData");
         if (!saveFile.exists()) {
+            LOGGER.info("Save file doesn't exist. Attempting to load backup");
             try {
+                //noinspection StatementWithEmptyBody
+                //while(!bak.canWrite() || !saveFile.canWrite()){}
                 Files.move(bak.toPath(), saveFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                LOGGER.info("Backup file moved");
+            } catch (java.nio.file.FileSystemException e) {
+                LOGGER.error("file in use", e);
+                return null;
             } catch (Exception e) {
-                e.printStackTrace();
+                LOGGER.error("failed renaming backup file", e);
             }
         }
         try (BufferedReader br = new BufferedReader(new FileReader(saveFile))) {
-            SaveDataStore save = GSON.fromJson(br, SaveDataStore.class);
+            LOGGER.info("Attempting to load data");
+            SaveDataStore save = (SaveDataStore) xstream.fromXML(br);
             if (save == null) throw new FileNotFoundException("Couldn't find save data");
             save = new SaveDataStore(save.getAuthedUser(), save.getAuthedUserLevel(), save.getDNDJoined(), save.getDNDList(), save.getNoteList(), save.getAvatarLink(), save.getMemes(), save.getFCList(), save.getMarkovChain(), save.getAllowedCommands());
+            LOGGER.info("Loaded data");
             return save;
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.error("failed loading data", e);
             System.exit(1);
         }
         return null;
     }
 
-    public static synchronized void saveData(@NotNull SaveDataStore save, Gson GSON) throws IOException {
-        FileWriter writer = new FileWriter(bak);
-        writer.write(GSON.toJson(save));
-        writer.close();
+    public static synchronized void saveData(@NotNull SaveDataStore save, XStream xstream) throws IOException {
+        try (FileWriter writer = new FileWriter(bak)) {
+            xstream.toXML(save, writer);
+        } catch (Exception e) {
+            LOGGER.error("Couldn't save data", e);
+        }
         Files.move(bak.toPath(), saveFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
     }
 

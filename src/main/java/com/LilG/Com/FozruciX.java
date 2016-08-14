@@ -14,14 +14,13 @@ import com.google.code.chatterbotapi.ChatterBotSession;
 import com.google.code.chatterbotapi.ChatterBotType;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.joestelmach.natty.DateGroup;
 import com.joestelmach.natty.Parser;
 import com.rmtheis.yandtran.YandexTranslatorAPI;
 import com.rmtheis.yandtran.detect.Detect;
 import com.rmtheis.yandtran.language.Language;
 import com.rmtheis.yandtran.translate.Translate;
+import com.thoughtworks.xstream.XStream;
 import com.wolfram.alpha.*;
 import de.tudarmstadt.ukp.jwktl.JWKTL;
 import de.tudarmstadt.ukp.jwktl.api.IWiktionaryEdition;
@@ -56,7 +55,6 @@ import org.pircbotx.hooks.events.*;
 import org.pircbotx.hooks.types.GenericEvent;
 import org.pircbotx.hooks.types.GenericMessageEvent;
 import s1tcg.S1TCG;
-import sun.misc.Unsafe;
 
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
@@ -69,7 +67,6 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.lang.management.ManagementFactory;
-import java.lang.ref.WeakReference;
 import java.math.BigDecimal;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -88,6 +85,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static com.LilG.Com.utils.LilGUtil.*;
 import static com.citumpe.ctpTools.jWMI.getWMIValue;
 
 /**
@@ -115,8 +113,8 @@ public class FozruciX extends ListenerAdapter {
     private final static StaticVariableSet<Double> VARIABLE_SET = new StaticVariableSet<>();
     private final static String APP_ID = "RGHHEP-HQU7HL67W9";
     private final static LinkedList<RPSGame> RPS_GAMES = new LinkedList<>();
-    private final static Logger LOGGER = Logger.getLogger(FozruciX.class);
-    private final static Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+    private transient final static Logger LOGGER = Logger.getLogger(FozruciX.class);
+    private final static XStream xstream = new XStream();
     private final static BitSet BOOLS = new BitSet(10); // true, false, null, null, null, false, true, true, false, false
     public static volatile ConcurrentHashMap<String, LinkedList<String>> markovChain = null;
     @NotNull
@@ -210,85 +208,6 @@ public class FozruciX extends ListenerAdapter {
         AnsiConsole.systemInstall();
         LOGGER.setLevel(Level.ALL);
         Runtime.getRuntime().addShutdownHook(new Thread(this::saveData, "Shutdown-thread"));
-    }
-
-    /**
-     * Returns a pseudo-random number between min and max, inclusive.
-     * The difference between min and max can be at most
-     * <code>Integer.MAX_VALUE - 1</code>.
-     *
-     * @param min Minimum value
-     * @param max Maximum value.  Must be greater than min.
-     * @return Integer between min and max, inclusive.
-     * @see java.util.Random#nextInt(int)
-     */
-    static int randInt(int min, int max) {
-
-        // NOTE: Usually this should be a field rather than a method
-        // variable so that it is not re-seeded every call.
-        Random rand = new Random();
-
-
-        // nextInt is normally exclusive of the top value,
-        // so add 1 to make it inclusive
-
-        return rand.nextInt((max - min) + 1) + min;
-    }
-
-    private static String getBytes(@NotNull String bytes) {
-        byte[] Bytes = bytes.getBytes();
-        return Arrays.toString(Bytes);
-    }
-
-    static String formatFileSize(long size) {
-        String hrSize;
-
-        double k = size / 1024.0;
-        double m = ((size / 1024.0) / 1024.0);
-        double g = (((size / 1024.0) / 1024.0) / 1024.0);
-        double t = ((((size / 1024.0) / 1024.0) / 1024.0) / 1024.0);
-
-        DecimalFormat dec = new DecimalFormat("0.00");
-
-        if (t > 1) {
-            hrSize = dec.format(t).concat(" TB");
-        } else if (g > 1) {
-            hrSize = dec.format(g).concat(" GB");
-        } else if (m > 1) {
-            hrSize = dec.format(m).concat(" MB");
-        } else if (k > 1) {
-            hrSize = dec.format(k).concat(" KB");
-        } else {
-            hrSize = dec.format((double) size).concat(" B");
-        }
-
-        return hrSize;
-    }
-
-    private static boolean isNumeric(@NotNull String str) {
-        return str.matches("-?\\d+(\\.\\d+)?");  //match a number with optional '-' and decimal.
-    }
-
-    /**
-     * This method guarantees that garbage collection is
-     * done unlike <code>{@link System#gc()}</code>
-     */
-    private static int gc() {
-        int timesRan = 0;
-        Object obj = new Object();
-        WeakReference ref = new WeakReference<>(obj);
-        //noinspection UnusedAssignment
-        obj = null;
-        while (ref.get() != null) {
-            System.gc();
-            timesRan++;
-        }
-        return timesRan;
-    }
-
-    @SuppressWarnings("unused")
-    public static Unsafe getUnsafe() throws SecurityException {
-        return Unsafe.getUnsafe();
     }
 
     @NotNull
@@ -431,44 +350,6 @@ public class FozruciX extends ListenerAdapter {
         sendMessage(event, comeback, true);
     }
 
-    @NotNull
-    private static String[] splitMessage(String stringToSplit) {
-        return splitMessage(stringToSplit, 0);
-    }
-
-    @NotNull
-    private static String[] splitMessage(String stringToSplit, int amountToSplit) {
-        return splitMessage(stringToSplit, amountToSplit, true);
-    }
-
-    @NotNull
-    private static String[] splitMessage(@Nullable String stringToSplit, int amountToSplit, boolean removeQuotes) {
-        if (stringToSplit == null)
-            return new String[0];
-
-        LinkedList<String> list = new LinkedList<>();
-        Matcher argSep = Pattern.compile("([^\"]\\S*|\".+?\")\\s*").matcher(stringToSplit);
-        while (argSep.find())
-            list.add(argSep.group(1));
-
-        if (removeQuotes) {
-            if (amountToSplit != 0) {
-                for (int i = 0; list.size() > i; i++) { // go through all of the
-                    list.set(i, list.get(i).replaceAll("\"", "")); // remove quotes left in the string
-                    list.set(i, list.get(i).replaceAll("''", "\"")); // replace double ' to quotes
-                    // go to next string
-                }
-            } else {
-                for (int i = 0; list.size() > i || amountToSplit > i; i++) { // go through all of the
-                    list.set(i, list.get(i).replaceAll("\"", "")); // remove quotes left in the string
-                    list.set(i, list.get(i).replaceAll("''", "\"")); // replace double ' to quotes
-                    // go to next string
-                }
-            }
-        }
-        return list.toArray(new String[list.size()]);
-    }
-
     private synchronized static String botTalk(@NotNull String bot, String message) throws Exception {
         if (bot.equalsIgnoreCase("clever")) {
             if (chatterBotSession == null) {
@@ -511,11 +392,15 @@ public class FozruciX extends ListenerAdapter {
     }
 
     private static void addCooldown(User user) {
-        addCooldown(user, 7L);
+        addCooldown(user, 7);
+    }
+
+    private static void addCooldown(User user, int cooldownTime) {
+        addCooldown(user, (long) cooldownTime * 1000);
     }
 
     private static void addCooldown(User user, long cooldownTime) {
-        commandCooldown.put(user, System.currentTimeMillis() + (cooldownTime * 1000));
+        commandCooldown.put(user, System.currentTimeMillis() + cooldownTime);
     }
 
     private static void removeFromCooldown() {
@@ -525,24 +410,6 @@ public class FozruciX extends ListenerAdapter {
                 commandCooldown.remove(user.getKey());
             }
         }
-    }
-
-    private static boolean containsAny(@NotNull String check, @NotNull String... contain) {
-        for (String aContain : contain) {
-            if (check.contains(aContain)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private static boolean equalsAny(@NotNull String check, @NotNull String... equal) {
-        for (String aEqual : equal) {
-            if (check.contains(aEqual)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     private synchronized static native void jniTest();
@@ -558,193 +425,7 @@ public class FozruciX extends ListenerAdapter {
 
     @NotNull
     private static String fullNameToString(@NotNull Language language) {
-        String lang = "Null".toLowerCase();
-        switch (language) {
-            case ALBANIAN:
-                lang = "ALBANIAN".toLowerCase();
-                break;
-            case ARABIC:
-                lang = "ARABIC".toLowerCase();
-                break;
-            case ARMENIAN:
-                lang = "ARMENIAN".toLowerCase();
-                break;
-            case AFRIKAANS:
-                lang = "AFRIKAANS".toLowerCase();
-                break;
-            case AZERBAIJANI:
-                lang = "AZERBAIJANI".toLowerCase();
-                break;
-            case BASQUE:
-                lang = "BASQUE".toLowerCase();
-                break;
-            case BELARUSIAN:
-                lang = "BELARUSIAN".toLowerCase();
-                break;
-            case BULGARIAN:
-                lang = "BULGARIAN".toLowerCase();
-                break;
-            case BOSNIAN:
-                lang = "BOSNIAN".toLowerCase();
-                break;
-            case CATALAN:
-                lang = "CATALAN".toLowerCase();
-                break;
-            case CROATIAN:
-                lang = "CROATIAN".toLowerCase();
-                break;
-            case CZECH:
-                lang = "CZECH".toLowerCase();
-                break;
-            case DANISH:
-                lang = "DANISH".toLowerCase();
-                break;
-            case DUTCH:
-                lang = "DUTCH".toLowerCase();
-                break;
-            case ENGLISH:
-                lang = "ENGLISH".toLowerCase();
-                break;
-            case ESTONIAN:
-                lang = "ESTONIAN".toLowerCase();
-                break;
-            case FINNISH:
-                lang = "FINNISH".toLowerCase();
-                break;
-            case FRENCH:
-                lang = "FRENCH".toLowerCase();
-                break;
-            case GERMAN:
-                lang = "GERMAN".toLowerCase();
-                break;
-            case GEORGIAN:
-                lang = "GEORGIAN".toLowerCase();
-                break;
-            case GREEK:
-                lang = "GREEK".toLowerCase();
-                break;
-            case HAITIAN:
-                lang = "HAITIAN".toLowerCase();
-                break;
-            case CREOLE:
-                lang = "CREOLE".toLowerCase();
-                break;
-            case HUNGARIAN:
-                lang = "HUNGARIAN".toLowerCase();
-                break;
-            case ICELANDIC:
-                lang = "ICELANDIC".toLowerCase();
-                break;
-            case INDONESIAN:
-                lang = "INDONESIAN".toLowerCase();
-                break;
-            case IRISH:
-                lang = "IRISH".toLowerCase();
-                break;
-            case ITALIAN:
-                lang = "ITALIAN".toLowerCase();
-                break;
-            case JAPANESE:
-                lang = "JAPANESE".toLowerCase();
-                break;
-            case KAZAKH:
-                lang = "KAZAKH".toLowerCase();
-                break;
-            case KYRGYZ:
-                lang = "KYRGYZ".toLowerCase();
-                break;
-            case LATIN:
-                lang = "LATIN".toLowerCase();
-                break;
-            case LATVIAN:
-                lang = "LATVIAN".toLowerCase();
-                break;
-            case LITHUANIAN:
-                lang = "LITHUANIAN".toLowerCase();
-                break;
-            case MACEDONIAN:
-                lang = "MACEDONIAN".toLowerCase();
-                break;
-            case MALAGASY:
-                lang = "MALAGASY".toLowerCase();
-                break;
-            case MALAY:
-                lang = "MALAY".toLowerCase();
-                break;
-            case MALTESE:
-                lang = "MALTESE".toLowerCase();
-                break;
-            case MONGOLIAN:
-                lang = "MONGOLIAN".toLowerCase();
-                break;
-            case NORWEGIAN:
-                lang = "NORWEGIAN".toLowerCase();
-                break;
-            case PERSIAN:
-                lang = "PERSIAN".toLowerCase();
-                break;
-            case POLISH:
-                lang = "POLISH".toLowerCase();
-                break;
-            case PORTUGUESE:
-                lang = "PORTUGUESE".toLowerCase();
-                break;
-            case ROMANIAN:
-                lang = "ROMANIAN".toLowerCase();
-                break;
-            case RUSSIAN:
-                lang = "RUSSIAN".toLowerCase();
-                break;
-            case SERBIAN:
-                lang = "SERBIAN".toLowerCase();
-                break;
-            case SLOVAK:
-                lang = "SLOVAK".toLowerCase();
-                break;
-            case SLOVENIAN:
-                lang = "SLOVENIAN".toLowerCase();
-                break;
-            case SPANISH:
-                lang = "SPANISH".toLowerCase();
-                break;
-            case SWAHILI:
-                lang = "SWAHILI".toLowerCase();
-                break;
-            case SWEDISH:
-                lang = "SWEDISH".toLowerCase();
-                break;
-            case TATAR:
-                lang = "TATAR".toLowerCase();
-                break;
-            case TAJIK:
-                lang = "TAJIK".toLowerCase();
-                break;
-            case THAI:
-                lang = "THAI".toLowerCase();
-                break;
-            case TAGALOG:
-                lang = "TAGALOG".toLowerCase();
-                break;
-            case TURKISH:
-                lang = "TURKISH".toLowerCase();
-                break;
-            case UZBEK:
-                lang = "UZBEK".toLowerCase();
-                break;
-            case UKRAINIAN:
-                lang = "UKRAINIAN".toLowerCase();
-                break;
-            case WELSH:
-                lang = "WELSH".toLowerCase();
-                break;
-            case VIETNAMESE:
-                lang = "VIETNAMESE".toLowerCase();
-                break;
-            case YIDDISH:
-                lang = "YIDDISH".toLowerCase();
-                break;
-        }
-        return lang;
+        return language.toString();
     }
 
     public static String getArg(String[] args, int index) {
@@ -757,55 +438,6 @@ public class FozruciX extends ListenerAdapter {
         } catch (Exception e) {
             return null;
         }
-    }
-
-    /**
-     * Performs a wildcard matching for the text and pattern
-     * provided.
-     *
-     * @param text    the text to be tested for matches.
-     * @param pattern the pattern to be matched for.
-     *                This can contain the wildcard character '*' (asterisk).
-     * @return <tt>true</tt> if a match is found, <tt>false</tt>
-     * otherwise.
-     */
-    private static boolean wildCardMatch(@NotNull String text, @NotNull String pattern) {
-        // Create the cards by splitting using a RegEx. If more speed
-        // is desired, a simpler character based splitting can be done.
-        String[] cards = pattern.split("\\*");
-
-        // Iterate over the cards.
-        for (String card : cards) {
-            int idx = text.indexOf(card);
-
-            // Card not detected in the text.
-            if (idx == -1) {
-                return false;
-            }
-
-            // Move ahead, towards the right of the text.
-            text = text.substring(idx + card.length());
-        }
-
-        return true;
-    }
-
-    private static boolean matchHostMask(@NotNull String hostmask, @NotNull String pattern) {
-        String nick = hostmask.substring(0, hostmask.indexOf("!"));
-        String userName = hostmask.substring(hostmask.indexOf("!") + 1, hostmask.indexOf("@"));
-        String hostname = hostmask.substring(hostmask.indexOf("@") + 1);
-
-        String patternNick = pattern.substring(0, pattern.indexOf("!"));
-        String patternUserName = pattern.substring(pattern.indexOf("!") + 1, pattern.indexOf("@"));
-        String patternHostname = pattern.substring(pattern.indexOf("@") + 1);
-        if (wildCardMatch(nick, patternNick)) {
-            if (wildCardMatch(userName, patternUserName)) {
-                if (wildCardMatch(hostname, patternHostname)) {
-                    return true;
-                }
-            }
-        }
-        return false;
     }
 
     private static void log(Event event) {
@@ -964,17 +596,12 @@ public class FozruciX extends ListenerAdapter {
         return null;
     }
 
-    static void pause(int time) throws InterruptedException {
-        LOGGER.debug("Sleeping for " + time + " seconds");
-        Thread.sleep(time * 1000);
-    }
-
     private synchronized static void sendError(@NotNull MessageEvent event, Throwable t) {
         sendError(event, new Exception(t));
     }
 
     public synchronized static void sendError(@NotNull MessageEvent event, @NotNull Exception e) {
-        LOGGER.error("Error: " + e.getCause());
+        LOGGER.error("Error: ", e);
         String color = "";
         String cause = "";
         String from;
@@ -1177,6 +804,7 @@ public class FozruciX extends ListenerAdapter {
         }
         lastEvents.add(event);
         if (!BOOLS.get(DATA_LOADED)) {
+            BOOLS.set(DATA_LOADED);
             loadData();
         }
         if (network == Network.normal && BOOLS.get(NICK_IN_USE)) {
@@ -1562,7 +1190,7 @@ public class FozruciX extends ListenerAdapter {
                                     .setLogin(bot.getConfiguration().getLogin())
                                     .setRealName(bot.getConfiguration().getRealName())
                                     .setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates())
-                                    .addListener(new FozruciX(manager, FozConfig.loadData(GSON)));
+                                    .addListener(new FozruciX(manager, FozConfig.loadData(xstream)));
                         } else {
                             normal = new Configuration.Builder()
                                     .setEncoding(Charset.forName("UTF-8"))
@@ -1572,7 +1200,7 @@ public class FozruciX extends ListenerAdapter {
                                     .setName(bot.getConfiguration().getName()) //Set the nick of the bot.
                                     .setLogin(bot.getConfiguration().getLogin())
                                     .setRealName(bot.getConfiguration().getRealName())
-                                    .addListener(new FozruciX(manager, FozConfig.loadData(GSON)));
+                                    .addListener(new FozruciX(manager, FozConfig.loadData(xstream)));
                         }
                         assert normal != null;
                         manager.addBot(normal.buildForServer(server, port, ns.getString("key")));
@@ -2174,6 +1802,16 @@ public class FozruciX extends ListenerAdapter {
 // !vgm - links to my New mix tapes :V
             else if (commandChecker(event, arg, "vgm")) {
                 sendMessage(event, "Link to My smps music: https://drive.google.com/open?id=0B3aju_x5_V--ZjAyLWZEUnV1aHc", true);
+            }
+
+// !cleanMarkov - cleans duplicates from markov chain list
+            else if (commandChecker(event, arg, "cleanMarkov")) {
+                int amountCleared = 0;
+                for (LinkedList<String> list : markovChain.values()) {
+                    removeDuplicates(list);
+                    amountCleared++;
+                }
+                sendMessage(event, "Cleared " + amountCleared, true);
             }
 
 // !GC - Runs the garbage collector
@@ -3091,7 +2729,7 @@ public class FozruciX extends ListenerAdapter {
                                     sendMessage(event, "Added \"" + getArg(arg, 2) + "\" the " + getArg(arg, 4) + " with " + getArg(arg, 5) + " The " + getArg(arg, 6) + " to the game", true);
 
                                     if (event.getUser().getNick().equalsIgnoreCase(currentNick)) {
-                                        debug.setPlayerName(DNDList.get(DNDJoined.indexOf(currentNick)).getPlayerName());
+                                        debug.setPlayerName(DNDList.get(DNDJoined.indexOf(currentNick)).getName());
                                         debug.setFamiliar(DNDList.get(DNDJoined.indexOf(currentNick)).getFamiliar().getName());
                                     }
                                 } else {
@@ -3109,7 +2747,7 @@ public class FozruciX extends ListenerAdapter {
                                 DNDJoined.add(event.getUser().getNick());
                                 sendMessage(event, "Added \"" + getArg(arg, 2) + "\" the " + getArg(arg, 4) + " to the game", true);
                                 if (event.getUser().getNick().equalsIgnoreCase(currentNick)) {
-                                    debug.setPlayerName(DNDList.get(DNDJoined.indexOf(currentNick)).getPlayerName());
+                                    debug.setPlayerName(DNDList.get(DNDJoined.indexOf(currentNick)).getName());
                                 }
                             } else {
                                 sendMessage(event, "That class doesn't exist!", true);
@@ -4200,7 +3838,8 @@ public class FozruciX extends ListenerAdapter {
 
                 System.exit(0);
             }
-        } else if (PM.getMessage().startsWith(prefix) || PM.getMessage().startsWith(consolePrefix) || PM.getMessage().startsWith(PM.getBot().getNick())) {
+        }
+        if (PM.getMessage().startsWith(prefix) || PM.getMessage().startsWith(consolePrefix) || PM.getMessage().startsWith(PM.getBot().getNick())) {
             doCommand(new MessageEvent(bot, null, PM.getUser().getNick(), PM.getUserHostmask(), PM.getUser(), PM.getMessage(), null));
         } else {
             try {
@@ -4366,7 +4005,7 @@ public class FozruciX extends ListenerAdapter {
     }
 
     private synchronized void loadData() {
-        SaveDataStore save = FozConfig.loadData(GSON);
+        SaveDataStore save = FozConfig.loadData(xstream);
         loadData(save);
     }
 
@@ -4375,7 +4014,7 @@ public class FozruciX extends ListenerAdapter {
     }
 
     private synchronized void loadData(boolean writeOnce) {
-        loadData(FozConfig.loadData(GSON), writeOnce);
+        loadData(FozConfig.loadData(xstream), writeOnce);
     }
 
     private synchronized void loadData(SaveDataStore save, boolean writeOnce) {
@@ -4417,11 +4056,11 @@ public class FozruciX extends ListenerAdapter {
         }*/
         try {
             SaveDataStore save = new SaveDataStore(authedUser, authedUserLevel, DNDJoined, DNDList, noteList, avatar, memes, FCList, markovChain, allowedCommands);
-            FozConfig.saveData(save, GSON);
+            FozConfig.saveData(save, xstream);
         } catch (ConcurrentModificationException e) {
-            LOGGER.debug("Data not saved. " + e.getMessage());
+            LOGGER.debug("Data not saved", e);
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.error("Couldn't save data", e);
         }
     }
 
@@ -4463,7 +4102,7 @@ public class FozruciX extends ListenerAdapter {
 
         //noinspection ConstantConditions
         if (event.getUser().getNick().equalsIgnoreCase(currentNick)) {
-            debug.setPlayerName(DNDList.get(index).getPlayerName());
+            debug.setPlayerName(DNDList.get(index).getName());
             debug.setPlayerHP(DNDList.get(index).getHPAmounts());
             debug.setPlayerXP(DNDList.get(index).getXPAmounts());
 

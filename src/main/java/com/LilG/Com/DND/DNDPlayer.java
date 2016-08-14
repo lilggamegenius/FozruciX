@@ -5,7 +5,8 @@ import org.pircbotx.User;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
+
+import static com.LilG.Com.utils.LilGUtil.randInt;
 
 /**
  * Created by ggonz on 10/28/2015.
@@ -14,44 +15,31 @@ import java.util.Random;
 
 
 public class DNDPlayer {
-
-    final int XPLevelDivider = 24;
-    private final int maxMoney = 0;
-    //
-    @SuppressWarnings("MismatchedReadAndWriteOfArray")
-    private final int[] stats = {10, 10, 10, 10, 10};
-    //ToDo
-    @SuppressWarnings("MismatchedReadAndWriteOfArray")
-    private final boolean[] passives = {false, false, false, false, false, false};
-    private final List<String> inventory = new ArrayList<>();
-    User player;
-    int maxHP = 100;
-    int HP = maxHP;
-    int XP = 0;
-    int level = 1;
-    private String playerName;
+    final static int XPLevelDivider = 24;
+    private final List<Items> inventory = new ArrayList<>();
+    private int[] stats = new int[DNDStats.values().length];
+    private User player;
+    private int maxHP = 100;
+    private int HP = maxHP;
+    private int XP = 0;
+    private int level = 1;
+    private String name;
     private String race;
     private DNDClasses Class;
     private DNDFamiliar familiar;
     private int XPToGain = 0;
 
-    DNDPlayer() {
-    }
-
-    public DNDPlayer(String playerName, String race, String Class, User user) {
-        this.playerName = playerName;
+    public DNDPlayer(String name, String race, String Class, User user) {
+        this.name = name;
         this.player = user;
         this.race = race;
         this.Class = getClassFromString(Class);
-        //this.passives = passives;
+
     }
 
-    public DNDPlayer(String playerName, String race, String Class, User user, String familiarName, String familiar) {
-        this.playerName = playerName;
-        this.player = user;
-        this.race = race;
-        this.Class = getClassFromString(Class);
-        this.familiar = new DNDFamiliar(familiarName, this, DNDFamiliars.valueOf(familiar));
+    public DNDPlayer(String name, String race, String Class, User user, String familiarName, String familiar) {
+        this(name, race, Class, user);
+        this.familiar = new DNDFamiliar(familiarName/*, this*/, DNDFamiliars.valueOf(familiar));
     }
 
     public static boolean ifClassExists(String str) {
@@ -70,34 +58,12 @@ public class DNDPlayer {
         return false;
     }
 
-    /**
-     * Returns a pseudo-random number between min and max, inclusive.
-     * The difference between min and max can be at most
-     * <code>Integer.MAX_VALUE - 1</code>.
-     *
-     * @param min Minimum value
-     * @param max Maximum value.  Must be greater than min.
-     * @return Integer between min and max, inclusive.
-     * @see java.util.Random#nextInt(int)
-     */
-    public static int randInt(@SuppressWarnings("SameParameterValue") int min, @SuppressWarnings("SameParameterValue") int max) {
-
-        // NOTE: Usually this should be a field rather than a method
-        // variable so that it is not re-seeded every call.
-        Random rand = new Random();
-
-        // nextInt is normally exclusive of the top value,
-        // so add 1 to make it inclusive
-
-        return rand.nextInt((max - min) + 1) + min;
-    }
-
     private DNDClasses getClassFromString(String stat) {
         return DNDClasses.valueOf(stat);
     }
 
-    public String getPlayerName() {
-        return playerName;
+    public String getName() {
+        return name;
     }
 
     public User getPlayer() {
@@ -145,24 +111,20 @@ public class DNDPlayer {
         return invenStr;
     }
 
-    public void addInventory(String item) {
-        inventory.add(item);
+    public boolean addInventory(String item) {
+        return addInventory(Items.valueOf(item));
     }
 
-    public void removeFromInventory(String item) {
-        inventory.remove(inventory.indexOf(item));
+    public boolean removeFromInventory(String item) {
+        return removeFromInventory(Items.valueOf(item));
     }
 
-    public String toString() {
-        String invenStr = "<Empty>";
-        if (!inventory.isEmpty()) {
-            invenStr = inventory.toString();
-        }
-        try {
-            return (playerName + ". HP: " + getHPAmounts() + ". Level: " + level + ". XP: " + getXPAmounts() + ". Race: " + race + ". Class: " + Class + " Current items: " + invenStr + ". Familiar: " + familiar.getName() + ". HP: " + familiar.getHPAmounts());
-        } catch (Exception e) {
-            return "Error: " + e;
-        }
+    public boolean addInventory(Items item) {
+        return inventory.add(item);
+    }
+
+    public boolean removeFromInventory(Items item) {
+        return inventory.remove(item);
     }
 
     @NotNull
@@ -175,22 +137,24 @@ public class DNDPlayer {
         return XP + "/" + XPLevelDivider * level;
     }
 
+    public int getStat(DNDStats stat) {
+        return stats[stat.ordinal()];
+    }
+
+    public String toString() {
+        try {
+            return (name + ". HP: " + getHPAmounts() + ". Level: " + level + ". XP: " + getXPAmounts() + ". Race: " + race + ". Class: " + Class + " Current items: " + getInventory() + ". Familiar: " + familiar.getName() + ". HP: " + familiar.getHPAmounts());
+        } catch (Exception e) {
+            return "Error: " + e;
+        }
+    }
+
     public enum DNDStats {
-        Attack(0),
-        Defense(1),
-        Intelligence(2),
-        Speed(3),
-        Mana(4);
-
-        private int numVal;
-
-        DNDStats(int numVal) {
-            this.numVal = numVal;
-        }
-
-        public int val() {
-            return numVal;
-        }
+        Attack,
+        Defense,
+        Intelligence,
+        Speed,
+        Mana
     }
 
     public enum DNDClasses {

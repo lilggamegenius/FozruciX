@@ -3,7 +3,7 @@ package com.LilG.Com;
 import com.LilG.Com.utils.CryptoUtil;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedSet;
-import com.google.gson.GsonBuilder;
+import com.thoughtworks.xstream.XStream;
 import lombok.NonNull;
 import net.dv8tion.jda.JDA;
 import net.dv8tion.jda.JDABuilder;
@@ -31,12 +31,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.LilG.Com.DiscordAdapter.avatarFile;
+import static com.LilG.Com.utils.LilGUtil.pause;
+import static com.LilG.Com.utils.LilGUtil.randInt;
 
 /**
  * Created by ggonz on 7/10/2016.
  */
 public class DiscordAdapter extends ListenerAdapter {
-    private final static Logger LOGGER = Logger.getLogger(DiscordAdapter.class);
+    private transient final static Logger LOGGER = Logger.getLogger(DiscordAdapter.class);
     public static File avatarFile;
     private static DiscordAdapter discordAdapter = null;
     private static FozruciX bot;
@@ -55,7 +57,7 @@ public class DiscordAdapter extends ListenerAdapter {
                     .setEnableShutdownHook(true)
                     .addListener(this)
                     .buildBlocking();
-            DiscordAdapter.bot = new FozruciX(FozruciX.Network.discord, FozConfig.getManager(), FozConfig.loadData(new GsonBuilder().setPrettyPrinting().create()));
+            DiscordAdapter.bot = new FozruciX(FozruciX.Network.discord, FozConfig.getManager(), FozConfig.loadData(new XStream()));
             DiscordAdapter.pircBotX = pircBotX;
             game = new GameThread(jda.getAccountManager());
             game.start();
@@ -263,8 +265,8 @@ class GameThread extends Thread {
         String[] listOfGames = {"With bleach", "With fire", "With matches", "The Bleach Drinking Game", "The smallest violin", "In the blood of my enemies", "On top of the corpses of my enemies", "In the trash can where i belong", "The waiting game", "The game of life", "baseball with the head of my enemies", "basketball with the head of my enemies", "football with the head of my enemies"};
         while (!Thread.currentThread().isInterrupted()) {
             try {
-                accountManager.setGame(listOfGames[FozruciX.randInt(0, listOfGames.length - 1)]);
-                FozruciX.pause(FozruciX.randInt(10, 30));
+                accountManager.setGame(listOfGames[randInt(0, listOfGames.length - 1)]);
+                pause(randInt(10, 30));
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             } catch (Exception e) {
@@ -290,10 +292,10 @@ class AvatarThread extends Thread {
         File tempImage = new File("data\\temp.png");
         while (!Thread.currentThread().isInterrupted()) {
             try {
-                FozruciX.pause(FozruciX.randInt(30, 120));
+                pause(randInt(30, 120));
                 File[] avatarList = avatarPath.listFiles();
                 if (avatarList != null) {
-                    avatarFile = avatarList[FozruciX.randInt(0, avatarList.length - 1)];
+                    avatarFile = avatarList[randInt(0, avatarList.length - 1)];
                     try {
                         accountManager.setAvatar(AvatarUtil.getAvatar(avatarFile));
                     } catch (UnsupportedEncodingException e) {

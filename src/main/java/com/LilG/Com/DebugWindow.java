@@ -20,7 +20,7 @@ import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.stream.Collectors;
 
-import static com.LilG.Com.FozruciX.formatFileSize;
+import static com.LilG.Com.utils.LilGUtil.formatFileSize;
 
 /**
  * Created by ggonz on 11/4/2015.
