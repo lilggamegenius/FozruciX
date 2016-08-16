@@ -184,11 +184,17 @@ public class FozConfig {
             .addListener(new FozruciX(manager, save)); //Add our listener that will be called on Events
 
     static {
-        System.loadLibrary("JNIThing");
+        try {
+            System.loadLibrary("JNIThing");
+            Class.forName("com.mysql.jdbc.Driver").newInstance();
+        } catch (ClassNotFoundException e) {
+            LOGGER.error("SQL Driver not found", e);
+        } catch (Exception e2) {
+            LOGGER.error("Error", e2);
+        }
     }
 
     public static void main(String[] args) throws Exception {
-        Class.forName("com.mysql.jdbc.Driver").newInstance();
 
         //Before anything else
         //IdentServer.startServer();

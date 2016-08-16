@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="Gradle: de.fau.cs.osr.ptk:ptk-common:1.1.0">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/de.fau.cs.osr.ptk/ptk-common/1.1.0/a92e1ef3ddf9cbe29ede6a4d05d542e932926a04/ptk-common-1.1.0.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/de.fau.cs.osr.ptk/ptk-common/1.1.0/fe65eb6bc2b726e3930d753e59041e8bfb0c8b8b/ptk-common-1.1.0-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

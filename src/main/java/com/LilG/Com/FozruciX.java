@@ -42,7 +42,6 @@ import org.apache.commons.lang.time.StopWatch;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
-import org.fusesource.jansi.AnsiConsole;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jsoup.Jsoup;
@@ -205,7 +204,6 @@ public class FozruciX extends ListenerAdapter {
 
         FozruciX.manager = manager;
         loadData(save, true);
-        AnsiConsole.systemInstall();
         LOGGER.setLevel(Level.ALL);
         Runtime.getRuntime().addShutdownHook(new Thread(this::saveData, "Shutdown-thread"));
     }
@@ -699,7 +697,7 @@ public class FozruciX extends ListenerAdapter {
         }
     }
 
-    public synchronized void onConnect(@NotNull ConnectEvent event) throws Exception {
+    public synchronized void onConnect(@NotNull ConnectEvent event) {
         bot = event.getBot();
         bot.sendIRC().mode(bot.getNick(), "+BI");
 

@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.LilG.Com.utils.LilGUtil.randInt;
+import static com.LilG.Com.utils.LilGUtil.searchEnum;
 
 /**
  * Created by ggonz on 10/28/2015.
@@ -59,7 +60,7 @@ public class DNDPlayer {
     }
 
     private DNDClasses getClassFromString(String stat) {
-        return DNDClasses.valueOf(stat);
+        return searchEnum(DNDClasses.class, stat);
     }
 
     public String getName() {
@@ -112,11 +113,11 @@ public class DNDPlayer {
     }
 
     public boolean addInventory(String item) {
-        return addInventory(Items.valueOf(item));
+        return addInventory(searchEnum(Items.class, item));
     }
 
     public boolean removeFromInventory(String item) {
-        return removeFromInventory(Items.valueOf(item));
+        return removeFromInventory(searchEnum(Items.class, item));
     }
 
     public boolean addInventory(Items item) {

@@ -3,6 +3,7 @@ package com.LilG.Com;
 import com.LilG.Com.utils.CryptoUtil;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedSet;
+import com.mashape.unirest.http.Unirest;
 import com.thoughtworks.xstream.XStream;
 import lombok.NonNull;
 import net.dv8tion.jda.JDA;
@@ -24,6 +25,7 @@ import org.pircbotx.hooks.events.MessageEvent;
 import org.pircbotx.hooks.events.PrivateMessageEvent;
 
 import javax.imageio.ImageIO;
+import javax.security.auth.login.LoginException;
 import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
@@ -38,7 +40,7 @@ import static com.LilG.Com.utils.LilGUtil.randInt;
  * Created by ggonz on 7/10/2016.
  */
 public class DiscordAdapter extends ListenerAdapter {
-    private transient final static Logger LOGGER = Logger.getLogger(DiscordAdapter.class);
+    private static final Logger LOGGER = Logger.getLogger(DiscordAdapter.class);
     public static File avatarFile;
     private static DiscordAdapter discordAdapter = null;
     private static FozruciX bot;
@@ -47,8 +49,7 @@ public class DiscordAdapter extends ListenerAdapter {
     private static Thread game;
     private static Thread avatar;
 
-    private DiscordAdapter(PircBotX pircBotX) {
-        try {
+    private DiscordAdapter(PircBotX pircBotX) throws LoginException, InterruptedException {
             LOGGER.trace("Calling JDA Builder");
             jda = new JDABuilder()
                     .setBotToken(CryptoUtil.decrypt(FozConfig.setPassword(FozConfig.Password.discord)))
@@ -67,9 +68,6 @@ public class DiscordAdapter extends ListenerAdapter {
             LOGGER.trace("Calling onConnect() method");
             bot.onConnect(new ConnectEvent(pircBotX));
             LOGGER.trace("DiscordAdapter created");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
     static synchronized DiscordAdapter makeDiscord(PircBotX pircBotX) {
@@ -78,6 +76,7 @@ public class DiscordAdapter extends ListenerAdapter {
             LOGGER.trace("Making Discord connection");
             if (discordAdapter == null) {
                 LOGGER.trace("Constructing...");
+                Unirest.setTimeouts(10 * 1000, 10 * 1000);
                 discordAdapter = new DiscordAdapter(pircBotX);
             }
         } catch (Exception e) {

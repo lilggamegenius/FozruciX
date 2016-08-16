@@ -30,7 +30,7 @@ public class CryptoUtil {
     }
 
     public static void main(String[] args) throws Exception {
-        String plain = FozConfig.setPassword(Password.normal);
+        String plain = FozConfig.setPassword(Password.discord);
         String enc = CryptoUtil.encrypt(plain);
         System.out.println("Original text: " + plain);
         System.out.println("Encrypted text: " + enc);

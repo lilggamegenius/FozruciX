@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="Gradle: de.tudarmstadt.ukp.jwktl:jwktl:1.0.1">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/de.tudarmstadt.ukp.jwktl/jwktl/1.0.1/b8fb2049ee14742e7104b49904006f769473deb8/jwktl-1.0.1.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/de.tudarmstadt.ukp.jwktl/jwktl/1.0.1/246648706f39135cf4bf8f362213b002581fa635/jwktl-1.0.1-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

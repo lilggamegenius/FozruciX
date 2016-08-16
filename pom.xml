@@ -23,16 +23,6 @@
     <repositories>
         <repository>
             <id>jcenter</id>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-            <url>https://jcenter.bintray.com/</url>
-        </repository>
-        <repository>
-            <id>jcenter</id>
             <name>jcenter-bintray</name>
             <url>http://jcenter.bintray.com</url>
         </repository>

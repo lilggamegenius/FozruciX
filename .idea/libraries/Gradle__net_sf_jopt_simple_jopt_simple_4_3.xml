@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="Gradle: net.sf.jopt-simple:jopt-simple:4.3">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/net.sf.jopt-simple/jopt-simple/4.3/88ffca34311a6564a98f14820431e17b4382a069/jopt-simple-4.3.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/net.sf.jopt-simple/jopt-simple/4.3/bb8c8b57ff21fad814876acd4151e168ee17a1e4/jopt-simple-4.3-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>
