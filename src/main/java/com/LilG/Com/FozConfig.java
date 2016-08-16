@@ -1,14 +1,15 @@
 package com.LilG.Com;
 
+import ch.qos.logback.classic.Logger;
 import com.LilG.Com.DataClasses.SaveDataStore;
 import com.LilG.Com.utils.CryptoUtil;
 import com.thoughtworks.xstream.XStream;
-import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.pircbotx.Configuration;
 import org.pircbotx.MultiBotManager;
 import org.pircbotx.UtilSSLSocketFactory;
 import org.pircbotx.cap.EnableCapHandler;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.nio.charset.Charset;
@@ -21,7 +22,7 @@ import java.nio.file.StandardCopyOption;
  */
 
 public class FozConfig {
-    public final static boolean debug = true;
+    public final static boolean debug = false;
     public final static String badnik = "irc.badnik.zone"; //TL;DR Shit went down
     public final static String twitch = "irc.twitch.tv";
     public final static String caffie = "irc.caffie.net";
@@ -31,7 +32,7 @@ public class FozConfig {
     private final static String nick = "FozruciX";
     private final static String login = "SmugLeaf";
     private final static String realName = "\u00034\u000F* What can I do for you, little buddy?";
-    private transient final static Logger LOGGER = Logger.getLogger(FozConfig.class);
+    private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(FozConfig.class);
     transient final static String PASSWORD = setPassword(Password.normal);
     private final static int attempts = Integer.MAX_VALUE;
     private final static int connectDelay = 5 * 1000; //5 seconds

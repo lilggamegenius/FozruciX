@@ -1,5 +1,7 @@
 package com.LilG.Com;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
 import com.LilG.Com.CMD.CMD;
 import com.LilG.Com.CMD.CommandLine;
 import com.LilG.Com.DND.DNDPlayer;
@@ -40,8 +42,6 @@ import net.sourceforge.argparse4j.inf.ArgumentParserException;
 import net.sourceforge.argparse4j.inf.Namespace;
 import org.apache.commons.lang.time.StopWatch;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jsoup.Jsoup;
@@ -53,6 +53,7 @@ import org.pircbotx.hooks.ListenerAdapter;
 import org.pircbotx.hooks.events.*;
 import org.pircbotx.hooks.types.GenericEvent;
 import org.pircbotx.hooks.types.GenericMessageEvent;
+import org.slf4j.LoggerFactory;
 import s1tcg.S1TCG;
 
 import javax.imageio.ImageIO;
@@ -112,7 +113,7 @@ public class FozruciX extends ListenerAdapter {
     private final static StaticVariableSet<Double> VARIABLE_SET = new StaticVariableSet<>();
     private final static String APP_ID = "RGHHEP-HQU7HL67W9";
     private final static LinkedList<RPSGame> RPS_GAMES = new LinkedList<>();
-    private transient final static Logger LOGGER = Logger.getLogger(FozruciX.class);
+    private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(FozruciX.class);
     private final static XStream xstream = new XStream();
     private final static BitSet BOOLS = new BitSet(10); // true, false, null, null, null, false, true, true, false, false
     public static volatile ConcurrentHashMap<String, LinkedList<String>> markovChain = null;

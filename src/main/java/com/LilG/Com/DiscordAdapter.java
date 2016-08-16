@@ -1,5 +1,7 @@
 package com.LilG.Com;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
 import com.LilG.Com.utils.CryptoUtil;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedSet;
@@ -14,8 +16,6 @@ import net.dv8tion.jda.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.hooks.ListenerAdapter;
 import net.dv8tion.jda.managers.AccountManager;
 import net.dv8tion.jda.utils.AvatarUtil;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
 import org.pircbotx.Channel;
 import org.pircbotx.PircBotX;
 import org.pircbotx.User;
@@ -23,6 +23,7 @@ import org.pircbotx.UserHostmask;
 import org.pircbotx.hooks.events.ConnectEvent;
 import org.pircbotx.hooks.events.MessageEvent;
 import org.pircbotx.hooks.events.PrivateMessageEvent;
+import org.slf4j.LoggerFactory;
 
 import javax.imageio.ImageIO;
 import javax.security.auth.login.LoginException;
@@ -40,7 +41,7 @@ import static com.LilG.Com.utils.LilGUtil.randInt;
  * Created by ggonz on 7/10/2016.
  */
 public class DiscordAdapter extends ListenerAdapter {
-    private static final Logger LOGGER = Logger.getLogger(DiscordAdapter.class);
+    private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(DiscordAdapter.class);
     public static File avatarFile;
     private static DiscordAdapter discordAdapter = null;
     private static FozruciX bot;
@@ -276,7 +277,7 @@ class GameThread extends Thread {
 }
 
 class AvatarThread extends Thread {
-    private final static Logger LOGGER = Logger.getLogger(AvatarThread.class);
+    private final static Logger LOGGER = (Logger) LoggerFactory.getLogger(AvatarThread.class);
     private AccountManager accountManager;
     private FozruciX bot;
 

@@ -6,14 +6,10 @@ version = '1.0-SNAPSHOT'
 
 description = $//$
 
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
-
-
-
 repositories {
     jcenter()
 }
+
 dependencies {
     compile group: 'xerces', name: 'xercesImpl', version: '2.11.0'
     compile group: 'backport-util-concurrent', name: 'backport-util-concurrent', version: '3.1'
@@ -97,7 +93,6 @@ dependencies {
     compile group: 'xml-apis', name: 'xml-apis', version: '1.4.01'
     compile group: 'org.projectlombok', name: 'lombok', version: '1.12.2'
     compile group: 'com.neovisionaries', name: 'nv-websocket-client', version: '1.16'
-    compile group: 'org.slf4j', name: 'slf4j-log4j12', version: '1.7.5'
     compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.13'
     compile group: 'com.thoughtworks.xstream', name: 'xstream', version: '1.4.9'
     compile group: 'com.google.code.findbugs', name: 'jsr305', version: '2.0.2'
@@ -127,9 +122,7 @@ dependencies {
     compile group: 'org.apache.ant', name: 'ant', version: '1.7.1'
     compile group: 'org.apfloat', name: 'apfloat-parent', version: '1.8.2'
     compile group: 'org.apfloat', name: 'apfloat', version: '1.8.2'
-    compile group: 'net.dv8tion', name: 'JDA', version: '2.1.3_327'
+    compile group: 'net.dv8tion', name: 'JDA', version: '2.2.1_353'
     compile group: 'com.jcraft', name: 'jsch', version: '0.1.53'
-    // https://mvnrepository.com/artifact/com.fathzer/javaluator
     compile group: 'com.fathzer', name: 'javaluator', version: '3.0.1'
-
 }
