@@ -1,4 +1,4 @@
-package com.LilG.Com;
+package com.LilG.Com.math;
 
 import com.fathzer.soft.javaluator.*;
 

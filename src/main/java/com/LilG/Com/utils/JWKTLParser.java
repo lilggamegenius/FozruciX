@@ -1,4 +1,4 @@
-package com.LilG.Com;
+package com.LilG.Com.utils;
 
 import de.tudarmstadt.ukp.jwktl.JWKTL;
 

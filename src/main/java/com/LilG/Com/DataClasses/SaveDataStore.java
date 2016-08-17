@@ -30,10 +30,12 @@ public class SaveDataStore {
     @NotNull
     private HashMap<String, HashMap<String, ArrayList<String>>> allowedCommands = new HashMap<>();
     @NotNull
+    private ConcurrentHashMap<String, String> checkJoinsAndQuits = new ConcurrentHashMap<>();
+    @NotNull
     private ConcurrentHashMap<String, LinkedList<String>> markovChain = new ConcurrentHashMap<>();
 
 
-    public SaveDataStore(@NotNull LinkedList<String> authedUser, @NotNull LinkedList<Integer> authedUserLevel, @NotNull LinkedList<String> DNDJoined, @NotNull LinkedList<DNDPlayer> DNDList, @NotNull LinkedList<Note> noteList, @NotNull String avatarLink, @NotNull TreeMap<String, Meme> memes, @NotNull TreeMap<String, String> FCList, @NotNull ConcurrentHashMap<String, @NotNull LinkedList<String>> markovChain, @NotNull HashMap<String, HashMap<String, ArrayList<String>>> allowedCommands) {
+    public SaveDataStore(@NotNull LinkedList<String> authedUser, @NotNull LinkedList<Integer> authedUserLevel, @NotNull LinkedList<String> DNDJoined, @NotNull LinkedList<DNDPlayer> DNDList, @NotNull LinkedList<Note> noteList, @NotNull String avatarLink, @NotNull TreeMap<String, Meme> memes, @NotNull TreeMap<String, String> FCList, @NotNull ConcurrentHashMap<String, @NotNull LinkedList<String>> markovChain, @NotNull HashMap<String, HashMap<String, ArrayList<String>>> allowedCommands, ConcurrentHashMap<String, String> checkJoinsAndQuits) {
         if (authedUser != null)
             this.authedUser = authedUser;
         if (authedUserLevel != null)
@@ -54,6 +56,8 @@ public class SaveDataStore {
             this.markovChain = markovChain;
         if (allowedCommands != null)
             this.allowedCommands = allowedCommands;
+        if (checkJoinsAndQuits != null)
+            this.checkJoinsAndQuits = checkJoinsAndQuits;
     }
 
     @NotNull
@@ -128,5 +132,15 @@ public class SaveDataStore {
             allowedCommands.put("Discord Bots", temp);
         }
         return allowedCommands;
+    }
+
+    public ConcurrentHashMap<String, String> getCheckJoinsAndQuits() {
+        if (checkJoinsAndQuits == null) {
+            checkJoinsAndQuits = new ConcurrentHashMap<>();
+        }
+        if (checkJoinsAndQuits.isEmpty()) {
+            checkJoinsAndQuits.put("191548246332538880", "214906329498648576");
+        }
+        return checkJoinsAndQuits;
     }
 }

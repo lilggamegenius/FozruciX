@@ -1,12 +1,12 @@
 package com.LilG.Com.CMD;
 
+import ch.qos.logback.classic.Level;
 import com.LilG.Com.FozruciX;
 import com.jcraft.jsch.*;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.pircbotx.hooks.events.MessageEvent;
 import org.pircbotx.hooks.types.GenericMessageEvent;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.io.BufferedReader;
@@ -20,7 +20,7 @@ import java.io.OutputStreamWriter;
  * this version does not close after it has run allowing it to have the same environment without having to set it again
  */
 public class CommandLine extends Thread {
-    private final static Logger LOGGER = Logger.getLogger(CommandLine.class);
+    private static final ch.qos.logback.classic.Logger LOGGER = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(CommandLine.class);
     private volatile GenericMessageEvent event;
     private volatile String command;
     private boolean newCommand = false;
@@ -201,7 +201,7 @@ public class CommandLine extends Thread {
                         LOGGER.trace("Read " + count + " bytes");
                     }
                 } catch (Exception e) {
-                    LOGGER.error(e);
+                    LOGGER.error("Error ", e);
                 }
             }
         }

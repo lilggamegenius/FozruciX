@@ -12,6 +12,9 @@ import net.dv8tion.jda.JDA;
 import net.dv8tion.jda.JDABuilder;
 import net.dv8tion.jda.entities.TextChannel;
 import net.dv8tion.jda.events.ReadyEvent;
+import net.dv8tion.jda.events.guild.member.GuildMemberBanEvent;
+import net.dv8tion.jda.events.guild.member.GuildMemberJoinEvent;
+import net.dv8tion.jda.events.guild.member.GuildMemberLeaveEvent;
 import net.dv8tion.jda.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.hooks.ListenerAdapter;
 import net.dv8tion.jda.managers.AccountManager;
@@ -20,9 +23,9 @@ import org.pircbotx.Channel;
 import org.pircbotx.PircBotX;
 import org.pircbotx.User;
 import org.pircbotx.UserHostmask;
-import org.pircbotx.hooks.events.ConnectEvent;
-import org.pircbotx.hooks.events.MessageEvent;
-import org.pircbotx.hooks.events.PrivateMessageEvent;
+import org.pircbotx.hooks.events.*;
+import org.pircbotx.snapshot.UserChannelDaoSnapshot;
+import org.pircbotx.snapshot.UserSnapshot;
 import org.slf4j.LoggerFactory;
 
 import javax.imageio.ImageIO;
@@ -97,6 +100,33 @@ public class DiscordAdapter extends ListenerAdapter {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public void onGuildMemberJoin(GuildMemberJoinEvent join) {
+        String discordNick = join.getGuild().getNicknameForUser(join.getUser());
+        String discordUsername = join.getUser().getUsername();
+        String discordHostmask = join.getUser().getId();
+        DiscordUserHostmask discordUserHostmask = new DiscordUserHostmask(pircBotX, (discordNick == null ? discordUsername : discordNick) + "!" + discordUsername + "@" + discordHostmask);
+        LOGGER.info(String.format("[PM] %s: %s", discordUserHostmask.getHostmask(), "Joined"));
+        bot.onJoin(new DiscordJoinEvent(pircBotX, new DiscordChannel(pircBotX, '#' + join.getGuild().getPublicChannel().getName()), discordUserHostmask, new DiscordUser(discordUserHostmask), join));
+    }
+
+    public void onGuildMemberLeave(GuildMemberLeaveEvent leave) {
+        String discordNick = leave.getGuild().getNicknameForUser(leave.getUser());
+        String discordUsername = leave.getUser().getUsername();
+        String discordHostmask = leave.getUser().getId();
+        DiscordUserHostmask discordUserHostmask = new DiscordUserHostmask(pircBotX, (discordNick == null ? discordUsername : discordNick) + "!" + discordUsername + "@" + discordHostmask);
+        LOGGER.info(String.format("[PM] %s: %s", discordUserHostmask.getHostmask(), "Left"));
+        bot.onQuit(new DiscordQuitEvent(pircBotX, null, discordUserHostmask, new UserSnapshot(new DiscordUser(discordUserHostmask)), "", leave));
+    }
+
+    public void onGuildMemberBan(GuildMemberBanEvent ban) {
+        String discordNick = ban.getGuild().getNicknameForUser(ban.getUser());
+        String discordUsername = ban.getUser().getUsername();
+        String discordHostmask = ban.getUser().getId();
+        DiscordUserHostmask discordUserHostmask = new DiscordUserHostmask(pircBotX, (discordNick == null ? discordUsername : discordNick) + "!" + discordUsername + "@" + discordHostmask);
+        LOGGER.info(String.format("[PM] %s: %s", discordUserHostmask.getHostmask(), "Left"));
+        bot.onBan(ban);
     }
 
     @Override
@@ -234,6 +264,34 @@ class DiscordUser extends User {
 
     public net.dv8tion.jda.entities.User getDiscordUser() {
         return discordUser;
+    }
+}
+
+class DiscordQuitEvent extends QuitEvent {
+
+    private GuildMemberLeaveEvent leaveEvent;
+
+    public DiscordQuitEvent(PircBotX bot, UserChannelDaoSnapshot userChannelDaoSnapshot, @NonNull UserHostmask userHostmask, UserSnapshot user, @NonNull String reason, GuildMemberLeaveEvent leave) {
+        super(bot, userChannelDaoSnapshot, userHostmask, user, reason);
+        leaveEvent = leave;
+    }
+
+    public GuildMemberLeaveEvent getLeaveEvent() {
+        return leaveEvent;
+    }
+}
+
+class DiscordJoinEvent extends JoinEvent {
+
+    GuildMemberJoinEvent joinEvent;
+
+    public DiscordJoinEvent(PircBotX bot, @NonNull Channel channel, @NonNull UserHostmask userHostmask, User user, GuildMemberJoinEvent joinEvent) {
+        super(bot, channel, userHostmask, user);
+        this.joinEvent = joinEvent;
+    }
+
+    public GuildMemberJoinEvent getJoinEvent() {
+        return joinEvent;
     }
 }
 

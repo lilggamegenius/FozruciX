@@ -283,7 +283,7 @@ public class FozConfig {
             LOGGER.info("Attempting to load data");
             SaveDataStore save = (SaveDataStore) xstream.fromXML(br);
             if (save == null) throw new FileNotFoundException("Couldn't find save data");
-            save = new SaveDataStore(save.getAuthedUser(), save.getAuthedUserLevel(), save.getDNDJoined(), save.getDNDList(), save.getNoteList(), save.getAvatarLink(), save.getMemes(), save.getFCList(), save.getMarkovChain(), save.getAllowedCommands());
+            save = new SaveDataStore(save.getAuthedUser(), save.getAuthedUserLevel(), save.getDNDJoined(), save.getDNDList(), save.getNoteList(), save.getAvatarLink(), save.getMemes(), save.getFCList(), save.getMarkovChain(), save.getAllowedCommands(), save.getCheckJoinsAndQuits());
             LOGGER.info("Loaded data");
             return save;
         } catch (Exception e) {

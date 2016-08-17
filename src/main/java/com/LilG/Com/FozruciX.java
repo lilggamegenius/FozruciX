@@ -9,7 +9,10 @@ import com.LilG.Com.DND.Dungeon;
 import com.LilG.Com.DataClasses.Meme;
 import com.LilG.Com.DataClasses.Note;
 import com.LilG.Com.DataClasses.SaveDataStore;
+import com.LilG.Com.m68k.M68kSim;
+import com.LilG.Com.math.ArbitraryPrecisionEvaluator;
 import com.LilG.Com.utils.CryptoUtil;
+import com.LilG.Com.utils.SizedArray;
 import com.fathzer.soft.javaluator.StaticVariableSet;
 import com.google.code.chatterbotapi.ChatterBotFactory;
 import com.google.code.chatterbotapi.ChatterBotSession;
@@ -35,6 +38,8 @@ import info.bliki.wiki.model.WikiModel;
 import jdk.nashorn.api.scripting.ClassFilter;
 import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
 import net.dv8tion.jda.MessageBuilder;
+import net.dv8tion.jda.entities.TextChannel;
+import net.dv8tion.jda.events.guild.member.GuildMemberBanEvent;
 import net.sourceforge.argparse4j.ArgumentParsers;
 import net.sourceforge.argparse4j.impl.Arguments;
 import net.sourceforge.argparse4j.inf.ArgumentParser;
@@ -123,8 +128,7 @@ public class FozruciX extends ListenerAdapter {
     private static volatile ChatterBotSession pandoraBotSession;
     private static volatile ChatterBotSession jabberBotSession;
     @SuppressWarnings("ConstantConditions")
-    @NotNull
-    private static volatile SizedArray<MessageEvent> lastEvents = new SizedArray<>(30);
+    private static volatile @NotNull SizedArray<MessageEvent> lastEvents = new SizedArray<>(30);
     private static volatile String lastLinkTitle = "";
     @Nullable
     private static volatile CMD singleCMD = null;
@@ -134,6 +138,7 @@ public class FozruciX extends ListenerAdapter {
     private static volatile LinkedList<String> DNDJoined = null;
     private static volatile LinkedList<DNDPlayer> DNDList = null;
     private static volatile HashMap<String, HashMap<String, ArrayList<String>>> allowedCommands = null;
+    private static volatile ConcurrentHashMap<String, String> checkJoinsAndQuits = null;
     @NotNull
     private static volatile Dungeon DNDDungeon = new Dungeon();
     @NotNull
@@ -477,7 +482,9 @@ public class FozruciX extends ListenerAdapter {
             eventType = EventType.notice;
         }
         if (event instanceof JoinEvent) {
-            channel.add(((JoinEvent) event).getChannel().getName());
+            if (((JoinEvent) event).getChannel() != null) {
+                channel.add(((JoinEvent) event).getChannel().getName());
+            }
             user = ((JoinEvent) event).getUser().getHostmask();
             message = "Joined " + channel;
             eventType = EventType.join;
@@ -492,11 +499,17 @@ public class FozruciX extends ListenerAdapter {
             eventType = EventType.part;
         }
         if (event instanceof QuitEvent) {
-            channel.addAll(event.getBot().getUserBot().getChannels().stream().map(Channel::getName).collect(Collectors.toList())); //get all channels user was in
-            user = ((QuitEvent) event).getUser().getHostmask();
-            message = "Quit " + network;
-            if (((QuitEvent) event).getReason() != null) {
-                message += " (" + ((QuitEvent) event).getReason() + ")";
+            if (event instanceof DiscordQuitEvent) {
+                channel.addAll(((DiscordQuitEvent) event).getLeaveEvent().getGuild().getTextChannels().stream().map(TextChannel::getName).collect(Collectors.toList()));
+                user = ((DiscordQuitEvent) event).getLeaveEvent().getUser().getUsername();
+                message = "Quit " + ((DiscordQuitEvent) event).getLeaveEvent().getGuild().getName();
+            } else {
+                channel.addAll(((QuitEvent) event).getUser().getChannels().stream().map(Channel::getName).collect(Collectors.toList())); //get all channels user was in
+                user = ((QuitEvent) event).getUser().getHostmask();
+                message = "Quit " + network;
+                if (((QuitEvent) event).getReason() != null) {
+                    message += " (" + ((QuitEvent) event).getReason() + ")";
+                }
             }
             eventType = EventType.quit;
         }
@@ -1027,6 +1040,37 @@ public class FozruciX extends ListenerAdapter {
                 sendMessage(event, "This command was changed to COMMANDS.", true);
                 addCooldown(event.getUser());
 
+            }
+
+// !setGuildChan - Sets what channel to announce joins an quits in
+            else if (commandChecker(event, arg, "setGuildChan")) {
+                if (checkPerm(event.getUser(), 5)) {
+                    if (event instanceof DiscordMessageEvent) {
+                        String guildID = ((DiscordMessageEvent) event).getDiscordEvent().getGuild().getId();
+                        if (getArg(arg, 1) != null) {
+                            if (getArg(arg, 1).toLowerCase().startsWith("rem")) {
+                                checkJoinsAndQuits.remove(guildID);
+                                sendMessage(event, "Removed Guild from Join and quit messages", true);
+
+                            } else {
+                                List<TextChannel> channels = ((DiscordMessageEvent) event).getDiscordEvent().getGuild().getTextChannels();
+                                TextChannel textChannel = null;
+                                for (TextChannel textChannel0 : channels) {
+                                    if (textChannel0.getId().equals(getArg(arg, 1)) || textChannel0.getName().equalsIgnoreCase(getArg(arg, 1))) {
+                                        textChannel = textChannel0;
+                                    }
+                                }
+                                if (textChannel != null) {
+                                    checkJoinsAndQuits.put(guildID, getArg(arg, 1));
+                                    sendMessage(event, "set Join and quit message channel to #" + textChannel.getName(), true);
+                                }
+                            }
+                        } else {
+                            checkJoinsAndQuits.put(guildID, ((DiscordMessageEvent) event).getDiscordEvent().getTextChannel().getId());
+                            sendMessage(event, "set Join and quit message channel to #" + ((DiscordMessageEvent) event).getDiscordEvent().getTextChannel().getName(), true);
+                        }
+                    }
+                }
             }
 
 // !command - Sets what commands can be used where
@@ -2950,6 +2994,43 @@ public class FozruciX extends ListenerAdapter {
 
         }
 
+// !68kTest - Tests 68k code
+        else if (commandChecker(event, arg, "68kTest")) {
+            if (getArg(arg, 1) == null) {
+                sendMessage(event, "Missing args", true);
+                return;
+            }
+            String[] args = formatStringArgs(splitMessage(message, 0, false));
+            ArgumentParser parser = ArgumentParsers.newArgumentParser("68kTest")
+                    .description("Simulates a M68k environment");
+            parser.addArgument("expression").nargs("*")
+                    .help("Code to execute");
+            parser.addArgument("-a", "--address").type(Long.class)
+                    .help("Sets what address to get");
+            parser.addArgument("-s", "--size").type(M68kSim.Size.class)
+                    .help("Sets what size of value to get");
+            parser.addArgument("-c", "--count").type(Integer.class).setDefault(1)
+                    .help("sets the amount of bytes to return");
+            parser.addArgument("--clear").type(Boolean.class).action(Arguments.storeTrue()).setDefault(false)
+                    .help("clears the memory");
+            Namespace ns;
+            try {
+                ns = parser.parseArgs(args);
+                LOGGER.debug(ns.toString());
+                if (checkPerm(event.getUser(), 10) && getArg(arg, 1).equalsIgnoreCase("debug")) {
+                    if (getArg(arg, 2) == null) {
+                        sendMessage(event, "Missing args", true);
+                        return;
+                    }
+                    if (getArg(arg, 2).equalsIgnoreCase("dump")) {
+                        M68kSim.memDump();
+                    }
+                }
+            } catch (Exception e) {
+                sendError(event, e);
+            }
+        }
+
 // !acc/68kcyc/asmcyclecounter - counts asm cycles
         else if (commandChecker(event, arg, "acc") || commandChecker(event, arg, "68kcyc") || commandChecker(event, arg, "asmcyclecounter")) {
             try {
@@ -3894,15 +3975,30 @@ public class FozruciX extends ListenerAdapter {
     public void onJoin(@NotNull JoinEvent join) {
         @SuppressWarnings("ConstantConditions") String hostmask = join.getUser().getHostmask();
         LOGGER.debug("User Joined: " + (hostmask == null ? join.getUser().getNick() : hostmask));
-        if (checkOP(join.getChannel())) {
-            //noinspection ConstantConditions
-            if (checkPerm(join.getUser(), 0)) {
-                join.getChannel().send().voice(join.getUserHostmask());
+        if (join instanceof DiscordJoinEvent) {
+            String channelToMessage = checkJoinsAndQuits.get(((DiscordJoinEvent) join).getJoinEvent().getGuild().getId());
+            if (channelToMessage != null) {
+                List<TextChannel> channels = ((DiscordJoinEvent) join).getJoinEvent().getGuild().getTextChannels();
+                for (TextChannel channel : channels) {
+                    if (channel.getId().equals(channelToMessage)) {
+                        channel.sendMessage(((DiscordJoinEvent) join).getJoinEvent().getUser().getAsMention() + ": Welcome to " + ((DiscordJoinEvent) join).getJoinEvent().getGuild().getName());
+                    }
+                }
             }
         }
         //noinspection ConstantConditions
         log(join);
-        checkNote(join, join.getUser().getNick(), join.getChannel().getName());
+        if (join.getChannel() != null) {
+            if (checkOP(join.getChannel())) {
+                //noinspection ConstantConditions
+                if (checkPerm(join.getUser(), 0)) {
+                    join.getChannel().send().voice(join.getUserHostmask());
+                }
+            }
+            checkNote(join, join.getUser().getNick(), join.getChannel().getName());
+        } else {
+            checkNote(join, join.getUser().getNick(), null);
+        }
         if (debug != null) {
             debug.updateBot(bot);
             debug.setCurrentNick(currentNick + "!" + currentUsername + "@" + currentHost);
@@ -3941,7 +4037,31 @@ public class FozruciX extends ListenerAdapter {
         if (quit.getReason().contains("RECOVER") || quit.getReason().contains("GHOST") || quit.getReason().contains("REGAIN")) { //Recover event
             BOOLS.set(NICK_IN_USE);
         }
+        if (quit instanceof DiscordQuitEvent) {
+            String channelToMessage = checkJoinsAndQuits.get(((DiscordQuitEvent) quit).getLeaveEvent().getGuild().getId());
+            if (channelToMessage != null) {
+                List<TextChannel> channels = ((DiscordQuitEvent) quit).getLeaveEvent().getGuild().getTextChannels();
+                for (TextChannel channel : channels) {
+                    if (channel.getId().equals(channelToMessage)) {
+                        channel.sendMessage("User " + ((DiscordQuitEvent) quit).getLeaveEvent().getUser().getAsMention() + " Has left the server");
+                    }
+                }
+            }
+        }
         log(quit);
+    }
+
+    public synchronized void onBan(GuildMemberBanEvent ban) {
+        String channelToMessage = checkJoinsAndQuits.get(ban.getGuild().getId());
+        if (channelToMessage != null) {
+            List<TextChannel> channels = ban.getGuild().getTextChannels();
+            for (TextChannel channel : channels) {
+                if (channel.getId().equals(channelToMessage)) {
+                    channel.sendMessage(ban.getUser().getAsMention() + " Has been b&, ripperoni in pepperoni http://gerbilsoft.soniccenter.org/lol/BAN.jpg");
+                }
+            }
+        }
+
     }
 
     public synchronized void onKick(@NotNull KickEvent kick) {
@@ -4046,6 +4166,9 @@ public class FozruciX extends ListenerAdapter {
 
         if (writeOnce && allowedCommands == null)
             allowedCommands = save.getAllowedCommands();
+
+        if (writeOnce && checkJoinsAndQuits == null)
+            checkJoinsAndQuits = save.getCheckJoinsAndQuits();
     }
 
     private synchronized void saveData() {
@@ -4054,7 +4177,7 @@ public class FozruciX extends ListenerAdapter {
             return;
         }*/
         try {
-            SaveDataStore save = new SaveDataStore(authedUser, authedUserLevel, DNDJoined, DNDList, noteList, avatar, memes, FCList, markovChain, allowedCommands);
+            SaveDataStore save = new SaveDataStore(authedUser, authedUserLevel, DNDJoined, DNDList, noteList, avatar, memes, FCList, markovChain, allowedCommands, checkJoinsAndQuits);
             FozConfig.saveData(save, xstream);
         } catch (ConcurrentModificationException e) {
             LOGGER.debug("Data not saved", e);
