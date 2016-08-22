@@ -262,7 +262,12 @@ public class ArbitraryPrecisionEvaluator extends AbstractEvaluator<BigDecimal> {
     @Override
     protected BigDecimal toValue(String literal, Object evaluationContext) {
         ParsePosition p = new ParsePosition(0);
-        Number result = FORMATTER.get().parse(literal, p);
+        Number result;
+        try {
+            result = FORMATTER.get().parse(Long.decode(literal) + "", p);
+        } catch (NumberFormatException ignored) {
+            result = FORMATTER.get().parse(literal, p);
+        }
         if (p.getIndex() == 0 || p.getIndex() != literal.length()) {
             throw new IllegalArgumentException(literal + " is not a number");
         }

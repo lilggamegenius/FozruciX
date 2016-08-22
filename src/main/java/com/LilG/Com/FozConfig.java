@@ -3,12 +3,12 @@ package com.LilG.Com;
 import ch.qos.logback.classic.Logger;
 import com.LilG.Com.DataClasses.SaveDataStore;
 import com.LilG.Com.utils.CryptoUtil;
+import com.LilG.Com.utils.LilGUtil;
 import com.thoughtworks.xstream.XStream;
 import org.jetbrains.annotations.NotNull;
 import org.pircbotx.Configuration;
 import org.pircbotx.MultiBotManager;
 import org.pircbotx.UtilSSLSocketFactory;
-import org.pircbotx.cap.EnableCapHandler;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
@@ -22,7 +22,7 @@ import java.nio.file.StandardCopyOption;
  */
 
 public class FozConfig {
-    public final static boolean debug = false;
+    public final static boolean debug = true;
     public final static String badnik = "irc.badnik.zone"; //TL;DR Shit went down
     public final static String twitch = "irc.twitch.tv";
     public final static String caffie = "irc.caffie.net";
@@ -68,7 +68,7 @@ public class FozConfig {
             .addAutoJoinChannel("#sm64")
             .addAutoJoinChannel("#botTest")
             .addListener(new FozruciX(manager, save)); //Add our listener that will be called on Events
-    public final static Configuration.Builder twitchDebug = new Configuration.Builder()
+    /*public final static Configuration.Builder twitchDebug = new Configuration.Builder()
             .setAutoReconnectDelay(connectDelay)
             .setAutoReconnect(true)
             .setAutoReconnectAttempts(attempts)
@@ -77,7 +77,7 @@ public class FozConfig {
             .setLogin(nick.toLowerCase())
             .addAutoJoinChannel("#lilggamegenuis") //Join lilggamegenuis's twitch chat
             .addListener(new FozruciX(FozruciX.Network.twitch, manager, save)); //Add our listener that will be called on Events
-    public final static Configuration.Builder debugConfigEsper = new Configuration.Builder()
+    */public final static Configuration.Builder debugConfigEsper = new Configuration.Builder()
             .setAutoReconnectDelay(connectDelay)
             .setEncoding(Charset.forName("UTF-8"))
             .setAutoReconnect(true)
@@ -140,7 +140,7 @@ public class FozConfig {
             .addAutoJoinChannel("#homebrew")
             .addAutoJoinChannel("#radbusiness")
             .addListener(new FozruciX(manager, save)); //Add our listener that will be called on Events
-    public final static Configuration.Builder twitchNormal = new Configuration.Builder()
+    /*public final static Configuration.Builder twitchNormal = new Configuration.Builder()
             .setAutoReconnectDelay(connectDelay)
             .setEncoding(Charset.forName("UTF-8"))
             .setAutoReconnect(true)
@@ -156,7 +156,7 @@ public class FozConfig {
             .addAutoJoinChannel("#lilggamegenuis") //Join lilggamegenuis's twitch chat
             .addAutoJoinChannel("#deltasmash")
             .addListener(new FozruciX(FozruciX.Network.twitch, manager, save)); //Add our listener that will be called on Events
-    public final static Configuration.Builder normalEsper = new Configuration.Builder()
+    */public final static Configuration.Builder normalEsper = new Configuration.Builder()
             .setAutoReconnectDelay(connectDelay)
             .setEncoding(Charset.forName("UTF-8"))
             .setAutoReconnect(true)
@@ -186,7 +186,7 @@ public class FozConfig {
 
     static {
         try {
-            System.loadLibrary("JNIThing");
+            LilGUtil.loadLib("JNIThing");
             Class.forName("com.mysql.jdbc.Driver").newInstance();
         } catch (ClassNotFoundException e) {
             LOGGER.error("SQL Driver not found", e);
@@ -205,13 +205,13 @@ public class FozConfig {
             manager.addBot(debugConfig.buildForServer(badnik, 6697));
             manager.addBot(debugConfigSmwc.buildForServer(caffie, 6697));
             manager.addBot(debugConfigEsper.buildForServer(esper, 6697));
-            manager.addBot(twitchDebug.buildForServer(twitch, 6667, CryptoUtil.decrypt(setPassword(Password.twitch))));
+            //manager.addBot(twitchDebug.buildForServer(twitch, 6667, CryptoUtil.decrypt(setPassword(Password.twitch))));
             manager.addBot(debugConfigNova.buildForServer(nova, 6697));
         } else {
             manager.addBot(normal.buildForServer(badnik, 6697));
             manager.addBot(normalSmwc.buildForServer(caffie, 6697));
             manager.addBot(normalEsper.buildForServer(esper, 6697));
-            manager.addBot(twitchNormal.buildForServer(twitch, 6667, CryptoUtil.decrypt(setPassword(Password.twitch))));
+            //manager.addBot(twitchNormal.buildForServer(twitch, 6667, CryptoUtil.decrypt(setPassword(Password.twitch))));
             manager.addBot(normalNova.buildForServer(nova, 6697));
         }
         //Connect to the server

@@ -8,6 +8,7 @@ import sun.misc.Unsafe;
 
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.text.DecimalFormat;
 import java.util.*;
@@ -22,6 +23,8 @@ import java.util.regex.Pattern;
 public class LilGUtil {
     private final static transient Random rand = new Random();
     private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(LilGUtil.class);
+    private static CustomClassLoader cl = new CustomClassLoader();
+    private static Class<?> dllLoader = null;
 
     /**
      * Returns a pseudo-random number between min and max, inclusive.
@@ -84,13 +87,14 @@ public class LilGUtil {
     public static int gc() {
         int timesRan = 0;
         Object obj = new Object();
-        WeakReference ref = new WeakReference<>(obj);
+        WeakReference<? extends Object> ref = new WeakReference<>(obj);
         //noinspection UnusedAssignment
         obj = null;
         while (ref.get() != null) {
             System.gc();
             timesRan++;
         }
+        LOGGER.info("Took " + timesRan + " attempt(s) to run GC");
         return timesRan;
     }
 
@@ -257,5 +261,40 @@ public class LilGUtil {
             list.removeAll(Collections.singleton(list.get(0)));
         }
         list.addAll(ar);
+    }
+
+    private static void loadClassLoader() throws ClassNotFoundException, IllegalAccessException, InstantiationException {
+        if (dllLoader == null) {
+            LOGGER.info("creating DLL Loader class");
+            dllLoader = cl.findClass("com.LilG.Com.utils.DLLLoader");
+        }
+    }
+
+    public static void loadLib(String lib) {
+        try {
+            loadClassLoader();
+            Method p = dllLoader.getMethod("loadLibrary", String.class);
+            p.invoke(null, lib);
+            LOGGER.info("Loaded " + lib);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void loadFile(String lib) {
+        try {
+            loadClassLoader();
+            Method p = dllLoader.getMethod("loadFile", String.class);
+            p.invoke(null, lib);
+            LOGGER.info("Loaded file " + lib);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void unload() {
+        cl = null;
+        dllLoader = null;
+        gc();
     }
 }

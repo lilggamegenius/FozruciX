@@ -10,8 +10,10 @@ import com.LilG.Com.DataClasses.Meme;
 import com.LilG.Com.DataClasses.Note;
 import com.LilG.Com.DataClasses.SaveDataStore;
 import com.LilG.Com.m68k.M68kSim;
+import com.LilG.Com.m68k.M68kSimImpl;
 import com.LilG.Com.math.ArbitraryPrecisionEvaluator;
 import com.LilG.Com.utils.CryptoUtil;
+import com.LilG.Com.utils.LilGUtil;
 import com.LilG.Com.utils.SizedArray;
 import com.fathzer.soft.javaluator.StaticVariableSet;
 import com.google.code.chatterbotapi.ChatterBotFactory;
@@ -79,6 +81,7 @@ import java.net.URLConnection;
 import java.nio.charset.Charset;
 import java.sql.*;
 import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -175,11 +178,7 @@ public class FozruciX extends ListenerAdapter {
     private String prefix = "!";
     private DebugWindow debug;
     @Nullable
-    private String currentNick = "Lil-G";
-    @Nullable
-    private String currentUsername = "GameGenuis";
-    @Nullable
-    private String currentHost = "friendly.local.noob";
+    private User currentUser;
     private UserHostmask lastJsUser;
     private Channel lastJsChannel;
     private Network network = Network.normal;
@@ -192,7 +191,7 @@ public class FozruciX extends ListenerAdapter {
 
     @SuppressWarnings("unused")
     public FozruciX(Network network, MultiBotManager manager, SaveDataStore save) {
-        if (network == Network.twitch) {
+        /*if (network == Network.twitch) {
             currentNick = "lilggamegenuis";
             currentUsername = currentNick;
             currentHost = currentUsername + ".tmi.network.tv";
@@ -200,7 +199,7 @@ public class FozruciX extends ListenerAdapter {
             currentNick = "Lil-G";
             currentUsername = currentNick;
             currentHost = "131494148350935040";
-        }
+        }*/
         this.network = network;
         // true, false, null, null, null, false, true, true
         BOOLS.set(JOKE_COMMANDS);
@@ -209,6 +208,7 @@ public class FozruciX extends ListenerAdapter {
         BOOLS.set(CHECK_LINKS);
 
         FozruciX.manager = manager;
+
         loadData(save, true);
         LOGGER.setLevel(Level.ALL);
         Runtime.getRuntime().addShutdownHook(new Thread(this::saveData, "Shutdown-thread"));
@@ -407,16 +407,7 @@ public class FozruciX extends ListenerAdapter {
         commandCooldown.put(user, System.currentTimeMillis() + cooldownTime);
     }
 
-    private static void removeFromCooldown() {
-        long currentTime = System.currentTimeMillis();
-        for (Map.Entry<User, Long> user : commandCooldown.entrySet()) {
-            if (currentTime >= (user.getValue())) { // Check if we've waited long enough
-                commandCooldown.remove(user.getKey());
-            }
-        }
-    }
-
-    private synchronized static native void jniTest();
+    private synchronized static native String jniTest();
 
     private static int hash(@NotNull String string, int maxNum) {
         int hash = 0;
@@ -655,6 +646,16 @@ public class FozruciX extends ListenerAdapter {
         return args.split(",");
     }
 
+    private void removeFromCooldown() {
+        long currentTime = System.currentTimeMillis();
+        for (Map.Entry<User, Long> user : commandCooldown.entrySet()) {
+            if (currentTime >= (user.getValue())) { // Check if we've waited long enough
+                commandCooldown.remove(user.getKey());
+            }
+            commandCooldown.remove(currentUser);
+        }
+    }
+
     @SuppressWarnings("SameParameterValue")
     private synchronized void sendNotice(@NotNull GenericEvent event, String userToSendTo, String msgToSend) {
         msgToSend = getScramble(msgToSend);
@@ -689,7 +690,7 @@ public class FozruciX extends ListenerAdapter {
         LOGGER.debug("Creating Debug window");
         debug = new DebugWindow(event);
         LOGGER.debug("Debug window created");
-        debug.setCurrentNick(currentNick + "!" + currentUsername + "@" + currentHost);
+        debug.setCurrentNick(currentUser.getHostmask());
     }
 
     private synchronized void makeDebug() {
@@ -714,6 +715,7 @@ public class FozruciX extends ListenerAdapter {
     public synchronized void onConnect(@NotNull ConnectEvent event) {
         bot = event.getBot();
         bot.sendIRC().mode(bot.getNick(), "+BI");
+        currentUser = event.getBot().getUserBot();
 
 
         loadData(true);
@@ -821,7 +823,7 @@ public class FozruciX extends ListenerAdapter {
         }
         if (network == Network.normal && BOOLS.get(NICK_IN_USE)) {
             if (!bot.getNick().equalsIgnoreCase(bot.getConfiguration().getName())) {
-                sendNotice(event, currentNick, "Ghost detected, recovering in 10 seconds");
+                sendNotice(event, currentUser.getNick(), "Ghost detected, recovering in 10 seconds");
                 new Thread(() -> {
                     try {
                         pause(10);
@@ -848,7 +850,7 @@ public class FozruciX extends ListenerAdapter {
         }
         doCommand(event);
         saveData();
-        debug.setCurrentNick(currentNick + "!" + currentUsername + "@" + currentHost);
+        debug.setCurrentNick(currentUser.getHostmask());
         debug.setCurrDM(DNDDungeonMaster);
         debug.setMessage(event.getUser().getNick() + ": " + event.getMessage());
 
@@ -1183,7 +1185,7 @@ public class FozruciX extends ListenerAdapter {
                                         server = FozConfig.badnik;
                                         break;
                                     case "network":
-                                        normal = FozConfig.twitchDebug;
+                                        //normal = FozConfig.twitchDebug;
                                         server = FozConfig.twitch;
                                         break;
                                     case "caffie":
@@ -1206,7 +1208,7 @@ public class FozruciX extends ListenerAdapter {
                                         server = FozConfig.badnik;
                                         break;
                                     case "network":
-                                        normal = FozConfig.twitchNormal;
+                                        //normal = FozConfig.twitchNormal;
                                         server = FozConfig.twitch;
                                         break;
                                     case "caffie":
@@ -1268,9 +1270,7 @@ public class FozruciX extends ListenerAdapter {
 // !clearLogin - Clears login info to test auth related thing
             else if (commandChecker(event, arg, "clearLogin")) {
                 if (checkPerm(event.getUser(), 9001)) {
-                    currentNick = "Null";
-                    currentUsername = "Null";
-                    currentHost = "Null";
+                    currentUser = bot.getUserBot();
                     sendMessage(event, "Logged out", false);
                 } else {
                     permErrorchn(event);
@@ -1635,7 +1635,7 @@ public class FozruciX extends ListenerAdapter {
                         try {
                             if (authedUser.contains(getArg(arg, 2))) {
                                 try {
-                                    authedUserLevel.set(authedUser.indexOf(getArg(arg, 2)), Integer.parseInt(getArg(arg, 3)));
+                                    authedUserLevel.set(authedUser.indexOf(getArg(arg, 2)), Integer.decode(getArg(arg, 3)));
                                 } catch (Exception e) {
                                     sendError(event, e);
                                 }
@@ -1643,7 +1643,7 @@ public class FozruciX extends ListenerAdapter {
                             } else {
                                 try {
                                     authedUser.add(getArg(arg, 2));
-                                    authedUserLevel.add(Integer.parseInt(getArg(arg, 3)));
+                                    authedUserLevel.add(Integer.decode(getArg(arg, 3)));
                                 } catch (Exception e) {
                                     sendError(event, e);
                                 }
@@ -1800,7 +1800,9 @@ public class FozruciX extends ListenerAdapter {
                         //noinspection SuspiciousToArrayCall
                         String[] expression = ns.getList("expression").toArray(new String[]{});
                         BigDecimal eval = EVALUATOR.evaluate(argJoiner(expression, 0, 0));
-                        sendMessage(event, eval.toEngineeringString(), true);
+                        DecimalFormat df = new DecimalFormat("0", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
+                        df.setMaximumFractionDigits(340); //340 = DecimalFormat.DOUBLE_FRACTION_DIGITS
+                        sendMessage(event, df.format(eval), true);
                     }
                 } catch (Exception e) {
                     sendError(event, e);
@@ -1988,7 +1990,7 @@ public class FozruciX extends ListenerAdapter {
                     if (getArg(arg, 1) != null && getArg(arg, 1).equalsIgnoreCase("setup")) {
                         counter = getArg(arg, 2);
                         if (getArg(arg, 3) != null) {
-                            counterCount = Integer.parseInt(getArg(arg, 3));
+                            counterCount = Integer.decode(getArg(arg, 3));
                         }
                     }
                     if (commandChecker(event, arg, "count")) {
@@ -2026,7 +2028,7 @@ public class FozruciX extends ListenerAdapter {
                         LOGGER.debug("Getting entry");
                         IWiktionaryEntry entry;
                         if (getArg(arg, 2) != null && isNumeric(getArg(arg, 2))) {
-                            entry = page.getEntry(Integer.parseInt(getArg(arg, 2)));
+                            entry = page.getEntry(Integer.decode(getArg(arg, 2)));
                         } else {
                             entry = page.getEntry(0);
                         }
@@ -2157,1151 +2159,1191 @@ public class FozruciX extends ListenerAdapter {
                 }
                 addCooldown(event.getUser());
             }
-        }
 
 // !chat - chat's with a internet conversation bot
-        else if (commandChecker(event, arg, "chat")) {
-            if (getArg(arg, 1).equalsIgnoreCase("clever")) {
-                if (!BOOLS.get(CLEVER_BOT_INT)) {
+            else if (commandChecker(event, arg, "chat")) {
+                if (getArg(arg, 1).equalsIgnoreCase("clever")) {
+                    if (!BOOLS.get(CLEVER_BOT_INT)) {
+                        try {
+                            chatterBotSession = BOT_FACTORY.create(ChatterBotType.CLEVERBOT).createSession();
+                            BOOLS.set(CLEVER_BOT_INT);
+                            //noinspection ConstantConditions
+                            event.getUser().send().notice("CleverBot started");
+                        } catch (Exception e) {
+                            sendMessage(event, "Error: Could not create clever bot session. Error was: " + e, true);
+                        }
+                    }
                     try {
-                        chatterBotSession = BOT_FACTORY.create(ChatterBotType.CLEVERBOT).createSession();
-                        BOOLS.set(CLEVER_BOT_INT);
-                        //noinspection ConstantConditions
-                        event.getUser().send().notice("CleverBot started");
+                        sendMessage(event, " " + botTalk("clever", argJoiner(arg, 2)), true);
                     } catch (Exception e) {
-                        sendMessage(event, "Error: Could not create clever bot session. Error was: " + e, true);
+                        sendMessage(event, "Error: Problem with bot. Error was: " + e, true);
+                    }
+                } else if (getArg(arg, 1).equalsIgnoreCase("pandora")) {
+                    if (!BOOLS.get(PANDORA_BOT_INT)) {
+                        try {
+                            pandoraBotSession = BOT_FACTORY.create(ChatterBotType.PANDORABOTS, "b0dafd24ee35a477").createSession();
+                            BOOLS.set(PANDORA_BOT_INT);
+                            //noinspection ConstantConditions
+                            event.getUser().send().notice("PandoraBot started");
+                        } catch (Exception e) {
+                            sendMessage(event, "Error: Could not create pandora bot session. Error was: " + e, true);
+                        }
+                    }
+                    try {
+                        sendMessage(event, " " + botTalk("pandora", argJoiner(arg, 2)), true);
+                    } catch (Exception e) {
+                        sendMessage(event, "Error: Problem with bot. Error was: " + e, true);
+                    }
+                } else if (getArg(arg, 1).equalsIgnoreCase("jabber")) {
+                    if (!BOOLS.get(JABBER_BOT_INT)) {
+                        try {
+                            jabberBotSession = BOT_FACTORY.create(ChatterBotType.JABBERWACKY, "b0dafd24ee35a477").createSession();
+                            BOOLS.set(JABBER_BOT_INT);
+                            //noinspection ConstantConditions
+                            event.getUser().send().notice("PandoraBot started");
+                        } catch (Exception e) {
+                            sendMessage(event, "Error: Could not create pandora bot session. Error was: " + e, true);
+                        }
+                    }
+                    try {
+                        sendMessage(event, " " + botTalk("clever", argJoiner(arg, 1)), true);
+                    } catch (Exception e) {
+                        sendError(event, e);
                     }
                 }
-                try {
-                    sendMessage(event, " " + botTalk("clever", argJoiner(arg, 2)), true);
-                } catch (Exception e) {
-                    sendMessage(event, "Error: Problem with bot. Error was: " + e, true);
-                }
-            } else if (getArg(arg, 1).equalsIgnoreCase("pandora")) {
-                if (!BOOLS.get(PANDORA_BOT_INT)) {
-                    try {
-                        pandoraBotSession = BOT_FACTORY.create(ChatterBotType.PANDORABOTS, "b0dafd24ee35a477").createSession();
-                        BOOLS.set(PANDORA_BOT_INT);
-                        //noinspection ConstantConditions
-                        event.getUser().send().notice("PandoraBot started");
-                    } catch (Exception e) {
-                        sendMessage(event, "Error: Could not create pandora bot session. Error was: " + e, true);
-                    }
-                }
-                try {
-                    sendMessage(event, " " + botTalk("pandora", argJoiner(arg, 2)), true);
-                } catch (Exception e) {
-                    sendMessage(event, "Error: Problem with bot. Error was: " + e, true);
-                }
-            } else if (getArg(arg, 1).equalsIgnoreCase("jabber")) {
-                if (!BOOLS.get(JABBER_BOT_INT)) {
-                    try {
-                        jabberBotSession = BOT_FACTORY.create(ChatterBotType.JABBERWACKY, "b0dafd24ee35a477").createSession();
-                        BOOLS.set(JABBER_BOT_INT);
-                        //noinspection ConstantConditions
-                        event.getUser().send().notice("PandoraBot started");
-                    } catch (Exception e) {
-                        sendMessage(event, "Error: Could not create pandora bot session. Error was: " + e, true);
-                    }
-                }
-                try {
-                    sendMessage(event, " " + botTalk("clever", argJoiner(arg, 1)), true);
-                } catch (Exception e) {
-                    sendError(event, e);
-                }
+                addCooldown(event.getUser());
             }
-            addCooldown(event.getUser());
-        }
 
 // !temp - Converts a unit of temperature to another
-        else if (commandChecker(event, arg, "temp")) {
-            int temp = Integer.parseInt(getArg(arg, 3));
-            double ans = 0;
-            String unit = "err";
-            if (getArg(arg, 1).equalsIgnoreCase("F")) {
-                if (getArg(arg, 2).equalsIgnoreCase("C")) {
-                    ans = (temp - 32) * 5 / 9;
-                    unit = "C";
-                } else if (getArg(arg, 2).equalsIgnoreCase("K")) {
-                    ans = (temp - 32) * 5 / 9 + 273.15;
-                    unit = "K";
+            else if (commandChecker(event, arg, "temp")) {
+                int temp = Integer.decode(getArg(arg, 3));
+                double ans = 0;
+                String unit = "err";
+                if (getArg(arg, 1).equalsIgnoreCase("F")) {
+                    if (getArg(arg, 2).equalsIgnoreCase("C")) {
+                        ans = (temp - 32) * 5 / 9;
+                        unit = "C";
+                    } else if (getArg(arg, 2).equalsIgnoreCase("K")) {
+                        ans = (temp - 32) * 5 / 9 + 273.15;
+                        unit = "K";
+                    }
+                } else if (getArg(arg, 1).equalsIgnoreCase("C")) {
+                    if (getArg(arg, 2).equalsIgnoreCase("F")) {
+                        ans = (temp * 9 / 5) + 32;
+                        unit = "F";
+                    } else if (getArg(arg, 2).equalsIgnoreCase("K") && temp < 0) {
+                        ans = temp + 273.15;
+                        unit = "K";
+                    }
+                } else if (getArg(arg, 1).equalsIgnoreCase("K")) {
+                    if (getArg(arg, 2).equalsIgnoreCase("F")) {
+                        ans = (temp - 273.15) * 9 / 5 + 32;
+                        unit = "F";
+                    } else if (getArg(arg, 2).equalsIgnoreCase("C")) {
+                        ans = temp - 273.15;
+                        unit = "C";
+                    }
                 }
-            } else if (getArg(arg, 1).equalsIgnoreCase("C")) {
-                if (getArg(arg, 2).equalsIgnoreCase("F")) {
-                    ans = (temp * 9 / 5) + 32;
-                    unit = "F";
-                } else if (getArg(arg, 2).equalsIgnoreCase("K") && temp < 0) {
-                    ans = temp + 273.15;
-                    unit = "K";
+                if (unit.equalsIgnoreCase("err")) {
+                    sendMessage(event, "Incorrect arguments.", true);
+                } else {
+                    sendMessage(event, " " + ans + unit, true);
                 }
-            } else if (getArg(arg, 1).equalsIgnoreCase("K")) {
-                if (getArg(arg, 2).equalsIgnoreCase("F")) {
-                    ans = (temp - 273.15) * 9 / 5 + 32;
-                    unit = "F";
-                } else if (getArg(arg, 2).equalsIgnoreCase("C")) {
-                    ans = temp - 273.15;
-                    unit = "C";
-                }
-            }
-            if (unit.equalsIgnoreCase("err")) {
-                sendMessage(event, "Incorrect arguments.", true);
-            } else {
-                sendMessage(event, " " + ans + unit, true);
-            }
-            addCooldown(event.getUser());
+                addCooldown(event.getUser());
 
-        }
+            }
 
 
 // !BlockConv - Converts blocks to bytes
-        else if (commandChecker(event, arg, "BlockConv")) {
-            int data = Integer.parseInt(getArg(arg, 3));
-            double ans = 0;
-            String unit = "err";
-            boolean notify = true;
-            int BLOCKS = 128;
-            if (getArg(arg, 1).equalsIgnoreCase("blocks")) {
-                if (getArg(arg, 2).equalsIgnoreCase("kb")) {
-                    ans = BLOCKS * data;
-                    unit = "KB";
-                    notify = false;
+            else if (commandChecker(event, arg, "BlockConv")) {
+                int data = Integer.decode(getArg(arg, 3));
+                double ans = 0;
+                String unit = "err";
+                boolean notify = true;
+                int BLOCKS = 128;
+                if (getArg(arg, 1).equalsIgnoreCase("blocks")) {
+                    if (getArg(arg, 2).equalsIgnoreCase("kb")) {
+                        ans = BLOCKS * data;
+                        unit = "KB";
+                        notify = false;
+                    }
+                } else if (getArg(arg, 1).equalsIgnoreCase("kb")) {
+                    if (getArg(arg, 2).equalsIgnoreCase("blocks")) {
+                        ans = data / BLOCKS;
+                        unit = "Blocks";
+                        notify = false;
+                    }
+                } else if (getArg(arg, 1).equalsIgnoreCase("mb")) {
+                    if (getArg(arg, 2).equalsIgnoreCase("blocks")) {
+                        int BLOCKS_MB = 8 * BLOCKS;
+                        ans = data / BLOCKS_MB;
+                        unit = "Blocks";
+                    }
+                } else if (getArg(arg, 1).equalsIgnoreCase("gb")) {
+                    if (getArg(arg, 2).equalsIgnoreCase("blocks")) {
+                        int BLOCKS_GB = 8192 * BLOCKS;
+                        ans = data / BLOCKS_GB;
+                        unit = "Blocks";
+                    }
                 }
-            } else if (getArg(arg, 1).equalsIgnoreCase("kb")) {
-                if (getArg(arg, 2).equalsIgnoreCase("blocks")) {
-                    ans = data / BLOCKS;
-                    unit = "Blocks";
-                    notify = false;
+                if (unit.equals("err")) {
+                    sendMessage(event, "Incorrect arguments.", true);
+                } else {
+                    sendMessage(event, " " + ans + unit, true);
+                    if (notify)
+                        sendMessage(event, "NOTICE: this command currently doesn't work like it should. The only conversion that works is blocks to kb and kb to blocks", true);
                 }
-            } else if (getArg(arg, 1).equalsIgnoreCase("mb")) {
-                if (getArg(arg, 2).equalsIgnoreCase("blocks")) {
-                    int BLOCKS_MB = 8 * BLOCKS;
-                    ans = data / BLOCKS_MB;
-                    unit = "Blocks";
-                }
-            } else if (getArg(arg, 1).equalsIgnoreCase("gb")) {
-                if (getArg(arg, 2).equalsIgnoreCase("blocks")) {
-                    int BLOCKS_GB = 8192 * BLOCKS;
-                    ans = data / BLOCKS_GB;
-                    unit = "Blocks";
-                }
-            }
-            if (unit.equals("err")) {
-                sendMessage(event, "Incorrect arguments.", true);
-            } else {
-                sendMessage(event, " " + ans + unit, true);
-                if (notify)
-                    sendMessage(event, "NOTICE: this command currently doesn't work like it should. The only conversion that works is blocks to kb and kb to blocks", true);
-            }
-            addCooldown(event.getUser());
+                addCooldown(event.getUser());
 
-        }
+            }
 
 
 // !FC - Friend code database
-        else if (commandChecker(event, arg, "FC")) {
-            try {
-                if (getArg(arg, 2) != null) {
-                    if (getArg(arg, 1).equalsIgnoreCase("set")) {
-                        if (FCList.containsKey(event.getUser().getNick().toLowerCase())) {
-                            String fc = getArg(arg, 2).replaceAll("[^\\d]", "");
-                            if (fc.length() == 12) {
-                                FCList.put(event.getUser().getNick().toLowerCase(), fc);
-                                sendMessage(event, "FC Edited", true);
-                            } else {
-                                sendMessage(event, "Incorrect FC", true);
-                            }
-                        } else {
-                            String fc = getArg(arg, 2).replaceAll("[^\\d]", "");
-                            if (fc.length() == 12) {
-                                FCList.put(event.getUser().getNick().toLowerCase(), getArg(arg, 2).replaceAll("[^\\d]", ""));
-                                sendMessage(event, "Added " + event.getUser().getNick() + "'s FC to the DB as " + getArg(arg, 2).replaceAll("[^\\d]", ""), true);
-                            } else {
-                                sendMessage(event, "Incorrect FC", true);
-                            }
-                        }
-                    }
-                } else {
-                    if (getArg(arg, 1).equalsIgnoreCase("list")) {
-                        sendMessage(event, FCList.keySet().toString(), true);
-
-                    } else if (getArg(arg, 1).equalsIgnoreCase("del")) {
-                        if (FCList.containsKey(event.getUser().getNick().toLowerCase())) {
-                            FCList.remove(event.getUser().getNick().toLowerCase());
-                            sendMessage(event, "Friend code removed", true);
-                        } else {
-                            sendMessage(event, "You haven't entered your Friend code yet", true);
-                        }
-
-                    } else if (FCList.containsKey(getArg(arg, 1).toLowerCase())) {
-                        String fc = FCList.get(getArg(arg, 1).toLowerCase());
-                        String fcParts[] = new String[3];
-                        fcParts[0] = fc.substring(0, 4);
-                        fcParts[1] = fc.substring(4, 8);
-                        fcParts[2] = fc.substring(8);
-                        fc = fcParts[0] + "-" + fcParts[1] + "-" + fcParts[2];
-                        sendMessage(event, getArg(arg, 1) + ": " + fc, false);
-                    } else {
-                        sendMessage(event, "That user hasn't entered their FC yet", false);
-                    }
-                }
-                addCooldown(event.getUser());
-            } catch (NullPointerException e) {
-                FCList = new TreeMap<>();
-                sendMessage(event, "Try the command again", true);
-            } catch (Exception e) {
-                sendError(event, e);
-            }
-
-        }
-
-// !sql - execute sql statements
-        else if (commandChecker(event, arg, "sql")) {
-            if (checkPerm(event.getUser(), 9001)) {
+            else if (commandChecker(event, arg, "FC")) {
                 try {
-                    Connection conn = DriverManager.getConnection("jdbc:mysql://Lil-G-s_PC:3306/world?user=Lil-G&password=" + CryptoUtil.decrypt(FozConfig.PASSWORD));
-
-                    Statement stmt = conn.createStatement();
-                    ResultSet rs = stmt.executeQuery(argJoiner(splitMessage(message, 0, false), 1));
-
-                    ResultSetMetaData metaData = rs.getMetaData();
-                    int columnCount = metaData.getColumnCount();
-
-                    LinkedList<String> results = new LinkedList<>();
-                    boolean getColumns = true;
-                    while (getColumns || rs.next()) {
-                        StringBuilder cols = new StringBuilder();
-                        for (int columnIndex = 1; columnIndex <= columnCount; columnIndex++) {
-                            Object object;
-                            if (getColumns) {
-                                object = metaData.getColumnName(columnIndex);
-                            } else {
-                                object = rs.getObject(columnIndex);
-                            }
-                            if (columnIndex == columnCount) {
-                                cols.append(object == null ? "NULL" : object.toString());
-                            } else {
-                                cols.append(object == null ? "NULL" : object.toString()).append(" | ");
-                            }
-                        }
-                        results.add(cols.toString());
-                        getColumns = false;
-                    }
-                    LOGGER.debug(results + " " + results.size());
-                    if (results.size() < 4) {
-                        for (String result : results) {
-                            sendMessage(event, result, true);
-                        }
-                    } else {
-                        sendPage(event, arg, results);
-                    }
-                    conn.close();
-                } catch (SQLException ex) {
-                    // handle any errors
-                    String exceptMsg = ex.getMessage();
-                    sendMessage(event, Colors.RED + "SQLException: " + exceptMsg.substring(0, exceptMsg.indexOf(": ") + 2) + "<SUPER SECRET PASSWORD>" + exceptMsg.substring(exceptMsg.indexOf(")"), exceptMsg.length()) + " SQLState: " + ex.getSQLState() + " VendorError: " + ex.getErrorCode(), false);
-                } catch (Exception e) {
-                    sendError(event, e);
-                }
-            } else {
-                permErrorchn(event);
-            }
-        }
-
-// !memes - Got all dem memes
-        else if (commandChecker(event, arg, "memes")) {
-            if (getArg(arg, 1) != null) {
-                try {
-                    if (getArg(arg, 1).equalsIgnoreCase("set")) {
-                        if (memes.containsKey(getArg(arg, 2).toLowerCase().replace("\u0001", ""))) {
-                            Meme meme = memes.get(getArg(arg, 2).toLowerCase());
-                            if (checkPerm(event.getUser(), 9001) || meme.getCreator().equalsIgnoreCase(event.getUser().getNick())) {
-                                if (getArg(arg, 3) == null) {
-                                    memes.remove(getArg(arg, 2).toLowerCase().replace("\u0001", ""));
-                                    sendMessage(event, "Meme " + getArg(arg, 2) + " Deleted!", true);
+                    if (getArg(arg, 2) != null) {
+                        if (getArg(arg, 1).equalsIgnoreCase("set")) {
+                            if (FCList.containsKey(event.getUser().getNick().toLowerCase())) {
+                                String fc = getArg(arg, 2).replaceAll("[^\\d]", "");
+                                if (fc.length() == 12) {
+                                    FCList.put(event.getUser().getNick().toLowerCase(), fc);
+                                    sendMessage(event, "FC Edited", true);
                                 } else {
-                                    meme.setMeme(argJoiner(arg, 3));
-                                    memes.put(getArg(arg, 2).toLowerCase().replace("\u0001", ""), meme);
-                                    sendMessage(event, "Meme " + getArg(arg, 2) + " Edited!", true);
+                                    sendMessage(event, "Incorrect FC", true);
                                 }
                             } else {
-                                sendMessage(event, "Sorry, Only the creator of the meme can edit it", true);
+                                String fc = getArg(arg, 2).replaceAll("[^\\d]", "");
+                                if (fc.length() == 12) {
+                                    FCList.put(event.getUser().getNick().toLowerCase(), getArg(arg, 2).replaceAll("[^\\d]", ""));
+                                    sendMessage(event, "Added " + event.getUser().getNick() + "'s FC to the DB as " + getArg(arg, 2).replaceAll("[^\\d]", ""), true);
+                                } else {
+                                    sendMessage(event, "Incorrect FC", true);
+                                }
+                            }
+                        }
+                    } else {
+                        if (getArg(arg, 1).equalsIgnoreCase("list")) {
+                            sendMessage(event, FCList.keySet().toString(), true);
+
+                        } else if (getArg(arg, 1).equalsIgnoreCase("del")) {
+                            if (FCList.containsKey(event.getUser().getNick().toLowerCase())) {
+                                FCList.remove(event.getUser().getNick().toLowerCase());
+                                sendMessage(event, "Friend code removed", true);
+                            } else {
+                                sendMessage(event, "You haven't entered your Friend code yet", true);
+                            }
+
+                        } else if (FCList.containsKey(getArg(arg, 1).toLowerCase())) {
+                            String fc = FCList.get(getArg(arg, 1).toLowerCase());
+                            String fcParts[] = new String[3];
+                            fcParts[0] = fc.substring(0, 4);
+                            fcParts[1] = fc.substring(4, 8);
+                            fcParts[2] = fc.substring(8);
+                            fc = fcParts[0] + "-" + fcParts[1] + "-" + fcParts[2];
+                            sendMessage(event, getArg(arg, 1) + ": " + fc, false);
+                        } else {
+                            sendMessage(event, "That user hasn't entered their FC yet", false);
+                        }
+                    }
+                    addCooldown(event.getUser());
+                } catch (NullPointerException e) {
+                    FCList = new TreeMap<>();
+                    sendMessage(event, "Try the command again", true);
+                } catch (Exception e) {
+                    sendError(event, e);
+                }
+
+            }
+
+// !sql - execute sql statements
+            else if (commandChecker(event, arg, "sql")) {
+                if (checkPerm(event.getUser(), 9001)) {
+                    try {
+                        Connection conn = DriverManager.getConnection("jdbc:mysql://Lil-G-s_PC:3306/world?user=Lil-G&password=" + CryptoUtil.decrypt(FozConfig.PASSWORD));
+
+                        Statement stmt = conn.createStatement();
+                        ResultSet rs = stmt.executeQuery(argJoiner(splitMessage(message, 0, false), 1));
+
+                        ResultSetMetaData metaData = rs.getMetaData();
+                        int columnCount = metaData.getColumnCount();
+
+                        LinkedList<String> results = new LinkedList<>();
+                        boolean getColumns = true;
+                        while (getColumns || rs.next()) {
+                            StringBuilder cols = new StringBuilder();
+                            for (int columnIndex = 1; columnIndex <= columnCount; columnIndex++) {
+                                Object object;
+                                if (getColumns) {
+                                    object = metaData.getColumnName(columnIndex);
+                                } else {
+                                    object = rs.getObject(columnIndex);
+                                }
+                                if (columnIndex == columnCount) {
+                                    cols.append(object == null ? "NULL" : object.toString());
+                                } else {
+                                    cols.append(object == null ? "NULL" : object.toString()).append(" | ");
+                                }
+                            }
+                            results.add(cols.toString());
+                            getColumns = false;
+                        }
+                        LOGGER.debug(results + " " + results.size());
+                        if (results.size() < 4) {
+                            for (String result : results) {
+                                sendMessage(event, result, true);
                             }
                         } else {
-                            memes.put(getArg(arg, 2).toLowerCase().replace("\u0001", ""), new Meme(event.getUser().getNick(), argJoiner(arg, 3).replace("\u0001", "")));
-                            sendMessage(event, "Meme " + getArg(arg, 2) + " Created as " + argJoiner(arg, 3), true);
+                            sendPage(event, arg, results);
                         }
-                    } else if (getArg(arg, 1).equalsIgnoreCase("list")) {
-                        sendMessage(event, memes.toString().replace("\u0001", ""), true);
-                    } else {
-                        if (memes.containsKey(getArg(arg, 1).toLowerCase())) {
-                            sendMessage(event, getArg(arg, 1).replace("\u0001", "") + ": " + memes.get(getArg(arg, 1).toLowerCase()).getMeme().replace("\u0001", ""), false);
-                        } else {
-                            sendMessage(event, "That Meme doesn't exist!", true);
-                        }
+                        conn.close();
+                    } catch (SQLException ex) {
+                        // handle any errors
+                        String exceptMsg = ex.getMessage();
+                        sendMessage(event, Colors.RED + "SQLException: " + exceptMsg.substring(0, exceptMsg.indexOf(": ") + 2) + "<SUPER SECRET PASSWORD>" + exceptMsg.substring(exceptMsg.indexOf(")"), exceptMsg.length()) + " SQLState: " + ex.getSQLState() + " VendorError: " + ex.getErrorCode(), false);
+                    } catch (Exception e) {
+                        sendError(event, e);
                     }
-                } catch (Exception e) {
-                    sendError(event, e);
+                } else {
+                    permErrorchn(event);
                 }
-                addCooldown(event.getUser());
-            } else {
-                sendMessage(event, "Missing arguments", true);
             }
 
-        }
+// !memes - Got all dem memes
+            else if (commandChecker(event, arg, "memes")) {
+                if (getArg(arg, 1) != null) {
+                    try {
+                        if (getArg(arg, 1).equalsIgnoreCase("set")) {
+                            if (memes.containsKey(getArg(arg, 2).toLowerCase().replace("\u0001", ""))) {
+                                Meme meme = memes.get(getArg(arg, 2).toLowerCase());
+                                if (checkPerm(event.getUser(), 9001) || meme.getCreator().equalsIgnoreCase(event.getUser().getNick())) {
+                                    if (getArg(arg, 3) == null) {
+                                        memes.remove(getArg(arg, 2).toLowerCase().replace("\u0001", ""));
+                                        sendMessage(event, "Meme " + getArg(arg, 2) + " Deleted!", true);
+                                    } else {
+                                        meme.setMeme(argJoiner(arg, 3));
+                                        memes.put(getArg(arg, 2).toLowerCase().replace("\u0001", ""), meme);
+                                        sendMessage(event, "Meme " + getArg(arg, 2) + " Edited!", true);
+                                    }
+                                } else {
+                                    sendMessage(event, "Sorry, Only the creator of the meme can edit it", true);
+                                }
+                            } else {
+                                memes.put(getArg(arg, 2).toLowerCase().replace("\u0001", ""), new Meme(event.getUser().getNick(), argJoiner(arg, 3).replace("\u0001", "")));
+                                sendMessage(event, "Meme " + getArg(arg, 2) + " Created as " + argJoiner(arg, 3), true);
+                            }
+                        } else if (getArg(arg, 1).equalsIgnoreCase("list")) {
+                            sendMessage(event, memes.toString().replace("\u0001", ""), true);
+                        } else {
+                            if (memes.containsKey(getArg(arg, 1).toLowerCase())) {
+                                sendMessage(event, getArg(arg, 1).replace("\u0001", "") + ": " + memes.get(getArg(arg, 1).toLowerCase()).getMeme().replace("\u0001", ""), false);
+                            } else {
+                                sendMessage(event, "That Meme doesn't exist!", true);
+                            }
+                        }
+                    } catch (Exception e) {
+                        sendError(event, e);
+                    }
+                    addCooldown(event.getUser());
+                } else {
+                    sendMessage(event, "Missing arguments", true);
+                }
+
+            }
 
 // !q - adds to q
-        else if (commandChecker(event, arg, "q")) {
-            try {
-                if (getArg(arg, 1).equalsIgnoreCase("del") || getArg(arg, 1).equalsIgnoreCase("pop") || getArg(arg, 1).equalsIgnoreCase("rem")) {
-                    if (qList.remove(event.getUser().getNick())) {
-                        sendMessage(event, "Removed from Q", true);
-                    } else {
-                        sendMessage(event, "You weren't in Q!", true);
+            else if (commandChecker(event, arg, "q")) {
+                try {
+                    if (getArg(arg, 1).equalsIgnoreCase("del") || getArg(arg, 1).equalsIgnoreCase("pop") || getArg(arg, 1).equalsIgnoreCase("rem")) {
+                        if (qList.remove(event.getUser().getNick())) {
+                            sendMessage(event, "Removed from Q", true);
+                        } else {
+                            sendMessage(event, "You weren't in Q!", true);
+                        }
+                    } else if (getArg(arg, 1).equalsIgnoreCase("add") || getArg(arg, 1).equalsIgnoreCase("push")) {
+                        if (qList.add(event.getUser().getNick())) {
+                            sendMessage(event, "Added to Q", true);
+                        } else {
+                            sendMessage(event, "You are already in Q!", true);
+                        }
+                    } else if (getArg(arg, 1).equalsIgnoreCase("list")) {
+                        sendMessage(event, "Current people in Q: " + qList.toString().replace("[", "").replace("]", ""), true);
+                    } else if (getArg(arg, 1).equalsIgnoreCase("clear")) {
+                        qList.clear();
+                        qTimer = new StopWatch();
+                        sendMessage(event, "Q has been qilled", true);
+                    } else if (getArg(arg, 1).equalsIgnoreCase("start")) {
+                        qTimer = new StopWatch();
+                        int time = 10;
+                        if (getArg(arg, 2) != null) {
+                            time = Integer.decode(getArg(arg, 2));
+                            time = time > 60 ? 30 : time;
+                        }
+                        sendMessage(event, "READY?!?!1/1 " + (time != 10 ? "starting in " + time + " sec!!!! " : "") + qList.toString().replace("[", "").replace("]", ""), false);
+                        pause(time);
+                        sendMessage(event, "3", false);
+                        pause(1);
+                        sendMessage(event, "2", false);
+                        pause(1);
+                        sendMessage(event, "1", false);
+                        pause(1);
+                        sendMessage(event, "GO! " + qList.toString().replace("[", "").replace("]", ""), false);
+                        qTimer = new StopWatch();
+                        qTimer.start();
+                    } else if (getArg(arg, 1).equalsIgnoreCase("time")) {
+                        sendMessage(event, "Current time: " + qTimer.toString(), true);
                     }
-                } else if (getArg(arg, 1).equalsIgnoreCase("add") || getArg(arg, 1).equalsIgnoreCase("push")) {
-                    if (qList.add(event.getUser().getNick())) {
-                        sendMessage(event, "Added to Q", true);
-                    } else {
-                        sendMessage(event, "You are already in Q!", true);
-                    }
-                } else if (getArg(arg, 1).equalsIgnoreCase("list")) {
-                    sendMessage(event, "Current people in Q: " + qList.toString().replace("[", "").replace("]", ""), true);
-                } else if (getArg(arg, 1).equalsIgnoreCase("clear")) {
-                    qList.clear();
-                    qTimer = new StopWatch();
-                    sendMessage(event, "Q has been qilled", true);
-                } else if (getArg(arg, 1).equalsIgnoreCase("start")) {
-                    qTimer = new StopWatch();
-                    int time = 10;
-                    if (getArg(arg, 2) != null) {
-                        time = Integer.parseInt(getArg(arg, 2));
-                        time = time > 60 ? 30 : time;
-                    }
-                    sendMessage(event, "READY?!?!1/1 " + (time != 10 ? "starting in " + time + " sec!!!! " : "") + qList.toString().replace("[", "").replace("]", ""), false);
-                    pause(time);
-                    sendMessage(event, "3", false);
-                    pause(1);
-                    sendMessage(event, "2", false);
-                    pause(1);
-                    sendMessage(event, "1", false);
-                    pause(1);
-                    sendMessage(event, "GO! " + qList.toString().replace("[", "").replace("]", ""), false);
-                    qTimer = new StopWatch();
-                    qTimer.start();
-                } else if (getArg(arg, 1).equalsIgnoreCase("time")) {
-                    sendMessage(event, "Current time: " + qTimer.toString(), true);
+                    addCooldown(event.getUser());
+                } catch (InterruptedException ex) {
+                    Thread.currentThread().interrupt();
+                } catch (Exception e) {
+                    sendError(event, e);
                 }
-                addCooldown(event.getUser());
-            } catch (InterruptedException ex) {
-                Thread.currentThread().interrupt();
-            } catch (Exception e) {
-                sendError(event, e);
-            }
 
-        }
+            }
 
 // !NoteJ - Leaves notes
-        else if (commandChecker(event, arg, "NoteJ")) {
-            try {
-                if (getArg(arg, 1).equalsIgnoreCase("del")) {
-                    int i = 0;
-                    int index = -1;
-                    boolean found = false;
-                    while (i < noteList.size() && !found) {
-                        if (noteList.get(i).getId().toString().equals(getArg(arg, 2))) {
-                            found = true;
-                            index = i;
+            else if (commandChecker(event, arg, "NoteJ")) {
+                try {
+                    if (getArg(arg, 1).equalsIgnoreCase("del")) {
+                        int i = 0;
+                        int index = -1;
+                        boolean found = false;
+                        while (i < noteList.size() && !found) {
+                            if (noteList.get(i).getId().toString().equals(getArg(arg, 2))) {
+                                found = true;
+                                index = i;
+                            } else {
+                                i++;
+                            }
+                        }
+                        if (found) {
+                            if (event.getUser().getNick().equalsIgnoreCase(noteList.get(index).getSender()) || checkPerm(event.getUser(), 9001)) {
+                                noteList.remove(index);
+                                sendMessage(event, "Note " + getArg(arg, 2) + " Deleted", true);
+                            } else {
+                                sendMessage(event, "Nick didn't match nick that left note, as of right now there is no alias system so if you did leave this note; switch to the nick you used when you left it", true);
+                            }
                         } else {
+                            sendMessage(event, "That ID wasn't found.", true);
+                        }
+                    } else if (getArg(arg, 1).equalsIgnoreCase("list")) {
+                        int i = 0;
+                        LinkedList<String> found = new LinkedList<>();
+                        LinkedList<String> foundUUID = new LinkedList<>();
+                        while (noteList.size() > i) {
+                            if (noteList.get(i).getSender().equalsIgnoreCase(event.getUser().getNick())) {
+                                found.add(noteList.get(i).getMessageForList());
+                                foundUUID.add(noteList.get(i).getUUIDForList());
+                            }
                             i++;
                         }
-                    }
-                    if (found) {
-                        if (event.getUser().getNick().equalsIgnoreCase(noteList.get(index).getSender()) || checkPerm(event.getUser(), 9001)) {
-                            noteList.remove(index);
-                            sendMessage(event, "Note " + getArg(arg, 2) + " Deleted", true);
-                        } else {
-                            sendMessage(event, "Nick didn't match nick that left note, as of right now there is no alias system so if you did leave this note; switch to the nick you used when you left it", true);
-                        }
+                        sendMessage(event, found.toString(), true);
+                        event.getUser().send().notice(foundUUID.toString());
                     } else {
-                        sendMessage(event, "That ID wasn't found.", true);
+                        Note note = new Note(event.getUser().getNick(), getArg(arg, 1), argJoiner(arg, 2), channel);
+                        noteList.add(note);
+                        sendMessage(event, "Left note \"" + argJoiner(arg, 2) + "\" for \"" + getArg(arg, 1) + "\".", false);
+                        event.getUser().send().notice("ID is \"" + noteList.get(noteList.indexOf(note)).getId().toString() + "\"");
                     }
-                } else if (getArg(arg, 1).equalsIgnoreCase("list")) {
-                    int i = 0;
-                    LinkedList<String> found = new LinkedList<>();
-                    LinkedList<String> foundUUID = new LinkedList<>();
-                    while (noteList.size() > i) {
-                        if (noteList.get(i).getSender().equalsIgnoreCase(event.getUser().getNick())) {
-                            found.add(noteList.get(i).getMessageForList());
-                            foundUUID.add(noteList.get(i).getUUIDForList());
-                        }
-                        i++;
-                    }
-                    sendMessage(event, found.toString(), true);
-                    event.getUser().send().notice(foundUUID.toString());
-                } else {
-                    Note note = new Note(event.getUser().getNick(), getArg(arg, 1), argJoiner(arg, 2), channel);
-                    noteList.add(note);
-                    sendMessage(event, "Left note \"" + argJoiner(arg, 2) + "\" for \"" + getArg(arg, 1) + "\".", false);
-                    event.getUser().send().notice("ID is \"" + noteList.get(noteList.indexOf(note)).getId().toString() + "\"");
+                    saveData();
+                    addCooldown(event.getUser());
+                } catch (StringIndexOutOfBoundsException e) {
+                    sendMessage(event, Colors.RED + "You need more parameters ya dingus", true);
+                } catch (Exception e) {
+                    sendError(event, e);
                 }
-                saveData();
-                addCooldown(event.getUser());
-            } catch (StringIndexOutOfBoundsException e) {
-                sendMessage(event, Colors.RED + "You need more parameters ya dingus", true);
-            } catch (Exception e) {
-                sendError(event, e);
-            }
 
-        }
+            }
 
 // !Hello - Standard "Hello world" command
-        else if (commandChecker(event, arg, "hello")) {
-            sendMessage(event, "Hello World!", true);
-            addCooldown(event.getUser());
+            else if (commandChecker(event, arg, "hello")) {
+                sendMessage(event, "Hello World!", true);
+                addCooldown(event.getUser());
 
-        }
+            }
 
 // !Bot - Explains that "yes this is a bot"
-        else if (commandChecker(event, arg, "bot")) {
-            sendMessage(event, "Yes, this is " + currentNick + "'s bot.", true);
-            addCooldown(event.getUser());
+            else if (commandChecker(event, arg, "bot")) {
+                sendMessage(event, "Yes, this is " + currentUser.getNick() + "'s bot.", true);
+                addCooldown(event.getUser());
 
-        }
+            }
 
 // !getName - gets the name of the bot
-        else if (commandChecker(event, arg, "getName")) {
-            sendMessage(event, bot.getUserBot().getRealName(), true);
-            addCooldown(event.getUser());
+            else if (commandChecker(event, arg, "getName")) {
+                sendMessage(event, bot.getUserBot().getRealName(), true);
+                addCooldown(event.getUser());
 
-        }
+            }
 
 // !version - gets the version of the bot
-        else if (commandChecker(event, arg, "version")) {
-            String version = "PircBotX: " + PircBotX.VERSION + ". BotVersion: " + VERSION + ". Java version: " + System.getProperty("java.version");
-            sendMessage(event, "Version: " + version, true);
-            addCooldown(event.getUser());
+            else if (commandChecker(event, arg, "version")) {
+                String version = "PircBotX: " + PircBotX.VERSION + ". BotVersion: " + VERSION + ". Java version: " + System.getProperty("java.version");
+                sendMessage(event, "Version: " + version, true);
+                addCooldown(event.getUser());
 
-        }
+            }
 
 // !login - attempts to login to NickServ
-        else if (commandChecker(event, arg, "login")) {
-            bot.sendIRC().mode(bot.getNick(), "+B");
-            bot.sendIRC().identify(CryptoUtil.decrypt(FozConfig.PASSWORD));
-            bot.sendRaw().rawLineNow("cs op #Lil-G|bot " + bot.getNick());
-            bot.sendRaw().rawLineNow("cs op #Lil-G|bot Lil-G");
-            bot.sendRaw().rawLineNow("cs op #SSB " + bot.getNick());
-            bot.sendRaw().rawLineNow("cs op #SSB Lil-G");
-            bot.sendRaw().rawLineNow("ns recover FozruciX " + CryptoUtil.decrypt(FozConfig.PASSWORD));
-            addCooldown(event.getUser());
+            else if (commandChecker(event, arg, "login")) {
+                bot.sendIRC().mode(bot.getNick(), "+B");
+                bot.sendIRC().identify(CryptoUtil.decrypt(FozConfig.PASSWORD));
+                bot.sendRaw().rawLineNow("cs op #Lil-G|bot " + bot.getNick());
+                bot.sendRaw().rawLineNow("cs op #Lil-G|bot Lil-G");
+                bot.sendRaw().rawLineNow("cs op #SSB " + bot.getNick());
+                bot.sendRaw().rawLineNow("cs op #SSB Lil-G");
+                bot.sendRaw().rawLineNow("ns recover FozruciX " + CryptoUtil.decrypt(FozConfig.PASSWORD));
+                addCooldown(event.getUser());
 
-        }
+            }
 
 // !getLogin - gets the login of the bot
-        else if (commandChecker(event, arg, "getLogin")) {
-            sendMessage(event, bot.getUserBot().getLogin(), true);
-            addCooldown(event.getUser());
+            else if (commandChecker(event, arg, "getLogin")) {
+                sendMessage(event, bot.getUserBot().getLogin(), true);
+                addCooldown(event.getUser());
 
-        }
+            }
 
 // !getID - gets the ID of the user
-        else if (commandChecker(event, arg, "getID")) {
-            sendMessage(event, "You are :" + event.getUser().getUserId(), true);
-            addCooldown(event.getUser());
+            else if (commandChecker(event, arg, "getID")) {
+                sendMessage(event, "You are :" + event.getUser().getUserId(), true);
+                addCooldown(event.getUser());
 
-        }
+            }
 
 // !RandomNum - Gives the user a random Number
-        else if (commandChecker(event, arg, "RandomNum")) {
-            long num1, num2;
-            if (getArg(arg, 1).contains("0x")) {
-                String num = getArg(arg, 1).substring(2);
-                num1 = Long.parseLong(num, 16);
-            } else {
-                num1 = Long.parseLong(getArg(arg, 1), 10);
-            }
-            if (getArg(arg, 2).contains("0x")) {
-                String num = getArg(arg, 2).substring(2);
-                num2 = Long.parseLong(num, 16);
-            } else {
-                num2 = Long.parseLong(getArg(arg, 2), 10);
-            }
-            sendMessage(event, " " + randInt((int) num1, (int) num2), true);
+            else if (commandChecker(event, arg, "RandomNum")) {
+                long num1, num2;
+                if (getArg(arg, 1).contains("0x")) {
+                    String num = getArg(arg, 1).substring(2);
+                    num1 = Long.parseLong(num, 16);
+                } else {
+                    num1 = Long.parseLong(getArg(arg, 1), 10);
+                }
+                if (getArg(arg, 2).contains("0x")) {
+                    String num = getArg(arg, 2).substring(2);
+                    num2 = Long.parseLong(num, 16);
+                } else {
+                    num2 = Long.parseLong(getArg(arg, 2), 10);
+                }
+                sendMessage(event, " " + randInt((int) num1, (int) num2), true);
 
-        }
+            }
 
 // !getState - Displays what version the bot is on
-        else if (commandChecker(event, arg, "getState")) {
-            sendMessage(event, "State is: " + bot.getState(), true);
-            addCooldown(event.getUser());
+            else if (commandChecker(event, arg, "getState")) {
+                sendMessage(event, "State is: " + bot.getState(), true);
+                addCooldown(event.getUser());
 
-        }
+            }
 
 // !prefix - Changes the command prefix when it isn't the standard "!"
-        else if (arg[0].equalsIgnoreCase("!prefix") && !prefix.equals("!")) {
-            if (checkPerm(event.getUser(), 9001)) {
-                prefix = argJoiner(arg, 1);
-                sendMessage(event, "Command variable is now \"" + prefix + "\"", true);
-            } else {
-                permError(event.getUser());
+            else if (arg[0].equalsIgnoreCase("!prefix") && !prefix.equals("!")) {
+                if (checkPerm(event.getUser(), 9001)) {
+                    prefix = argJoiner(arg, 1);
+                    sendMessage(event, "Command variable is now \"" + prefix + "\"", true);
+                } else {
+                    permError(event.getUser());
+                }
             }
-        }
 
 // !prefix - Changes the command prefix
-        else if (commandChecker(event, arg, "prefix")) {
-            if (checkPerm(event.getUser(), 9001)) {
-                prefix = getArg(arg, 1);
-                if (prefix.length() > 1 && !prefix.endsWith(".")) {
-                    arrayOffset = 1;
+            else if (commandChecker(event, arg, "prefix")) {
+                if (checkPerm(event.getUser(), 9001)) {
+                    prefix = getArg(arg, 1);
+                    if (prefix.length() > 1 && !prefix.endsWith(".")) {
+                        arrayOffset = 1;
+                    } else {
+                        arrayOffset = 0;
+                    }
+                    sendMessage(event, "Command variable is now \"" + prefix + "\"", true);
                 } else {
-                    arrayOffset = 0;
+                    permError(event.getUser());
                 }
-                sendMessage(event, "Command variable is now \"" + prefix + "\"", true);
-            } else {
-                permError(event.getUser());
             }
-        }
 
 // !highlightAll - Highlights everyone
-        else if (commandChecker(event, arg, "highlightAll")) {
-            if (checkPerm(event.getUser(), 6)) {
-                sendMessage(event, argJoiner(arg, 1), false);
-            } else {
-                permErrorchn(event);
+            else if (commandChecker(event, arg, "highlightAll")) {
+                if (checkPerm(event.getUser(), 6)) {
+                    sendMessage(event, argJoiner(arg, 1), false);
+                } else {
+                    permErrorchn(event);
+                }
             }
-        }
 
 // !upload - Uploads a file to discord
-        else if (commandChecker(event, arg, "upload")) {
-            if (checkPerm(event.getUser(), 9001)) {
-                if (getArg(arg, 2) != null) {
-                    sendFile(event, new File(getArg(arg, 1)), argJoiner(arg, 2));
-                } else if (getArg(arg, 1) != null) {
-                    sendFile(event, new File(getArg(arg, 1)));
+            else if (commandChecker(event, arg, "upload")) {
+                if (checkPerm(event.getUser(), 9001)) {
+                    if (getArg(arg, 2) != null) {
+                        sendFile(event, new File(getArg(arg, 1)), argJoiner(arg, 2));
+                    } else if (getArg(arg, 1) != null) {
+                        sendFile(event, new File(getArg(arg, 1)));
+                    } else {
+                        sendMessage(event, "Fail", true);
+                    }
                 } else {
-                    sendMessage(event, "Fail", true);
+                    permErrorchn(event);
                 }
-            } else {
-                permErrorchn(event);
             }
-        }
 
 // !SayThis - Tells the bot to say something
-        else if (commandChecker(event, arg, "SayThis")) {
-            if (checkPerm(event.getUser(), 5)) {
-                sendMessage(event, argJoiner(arg, 1), false);
-            } else {
-                permErrorchn(event);
+            else if (commandChecker(event, arg, "SayThis")) {
+                if (checkPerm(event.getUser(), 5)) {
+                    sendMessage(event, argJoiner(arg, 1), false);
+                } else {
+                    permErrorchn(event);
+                }
             }
-        }
 
 // !makeDebug - reCreates the debug Window
-        else if (commandChecker(event, arg, "makeDebug")) {
-            if (checkPerm(event.getUser(), 9001)) {
-                makeDebug();
-            } else {
-                permErrorchn(event);
+            else if (commandChecker(event, arg, "makeDebug")) {
+                if (checkPerm(event.getUser(), 9001)) {
+                    makeDebug();
+                } else {
+                    permErrorchn(event);
+                }
             }
-        }
 
 // !makeDiscord - reCreates the discord connection
-        else if (commandChecker(event, arg, "makeDiscord")) {
-            if (checkPerm(event.getUser(), 9001)) {
-                try {
-                    makeDiscord();
-                } catch (Exception e) {
-                    sendError(event, e);
+            else if (commandChecker(event, arg, "makeDiscord")) {
+                if (checkPerm(event.getUser(), 9001)) {
+                    try {
+                        makeDiscord();
+                    } catch (Exception e) {
+                        sendError(event, e);
+                    }
+                } else {
+                    permErrorchn(event);
                 }
-            } else {
-                permErrorchn(event);
             }
-        }
 
 // !LoopSay - Tells the bot to say something and loop it
-        else if (commandChecker(event, arg, "LoopSay")) {
-            if (checkPerm(event.getUser(), 9001)) {
-                int i = Integer.parseInt(getArg(arg, 1));
-                int loopCount = 0;
-                try {
-                    while (i > loopCount) {
-                        sendMessage(event, argJoiner(arg, 2), false);
-                        loopCount++;
+            else if (commandChecker(event, arg, "LoopSay")) {
+                if (checkPerm(event.getUser(), 9001)) {
+                    int i = Integer.decode(getArg(arg, 1));
+                    int loopCount = 0;
+                    try {
+                        while (i > loopCount) {
+                            sendMessage(event, argJoiner(arg, 2), false);
+                            loopCount++;
+                        }
+                    } catch (Exception e) {
+                        sendError(event, e);
                     }
-                } catch (Exception e) {
-                    sendError(event, e);
-                }
 
-            } else {
-                permErrorchn(event);
+                } else {
+                    permErrorchn(event);
+                }
             }
-        }
 
 // !ToSciNo - converts a number to scientific notation
-        else if (commandChecker(event, arg, "ToSciNo")) {
-            NumberFormat formatter = new DecimalFormat("0.######E0");
+            else if (commandChecker(event, arg, "ToSciNo")) {
+                NumberFormat formatter = new DecimalFormat("0.######E0");
 
-            long num = Long.parseLong(getArg(arg, 1));
-            try {
-                sendMessage(event, formatter.format(num), true);
-            } catch (Exception e) {
-                sendError(event, e);
-                //log(e.toString());
+                long num = Long.parseLong(getArg(arg, 1));
+                try {
+                    sendMessage(event, formatter.format(num), true);
+                } catch (Exception e) {
+                    sendError(event, e);
+                    //log(e.toString());
+                }
+                addCooldown(event.getUser());
+
             }
-            addCooldown(event.getUser());
-
-        }
 
 // !DND - Dungeons and dragons. RNG the Game
-        else if (commandChecker(event, arg, "DND")) {
-            if (commandChecker(event, arg, "DND join")) {
-                sendMessage(event, "Syntax: " + prefix + "DND join <Character name> <Race (can be anything right now)> <Class> {<Familiar name> <Familiar Species>}", true);
-            } else {
-                if (getArg(arg, 1).equalsIgnoreCase("join")) {
-                    if (DNDJoined.contains(event.getUser().getNick())) {
-                        sendMessage(event, "You are already in the list!", true);
-                    } else {
-                        if (getArg(arg, 6) != null) {
-                            if (DNDPlayer.ifClassExists(getArg(arg, 4))) {
-                                if (DNDPlayer.ifSpeciesExists(getArg(arg, 6))) {
-                                    DNDList.add(new DNDPlayer(getArg(arg, 2),
-                                            getArg(arg, 3),
-                                            getArg(arg, 4),
-                                            event.getUser(),
-                                            getArg(arg, 5),
-                                            getArg(arg, 6)));
-                                    DNDJoined.add(event.getUser().getNick());
-                                    sendMessage(event, "Added \"" + getArg(arg, 2) + "\" the " + getArg(arg, 4) + " with " + getArg(arg, 5) + " The " + getArg(arg, 6) + " to the game", true);
+            else if (commandChecker(event, arg, "DND")) {
+                if (commandChecker(event, arg, "DND join")) {
+                    sendMessage(event, "Syntax: " + prefix + "DND join <Character name> <Race (can be anything right now)> <Class> {<Familiar name> <Familiar Species>}", true);
+                } else {
+                    if (getArg(arg, 1).equalsIgnoreCase("join")) {
+                        if (DNDJoined.contains(event.getUser().getNick())) {
+                            sendMessage(event, "You are already in the list!", true);
+                        } else {
+                            if (getArg(arg, 6) != null) {
+                                if (DNDPlayer.ifClassExists(getArg(arg, 4))) {
+                                    if (DNDPlayer.ifSpeciesExists(getArg(arg, 6))) {
+                                        DNDList.add(new DNDPlayer(getArg(arg, 2),
+                                                getArg(arg, 3),
+                                                getArg(arg, 4),
+                                                event.getUser(),
+                                                getArg(arg, 5),
+                                                getArg(arg, 6)));
+                                        DNDJoined.add(event.getUser().getNick());
+                                        sendMessage(event, "Added \"" + getArg(arg, 2) + "\" the " + getArg(arg, 4) + " with " + getArg(arg, 5) + " The " + getArg(arg, 6) + " to the game", true);
 
-                                    if (event.getUser().getNick().equalsIgnoreCase(currentNick)) {
-                                        debug.setPlayerName(DNDList.get(DNDJoined.indexOf(currentNick)).getName());
-                                        debug.setFamiliar(DNDList.get(DNDJoined.indexOf(currentNick)).getFamiliar().getName());
+                                        if (event.getUser().equals(currentUser)) {
+                                            debug.setPlayerName(DNDList.get(DNDJoined.indexOf(currentUser.getNick())).getName());
+                                            debug.setFamiliar(DNDList.get(DNDJoined.indexOf(currentUser.getNick())).getFamiliar().getName());
+                                        }
+                                    } else {
+                                        sendMessage(event, "Class doesn't exist", true);
                                     }
                                 } else {
                                     sendMessage(event, "Class doesn't exist", true);
                                 }
-                            } else {
-                                sendMessage(event, "Class doesn't exist", true);
-                            }
-                        } else if (getArg(arg, 5) != null) {
-                            if (DNDPlayer.ifClassExists(getArg(arg, 4))) {
-                                DNDList.add(new DNDPlayer(getArg(arg, 2),
-                                        getArg(arg, 3),
-                                        getArg(arg, 4),
-                                        event.getUser()));
-                                DNDJoined.add(event.getUser().getNick());
-                                sendMessage(event, "Added \"" + getArg(arg, 2) + "\" the " + getArg(arg, 4) + " to the game", true);
-                                if (event.getUser().getNick().equalsIgnoreCase(currentNick)) {
-                                    debug.setPlayerName(DNDList.get(DNDJoined.indexOf(currentNick)).getName());
+                            } else if (getArg(arg, 5) != null) {
+                                if (DNDPlayer.ifClassExists(getArg(arg, 4))) {
+                                    DNDList.add(new DNDPlayer(getArg(arg, 2),
+                                            getArg(arg, 3),
+                                            getArg(arg, 4),
+                                            event.getUser()));
+                                    DNDJoined.add(event.getUser().getNick());
+                                    sendMessage(event, "Added \"" + getArg(arg, 2) + "\" the " + getArg(arg, 4) + " to the game", true);
+                                    if (event.getUser().equals(currentUser)) {
+                                        debug.setPlayerName(DNDList.get(DNDJoined.indexOf(currentUser.getNick())).getName());
+                                    }
+                                } else {
+                                    sendMessage(event, "That class doesn't exist!", true);
                                 }
                             } else {
-                                sendMessage(event, "That class doesn't exist!", true);
-                            }
-                        } else {
-                            sendMessage(event, "Syntax: " + prefix + "DND join <Character name> <Race (can be anything right now)> <Class> {<Familiar name> <Familiar Species>}", true);
-                        }
-                    }
-                }
-            }
-            if (getArg(arg, 1).equalsIgnoreCase("info")) {
-                try {
-                    int index = DNDJoined.indexOf(event.getUser().getNick());
-                    if (index > -1) {
-                        setDebugInfo(event);
-                        sendMessage(event, DNDList.get(index).toString(), true);
-                    } else {
-                        sendMessage(event, "You have to join first!", true);
-                    }
-                } catch (Exception e) {
-                    sendError(event, e);
-                }
-            }
-            if (getArg(arg, 1).equalsIgnoreCase("List")) {
-                try {
-                    sendMessage(event, DNDList.toString(), true);
-                } catch (Exception e) {
-                    sendError(event, e);
-                }
-
-                setDebugInfo(event);
-            }
-            if (getArg(arg, 1).equalsIgnoreCase("ListClass")) {
-                sendMessage(event, "List of classes: " + Arrays.toString(DNDPlayer.DNDClasses.values()), true);
-            }
-            if (getArg(arg, 1).equalsIgnoreCase("ListSpecies")) {
-                sendMessage(event, "List of classes: " + Arrays.toString(DNDPlayer.DNDFamiliars.values()), true);
-            }
-            //noinspection StatementWithEmptyBody
-            if (getArg(arg, 1).equalsIgnoreCase("DM") && checkPerm(event.getUser(), 5)) {
-                DNDDungeonMaster = argJoiner(arg, 2);
-            }
-            if (getArg(arg, 1).equalsIgnoreCase("Test")) { //testing COMMANDS.
-                //checkPerm(event.getUser())
-                try {
-                    int index = DNDJoined.indexOf(event.getUser().getNick());
-                    if (getArg(arg, 2).equalsIgnoreCase("addItem")) {
-                        DNDList.get(index).addInventory(getArg(arg, 3));
-                        sendMessage(event, "Added " + getArg(arg, 3) + " to your inventory", true);
-                    }
-                    if (getArg(arg, 2).equalsIgnoreCase("getItems")) {
-                        sendMessage(event, DNDList.get(index).getInventory(), true);
-                    }
-                    if (getArg(arg, 2).equalsIgnoreCase("delItem")) {
-                        DNDList.get(index).removeFromInventory(getArg(arg, 3));
-                        sendMessage(event, "removed " + getArg(arg, 3) + " to your inventory", true);
-                    }
-                    if (getArg(arg, 2).equalsIgnoreCase("addXP")) {
-                        DNDList.get(index).addXP(Integer.parseInt(getArg(arg, 3)));
-                        sendMessage(event, "Added " + getArg(arg, 3) + " to your XP", true);
-                    }
-                    if (getArg(arg, 2).equalsIgnoreCase("addHP")) {
-                        DNDList.get(index).addHP(Integer.parseInt(getArg(arg, 3)));
-                        sendMessage(event, "Added " + getArg(arg, 3) + " to your HP", true);
-                    }
-                    if (getArg(arg, 2).equalsIgnoreCase("subHP")) {
-                        DNDList.get(index).hit(Integer.parseInt(getArg(arg, 3)));
-                        sendMessage(event, "Subbed " + getArg(arg, 3) + " from your HP", true);
-                    }
-                    if (getArg(arg, 2).equalsIgnoreCase("addXPFam")) {
-                        DNDList.get(index).getFamiliar().addXP(Integer.parseInt(getArg(arg, 3)));
-                        sendMessage(event, "Added " + getArg(arg, 3) + " to your familiar's XP", true);
-                    }
-                    if (getArg(arg, 2).equalsIgnoreCase("addHPFam")) {
-                        DNDList.get(index).getFamiliar().addHP(Integer.parseInt(getArg(arg, 3)));
-                        sendMessage(event, "Added " + getArg(arg, 3) + " to your familiar's HP", true);
-                    }
-                    if (getArg(arg, 2).equalsIgnoreCase("subHPFam")) {
-                        DNDList.get(index).getFamiliar().hit(Integer.parseInt(getArg(arg, 3)));
-                        sendMessage(event, "Subbed " + getArg(arg, 3) + " from your familiar's HP", true);
-                    }
-                    if (getArg(arg, 2).equalsIgnoreCase("getFamiliar")) {
-                        sendMessage(event, DNDList.get(index).getFamiliar().toString(), true);
-                    }
-                    if (getArg(arg, 2).equalsIgnoreCase("clearList")) {
-                        if (checkPerm(event.getUser(), 9001)) {
-                            DNDJoined.clear();
-                            DNDList.clear();
-                            sendMessage(event, "DND Player lists cleared", false);
-                        }
-                    }
-                    if (getArg(arg, 2).equalsIgnoreCase("DelChar")) {
-                        if (checkPerm(event.getUser(), 9001)) {
-                            if (DNDJoined.contains(getArg(arg, 3))) {
-                                DNDJoined.remove(index);
+                                sendMessage(event, "Syntax: " + prefix + "DND join <Character name> <Race (can be anything right now)> <Class> {<Familiar name> <Familiar Species>}", true);
                             }
                         }
                     }
-
-                    if (getArg(arg, 2).equalsIgnoreCase("setPos")) {
-                        DNDDungeon.setLocation(Integer.parseInt(getArg(arg, 3)), Integer.parseInt(getArg(arg, 4)));
-                        sendMessage(event, "Pos is now: " + DNDDungeon.toString(), true);
-
-                    }
-
-                    if (getArg(arg, 2).equalsIgnoreCase("getPos")) {
-                        Point temp = DNDDungeon.getLocation();
-                        sendMessage(event, "Current location: (" + temp.x + "," + temp.y + ")", true);
-                    }
-
-                    if (getArg(arg, 2).equalsIgnoreCase("movePos")) {
-                        DNDDungeon.move(Integer.parseInt(getArg(arg, 3)), Integer.parseInt(getArg(arg, 4)));
-                        Point temp = DNDDungeon.getLocation();
-                        sendMessage(event, "New location: (" + temp.x + "," + temp.y + ")", true);
-                    }
-
-                    if (getArg(arg, 2).equalsIgnoreCase("getSurroundings")) {
-                        int[] tiles = DNDDungeon.getSurrounding();
-                        sendMessage(event, " | " + tiles[7] + " | " + tiles[0] + " | " + tiles[1] + " | ", true);
-                        sendMessage(event, " | " + tiles[6] + " | " + tiles[8] + " | " + tiles[2] + " | ", true);
-                        sendMessage(event, " | " + tiles[5] + " | " + tiles[4] + " | " + tiles[3] + " | ", true);
-                    }
-
-                    int frameWidth = 300;
-                    int frameHeight = 300;
-                    if (getArg(arg, 2).equalsIgnoreCase("genDungeon")) {
-                        if (getArg(arg, 3) != null) {
-                            DNDDungeon = new Dungeon(Integer.parseInt(getArg(arg, 3)));
+                }
+                if (getArg(arg, 1).equalsIgnoreCase("info")) {
+                    try {
+                        int index = DNDJoined.indexOf(event.getUser().getNick());
+                        if (index > -1) {
+                            setDebugInfo(event);
+                            sendMessage(event, DNDList.get(index).toString(), true);
                         } else {
-                            DNDDungeon = new Dungeon();
+                            sendMessage(event, "You have to join first!", true);
                         }
-                        sendMessage(event, "Generated new dungeon", true);
-                        frame.dispose();
-                        frame = new JFrame();
-                        frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-                        frame.setAlwaysOnTop(true);
-                        frame.setSize(frameWidth, frameHeight);
-                        frame.setVisible(true);
-                        frame.getContentPane().add(new DrawWindow(DNDDungeon.getMap(), DNDDungeon.getMap_size(), DNDDungeon.getLocation()));
-                        frame.paintAll(frame.getGraphics());
+                    } catch (Exception e) {
+                        sendError(event, e);
+                    }
+                }
+                if (getArg(arg, 1).equalsIgnoreCase("List")) {
+                    try {
+                        sendMessage(event, DNDList.toString(), true);
+                    } catch (Exception e) {
+                        sendError(event, e);
                     }
 
-                    if (getArg(arg, 2).equalsIgnoreCase("draw")) {
-                        frame.dispose();
-                        frame = new JFrame();
-                        frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-                        frame.setAlwaysOnTop(true);
-                        frame.setSize(frameWidth, frameHeight);
-                        frame.setVisible(true);
-                        frame.getContentPane().add(new DrawWindow(DNDDungeon.getMap(), DNDDungeon.getMap_size(), DNDDungeon.getLocation()));
-                        frame.paintAll(frame.getGraphics());
-                    }
+                    setDebugInfo(event);
+                }
+                if (getArg(arg, 1).equalsIgnoreCase("ListClass")) {
+                    sendMessage(event, "List of classes: " + Arrays.toString(DNDPlayer.DNDClasses.values()), true);
+                }
+                if (getArg(arg, 1).equalsIgnoreCase("ListSpecies")) {
+                    sendMessage(event, "List of classes: " + Arrays.toString(DNDPlayer.DNDFamiliars.values()), true);
+                }
+                //noinspection StatementWithEmptyBody
+                if (getArg(arg, 1).equalsIgnoreCase("DM") && checkPerm(event.getUser(), 5)) {
+                    DNDDungeonMaster = argJoiner(arg, 2);
+                }
+                if (getArg(arg, 1).equalsIgnoreCase("Test")) { //testing COMMANDS.
+                    //checkPerm(event.getUser())
+                    try {
+                        int index = DNDJoined.indexOf(event.getUser().getNick());
+                        if (getArg(arg, 2).equalsIgnoreCase("addItem")) {
+                            DNDList.get(index).addInventory(getArg(arg, 3));
+                            sendMessage(event, "Added " + getArg(arg, 3) + " to your inventory", true);
+                        }
+                        if (getArg(arg, 2).equalsIgnoreCase("getItems")) {
+                            sendMessage(event, DNDList.get(index).getInventory(), true);
+                        }
+                        if (getArg(arg, 2).equalsIgnoreCase("delItem")) {
+                            DNDList.get(index).removeFromInventory(getArg(arg, 3));
+                            sendMessage(event, "removed " + getArg(arg, 3) + " to your inventory", true);
+                        }
+                        if (getArg(arg, 2).equalsIgnoreCase("addXP")) {
+                            DNDList.get(index).addXP(Integer.decode(getArg(arg, 3)));
+                            sendMessage(event, "Added " + getArg(arg, 3) + " to your XP", true);
+                        }
+                        if (getArg(arg, 2).equalsIgnoreCase("addHP")) {
+                            DNDList.get(index).addHP(Integer.decode(getArg(arg, 3)));
+                            sendMessage(event, "Added " + getArg(arg, 3) + " to your HP", true);
+                        }
+                        if (getArg(arg, 2).equalsIgnoreCase("subHP")) {
+                            DNDList.get(index).hit(Integer.decode(getArg(arg, 3)));
+                            sendMessage(event, "Subbed " + getArg(arg, 3) + " from your HP", true);
+                        }
+                        if (getArg(arg, 2).equalsIgnoreCase("addXPFam")) {
+                            DNDList.get(index).getFamiliar().addXP(Integer.decode(getArg(arg, 3)));
+                            sendMessage(event, "Added " + getArg(arg, 3) + " to your familiar's XP", true);
+                        }
+                        if (getArg(arg, 2).equalsIgnoreCase("addHPFam")) {
+                            DNDList.get(index).getFamiliar().addHP(Integer.decode(getArg(arg, 3)));
+                            sendMessage(event, "Added " + getArg(arg, 3) + " to your familiar's HP", true);
+                        }
+                        if (getArg(arg, 2).equalsIgnoreCase("subHPFam")) {
+                            DNDList.get(index).getFamiliar().hit(Integer.decode(getArg(arg, 3)));
+                            sendMessage(event, "Subbed " + getArg(arg, 3) + " from your familiar's HP", true);
+                        }
+                        if (getArg(arg, 2).equalsIgnoreCase("getFamiliar")) {
+                            sendMessage(event, DNDList.get(index).getFamiliar().toString(), true);
+                        }
+                        if (getArg(arg, 2).equalsIgnoreCase("clearList")) {
+                            if (checkPerm(event.getUser(), 9001)) {
+                                DNDJoined.clear();
+                                DNDList.clear();
+                                sendMessage(event, "DND Player lists cleared", false);
+                            }
+                        }
+                        if (getArg(arg, 2).equalsIgnoreCase("DelChar")) {
+                            if (checkPerm(event.getUser(), 9001)) {
+                                if (DNDJoined.contains(getArg(arg, 3))) {
+                                    DNDJoined.remove(index);
+                                }
+                            }
+                        }
 
-                    if (getArg(arg, 2).equalsIgnoreCase("upload")) {
-                        if (event instanceof DiscordMessageEvent) {
-                            BufferedImage bi = new BufferedImage(frame.getWidth(), frame.getHeight(), BufferedImage.TYPE_INT_ARGB);
-                            Graphics2D ig2 = bi.createGraphics();
-                            new DrawWindow(DNDDungeon.getMap(), DNDDungeon.getMap_size(), DNDDungeon.getLocation()).paint(ig2);
-                            File output = new File("./output_image.png");
-                            if (ImageIO.write(bi, "PNG", output)) {
-                                ((DiscordMessageEvent) event).getDiscordEvent().getTextChannel().sendFile(output, null);
+                        if (getArg(arg, 2).equalsIgnoreCase("setPos")) {
+                            DNDDungeon.setLocation(Integer.decode(getArg(arg, 3)), Integer.decode(getArg(arg, 4)));
+                            sendMessage(event, "Pos is now: " + DNDDungeon.toString(), true);
+
+                        }
+
+                        if (getArg(arg, 2).equalsIgnoreCase("getPos")) {
+                            Point temp = DNDDungeon.getLocation();
+                            sendMessage(event, "Current location: (" + temp.x + "," + temp.y + ")", true);
+                        }
+
+                        if (getArg(arg, 2).equalsIgnoreCase("movePos")) {
+                            DNDDungeon.move(Integer.decode(getArg(arg, 3)), Integer.decode(getArg(arg, 4)));
+                            Point temp = DNDDungeon.getLocation();
+                            sendMessage(event, "New location: (" + temp.x + "," + temp.y + ")", true);
+                        }
+
+                        if (getArg(arg, 2).equalsIgnoreCase("getSurroundings")) {
+                            int[] tiles = DNDDungeon.getSurrounding();
+                            sendMessage(event, " | " + tiles[7] + " | " + tiles[0] + " | " + tiles[1] + " | ", true);
+                            sendMessage(event, " | " + tiles[6] + " | " + tiles[8] + " | " + tiles[2] + " | ", true);
+                            sendMessage(event, " | " + tiles[5] + " | " + tiles[4] + " | " + tiles[3] + " | ", true);
+                        }
+
+                        int frameWidth = 300;
+                        int frameHeight = 300;
+                        if (getArg(arg, 2).equalsIgnoreCase("genDungeon")) {
+                            if (getArg(arg, 3) != null) {
+                                DNDDungeon = new Dungeon(Integer.decode(getArg(arg, 3)));
                             } else {
-                                sendMessage(event, "Looks like something broke...", true);
+                                DNDDungeon = new Dungeon();
                             }
-                        } else {
-                            sendMessage(event, "Sorry, this command only works on discord", true);
+                            sendMessage(event, "Generated new dungeon", true);
+                            frame.dispose();
+                            frame = new JFrame();
+                            frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+                            frame.setAlwaysOnTop(true);
+                            frame.setSize(frameWidth, frameHeight);
+                            frame.setVisible(true);
+                            frame.getContentPane().add(new DrawWindow(DNDDungeon.getMap(), DNDDungeon.getMap_size(), DNDDungeon.getLocation()));
+                            frame.paintAll(frame.getGraphics());
                         }
 
-                    }
-                } catch (NullPointerException e) {
-                    sendMessage(event, "You have to join first! (Null pointer)", true);
-                } catch (Exception e) {
-                    sendError(event, e);
-                }
-            }
-            setDebugInfo(event);
-            addCooldown(event.getUser());
+                        if (getArg(arg, 2).equalsIgnoreCase("draw")) {
+                            frame.dispose();
+                            frame = new JFrame();
+                            frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+                            frame.setAlwaysOnTop(true);
+                            frame.setSize(frameWidth, frameHeight);
+                            frame.setVisible(true);
+                            frame.getContentPane().add(new DrawWindow(DNDDungeon.getMap(), DNDDungeon.getMap_size(), DNDDungeon.getLocation()));
+                            frame.paintAll(frame.getGraphics());
+                        }
 
-        }
+                        if (getArg(arg, 2).equalsIgnoreCase("upload")) {
+                            if (event instanceof DiscordMessageEvent) {
+                                BufferedImage bi = new BufferedImage(frame.getWidth(), frame.getHeight(), BufferedImage.TYPE_INT_ARGB);
+                                Graphics2D ig2 = bi.createGraphics();
+                                new DrawWindow(DNDDungeon.getMap(), DNDDungeon.getMap_size(), DNDDungeon.getLocation()).paint(ig2);
+                                File output = new File("./output_image.png");
+                                if (ImageIO.write(bi, "PNG", output)) {
+                                    ((DiscordMessageEvent) event).getDiscordEvent().getTextChannel().sendFile(output, null);
+                                } else {
+                                    sendMessage(event, "Looks like something broke...", true);
+                                }
+                            } else {
+                                sendMessage(event, "Sorry, this command only works on discord", true);
+                            }
+
+                        }
+                    } catch (NullPointerException e) {
+                        sendMessage(event, "You have to join first! (Null pointer)", true);
+                    } catch (Exception e) {
+                        sendError(event, e);
+                    }
+                }
+                setDebugInfo(event);
+                addCooldown(event.getUser());
+
+            }
 
 // !S1TCG - Create Title card info
-        else if (commandChecker(event, arg, "S1TCG")) {
-            if (getArg(arg, 1) != null) {
-                try {
-                    List<String> title = S1TCG.process(formatStringArgs(arg));
-                    if (title.size() < 7) {
-                        for (String aTitle : title) {
-                            sendNotice(event, event.getUser().getNick(), aTitle);
+            else if (commandChecker(event, arg, "S1TCG")) {
+                if (getArg(arg, 1) != null) {
+                    try {
+                        List<String> title = S1TCG.process(formatStringArgs(arg));
+                        if (title.size() < 7) {
+                            for (String aTitle : title) {
+                                sendNotice(event, event.getUser().getNick(), aTitle);
+                            }
+                        } else {
+                            sendPage(event, arg, new LinkedList<>(title));
                         }
+                        addCooldown(event.getUser());
+                    } catch (Exception e) {
+                        sendError(event, e);
+                    }
+                } else {
+                    sendNotice(event, event.getUser().getNick(), "Incorrect arguments");
+                    getHelp(event, "s1tcg");
+                }
+
+            }
+
+// !68kTest - Tests 68k code
+            else if (commandChecker(event, arg, "68kTest")) {
+                if (getArg(arg, 1) == null) {
+                    sendMessage(event, "Missing args", true);
+                    return;
+                }
+                String[] args = formatStringArgs(splitMessage(message, 0, false));
+                ArgumentParser parser = ArgumentParsers.newArgumentParser("68kTest")
+                        .description("Simulates a M68k environment");
+                parser.addArgument("expression").nargs("*")
+                        .help("Code to execute");
+                parser.addArgument("-a", "--address").type(Long.class)
+                        .help("Sets what address to get");
+                parser.addArgument("-s", "--size").type(M68kSim.Size.class)
+                        .help("Sets what size of value to get");
+                parser.addArgument("-c", "--count").type(Integer.class).setDefault(1)
+                        .help("sets the amount of bytes to return");
+                parser.addArgument("--clear").type(Boolean.class).action(Arguments.storeTrue()).setDefault(false)
+                        .help("clears the memory");
+                Namespace ns;
+                try {
+                    ns = parser.parseArgs(args);
+                    LOGGER.debug(ns.toString());
+                    if (checkPerm(event.getUser(), 10) && getArg(arg, 1).equalsIgnoreCase("debug")) {
+                        if (getArg(arg, 2) == null) {
+                            sendMessage(event, "Missing args", true);
+                            return;
+                        }
+                        if (getArg(arg, 2).equalsIgnoreCase("dump")) {
+                            M68kSim.getInstance().memDump();
+                        } else if (getArg(arg, 2).equalsIgnoreCase("clear")) {
+                            M68kSim.getInstance().clearMem();
+                            M68kSim.getInstance().memDump();
+                        } else if (getArg(arg, 2).equalsIgnoreCase("start")) {
+                            sendMessage(event, "M68k ram starts at 0x" + String.format("%02X ", M68kSim.getInstance().getRamStart()), true);
+                        } else if (getArg(arg, 2).toLowerCase().startsWith("move")) {
+                            M68kSimImpl.Size[] sizes = M68kSimImpl.Size.values();
+                            for (M68kSimImpl.Size size : sizes) {
+                                if (size.getSymbol() == getArg(arg, 2).toLowerCase().charAt(getArg(arg, 2).length() - 1)) {
+                                    M68kSim.getInstance().move(size, Long.decode(getArg(arg, 3)), Integer.decode(getArg(arg, 4)));
+                                    break;
+                                }
+                            }
+                            M68kSim.getInstance().memDump();
+                        } else if (getArg(arg, 2).toLowerCase().startsWith("adda")) {
+                            M68kSimImpl.Size[] sizes = M68kSimImpl.Size.values();
+                            for (M68kSimImpl.Size size : sizes) {
+                                if (size.getSymbol() == getArg(arg, 2).toLowerCase().charAt(getArg(arg, 2).length() - 1)) {
+                                    M68kSim.getInstance().adda(size, Long.decode(getArg(arg, 3)), Integer.decode(getArg(arg, 4)));
+                                    break;
+                                }
+                            }
+                            M68kSim.getInstance().memDump();
+                        } else if (getArg(arg, 2).toLowerCase().startsWith("get")) {
+                            M68kSimImpl.Size[] sizes = M68kSimImpl.Size.values();
+                            for (M68kSimImpl.Size size : sizes) {
+                                if (size.getSymbol() == getArg(arg, 2).toLowerCase().charAt(getArg(arg, 2).length() - 1)) {
+                                    switch (size) {
+                                        case Byte:
+                                            sendMessage(event, "0x" + String.format("%02x", M68kSim.getInstance().getByte(Integer.decode(getArg(arg, 3)))).toUpperCase(), true);
+                                            break;
+                                        case Word:
+                                            sendMessage(event, "0x" + String.format("%02x", M68kSim.getInstance().getWord(Integer.decode(getArg(arg, 3)))).toUpperCase(), true);
+                                            break;
+                                        case LongWord:
+                                            sendMessage(event, "0x" + String.format("%02x", M68kSim.getInstance().getLongWord(Integer.decode(getArg(arg, 3)))).toUpperCase(), true);
+                                    }
+                                    break;
+                                }
+                            }
+                            M68kSim.getInstance().memDump();
+                        }
+                    }
+                } catch (Exception e) {
+                    sendError(event, e);
+                }
+            }
+
+// !acc/68kcyc/asmcyclecounter - counts asm cycles
+            else if (commandChecker(event, arg, "acc") || commandChecker(event, arg, "68kcyc") || commandChecker(event, arg, "asmcyclecounter")) {
+                try {
+                    Process process = new ProcessBuilder("asmcyclecount\\asmCycleCount.exe", "t", "t", "\t" + argJoiner(arg, 1).replace("||", "\r\n\t").replace("//", "\r\n\t")).start();
+                    //noinspection StatementWithEmptyBody
+                    process.waitFor();
+                    Scanner s = new Scanner(process.getInputStream());
+                    LinkedList<String> output = new LinkedList<>();
+                    while (s.hasNext()) {
+                        output.add(s.nextLine());
+                    }
+                    output = new LinkedList<>(output.subList(0, output.size() / 2));
+                    LOGGER.debug(output.toString());
+                    if (output.size() > 3) {
+                        sendPage(event, arg, output);
                     } else {
-                        sendPage(event, arg, new LinkedList<>(title));
+                        for (String anOutput : output) {
+                            sendMessage(event, anOutput.replace('\t', ' ').replace(";", "  ;"), true);
+                        }
                     }
                     addCooldown(event.getUser());
                 } catch (Exception e) {
                     sendError(event, e);
                 }
-            } else {
-                sendNotice(event, event.getUser().getNick(), "Incorrect arguments");
-                getHelp(event, "s1tcg");
-            }
 
-        }
-
-// !68kTest - Tests 68k code
-        else if (commandChecker(event, arg, "68kTest")) {
-            if (getArg(arg, 1) == null) {
-                sendMessage(event, "Missing args", true);
-                return;
             }
-            String[] args = formatStringArgs(splitMessage(message, 0, false));
-            ArgumentParser parser = ArgumentParsers.newArgumentParser("68kTest")
-                    .description("Simulates a M68k environment");
-            parser.addArgument("expression").nargs("*")
-                    .help("Code to execute");
-            parser.addArgument("-a", "--address").type(Long.class)
-                    .help("Sets what address to get");
-            parser.addArgument("-s", "--size").type(M68kSim.Size.class)
-                    .help("Sets what size of value to get");
-            parser.addArgument("-c", "--count").type(Integer.class).setDefault(1)
-                    .help("sets the amount of bytes to return");
-            parser.addArgument("--clear").type(Boolean.class).action(Arguments.storeTrue()).setDefault(false)
-                    .help("clears the memory");
-            Namespace ns;
-            try {
-                ns = parser.parseArgs(args);
-                LOGGER.debug(ns.toString());
-                if (checkPerm(event.getUser(), 10) && getArg(arg, 1).equalsIgnoreCase("debug")) {
-                    if (getArg(arg, 2) == null) {
-                        sendMessage(event, "Missing args", true);
-                        return;
-                    }
-                    if (getArg(arg, 2).equalsIgnoreCase("dump")) {
-                        M68kSim.memDump();
-                    }
-                }
-            } catch (Exception e) {
-                sendError(event, e);
-            }
-        }
-
-// !acc/68kcyc/asmcyclecounter - counts asm cycles
-        else if (commandChecker(event, arg, "acc") || commandChecker(event, arg, "68kcyc") || commandChecker(event, arg, "asmcyclecounter")) {
-            try {
-                Process process = new ProcessBuilder("asmcyclecount\\asmCycleCount.exe", "t", "t", "\t" + argJoiner(arg, 1).replace("||", "\r\n\t").replace("//", "\r\n\t")).start();
-                //noinspection StatementWithEmptyBody
-                process.waitFor();
-                Scanner s = new Scanner(process.getInputStream());
-                LinkedList<String> output = new LinkedList<>();
-                while (s.hasNext()) {
-                    output.add(s.nextLine());
-                }
-                output = new LinkedList<>(output.subList(0, output.size() / 2));
-                LOGGER.debug(output.toString());
-                if (output.size() > 3) {
-                    sendPage(event, arg, output);
-                } else {
-                    for (String anOutput : output) {
-                        sendMessage(event, anOutput.replace('\t', ' ').replace(";", "  ;"), true);
-                    }
-                }
-                addCooldown(event.getUser());
-            } catch (Exception e) {
-                sendError(event, e);
-            }
-
-        }
 
 // !disasm - disassembles machine code for the specified CPU
-        else if (commandChecker(event, arg, "disasm")) {
-            String byteStr = argJoiner(arg, 2).replace(" ", "");
-            byte[] bytes = DatatypeConverter.parseHexBinary(byteStr);
-            try (FileOutputStream fos = new FileOutputStream("Data\\temp.68k")) {
-                BufferedWriter delFile = new BufferedWriter(new FileWriter("Data\\temp.asm", false));
-                delFile.close();
-                fos.write(bytes);
-                String processor = getArg(arg, 1);
-                if (processor.equalsIgnoreCase("M68K")) {
-                    processor = "68000";
-                } else if (processor.equalsIgnoreCase("x86")) {
-                    processor = "8086";
-                }
-                Process process = new ProcessBuilder("C:\\Program Files (x86)\\IDA 6.8\\idaq", "-B", "-p" + processor, "data\\temp.68k").start();
-                //noinspection StatementWithEmptyBody
-                process.waitFor();
-                BufferedReader disasm = new BufferedReader(new FileReader("Data\\temp.asm"));
-                String disasmTemp;
-                boolean fileIsEmpty = true;
-                LinkedList<String> messagesToSend = new LinkedList<>();
-                while ((disasmTemp = disasm.readLine()) != null) {
-                    if (!disasmTemp.startsWith(";") &&          // Check for comments
-                            !disasmTemp.startsWith(" #") &&
-                            !disasmTemp.startsWith("#") &&
-                            !disasmTemp.toLowerCase().contains("end") &&     //Check for various metadata instructions
-                            !disasmTemp.toLowerCase().contains("seg000") &&
-                            !disasmTemp.contains(".text") &&
-                            !disasmTemp.contains(".set") &&
-                            !disasmTemp.contains(".model") &&
-                            !disasmTemp.contains(".8086") &&
-                            !disasmTemp.contains("segment") &&
-                            !disasmTemp.contains(".686p") &&
-                            !disasmTemp.contains(".mmx") &&
-                            !disasmTemp.contains("assume") &&
-                            !disasmTemp.contains(".section") &&
-                            !disasmTemp.isEmpty()) {
-                        messagesToSend.add(disasmTemp.replace("\t", " "));
-                        if (fileIsEmpty) {
-                            fileIsEmpty = false;
+            else if (commandChecker(event, arg, "disasm")) {
+                String byteStr = argJoiner(arg, 2).replace(" ", "");
+                byte[] bytes = DatatypeConverter.parseHexBinary(byteStr);
+                try (FileOutputStream fos = new FileOutputStream("Data\\temp.68k")) {
+                    BufferedWriter delFile = new BufferedWriter(new FileWriter("Data\\temp.asm", false));
+                    delFile.close();
+                    fos.write(bytes);
+                    String processor = getArg(arg, 1);
+                    if (processor.equalsIgnoreCase("M68K")) {
+                        processor = "68000";
+                    } else if (processor.equalsIgnoreCase("x86")) {
+                        processor = "8086";
+                    }
+                    Process process = new ProcessBuilder("C:\\Program Files (x86)\\IDA 6.8\\idaq", "-B", "-p" + processor, "data\\temp.68k").start();
+                    //noinspection StatementWithEmptyBody
+                    process.waitFor();
+                    BufferedReader disasm = new BufferedReader(new FileReader("Data\\temp.asm"));
+                    String disasmTemp;
+                    boolean fileIsEmpty = true;
+                    LinkedList<String> messagesToSend = new LinkedList<>();
+                    while ((disasmTemp = disasm.readLine()) != null) {
+                        if (!disasmTemp.startsWith(";") &&          // Check for comments
+                                !disasmTemp.startsWith(" #") &&
+                                !disasmTemp.startsWith("#") &&
+                                !disasmTemp.toLowerCase().contains("end") &&     //Check for various metadata instructions
+                                !disasmTemp.toLowerCase().contains("seg000") &&
+                                !disasmTemp.contains(".text") &&
+                                !disasmTemp.contains(".set") &&
+                                !disasmTemp.contains(".model") &&
+                                !disasmTemp.contains(".8086") &&
+                                !disasmTemp.contains("segment") &&
+                                !disasmTemp.contains(".686p") &&
+                                !disasmTemp.contains(".mmx") &&
+                                !disasmTemp.contains("assume") &&
+                                !disasmTemp.contains(".section") &&
+                                !disasmTemp.isEmpty()) {
+                            messagesToSend.add(disasmTemp.replace("\t", " "));
+                            if (fileIsEmpty) {
+                                fileIsEmpty = false;
+                            }
                         }
                     }
-                }
-                disasm.close();
-                if (fileIsEmpty) {
-                    sendMessage(event, "Processor is either not supported or some other error has occurred: Empty File", true);
-                } else {
-                    if (messagesToSend.size() > 3) {
-                        sendPage(event, arg, messagesToSend);
+                    disasm.close();
+                    if (fileIsEmpty) {
+                        sendMessage(event, "Processor is either not supported or some other error has occurred: Empty File", true);
                     } else {
-                        for (String aMessagesToSend : messagesToSend) {
-                            sendMessage(event, aMessagesToSend, true);
+                        if (messagesToSend.size() > 3) {
+                            sendPage(event, arg, messagesToSend);
+                        } else {
+                            for (String aMessagesToSend : messagesToSend) {
+                                sendMessage(event, aMessagesToSend, true);
+                            }
                         }
                     }
+                    addCooldown(event.getUser());
+                } catch (IllegalArgumentException e) {
+                    sendMessage(event, "Arguments have to be a Hexadecimal number: " + e.getCause(), true);
+                } catch (Exception e) {
+                    sendError(event, e);
                 }
-                addCooldown(event.getUser());
-            } catch (IllegalArgumentException e) {
-                sendMessage(event, "Arguments have to be a Hexadecimal number: " + e.getCause(), true);
-            } catch (Exception e) {
-                sendError(event, e);
-            }
 
-        }
+            }
 
 // !Trans - Translate from 1 language to another
-        else if (commandChecker(event, arg, "trans")) {
-            String text;
-            LOGGER.debug("Setting key");
-            YandexTranslatorAPI.setKey("trnsl.1.1.20150924T011621Z.e06050bb431b7175.e5452b78ee8d11e4b736035e5f99f2831a57d0e2");
-            String[] args = formatStringArgs(arg);
-            ArgumentParser parser = ArgumentParsers.newArgumentParser("Trans")
-                    .description("Translates from one language to another");
-            parser.addArgument("text").nargs("*")
-                    .help("Text to translate");
-            parser.addArgument("-t", "--to").type(String.class).setDefault("English")
-                    .help("Sets language to translate to");
-            parser.addArgument("-f", "--from").type(String.class).setDefault("detect")
-                    .help("Sets language to translate from");
-            parser.addArgument("-d", "--detect").type(Boolean.class).action(Arguments.storeTrue()).setDefault(false)
-                    .help("Kill the thread");
-            Namespace ns;
-            try {
-                ns = parser.parseArgs(args);
-
-                LOGGER.debug(ns.toString());
-                if (ns.getBoolean("detect")) {
-                    sendMessage(event, fullNameToString(Detect.execute(ns.getString("text"))), true);
-                } else {
-                    //noinspection SuspiciousToArrayCall
-                    String textToTrans = argJoiner(ns.getList("text").toArray(new String[]{}), 0);
-                    Language to = Language.valueOf(ns.getString("to").toUpperCase());
-                    Language from;
-                    if (ns.getString("from").equals("detect")) {
-                        from = Detect.execute(textToTrans);
-                    } else {
-                        from = Language.valueOf(ns.getString("from").toUpperCase());
-                    }
-                    text = Translate.execute(textToTrans, from, to);
-                    LOGGER.debug("Translating: " + text);
-                    sendMessage(event, text, true);
-                }
-                addCooldown(event.getUser());
-            } catch (IllegalArgumentException e) {
-                sendError(event, new Exception("That Language doesn't exist!"));
-            } catch (ArgumentParserException e) {
+            else if (commandChecker(event, arg, "trans")) {
+                String text;
+                LOGGER.debug("Setting key");
+                YandexTranslatorAPI.setKey("trnsl.1.1.20150924T011621Z.e06050bb431b7175.e5452b78ee8d11e4b736035e5f99f2831a57d0e2");
+                String[] args = formatStringArgs(arg);
+                ArgumentParser parser = ArgumentParsers.newArgumentParser("Trans")
+                        .description("Translates from one language to another");
+                parser.addArgument("text").nargs("*")
+                        .help("Text to translate");
+                parser.addArgument("-t", "--to").type(String.class).setDefault("English")
+                        .help("Sets language to translate to");
+                parser.addArgument("-f", "--from").type(String.class).setDefault("detect")
+                        .help("Sets language to translate from");
+                parser.addArgument("-d", "--detect").type(Boolean.class).action(Arguments.storeTrue()).setDefault(false)
+                        .help("Kill the thread");
+                Namespace ns;
                 try {
-                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                    PrintWriter ps = new PrintWriter(new PrintStream(baos, true, "utf-8"));
-                    parser.printHelp(ps);
-                    String content = new String(baos.toByteArray(), java.nio.charset.StandardCharsets.UTF_8);
-                    LOGGER.debug(content);
-                    String[] lines = splitMessage(content, 0, false);
-                    sendMessage(event, Arrays.toString(lines), true);
-                } catch (Exception ex) {
-                    sendError(event, ex);
-                }
-            } catch (Exception e) {
-                sendError(event, e);
-            }
-        }
+                    ns = parser.parseArgs(args);
 
-// !BadTrans - Translate from english to.... english... badly
-        else if (commandChecker(event, arg, "BadTrans")) {
-            String text;
-            LOGGER.debug("Setting key");
-            YandexTranslatorAPI.setKey("trnsl.1.1.20150924T011621Z.e06050bb431b7175.e5452b78ee8d11e4b736035e5f99f2831a57d0e2");
-            try {
-                if (getArg(arg, 1) != null) {
-                    text = argJoiner(arg, 1);
-                    System.out.print("Translating: " + text + " - ");
-                    text = Translate.execute(text, Language.ENGLISH, Language.JAPANESE);
-                    System.out.print("Translating: " + text + " - ");
-                    text = Translate.execute(text, Language.JAPANESE, Language.VIETNAMESE);
-                    System.out.print("Translating: " + text + " - ");
-                    text = Translate.execute(text, Language.VIETNAMESE, Language.CHINESE);
-                    System.out.print("Translating: " + text + " - ");
-                    text = Translate.execute(text, Language.CHINESE, Language.ENGLISH);
-                    LOGGER.debug("Translating: " + text);
-                    sendMessage(event, text, true);
-                } else {
-                    sendMessage(event, ">_>", true);
-                }
-                addCooldown(event.getUser());
-            } catch (IllegalArgumentException e) {
-                sendError(event, new Exception("That class doesn't exist!"));
-            } catch (Exception e) {
-                sendError(event, e);
-            }
-        }
-
-// !DebugVar - changes a variable to the value
-        else if (commandChecker(event, arg, "DebugVar")) {
-            if (checkPerm(event.getUser(), 9001)) {
-                switch (getArg(arg, 1).toLowerCase()) { //Make sure strings are lowercase
-                    case "i":
-                        int i = Integer.parseInt(getArg(arg, 2));
-                        sendMessage(event, "DEBUG: Var \"i\" is now \"" + i + "\"", true);
-                        break;
-                    case "jokenum":
-                        jokeCommandDebugVar = Integer.parseInt(getArg(arg, 2));
-                        sendMessage(event, "DEBUG: Var \"jokeCommandDebugVar\" is now \"" + jokeCommandDebugVar + "\"", true);
-                }
-            } else {
-                permErrorchn(event);
-            }
-        }
-
-// !cmd - Tells the bot to run a OS command
-        else if (commandChecker(event, arg, "cmd")) {
-            if (checkPerm(event.getUser(), 9001)) {
-                try {
-                    if (getArg(arg, 1).equalsIgnoreCase("stop")) {
-                        sendMessage(event, "Stopping", true);
-                        singleCMD.interrupt();
+                    LOGGER.debug(ns.toString());
+                    if (ns.getBoolean("detect")) {
+                        sendMessage(event, fullNameToString(Detect.execute(ns.getString("text"))), true);
                     } else {
-                        try {
-                            singleCMD = new CMD(event, arg);
-                            singleCMD.start();
-                        } catch (Exception e) {
-                            sendError(event, e);
+                        //noinspection SuspiciousToArrayCall
+                        String textToTrans = argJoiner(ns.getList("text").toArray(new String[]{}), 0);
+                        Language to = Language.valueOf(ns.getString("to").toUpperCase());
+                        Language from;
+                        if (ns.getString("from").equals("detect")) {
+                            from = Detect.execute(textToTrans);
+                        } else {
+                            from = Language.valueOf(ns.getString("from").toUpperCase());
                         }
+                        text = Translate.execute(textToTrans, from, to);
+                        LOGGER.debug("Translating: " + text);
+                        sendMessage(event, text, true);
+                    }
+                    addCooldown(event.getUser());
+                } catch (IllegalArgumentException e) {
+                    sendError(event, new Exception("That Language doesn't exist!"));
+                } catch (ArgumentParserException e) {
+                    try {
+                        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                        PrintWriter ps = new PrintWriter(new PrintStream(baos, true, "utf-8"));
+                        parser.printHelp(ps);
+                        String content = new String(baos.toByteArray(), java.nio.charset.StandardCharsets.UTF_8);
+                        LOGGER.debug(content);
+                        String[] lines = splitMessage(content, 0, false);
+                        sendMessage(event, Arrays.toString(lines), true);
+                    } catch (Exception ex) {
+                        sendError(event, ex);
                     }
                 } catch (Exception e) {
                     sendError(event, e);
                 }
-            } else {
-                permError(event.getUser());
             }
-        }
 
-// > - runs COMMANDS without closing at the end
-        else if (arg[0].startsWith(consolePrefix)) {
-            if (checkPerm(event.getUser(), 9001)) {
-                if (arg[0].substring(consolePrefix.length()).equalsIgnoreCase(consolePrefix + "start")) {
-                    terminal.interrupt();
-                    terminal = new CommandLine(event, trimFrontOfArray(arg, 1));
-                    terminal.start();
-                    sendMessage(event, "Command line started", false);
-                } else if (arg[0].substring(consolePrefix.length()).equalsIgnoreCase(consolePrefix + "close")) {
-                    terminal.doCommand(event, "exit");
-                } else if (arg[0].substring(consolePrefix.length()).equalsIgnoreCase(consolePrefix + "stop")) {
-                    terminal.interrupt();
-                } else if (arg[0].substring(consolePrefix.length()).equalsIgnoreCase(consolePrefix + "prefix")) {
-                    consolePrefix = arg[1];
-                    sendMessage(event, "Console Prefix is now " + consolePrefix, true);
-                } else {
-                    String command = message.substring(1);
-                    terminal.doCommand(event, command);
-                    LOGGER.debug("Running " + command);
+// !BadTrans - Translate from english to.... english... badly
+            else if (commandChecker(event, arg, "BadTrans")) {
+                String text;
+                LOGGER.debug("Setting key");
+                YandexTranslatorAPI.setKey("trnsl.1.1.20150924T011621Z.e06050bb431b7175.e5452b78ee8d11e4b736035e5f99f2831a57d0e2");
+                try {
+                    if (getArg(arg, 1) != null) {
+                        text = argJoiner(arg, 1);
+                        System.out.print("Translating: " + text + " - ");
+                        text = Translate.execute(text, Language.ENGLISH, Language.JAPANESE);
+                        System.out.print("Translating: " + text + " - ");
+                        text = Translate.execute(text, Language.JAPANESE, Language.VIETNAMESE);
+                        System.out.print("Translating: " + text + " - ");
+                        text = Translate.execute(text, Language.VIETNAMESE, Language.CHINESE);
+                        System.out.print("Translating: " + text + " - ");
+                        text = Translate.execute(text, Language.CHINESE, Language.ENGLISH);
+                        LOGGER.debug("Translating: " + text);
+                        sendMessage(event, text, true);
+                    } else {
+                        sendMessage(event, ">_>", true);
+                    }
+                    addCooldown(event.getUser());
+                } catch (IllegalArgumentException e) {
+                    sendError(event, new Exception("That class doesn't exist!"));
+                } catch (Exception e) {
+                    sendError(event, e);
                 }
             }
-        } else if (arg[0].equalsIgnoreCase("\\\\prefix")) {
-            if (checkPerm(event.getUser(), 9001)) {
-                consolePrefix = arg[1];
-                sendMessage(event, "Console Prefix is now " + consolePrefix, true);
+
+// !DebugVar - changes a variable to the value
+            else if (commandChecker(event, arg, "DebugVar")) {
+                if (checkPerm(event.getUser(), 9001)) {
+                    switch (getArg(arg, 1).toLowerCase()) { //Make sure strings are lowercase
+                        case "i":
+                            int i = Integer.decode(getArg(arg, 2));
+                            sendMessage(event, "DEBUG: Var \"i\" is now \"" + i + "\"", true);
+                            break;
+                        case "jokenum":
+                            jokeCommandDebugVar = Integer.decode(getArg(arg, 2));
+                            sendMessage(event, "DEBUG: Var \"jokeCommandDebugVar\" is now \"" + jokeCommandDebugVar + "\"", true);
+                    }
+                } else {
+                    permErrorchn(event);
+                }
             }
-        }
+
+// !cmd - Tells the bot to run a OS command
+            else if (commandChecker(event, arg, "cmd")) {
+                if (checkPerm(event.getUser(), 9001)) {
+                    try {
+                        if (getArg(arg, 1).equalsIgnoreCase("stop")) {
+                            sendMessage(event, "Stopping", true);
+                            singleCMD.interrupt();
+                        } else {
+                            try {
+                                singleCMD = new CMD(event, arg);
+                                singleCMD.start();
+                            } catch (Exception e) {
+                                sendError(event, e);
+                            }
+                        }
+                    } catch (Exception e) {
+                        sendError(event, e);
+                    }
+                } else {
+                    permError(event.getUser());
+                }
+            }
+
+// > - runs COMMANDS without closing at the end
+            else if (arg[0].startsWith(consolePrefix)) {
+                if (checkPerm(event.getUser(), 9001)) {
+                    if (arg[0].substring(consolePrefix.length()).equalsIgnoreCase(consolePrefix + "start")) {
+                        terminal.interrupt();
+                        terminal = new CommandLine(event, trimFrontOfArray(arg, 1));
+                        terminal.start();
+                        sendMessage(event, "Command line started", false);
+                    } else if (arg[0].substring(consolePrefix.length()).equalsIgnoreCase(consolePrefix + "close")) {
+                        terminal.doCommand(event, "exit");
+                    } else if (arg[0].substring(consolePrefix.length()).equalsIgnoreCase(consolePrefix + "stop")) {
+                        terminal.interrupt();
+                    } else if (arg[0].substring(consolePrefix.length()).equalsIgnoreCase(consolePrefix + "prefix")) {
+                        consolePrefix = arg[1];
+                        sendMessage(event, "Console Prefix is now " + consolePrefix, true);
+                    } else {
+                        String command = message.substring(1);
+                        terminal.doCommand(event, command);
+                        LOGGER.debug("Running " + command);
+                    }
+                }
+            } else if (arg[0].equalsIgnoreCase("\\\\prefix")) {
+                if (checkPerm(event.getUser(), 9001)) {
+                    consolePrefix = arg[1];
+                    sendMessage(event, "Console Prefix is now " + consolePrefix, true);
+                }
+            }
 
 // !SayRaw - Tells the bot to send a raw line
-        else if (commandChecker(event, arg, "SayRaw")) {
-            if (checkPerm(event.getUser(), 9001)) {
-                bot.sendRaw().rawLineNow(argJoiner(arg, 1));
-            } else {
-                permErrorchn(event);
+            else if (commandChecker(event, arg, "SayRaw")) {
+                if (checkPerm(event.getUser(), 9001)) {
+                    bot.sendRaw().rawLineNow(argJoiner(arg, 1));
+                } else {
+                    permErrorchn(event);
+                }
             }
-        }
 
 // !SayNotice - Tells the bot to send a notice
-        else if (commandChecker(event, arg, "SayNotice")) {
-            if (checkPerm(event.getUser(), 6)) {
-                bot.sendIRC().notice(getArg(arg, 1), argJoiner(arg, 2));
-            } else {
-                permErrorchn(event);
+            else if (commandChecker(event, arg, "SayNotice")) {
+                if (checkPerm(event.getUser(), 6)) {
+                    bot.sendIRC().notice(getArg(arg, 1), argJoiner(arg, 2));
+                } else {
+                    permErrorchn(event);
+                }
             }
-        }
 
 // !SayCTCPCommand - Tells the bot to send a CTCP Command
-        else if (commandChecker(event, arg, "SayCTCPCommand")) {
-            if (checkPerm(event.getUser(), 9001)) {
-                bot.sendIRC().ctcpCommand(getArg(arg, 1), argJoiner(arg, 2));
-            } else {
-                permErrorchn(event);
+            else if (commandChecker(event, arg, "SayCTCPCommand")) {
+                if (checkPerm(event.getUser(), 9001)) {
+                    bot.sendIRC().ctcpCommand(getArg(arg, 1), argJoiner(arg, 2));
+                } else {
+                    permErrorchn(event);
+                }
             }
-        }
 
 //// !SayMethod - Tells the bot to run a method
 //		if (arguments[0].equalsIgnoreCase(prefix + "sayMethod")){
@@ -3314,258 +3356,260 @@ public class FozruciX extends ListenerAdapter {
 //		}
 
 // !leave - Tells the bot to leave the current channel
-        else if (commandChecker(event, arg, "leave")) {
-            if (checkPerm(event.getUser(), 5)) {
-                if (!commandChecker(event, arg, "leave")) {
-                    event.getChannel().send().part(argJoiner(arg, 2));
-                } else {
-                    event.getChannel().send().part("Ugh... Why do i always get the freaks...");
+            else if (commandChecker(event, arg, "leave")) {
+                if (checkPerm(event.getUser(), 5)) {
+                    if (!commandChecker(event, arg, "leave")) {
+                        event.getChannel().send().part(argJoiner(arg, 2));
+                    } else {
+                        event.getChannel().send().part("Ugh... Why do i always get the freaks...");
+                    }
+                } else if (network != Network.twitch) {
+                    permErrorchn(event);
                 }
-            } else if (network != Network.twitch) {
-                permErrorchn(event);
             }
-        }
 
 // !ReVoice - gives everyone voice if they didn't get it
-        else if (commandChecker(event, arg, "ReVoice")) {
-            for (User user1 : event.getChannel().getUsers()) {
-                user1.send().mode("+v");
+            else if (commandChecker(event, arg, "ReVoice")) {
+                for (User user1 : event.getChannel().getUsers()) {
+                    user1.send().mode("+v");
+                }
             }
-        }
 
 // !kill - Tells the bot to disconnect from server and exit
-        else if (commandChecker(event, arg, "kill")) {
-            if (checkPerm(event.getUser(), 9001)) {
-                //noinspection ConstantConditions
-                saveData();
-                event.getUser().send().notice("Disconnecting from server and exiting");
-                try {
-                    Thread exit = new Thread(() -> {
-                        if (getArg(arg, 1) != null) {
-                            manager.stop(argJoiner(arg, 1));
-                        } else {
-                            manager.stop("I'm only a year old and have already wasted my entire life.");
-                        }
-                        try {
-                            pause(1);
-                            System.exit(0);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    }, "Exit-thread");
-                    exit.start();
-                    //noinspection StatementWithEmptyBody
-                    pause(5);
-                } catch (Exception ignored) {
+            else if (commandChecker(event, arg, "kill")) {
+                if (checkPerm(event.getUser(), 9001)) {
+                    //noinspection ConstantConditions
+                    saveData();
+                    event.getUser().send().notice("Disconnecting from server and exiting");
+                    try {
+                        Thread exit = new Thread(() -> {
+                            if (getArg(arg, 1) != null) {
+                                manager.stop(argJoiner(arg, 1));
+                            } else {
+                                manager.stop("I'm only a year old and have already wasted my entire life.");
+                            }
+                            try {
+                                pause(1);
+                                System.exit(0);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }, "Exit-thread");
+                        exit.start();
+                        //noinspection StatementWithEmptyBody
+                        pause(5);
+                    } catch (Exception ignored) {
+                    }
+                    System.exit(0);
+                } else {
+                    permErrorchn(event);
                 }
-                System.exit(0);
-            } else {
-                permErrorchn(event);
             }
-        }
 
 // !quitServ - Tells the bot to disconnect from server
-        else if (commandChecker(event, arg, "quitServ")) {
-            if (checkPerm(event.getUser(), 9001)) {
-                //noinspection ConstantConditions
-                saveData();
-                event.getUser().send().notice("Disconnecting from server");
-                if (getArg(arg, 1) != null) {
-                    bot.sendIRC().quitServer(argJoiner(arg, 1));
+            else if (commandChecker(event, arg, "quitServ")) {
+                if (checkPerm(event.getUser(), 9001)) {
+                    //noinspection ConstantConditions
+                    saveData();
+                    event.getUser().send().notice("Disconnecting from server");
+                    if (getArg(arg, 1) != null) {
+                        bot.sendIRC().quitServer(argJoiner(arg, 1));
+                    } else {
+                        bot.sendIRC().quitServer("I'm only a year old and have already wasted my entire life.");
+                    }
+                    bot.stopBotReconnect();
                 } else {
-                    bot.sendIRC().quitServer("I'm only a year old and have already wasted my entire life.");
+                    permErrorchn(event);
                 }
-                bot.stopBotReconnect();
-            } else {
-                permErrorchn(event);
             }
-        }
 
 
 // !respawn - Tells the bot to restart and reconnect
-        else if (commandChecker(event, arg, "respawn")) {
-            if (checkPerm(event.getUser(), 5)) {
-                saveData();
-                bot.sendIRC().quitServer("Died! Respawning in about 5 seconds");
-            } else {
-                permErrorchn(event);
+            else if (commandChecker(event, arg, "respawn")) {
+                if (checkPerm(event.getUser(), 5)) {
+                    saveData();
+                    bot.sendIRC().quitServer("Died! Respawning in about 5 seconds");
+                } else {
+                    permErrorchn(event);
+                }
             }
-        }
 
 // !recycle - Tells the bot to part and rejoin the channel
-        else if (commandChecker(event, arg, "recycle")) {
-            if (checkPerm(event.getUser(), 2)) {
-                saveData();
-                event.getChannel().send().cycle();
-                addCooldown(event.getUser());
-            } else {
-                permErrorchn(event);
+            else if (commandChecker(event, arg, "recycle")) {
+                if (checkPerm(event.getUser(), 2)) {
+                    saveData();
+                    event.getChannel().send().cycle();
+                    addCooldown(event.getUser());
+                } else {
+                    permErrorchn(event);
+                }
             }
-        }
 
 // !getUserLevels - gets the user levels of the user
-        else if (commandChecker(event, arg, "getUserLevels")) {
-            if (channel == null) {
-                return;
-            }
-            try {
-                List<UserLevel> userLevels = Lists.newArrayList(event.getUser().getUserLevels(event.getChannel()).iterator());
-                sendMessage(event, userLevels.toString(), true);
-                addCooldown(event.getUser());
-            } catch (Exception e) {
-                sendError(event, e);
-            }
+            else if (commandChecker(event, arg, "getUserLevels")) {
+                if (channel == null) {
+                    return;
+                }
+                try {
+                    List<UserLevel> userLevels = Lists.newArrayList(event.getUser().getUserLevels(event.getChannel()).iterator());
+                    sendMessage(event, userLevels.toString(), true);
+                    addCooldown(event.getUser());
+                } catch (Exception e) {
+                    sendError(event, e);
+                }
 
-        }
+            }
 
 // !getCpu - Gets info about CPU
-        else if (commandChecker(event, arg, "getCpu")) {
-            try {
-                String processorTime = getWMIValue("Select PercentProcessorTime from Win32_PerfFormattedData_PerfOS_Processor ", "Name");
-                sendMessage(event, "Processor time: " + processorTime, true);
-                addCooldown(event.getUser());
-            } catch (Exception e) {
-                sendError(event, e);
-            }
+            else if (commandChecker(event, arg, "getCpu")) {
+                try {
+                    String processorTime = getWMIValue("Select PercentProcessorTime from Win32_PerfFormattedData_PerfOS_Processor ", "Name");
+                    sendMessage(event, "Processor time: " + processorTime, true);
+                    addCooldown(event.getUser());
+                } catch (Exception e) {
+                    sendError(event, e);
+                }
 
-        }
+            }
 
 // !getBat - Gets info about battery
-        else if (commandChecker(event, arg, "getBat")) {
-            try {
-                String statuses[] = {"discharging",
-                        "The system has access to AC so no battery is being discharged. However, the battery is not necessarily charging.",
-                        "fully charged",
-                        "low",
-                        "critical",
-                        "charging",
-                        "charging and high",
-                        "charging and low",
-                        "charging and critical",
-                        "UNDEFINED",
-                        "partially charged"};
-                int batteryStatus = Integer.parseInt(getWMIValue("Select BatteryStatus from Win32_Battery", "BatteryStatus"));
-                String batteryPercentRemaining = getWMIValue("Select EstimatedChargeRemaining from Win32_Battery", "EstimatedChargeRemaining");
-                sendMessage(event, "Remaining battery: " + batteryPercentRemaining + "% Battery status: " + statuses[batteryStatus], true);
-                addCooldown(event.getUser());
-            } catch (Exception e) {
-                sendError(event, e);
-            }
+            else if (commandChecker(event, arg, "getBat")) {
+                try {
+                    String statuses[] = {"discharging",
+                            "The system has access to AC so no battery is being discharged. However, the battery is not necessarily charging.",
+                            "fully charged",
+                            "low",
+                            "critical",
+                            "charging",
+                            "charging and high",
+                            "charging and low",
+                            "charging and critical",
+                            "UNDEFINED",
+                            "partially charged"};
+                    int batteryStatus = Integer.decode(getWMIValue("Select BatteryStatus from Win32_Battery", "BatteryStatus"));
+                    String batteryPercentRemaining = getWMIValue("Select EstimatedChargeRemaining from Win32_Battery", "EstimatedChargeRemaining");
+                    sendMessage(event, "Remaining battery: " + batteryPercentRemaining + "% Battery status: " + statuses[batteryStatus], true);
+                    addCooldown(event.getUser());
+                } catch (Exception e) {
+                    sendError(event, e);
+                }
 
-        }
+            }
 
 // !getMem - Gets various info about memory
-        else if (commandChecker(event, arg, "getMem")) {
-            Runtime runtime = Runtime.getRuntime();
-            String send = "Current memory usage: " + formatFileSize(runtime.totalMemory() - runtime.freeMemory()) + "/" + formatFileSize(runtime.totalMemory()) + ". Total memory that can be used: " + formatFileSize(runtime.maxMemory()) + ".  Active Threads: " + Thread.activeCount() + "/" + ManagementFactory.getThreadMXBean().getThreadCount() + ".  Available Processors: " + runtime.availableProcessors();
-            sendMessage(event, send, false);
-            addCooldown(event.getUser());
+            else if (commandChecker(event, arg, "getMem")) {
+                Runtime runtime = Runtime.getRuntime();
+                String send = "Current memory usage: " + formatFileSize(runtime.totalMemory() - runtime.freeMemory()) + "/" + formatFileSize(runtime.totalMemory()) + ". Total memory that can be used: " + formatFileSize(runtime.maxMemory()) + ".  Active Threads: " + Thread.activeCount() + "/" + ManagementFactory.getThreadMXBean().getThreadCount() + ".  Available Processors: " + runtime.availableProcessors();
+                sendMessage(event, send, false);
+                addCooldown(event.getUser());
 
-        }
+            }
 
 // !getDiscordStatus - does what it says
-        else if (commandChecker(event, arg, "getDiscordStatus")) {
-            try {
-                sendMessage(event, DiscordAdapter.getJda().getStatus().toString(), false);
-            } catch (Exception e) {
-                sendError(event, e);
+            else if (commandChecker(event, arg, "getDiscordStatus")) {
+                try {
+                    sendMessage(event, DiscordAdapter.getJda().getStatus().toString(), false);
+                } catch (Exception e) {
+                    sendError(event, e);
+                }
+
             }
 
-        }
-
-// !jniTest - Test method with JNI
-        else if (commandChecker(event, arg, "jniTest")) {
-            LOGGER.trace("Starting test");
-            jniTest();
-            addCooldown(event.getUser());
-
-        }
+// !reloadLibs - reloads DLLs
+            else if (commandChecker(event, arg, "reloadLibs")) {
+                try {
+                    LilGUtil.unload();
+                    LilGUtil.loadLib("JNIThing");
+                } catch (Exception e) {
+                    sendError(event, e);
+                }
+            }
 
 // !ChangeNick - Changes the nick of the bot
-        else if (commandChecker(event, arg, "changeNick")) {
-            if (checkPerm(event.getUser(), 9001)) {
-                if (event instanceof DiscordMessageEvent) {
-                    DiscordAdapter.getJda().getAccountManager().setNickname(((DiscordMessageEvent) event).getDiscordEvent().getGuild(), getArg(arg, 1));
-                } else {
-                    bot.sendIRC().changeNick(getArg(arg, 1));
-                    debug.setNick(getArg(arg, 1));
-                }
-            } else {
-                permErrorchn(event);
-            }
-        }
-
-// !SayAction - Makes the bot do a action
-        else if (commandChecker(event, arg, "SayAction")) {
-            if (checkPerm(event.getUser(), 9001)) {
-                event.getChannel().send().action(argJoiner(arg, 1));
-            } else {
-                permErrorchn(event);
-            }
-        }
-
-// !jToggle - toggle joke COMMANDS
-        else if (commandChecker(event, arg, "jToggle")) {
-            if (getArg(arg, 1).equalsIgnoreCase("toggle")) {
-                if (checkPerm(event.getUser(), 2)) {
-                    BOOLS.flip(JOKE_COMMANDS);
-                    if (BOOLS.get(JOKE_COMMANDS)) {
-                        sendMessage(event, "Joke COMMANDS are now enabled", true);
+            else if (commandChecker(event, arg, "changeNick")) {
+                if (checkPerm(event.getUser(), 9001)) {
+                    if (event instanceof DiscordMessageEvent) {
+                        DiscordAdapter.getJda().getAccountManager().setNickname(((DiscordMessageEvent) event).getDiscordEvent().getGuild(), getArg(arg, 1));
                     } else {
-                        sendMessage(event, "Joke COMMANDS are now disabled", true);
+                        bot.sendIRC().changeNick(getArg(arg, 1));
+                        debug.setNick(getArg(arg, 1));
                     }
                 } else {
                     permErrorchn(event);
                 }
-            } else {
-                if (BOOLS.get(JOKE_COMMANDS)) {
-                    sendMessage(event, "Joke COMMANDS are currently enabled", true);
+            }
+
+// !SayAction - Makes the bot do a action
+            else if (commandChecker(event, arg, "SayAction")) {
+                if (checkPerm(event.getUser(), 9001)) {
+                    event.getChannel().send().action(argJoiner(arg, 1));
                 } else {
-                    sendMessage(event, "Joke COMMANDS are currently disabled", true);
+                    permErrorchn(event);
+                }
+            }
+
+// !jToggle - toggle joke COMMANDS
+            else if (commandChecker(event, arg, "jToggle")) {
+                if (getArg(arg, 1).equalsIgnoreCase("toggle")) {
+                    if (checkPerm(event.getUser(), 2)) {
+                        BOOLS.flip(JOKE_COMMANDS);
+                        if (BOOLS.get(JOKE_COMMANDS)) {
+                            sendMessage(event, "Joke COMMANDS are now enabled", true);
+                        } else {
+                            sendMessage(event, "Joke COMMANDS are now disabled", true);
+                        }
+                    } else {
+                        permErrorchn(event);
+                    }
+                } else {
+                    if (BOOLS.get(JOKE_COMMANDS)) {
+                        sendMessage(event, "Joke COMMANDS are currently enabled", true);
+                    } else {
+                        sendMessage(event, "Joke COMMANDS are currently disabled", true);
+                    }
+
+                }
+            }
+
+// !sudo/make me a sandwich - You should already know this joke
+            else if (commandChecker(event, arg, "make me a sandwich")) {
+                if (BOOLS.get(JOKE_COMMANDS) || checkPerm(event.getUser(), 1)) {
+                    sendMessage(event, "No, make one yourself", false);
+                    addCooldown(event.getUser());
+                } else {
+                    sendMessage(event, " Sorry, Joke COMMANDS are disabled", true);
+                }
+
+            } else if (commandChecker(event, arg, "sudo make me a sandwich")) {
+                if (checkPerm(event.getUser(), 9001)) {
+                    sendMessage(event, "Ok", false);
+                    addCooldown(event.getUser());
+                } else {
+                    sendMessage(event, "This command requires root permissions", true);
+                }
+            }
+
+// !Splatoon - Joke command - ask the splatoon question
+            else if (commandChecker(event, arg, "Splatoon")) {
+                if (BOOLS.get(JOKE_COMMANDS) || checkPerm(event.getUser(), 1)) {
+                    sendMessage(event, " YOU'RE A KID YOU'RE A SQUID", true);
+                    addCooldown(event.getUser());
+                } else {
+                    sendMessage(event, " Sorry, Joke COMMANDS are disabled", true);
                 }
 
             }
-        }
-
-// !sudo/make me a sandwich - You should already know this joke
-        else if (commandChecker(event, arg, "make me a sandwich")) {
-            if (BOOLS.get(JOKE_COMMANDS) || checkPerm(event.getUser(), 1)) {
-                sendMessage(event, "No, make one yourself", false);
-                addCooldown(event.getUser());
-            } else {
-                sendMessage(event, " Sorry, Joke COMMANDS are disabled", true);
-            }
-
-        } else if (commandChecker(event, arg, "sudo make me a sandwich")) {
-            if (checkPerm(event.getUser(), 9001)) {
-                sendMessage(event, "Ok", false);
-                addCooldown(event.getUser());
-            } else {
-                sendMessage(event, "This command requires root permissions", true);
-            }
-        }
-
-// !Splatoon - Joke command - ask the splatoon question
-        else if (commandChecker(event, arg, "Splatoon")) {
-            if (BOOLS.get(JOKE_COMMANDS) || checkPerm(event.getUser(), 1)) {
-                sendMessage(event, " YOU'RE A KID YOU'RE A SQUID", true);
-                addCooldown(event.getUser());
-            } else {
-                sendMessage(event, " Sorry, Joke COMMANDS are disabled", true);
-            }
-
-        }
 
 // !attempt - Joke command - NOT ATTEMPTED
-        else if (commandChecker(event, arg, "attempt")) {
-            if (BOOLS.get(JOKE_COMMANDS) || checkPerm(event.getUser(), 1)) {
-                sendMessage(event, " NOT ATTEMPTED", true);
-                addCooldown(event.getUser());
-            } else {
-                sendMessage(event, " Sorry, Joke COMMANDS are disabled", true);
-            }
+            else if (commandChecker(event, arg, "attempt")) {
+                if (BOOLS.get(JOKE_COMMANDS) || checkPerm(event.getUser(), 1)) {
+                    sendMessage(event, " NOT ATTEMPTED", true);
+                    addCooldown(event.getUser());
+                } else {
+                    sendMessage(event, " Sorry, Joke COMMANDS are disabled", true);
+                }
 
-        }
+            }
 
 //// !stfu - Joke command - say "no u"
 //		if (commandChecker(event, arg, "stfu")){
@@ -3574,201 +3618,201 @@ public class FozruciX extends ListenerAdapter {
 //		}
 
 // !EatABowlOfDicks - Joke command - joke help command
-        else if (commandChecker(event, arg, "EatABowlOfDicks")) {
-            if (BOOLS.get(JOKE_COMMANDS) || checkPerm(event.getUser(), 1)) {
-                sendMessage(event, "no u", true);
-                addCooldown(event.getUser());
-            }
-
-        }
-
-// !eat a bowl of dicks - Joke command - joke help command
-        else if (commandChecker(event, arg, "eat")) {
-            if (BOOLS.get(JOKE_COMMANDS) || checkPerm(event.getUser(), 1)) {
-                if ((getArg(arg, 0) + getArg(arg, 1) + getArg(arg, 2) + getArg(arg, 3)).equalsIgnoreCase("EatABowlOfDicks")) {
+            else if (commandChecker(event, arg, "EatABowlOfDicks")) {
+                if (BOOLS.get(JOKE_COMMANDS) || checkPerm(event.getUser(), 1)) {
                     sendMessage(event, "no u", true);
                     addCooldown(event.getUser());
                 }
+
             }
 
-        }
+// !eat a bowl of dicks - Joke command - joke help command
+            else if (commandChecker(event, arg, "eat")) {
+                if (BOOLS.get(JOKE_COMMANDS) || checkPerm(event.getUser(), 1)) {
+                    if ((getArg(arg, 0) + getArg(arg, 1) + getArg(arg, 2) + getArg(arg, 3)).equalsIgnoreCase("EatABowlOfDicks")) {
+                        sendMessage(event, "no u", true);
+                        addCooldown(event.getUser());
+                    }
+                }
+
+            }
 
 // !my  - Joke command - This was requested by Greeny in #origami64. ask him about it
-        else if (commandChecker(event, arg, "my")) {
-            if (BOOLS.get(JOKE_COMMANDS) || checkPerm(event.getUser(), 1)) {
-                if (getArg(arg, 1).equalsIgnoreCase("DickSize")) {
-                    if (event.getUser().getNick().equalsIgnoreCase(currentNick)) {
-                        sendMessage(event, "Error: IntegerOutOfBoundsException: Greater than Integer.MAX_VALUE", true);
-                    } else {
+            else if (commandChecker(event, arg, "my")) {
+                if (BOOLS.get(JOKE_COMMANDS) || checkPerm(event.getUser(), 1)) {
+                    if (getArg(arg, 1).equalsIgnoreCase("DickSize")) {
+                        if (event.getUser().equals(currentUser)) {
+                            sendMessage(event, "Error: IntegerOutOfBoundsException: Greater than Integer.MAX_VALUE", true);
+                        } else {
+                            int size = randInt(0, jokeCommandDebugVar);
+                            sendMessage(event, "8" + StringUtils.leftPad("D", size, "=") + " - " + size, true);
+                        }
+                    } else if (getArg(arg, 1).equalsIgnoreCase("vaginaDepth")) {
+                        if (event.getUser().equals(currentUser)) {
+                            sendMessage(event, Color.RED + "Error: IntegerOutOfBoundsException: Less than Integer.MIN_VALUE", true);
+                        } else {
+                            int size = randInt(0, jokeCommandDebugVar);
+                            sendMessage(event, "|" + StringUtils.leftPad("{0}", size, "=") + " -  -" + size, true);
+                        }
+                    } else if (getArg(arg, 1).equalsIgnoreCase("BallCount")) {
+                        if (event.getUser().equals(currentUser)) {
+                            sendMessage(event, "Error: IntegerOutOfBoundsException: Greater than Integer.MAX_VALUE", true);
+                        } else {
+                            int size = randInt(0, jokeCommandDebugVar);
+                            sendMessage(event, StringUtils.leftPad("", size, "8") + " - " + size, true);
+                        }
+                    } else if (getArg(arg, 1).equalsIgnoreCase("xdLength")) {
                         int size = randInt(0, jokeCommandDebugVar);
-                        sendMessage(event, "8" + StringUtils.leftPad("D", size, "=") + " - " + size, true);
-                    }
-                } else if (getArg(arg, 1).equalsIgnoreCase("vaginaDepth")) {
-                    if (event.getUser().getNick().equalsIgnoreCase(currentNick)) {
-                        sendMessage(event, Color.RED + "Error: IntegerOutOfBoundsException: Less than Integer.MIN_VALUE", true);
-                    } else {
-                        int size = randInt(0, jokeCommandDebugVar);
-                        sendMessage(event, "|" + StringUtils.leftPad("{0}", size, "=") + " -  -" + size, true);
-                    }
-                } else if (getArg(arg, 1).equalsIgnoreCase("BallCount")) {
-                    if (event.getUser().getNick().equalsIgnoreCase(currentNick)) {
-                        sendMessage(event, "Error: IntegerOutOfBoundsException: Greater than Integer.MAX_VALUE", true);
-                    } else {
-                        int size = randInt(0, jokeCommandDebugVar);
-                        sendMessage(event, StringUtils.leftPad("", size, "8") + " - " + size, true);
-                    }
-                } else if (getArg(arg, 1).equalsIgnoreCase("xdLength")) {
-                    int size = randInt(0, jokeCommandDebugVar);
-                    sendMessage(event, "X" + StringUtils.leftPad("", size, "D") + " - " + size, true);
-                } else if (getArg(arg, 1).equalsIgnoreCase("ass")) {
-                    sendMessage(event, "No.", true);
-                } else if (getArg(arg, 1).equalsIgnoreCase("iq")) {
-                    if (event.getUser().getNick().equalsIgnoreCase(currentNick)) {
-                        sendMessage(event, "Error: IntegerOutOfBoundsException: Greater than Integer.MAX_VALUE", true);
-                    } else {
-                        sendMessage(event, "Your IQ is: " + randInt(0, jokeCommandDebugVar * 10), true);
-                    }
-                } else if (getArg(arg, 1).equalsIgnoreCase("powerLevel")) {
-                    if (checkPerm(event.getUser(), 9001)) {
-                        sendMessage(event, "Its OVER 9000!!!!", true);
-                    } else {
-                        sendMessage(event, "The scouter says their power level is... " + randInt(-1, 9000) + "!", true);
-                    }
-                } else if (getArg(arg, 1).equalsIgnoreCase("bullshit")) {
-                    String[] listOfBullshit = {"Not bullshit", "A little bullshit", "Almost not bullshit", "Normal bullshit", "Put on your boots", "High bullshit", "Get the shovel", "Total bullshit", "Get a vest", "Holy shit", "Super bullshit", "Fucking bullshit", "GET IN THE LIFE BOATS"};
-                    if (getArg(arg, 2) != null) {
-                        sendMessage(event, "Bullshit reading: " + listOfBullshit[hash(argJoiner(arg, 2), listOfBullshit.length)], true);
-                    } else {
-                        sendMessage(event, "Bullshit reading: " + listOfBullshit[randInt(0, listOfBullshit.length - 1)], true);
-                    }
-                } else if (getArg(arg, 1).equalsIgnoreCase("help")) {
-                    sendMessage(event, "Current things you can measure are: DickSize, VaginaDepth, BallCount, xdLength, ass (>_>), iq, powerLevel, bullShit", true);
+                        sendMessage(event, "X" + StringUtils.leftPad("", size, "D") + " - " + size, true);
+                    } else if (getArg(arg, 1).equalsIgnoreCase("ass")) {
+                        sendMessage(event, "No.", true);
+                    } else if (getArg(arg, 1).equalsIgnoreCase("iq")) {
+                        if (event.getUser().equals(currentUser)) {
+                            sendMessage(event, "Error: IntegerOutOfBoundsException: Greater than Integer.MAX_VALUE", true);
+                        } else {
+                            sendMessage(event, "Your IQ is: " + randInt(0, jokeCommandDebugVar * 10), true);
+                        }
+                    } else if (getArg(arg, 1).equalsIgnoreCase("powerLevel")) {
+                        if (checkPerm(event.getUser(), 9001)) {
+                            sendMessage(event, "Its OVER 9000!!!!", true);
+                        } else {
+                            sendMessage(event, "The scouter says their power level is... " + randInt(-1, 9000) + "!", true);
+                        }
+                    } else if (getArg(arg, 1).equalsIgnoreCase("bullshit")) {
+                        String[] listOfBullshit = {"Not bullshit", "A little bullshit", "Almost not bullshit", "Normal bullshit", "Put on your boots", "High bullshit", "Get the shovel", "Total bullshit", "Get a vest", "Holy shit", "Super bullshit", "Fucking bullshit", "GET IN THE LIFE BOATS"};
+                        if (getArg(arg, 2) != null) {
+                            sendMessage(event, "Bullshit reading: " + listOfBullshit[hash(argJoiner(arg, 2), listOfBullshit.length)], true);
+                        } else {
+                            sendMessage(event, "Bullshit reading: " + listOfBullshit[randInt(0, listOfBullshit.length - 1)], true);
+                        }
+                    } else if (getArg(arg, 1).equalsIgnoreCase("help")) {
+                        sendMessage(event, "Current things you can measure are: DickSize, VaginaDepth, BallCount, xdLength, ass (>_>), iq, powerLevel, bullShit", true);
 
+                    }
+                    addCooldown(event.getUser());
                 }
-                addCooldown(event.getUser());
-            }
 
-        }
+            }
 
 
 // !potato - Joke command - say "i am potato" in Japanese
-        else if (commandChecker(event, arg, "potato")) {
-            if (BOOLS.get(JOKE_COMMANDS) || checkPerm(event.getUser(), 1)) {
-                byte[] bytes = "わたしわポタトデス".getBytes(Charset.forName("UTF-8"));
-                String v = new String(bytes, Charset.forName("UTF-8"));
-                sendMessage(event, v, true);
-            } else
-                sendMessage(event, " Sorry, Joke COMMANDS are disabled", true);
+            else if (commandChecker(event, arg, "potato")) {
+                if (BOOLS.get(JOKE_COMMANDS) || checkPerm(event.getUser(), 1)) {
+                    byte[] bytes = "わたしわポタトデス".getBytes(Charset.forName("UTF-8"));
+                    String v = new String(bytes, Charset.forName("UTF-8"));
+                    sendMessage(event, v, true);
+                } else
+                    sendMessage(event, " Sorry, Joke COMMANDS are disabled", true);
 
-        }
+            }
 
 // !WhatIs? - Joke command -
-        else if (commandChecker(event, arg, "WhatIs?")) {
-            if (BOOLS.get(JOKE_COMMANDS) || checkPerm(event.getUser(), 1)) {
-                int num = randInt(0, DICTIONARY.length - 1);
-                String comeback = String.format(DICTIONARY[num], argJoiner(arg, 1));
-                sendMessage(event, comeback, true);
-                addCooldown(event.getUser());
-            } else
-                sendMessage(event, " Sorry, Joke COMMANDS are disabled", true);
+            else if (commandChecker(event, arg, "WhatIs?")) {
+                if (BOOLS.get(JOKE_COMMANDS) || checkPerm(event.getUser(), 1)) {
+                    int num = randInt(0, DICTIONARY.length - 1);
+                    String comeback = String.format(DICTIONARY[num], argJoiner(arg, 1));
+                    sendMessage(event, comeback, true);
+                    addCooldown(event.getUser());
+                } else
+                    sendMessage(event, " Sorry, Joke COMMANDS are disabled", true);
 
-        }
+            }
 
 // !rip - Joke command - never forgetti the spaghetti
-        else if (commandChecker(event, arg, "rip")) {
-            if (BOOLS.get(JOKE_COMMANDS) || checkPerm(event.getUser(), 1)) {
-                if (getArg(arg, 1).equalsIgnoreCase(currentNick)) {
-                    sendMessage(event, currentNick + " Will live forever!", false);
-                } else if (getArg(arg, 1).equalsIgnoreCase(bot.getNick())) {
-                    sendMessage(event, ">_>", false);
-                } else {
-                    sendMessage(event, "Rest in spaghetti, never forgetti. May the pasta be with " + argJoiner(arg, 1), false);
-                }
-            } else
-                sendMessage(event, " Sorry, Joke COMMANDS are disabled", true);
+            else if (commandChecker(event, arg, "rip")) {
+                if (BOOLS.get(JOKE_COMMANDS) || checkPerm(event.getUser(), 1)) {
+                    if (getArg(arg, 1).equalsIgnoreCase(currentUser.getNick())) {
+                        sendMessage(event, currentUser.getNick() + " Will live forever!", false);
+                    } else if (getArg(arg, 1).equalsIgnoreCase(bot.getNick())) {
+                        sendMessage(event, ">_>", false);
+                    } else {
+                        sendMessage(event, "Rest in spaghetti, never forgetti. May the pasta be with " + argJoiner(arg, 1), false);
+                    }
+                } else
+                    sendMessage(event, " Sorry, Joke COMMANDS are disabled", true);
 
-        }
+            }
 
 // !GayDar - Joke command - picks random user
-        else if (commandChecker(event, arg, "GayDar")) {
-            if (channel == null) {
-                sendMessage(event, "Its you", true);
-                return;
-            }
-            if (BOOLS.get(JOKE_COMMANDS) || checkPerm(event.getUser(), 1)) {
-                Iterator<User> user = event.getChannel().getUsers().iterator();
-                LinkedList<String> userList = new LinkedList<>();
-                while (user.hasNext()) {
-                    userList.add(user.next().getNick());
+            else if (commandChecker(event, arg, "GayDar")) {
+                if (channel == null) {
+                    sendMessage(event, "Its you", true);
+                    return;
                 }
-                int num = randInt(0, userList.size());
-                boolean notMe = true;
-                while (notMe) {
-                    if (userList.get(num).equalsIgnoreCase(currentNick)) {
-                        notMe = false;
-                        num = randInt(0, userList.size());
-                    } else {
-                        notMe = false;
+                if (BOOLS.get(JOKE_COMMANDS) || checkPerm(event.getUser(), 1)) {
+                    Iterator<User> user = event.getChannel().getUsers().iterator();
+                    LinkedList<String> userList = new LinkedList<>();
+                    while (user.hasNext()) {
+                        userList.add(user.next().getNick());
                     }
-                }
-                try {
-                    sendMessage(event, "It's " + userList.get(num).toUpperCase() + "!", false);
-                    addCooldown(event.getUser());
-                } catch (Exception e) {
-                    sendMessage(event, "Error: " + e, false);
-                }
-            } else
-                sendMessage(event, " Sorry, Joke COMMANDS are disabled", true);
+                    int num = randInt(0, userList.size());
+                    boolean notMe = true;
+                    while (notMe) {
+                        if (userList.get(num).equalsIgnoreCase(currentUser.getNick())) {
+                            notMe = false;
+                            num = randInt(0, userList.size());
+                        } else {
+                            notMe = false;
+                        }
+                    }
+                    try {
+                        sendMessage(event, "It's " + userList.get(num).toUpperCase() + "!", false);
+                        addCooldown(event.getUser());
+                    } catch (Exception e) {
+                        sendMessage(event, "Error: " + e, false);
+                    }
+                } else
+                    sendMessage(event, " Sorry, Joke COMMANDS are disabled", true);
 
-            LOGGER.debug(event.getMessage());
+                LOGGER.debug(event.getMessage());
 
-        }
+            }
 
 // s/*/*[/g] - sed
-        if (arg[0].toLowerCase().startsWith("s/")) {
-            if (channel == null) {
-                sendMessage(event, "This is for channels", true);
-                return;
-            }
-            HashMap<String, ArrayList<String>> map = allowedCommands.get(getSeverName(event, true));
-            ArrayList commands;
-            if (map != null) {
-                commands = map.get(channel);
-            } else {
-                commands = null;
-            }
-            if (commands != null && commands.contains("sed")) {
-                sendNotice(event, event.getUser().getNick(), "Sorry, you can't use that command here");
-            } else {
-                String[] msg = message.split("/");
-                if (msg.length > 2) {
-                    if (!msg[1].isEmpty() || !msg[1].equals(".")) {
-                        String find = msg[1];
-                        String replace = msg[2];
-                        boolean replaceAll = msg.length > 3 && msg[3].toLowerCase().startsWith("g");
-                        for (int i = lastEvents.size() - 1; i >= 0; i--) {
-                            MessageEvent last = lastEvents.get(i);
-                            if (last.equals(event) || wildCardMatch(last.getMessage(), "s/*/*")) continue;
-                            if (last.getChannel().equals(event.getChannel())) {
-                                String lastMessage = last.getMessage();
-                                if (message.contains(find)) {
-                                    if (replaceAll) {
-                                        lastMessage = lastMessage.replace(find, replace);
-                                    } else {
-                                        lastMessage = lastMessage.replaceFirst(find, replace);
+            if (arg[0].toLowerCase().startsWith("s/")) {
+                if (channel == null) {
+                    sendMessage(event, "This is for channels", true);
+                    return;
+                }
+                HashMap<String, ArrayList<String>> map = allowedCommands.get(getSeverName(event, true));
+                ArrayList commands;
+                if (map != null) {
+                    commands = map.get(channel);
+                } else {
+                    commands = null;
+                }
+                if (commands != null && commands.contains("sed")) {
+                    sendNotice(event, event.getUser().getNick(), "Sorry, you can't use that command here");
+                } else {
+                    String[] msg = message.split("/");
+                    if (msg.length > 2) {
+                        if (!msg[1].isEmpty() || !msg[1].equals(".")) {
+                            String find = msg[1];
+                            String replace = msg[2];
+                            boolean replaceAll = msg.length > 3 && msg[3].toLowerCase().startsWith("g");
+                            for (int i = lastEvents.size() - 1; i >= 0; i--) {
+                                MessageEvent last = lastEvents.get(i);
+                                if (last.equals(event) || wildCardMatch(last.getMessage(), "s/*/*")) continue;
+                                if (last.getChannel().equals(event.getChannel())) {
+                                    String lastMessage = last.getMessage();
+                                    if (message.contains(find)) {
+                                        if (replaceAll) {
+                                            lastMessage = lastMessage.replace(find, replace);
+                                        } else {
+                                            lastMessage = lastMessage.replaceFirst(find, replace);
+                                        }
+                                        sendMessage(event, "What " + last.getUser().getNick() + " meant to say was: " + lastMessage, false, false);
+                                        addCooldown(event.getUser(), 15);
+                                        return;
                                     }
-                                    sendMessage(event, "What " + last.getUser().getNick() + " meant to say was: " + lastMessage, false, false);
-                                    addCooldown(event.getUser(), 15);
-                                    return;
                                 }
                             }
+                        } else {
+                            sendMessage(event, "Sorry, we ain't having none of that spam shit", true);
                         }
-                    } else {
-                        sendMessage(event, "Sorry, we ain't having none of that spam shit", true);
                     }
                 }
             }
-
         }
     }
 
@@ -3781,7 +3825,7 @@ public class FozruciX extends ListenerAdapter {
         for (String possibleFunction : chatFunctions) {
             if (checkChatFunction(possibleFunction, "char")) {
                 String sub = getChatArgs(possibleFunction)[0];
-                int charVal = Integer.parseInt(sub);
+                int charVal = Integer.decode(sub);
                 char character = (char) charVal;
                 possibleFunction = character + "";
             } else if (checkChatFunction(possibleFunction, "size")) {
@@ -3850,9 +3894,7 @@ public class FozruciX extends ListenerAdapter {
 // !login - Sets the authed named to the new name ...if the password is right
         else if (commandChecker(PM, arg, "login")) {
             if (CryptoUtil.encrypt(getArg(arg, 1)).equals(FozConfig.PASSWORD)) {
-                currentNick = PM.getUser().getNick();
-                currentUsername = PM.getUser().getLogin();
-                currentHost = PM.getUser().getHostname();
+                currentUser = PM.getUser();
                 PM.getUser().send().message("Welcome back Lil-G");
             } else
                 PM.getUser().send().message("password is incorrect.");
@@ -3931,7 +3973,7 @@ public class FozruciX extends ListenerAdapter {
         BOOLS.clear(ARRAY_OFFSET_SET);
         debug.updateBot(bot);
         checkNote(PM, PM.getUser().getNick(), null);
-        debug.setCurrentNick(currentNick + "!" + currentUsername + "@" + currentHost);
+        debug.setCurrentNick(currentUser.getHostmask());
         if (!PM.getMessage().contains(CryptoUtil.decrypt(FozConfig.PASSWORD))) {
             log(PM);
         }
@@ -3955,12 +3997,12 @@ public class FozruciX extends ListenerAdapter {
             } else if (message.contains("\u0001AVATAR")) {
                 event.getUser().send().notice("\u0001AVATAR " + avatar + "\u0001");
             } else {
-                bot.sendIRC().notice(currentNick, "Got notice from " + event.getUser().getNick() + ". Notice was : " + event.getMessage());
+                bot.sendIRC().notice(currentUser.getNick(), "Got notice from " + event.getUser().getNick() + ". Notice was : " + event.getMessage());
             }
         }
         checkNote(event, event.getUser().getNick(), null);
         if (bot.isConnected()) {
-            debug.setCurrentNick(currentNick + "!" + currentUsername + "@" + currentHost);
+            debug.setCurrentNick(currentUser.getNick());
         }
         debug.updateBot(bot);
         log(event);
@@ -3981,7 +4023,7 @@ public class FozruciX extends ListenerAdapter {
                 List<TextChannel> channels = ((DiscordJoinEvent) join).getJoinEvent().getGuild().getTextChannels();
                 for (TextChannel channel : channels) {
                     if (channel.getId().equals(channelToMessage)) {
-                        channel.sendMessage(((DiscordJoinEvent) join).getJoinEvent().getUser().getAsMention() + ": Welcome to " + ((DiscordJoinEvent) join).getJoinEvent().getGuild().getName());
+                        channel.sendMessage(((DiscordJoinEvent) join).getJoinEvent().getUser().getAsMention() + ": Welcome to " + ((DiscordJoinEvent) join).getJoinEvent().getGuild().getName() + ". Please make sure you check out the #help and #rules channel");
                     }
                 }
             }
@@ -4001,27 +4043,25 @@ public class FozruciX extends ListenerAdapter {
         }
         if (debug != null) {
             debug.updateBot(bot);
-            debug.setCurrentNick(currentNick + "!" + currentUsername + "@" + currentHost);
+            debug.setCurrentNick(currentUser.getHostmask());
         }
     }
 
     public synchronized void onNickChange(@NotNull NickChangeEvent nick) {
-        if (nick.getNewNick().equalsIgnoreCase(currentNick)) {
-            currentNick = null;
-            currentUsername = null;
-            currentHost = null;
+        if (nick.getNewNick().equalsIgnoreCase(currentUser.getNick())) {
+            currentUser = bot.getUserBot();
             LOGGER.debug("resetting Authed nick");
-            debug.setCurrentNick(currentNick + "!" + currentUsername + "@" + currentHost);
+            debug.setCurrentNick(currentUser.getNick());
         }
 
-        if (nick.getOldNick().equalsIgnoreCase(currentNick)) {
+        /*if (nick.getOldNick().equalsIgnoreCase(currentNick)) {
             currentNick = nick.getNewNick();
             //noinspection ConstantConditions
             currentUsername = nick.getUser().getLogin();
             currentHost = nick.getUser().getHostname();
             LOGGER.debug("setting Authed nick as " + nick.getNewNick() + "!" + nick.getUser().getLogin() + "@" + nick.getUser().getHostname());
             debug.setCurrentNick(currentNick + "!" + currentUsername + "@" + currentHost);
-        }
+        }*/
         checkNote(nick, nick.getNewNick(), null);
         debug.updateBot(bot);
         log(nick);
@@ -4086,7 +4126,7 @@ public class FozruciX extends ListenerAdapter {
         }
         LOGGER.debug("Received unknown: " + event.getLine());
         if (debug != null) {
-            debug.setCurrentNick(currentNick + "!" + currentUsername + "@" + currentHost);
+            debug.setCurrentNick(currentUser.getNick());
         }
     }
 
@@ -4097,10 +4137,10 @@ public class FozruciX extends ListenerAdapter {
      * @return Boolean true if allowed, false if not
      */
     private boolean checkPerm(@NotNull User user, int requiredUserLevel) {
-        if (user.getNick().equalsIgnoreCase(currentNick) && user.getLogin().equalsIgnoreCase(currentUsername) && user.getHostname().equalsIgnoreCase(currentHost)) {
+        if (user.equals(currentUser)) {
             return true;
         } else if (authedUser.contains(user.getNick())) {
-            int index = authedUser.indexOf(user.getNick() + "!" + user.getLogin() + "@" + user.getHostname());
+            int index = authedUser.indexOf(user.getHostmask());
             if (index > -1) {
                 if (authedUserLevel.get(index) >= requiredUserLevel) {
                     return true;
@@ -4220,10 +4260,10 @@ public class FozruciX extends ListenerAdapter {
     }
 
     private synchronized void setDebugInfo(@NotNull MessageEvent event) {
-        int index = DNDJoined.indexOf(currentNick);
+        int index = DNDJoined.indexOf(currentUser.getNick());
 
         //noinspection ConstantConditions
-        if (event.getUser().getNick().equalsIgnoreCase(currentNick)) {
+        if (event.getUser().equals(currentUser)) {
             debug.setPlayerName(DNDList.get(index).getName());
             debug.setPlayerHP(DNDList.get(index).getHPAmounts());
             debug.setPlayerXP(DNDList.get(index).getXPAmounts());
@@ -4235,7 +4275,7 @@ public class FozruciX extends ListenerAdapter {
 
 
         debug.updateBot(bot);
-        debug.setCurrentNick(currentNick + "!" + currentUsername + "@" + currentHost);
+        debug.setCurrentNick(currentUser.getHostmask());
     }
 
     public MessageEvent getLastEvent() {
@@ -4408,14 +4448,14 @@ public class FozruciX extends ListenerAdapter {
                 sendNotice(event, event.getUser().getNick(), "Example: !s1tcg -x F8 -y F8 -l GreenHillTitle RED HILL");
                 break;
             default:
-                sendNotice(event, event.getUser().getNick(), "That either isn't a command, or " + currentNick + " hasn't add that to the help yet.");
+                sendNotice(event, event.getUser().getNick(), "That either isn't a command, or " + currentUser.getNick() + " hasn't add that to the help yet.");
         }
     }
 
     public synchronized void setAvatar(String avatar) {
         FozruciX.avatar = avatar;
-        if (!(network == Network.discord || network == Network.twitch) && currentNick != null && updateAvatar) {
-            sendNotice(currentNick, "\u0001AVATAR " + avatar + "\u0001");
+        if (!(network == Network.discord || network == Network.twitch) && currentUser.getNick() != null && updateAvatar) {
+            sendNotice(currentUser.getNick(), "\u0001AVATAR " + avatar + "\u0001");
         }
     }
 

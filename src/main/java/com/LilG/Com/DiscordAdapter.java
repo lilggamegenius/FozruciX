@@ -65,9 +65,11 @@ public class DiscordAdapter extends ListenerAdapter {
             DiscordAdapter.bot = new FozruciX(FozruciX.Network.discord, FozConfig.getManager(), FozConfig.loadData(new XStream()));
             DiscordAdapter.pircBotX = pircBotX;
             game = new GameThread(jda.getAccountManager());
+        game.setName("Game Setter thread");
             game.start();
 
             avatar = new AvatarThread(jda.getAccountManager(), bot);
+        avatar.setName("Avatar Setter thread");
             avatar.start();
             LOGGER.trace("Calling onConnect() method");
             bot.onConnect(new ConnectEvent(pircBotX));
