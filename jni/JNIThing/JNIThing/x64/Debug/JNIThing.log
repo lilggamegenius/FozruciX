@@ -1,0 +1,5 @@
+﻿cl : Command line warning D9025: overriding '/FAcs' with '/FAu'
+  M68KSimulator.cpp
+c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp(161): warning C4008: 'DllMain': 'static' attribute ignored
+  JNIThing.vcxproj -> C:\Users\FozruciX\Workspace\FozruciX\jni\JNIThing\x64\Debug\JNIThing.dll
+  JNIThing.vcxproj -> C:\Users\FozruciX\Workspace\FozruciX\jni\JNIThing\x64\Debug\JNIThing.pdb (Partial PDB)

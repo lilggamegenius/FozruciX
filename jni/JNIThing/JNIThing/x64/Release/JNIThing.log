@@ -1,0 +1,19 @@
+﻿cl : Command line warning D9025: overriding '/FAcs' with '/FAu'
+  M68KSimulator.cpp
+c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\M68KSimulator.h(10): warning C4309: 'static_cast': truncation of constant value
+c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\M68KSimulator.h(11): warning C4309: 'static_cast': truncation of constant value
+c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\M68KSimulator.h(12): warning C4309: 'static_cast': truncation of constant value
+M68KSimulator.cpp(40): warning C4244: 'argument': conversion from 'jlong' to 'uint32_t', possible loss of data
+M68KSimulator.cpp(43): warning C4244: 'argument': conversion from 'jlong' to 'uint32_t', possible loss of data
+M68KSimulator.cpp(46): warning C4244: 'argument': conversion from 'jlong' to 'uint32_t', possible loss of data
+M68KSimulator.cpp(62): warning C4244: 'argument': conversion from 'jlong' to 'uint32_t', possible loss of data
+M68KSimulator.cpp(65): warning C4244: 'argument': conversion from 'jlong' to 'uint32_t', possible loss of data
+M68KSimulator.cpp(68): warning C4244: 'argument': conversion from 'jlong' to 'uint32_t', possible loss of data
+     Creating library C:\Users\FozruciX\Workspace\FozruciX\jni\JNIThing\x64\Release\JNIThing.lib and object C:\Users\FozruciX\Workspace\FozruciX\jni\JNIThing\x64\Release\JNIThing.exp
+  Generating code
+  28 of 28 functions (100.0%) were compiled, the rest were copied from previous compilation.
+    28 functions were new in current compilation
+    0 functions had inline decision re-evaluated but remain unchanged
+  Finished generating code
+  JNIThing.vcxproj -> C:\Users\FozruciX\Workspace\FozruciX\jni\JNIThing\x64\Release\JNIThing.dll
+  JNIThing.vcxproj -> C:\Users\FozruciX\Workspace\FozruciX\jni\JNIThing\x64\Release\JNIThing.pdb (Full PDB)
