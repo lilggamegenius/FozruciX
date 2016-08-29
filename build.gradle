@@ -111,7 +111,6 @@ dependencies {
     compile group: 'info.bliki.wiki', name: 'bliki', version: '3.0.19'
     compile group: 'de.tudarmstadt.ukp.dkpro.core', name: 'dkpro-parent-pom', version: '9'
     compile group: 'xtc', name: 'rats-runtime', version: '1.15.0'
-    compile group: 'net.java.dev.jna', name: 'jna', version: '4.2.1'
     compile group: 'com.joestelmach', name: 'natty', version: '0.12'
     compile group: 'commons-codec', name: 'commons-codec', version: '1.9'
     compile group: 'org.mockito', name: 'mockito-core', version: '1.8.5'

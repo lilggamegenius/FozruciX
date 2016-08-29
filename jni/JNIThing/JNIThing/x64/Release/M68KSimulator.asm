@@ -2,120 +2,65 @@
 
 include listing.inc
 
+INCLUDELIB MSVCRT
 INCLUDELIB OLDNAMES
 
-PUBLIC	??_C@_0L@IODJNECC@JNI?5Loaded?$AA@		; `string'
-PUBLIC	??_C@_0N@FLNILKML@JNI?5Unloaded?$AA@		; `string'
-PUBLIC	??_C@_03KNBKCOBB@?$CI?$CJI?$AA@			; `string'
-PUBLIC	??_C@_07LEACAOHP@ordinal?$AA@			; `string'
-PUBLIC	??_C@_0BH@LJJBNPH@com?1LilG?1Com?1m68k?1Size?$AA@ ; `string'
-PUBLIC	?instance@@3PEAVM68KSimulator@@EA		; instance
-EXTRN	__imp_malloc:PROC
-EXTRN	__imp___std_terminate:PROC
-EXTRN	__imp_free:PROC
-EXTRN	__imp___stdio_common_vfprintf:PROC
-EXTRN	??3@YAXPEAX_K@Z:PROC				; operator delete
-EXTRN	??2@YAPEAX_K@Z:PROC				; operator new
-EXTRN	__imp___acrt_iob_func:PROC
-EXTRN	__security_check_cookie:PROC
-?instance@@3PEAVM68KSimulator@@EA DQ 01H DUP (?)	; instance
+PUBLIC	?ramStart@@3PEATmem_union@@EA			; ramStart
+PUBLIC	?dataRegisters@@3PAPEATregisters@@A		; dataRegisters
+PUBLIC	?addressRegisters@@3PAPEATregisters@@A		; addressRegisters
+PUBLIC	?programCounter@@3IA				; programCounter
+_BSS	SEGMENT
+?ramStart@@3PEATmem_union@@EA DQ 01H DUP (?)		; ramStart
+?dataRegisters@@3PAPEATregisters@@A DQ 08H DUP (?)	; dataRegisters
+?addressRegisters@@3PAPEATregisters@@A DQ 09H DUP (?)	; addressRegisters
+?programCounter@@3IA DD 01H DUP (?)			; programCounter
 _BSS	ENDS
-;	COMDAT ??_C@_0BH@LJJBNPH@com?1LilG?1Com?1m68k?1Size?$AA@
-CONST	SEGMENT
-??_C@_0BH@LJJBNPH@com?1LilG?1Com?1m68k?1Size?$AA@ DB 'com/LilG/Com/m68k/S'
-	DB	'ize', 00H					; `string'
-CONST	ENDS
-;	COMDAT ??_C@_07LEACAOHP@ordinal?$AA@
-CONST	SEGMENT
-??_C@_07LEACAOHP@ordinal?$AA@ DB 'ordinal', 00H		; `string'
-CONST	ENDS
-;	COMDAT ??_C@_03KNBKCOBB@?$CI?$CJI?$AA@
-CONST	SEGMENT
-??_C@_03KNBKCOBB@?$CI?$CJI?$AA@ DB '()I', 00H		; `string'
-CONST	ENDS
-;	COMDAT ??_C@_0N@FLNILKML@JNI?5Unloaded?$AA@
-CONST	SEGMENT
-??_C@_0N@FLNILKML@JNI?5Unloaded?$AA@ DB 'JNI Unloaded', 00H ; `string'
-CONST	ENDS
-;	COMDAT ??_C@_0L@IODJNECC@JNI?5Loaded?$AA@
-CONST	SEGMENT
-??_C@_0L@IODJNECC@JNI?5Loaded?$AA@ DB 'JNI Loaded', 00H	; `string'
-CONST	ENDS
-PUBLIC	??$__vcrt_va_start_verify_argument_type@PEAU_jmethodID@@@@YAXXZ ; __vcrt_va_start_verify_argument_type<_jmethodID * __ptr64>
-PUBLIC	??$__vcrt_va_start_verify_argument_type@QEBD@@YAXXZ ; __vcrt_va_start_verify_argument_type<char const * __ptr64 const>
-PUBLIC	Java_com_LilG_Com_m68k_M68kSimImpl_getRamSize
-PUBLIC	Java_com_LilG_Com_m68k_M68kSimImpl_getRamStart
-PUBLIC	Java_com_LilG_Com_m68k_M68kSimImpl_clearMem0
-PUBLIC	?addLongWord@M68KSimulator@@QEAAXII@Z		; M68KSimulator::addLongWord
-PUBLIC	?addWord@M68KSimulator@@QEAAXII@Z		; M68KSimulator::addWord
-PUBLIC	?addByte@M68KSimulator@@QEAAXII@Z		; M68KSimulator::addByte
-PUBLIC	?setLongWord@M68KSimulator@@QEAAXII@Z		; M68KSimulator::setLongWord
-PUBLIC	?setWord@M68KSimulator@@QEAAXII@Z		; M68KSimulator::setWord
-PUBLIC	?setByte@M68KSimulator@@QEAAXII@Z		; M68KSimulator::setByte
-PUBLIC	Java_com_LilG_Com_m68k_M68kSimImpl_getLongWord
-PUBLIC	Java_com_LilG_Com_m68k_M68kSimImpl_getWord
-PUBLIC	Java_com_LilG_Com_m68k_M68kSimImpl_getByte
-PUBLIC	Java_com_LilG_Com_m68k_M68kSimImpl_move
-PUBLIC	Java_com_LilG_Com_m68k_M68kSimImpl_adda
-PUBLIC	??_GM68KSimulator@@QEAAPEAXI@Z			; M68KSimulator::`scalar deleting destructor'
-PUBLIC	JNI_OnUnload
-PUBLIC	?__autoclassinit2@M68KSimulator@@QEAAX_K@Z	; M68KSimulator::__autoclassinit2
-PUBLIC	JNI_OnLoad
-PUBLIC	??1M68KSimulator@@QEAA@XZ			; M68KSimulator::~M68KSimulator
-PUBLIC	??0M68KSimulator@@QEAA@XZ			; M68KSimulator::M68KSimulator
-PUBLIC	?CallIntMethod@JNIEnv_@@QEAAJPEAV_jobject@@PEAU_jmethodID@@ZZ ; JNIEnv_::CallIntMethod
-PUBLIC	?GetMethodID@JNIEnv_@@QEAAPEAU_jmethodID@@PEAV_jclass@@PEBD1@Z ; JNIEnv_::GetMethodID
-PUBLIC	?FindClass@JNIEnv_@@QEAAPEAV_jclass@@PEBD@Z	; JNIEnv_::FindClass
-PUBLIC	printf
-PUBLIC	_vfprintf_l
 PUBLIC	__local_stdio_printf_options
+PUBLIC	??$__vcrt_va_start_verify_argument_type@QEBD@@YAXXZ ; __vcrt_va_start_verify_argument_type<char const * __ptr64 const>
+PUBLIC	printf
+PUBLIC	start
+PUBLIC	close
+PUBLIC	setByte
+PUBLIC	setWord
+PUBLIC	setLongWord
+PUBLIC	addByte
+PUBLIC	addWord
+PUBLIC	addLongWord
+PUBLIC	getByte
+PUBLIC	getWord
+PUBLIC	getLongWord
+PUBLIC	clearMem
+PUBLIC	getRamStart
+PUBLIC	getRamSize
+PUBLIC	?lea@@YAXGW4AddressRegister@@@Z			; lea
+PUBLIC	?pea@@YAXG@Z					; pea
+PUBLIC	?add@@YAXW4Size@@W4DataRegister@@G@Z		; add
+PUBLIC	?add@@YAXW4Size@@GW4DataRegister@@@Z		; add
+PUBLIC	?adda@@YAXW4Size@@GW4AddressRegister@@@Z	; adda
+PUBLIC	?addi@@YAXW4Size@@GI@Z				; addi
+PUBLIC	?and@@YAXW4Size@@W4DataRegister@@G@Z		; and
+PUBLIC	?and@@YAXW4Size@@GW4DataRegister@@@Z		; and
+PUBLIC	?move@@YAXW4Size@@GG@Z				; move
+PUBLIC	?move@@YAXW4Size@@GW4DataRegister@@@Z		; move
+PUBLIC	?move@@YAXW4Size@@W4DataRegister@@G@Z		; move
+PUBLIC	?move@@YAXW4Size@@W4DataRegister@@1@Z		; move
+PUBLIC	?moveq@@YAXW4Size@@EG@Z				; moveq
 PUBLIC	?_OptionsStorage@?1??__local_stdio_printf_options@@9@4_KA ; `__local_stdio_printf_options'::`2'::_OptionsStorage
-EXTRN	memset:PROC
+PUBLIC	??_C@_0BD@JCDCPOBF@DEBUG?5?9?5DLL?5Loaded?$AA@	; `string'
+PUBLIC	??_C@_0CO@FJDOOOIP@DEBUG?5?9?5M68K?5ram?5created?4?5Starti@ ; `string'
+EXTRN	__imp___acrt_iob_func:PROC
+EXTRN	__imp___stdio_common_vfprintf:PROC
+EXTRN	__imp_free:PROC
+EXTRN	__imp_malloc:PROC
 ;	COMDAT ?_OptionsStorage@?1??__local_stdio_printf_options@@9@4_KA
 _BSS	SEGMENT
 ?_OptionsStorage@?1??__local_stdio_printf_options@@9@4_KA DQ 01H DUP (?) ; `__local_stdio_printf_options'::`2'::_OptionsStorage
 _BSS	ENDS
 ;	COMDAT pdata
 pdata	SEGMENT
-$pdata$Java_com_LilG_Com_m68k_M68kSimImpl_move DD imagerel $LN19
-	DD	imagerel $LN19+199
-	DD	imagerel $unwind$Java_com_LilG_Com_m68k_M68kSimImpl_move
-pdata	ENDS
-;	COMDAT pdata
-pdata	SEGMENT
-$pdata$Java_com_LilG_Com_m68k_M68kSimImpl_adda DD imagerel $LN19
-	DD	imagerel $LN19+199
-	DD	imagerel $unwind$Java_com_LilG_Com_m68k_M68kSimImpl_adda
-pdata	ENDS
-;	COMDAT pdata
-pdata	SEGMENT
-$pdata$??_GM68KSimulator@@QEAAPEAXI@Z DD imagerel $LN8
-	DD	imagerel $LN8+41
-	DD	imagerel $unwind$??_GM68KSimulator@@QEAAPEAXI@Z
-pdata	ENDS
-;	COMDAT pdata
-pdata	SEGMENT
-$pdata$JNI_OnUnload DD imagerel $LN13
-	DD	imagerel $LN13+58
-	DD	imagerel $unwind$JNI_OnUnload
-pdata	ENDS
-;	COMDAT pdata
-pdata	SEGMENT
-$pdata$JNI_OnLoad DD imagerel $LN11
-	DD	imagerel $LN11+95
-	DD	imagerel $unwind$JNI_OnLoad
-pdata	ENDS
-;	COMDAT pdata
-pdata	SEGMENT
-$pdata$??0M68KSimulator@@QEAA@XZ DD imagerel $LN4
-	DD	imagerel $LN4+50
-	DD	imagerel $unwind$??0M68KSimulator@@QEAA@XZ
-pdata	ENDS
-;	COMDAT pdata
-pdata	SEGMENT
-$pdata$?CallIntMethod@JNIEnv_@@QEAAJPEAV_jobject@@PEAU_jmethodID@@ZZ DD imagerel $LN6
-	DD	imagerel $LN6+33
-	DD	imagerel $unwind$?CallIntMethod@JNIEnv_@@QEAAJPEAV_jobject@@PEAU_jmethodID@@ZZ
+$pdata$_vfprintf_l DD imagerel $LN4
+	DD	imagerel $LN4+81
+	DD	imagerel $unwind$_vfprintf_l
 pdata	ENDS
 ;	COMDAT pdata
 pdata	SEGMENT
@@ -125,16 +70,36 @@ $pdata$printf DD imagerel $LN8
 pdata	ENDS
 ;	COMDAT pdata
 pdata	SEGMENT
-$pdata$_vfprintf_l DD imagerel $LN4
-	DD	imagerel $LN4+68
-	DD	imagerel $unwind$_vfprintf_l
+$pdata$start DD	imagerel $LN11
+	DD	imagerel $LN11+113
+	DD	imagerel $unwind$start
 pdata	ENDS
+;	COMDAT pdata
+pdata	SEGMENT
+$pdata$close DD	imagerel $LN11
+	DD	imagerel $LN11+66
+	DD	imagerel $unwind$close
+pdata	ENDS
+;	COMDAT ??_C@_0CO@FJDOOOIP@DEBUG?5?9?5M68K?5ram?5created?4?5Starti@
+CONST	SEGMENT
+??_C@_0CO@FJDOOOIP@DEBUG?5?9?5M68K?5ram?5created?4?5Starti@ DB 'DEBUG - M'
+	DB	'68K ram created. Starting offset: %p', 00H	; `string'
+CONST	ENDS
+;	COMDAT ??_C@_0BD@JCDCPOBF@DEBUG?5?9?5DLL?5Loaded?$AA@
+CONST	SEGMENT
+??_C@_0BD@JCDCPOBF@DEBUG?5?9?5DLL?5Loaded?$AA@ DB 'DEBUG - DLL Loaded', 00H ; `string'
+CONST	ENDS
 ;	COMDAT xdata
 xdata	SEGMENT
-$unwind$_vfprintf_l DD 060f01H
-	DD	09640fH
-	DD	08340fH
-	DD	0700b520fH
+$unwind$close DD 040a01H
+	DD	06340aH
+	DD	07006320aH
+xdata	ENDS
+;	COMDAT xdata
+xdata	SEGMENT
+$unwind$start DD 040a01H
+	DD	06340aH
+	DD	07006320aH
 xdata	ENDS
 ;	COMDAT xdata
 xdata	SEGMENT
@@ -144,89 +109,864 @@ $unwind$printf DD 041b01H
 xdata	ENDS
 ;	COMDAT xdata
 xdata	SEGMENT
-$unwind$?CallIntMethod@JNIEnv_@@QEAAJPEAV_jobject@@PEAU_jmethodID@@ZZ DD 010e01H
-	DD	0420eH
-xdata	ENDS
-;	COMDAT xdata
-xdata	SEGMENT
-$unwind$??0M68KSimulator@@QEAA@XZ DD 040a01H
-	DD	06340aH
-	DD	07006320aH
-xdata	ENDS
-;	COMDAT xdata
-xdata	SEGMENT
-$unwind$JNI_OnLoad DD 040a01H
-	DD	06340aH
-	DD	07006320aH
-xdata	ENDS
-;	COMDAT xdata
-xdata	SEGMENT
-$unwind$JNI_OnUnload DD 020601H
-	DD	030023206H
-xdata	ENDS
-;	COMDAT xdata
-xdata	SEGMENT
-$unwind$??_GM68KSimulator@@QEAAPEAXI@Z DD 020601H
-	DD	030023206H
-xdata	ENDS
-;	COMDAT xdata
-xdata	SEGMENT
-$unwind$Java_com_LilG_Com_m68k_M68kSimImpl_adda DD 060f01H
-	DD	07640fH
-	DD	06340fH
-	DD	0700b320fH
-xdata	ENDS
-;	COMDAT xdata
-xdata	SEGMENT
-$unwind$Java_com_LilG_Com_m68k_M68kSimImpl_move DD 060f01H
-	DD	07640fH
-	DD	06340fH
-	DD	0700b320fH
+$unwind$_vfprintf_l DD 081401H
+	DD	0a6414H
+	DD	095414H
+	DD	083414H
+	DD	070105214H
 xdata	ENDS
 ; Function compile flags: /Ogtpy
-;	COMDAT __local_stdio_printf_options
+;	COMDAT ?moveq@@YAXW4Size@@EG@Z
 _TEXT	SEGMENT
-__local_stdio_printf_options PROC			; COMDAT
-; File c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\corecrt_stdio_config.h
-; Line 75
-	lea	rax, OFFSET FLAT:?_OptionsStorage@?1??__local_stdio_printf_options@@9@4_KA ; `__local_stdio_printf_options'::`2'::_OptionsStorage
-; Line 76
+size$ = 8
+source$ = 16
+destination$ = 24
+?moveq@@YAXW4Size@@EG@Z PROC				; moveq, COMDAT
+; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
+; Line 225
+	test	ecx, ecx
+	je	SHORT $LN4@moveq
+	sub	ecx, 1
+	je	SHORT $LN5@moveq
+	cmp	ecx, 1
+	jne	SHORT $LN2@moveq
+; Line 47
+	mov	rcx, QWORD PTR ?ramStart@@3PEATmem_union@@EA ; ramStart
+; Line 69
+	movzx	eax, dl
+; Line 47
+	movzx	edx, r8w
+	mov	eax, DWORD PTR [rcx+rax*4]
+	mov	DWORD PTR [rcx+rdx*4], eax
+; Line 235
 	ret	0
-__local_stdio_printf_options ENDP
+$LN5@moveq:
+; Line 43
+	mov	rax, QWORD PTR ?ramStart@@3PEATmem_union@@EA ; ramStart
+	movzx	ecx, r8w
+; Line 230
+	movzx	edx, dl
+; Line 43
+	mov	WORD PTR [rax+rcx*2], dx
+; Line 235
+	ret	0
+$LN4@moveq:
+; Line 39
+	mov	rax, QWORD PTR ?ramStart@@3PEATmem_union@@EA ; ramStart
+	movzx	ecx, r8w
+	mov	BYTE PTR [rcx+rax], dl
+$LN2@moveq:
+; Line 235
+	ret	0
+?moveq@@YAXW4Size@@EG@Z ENDP				; moveq
 _TEXT	ENDS
 ; Function compile flags: /Ogtpy
-;	COMDAT _vfprintf_l
+;	COMDAT ?move@@YAXW4Size@@W4DataRegister@@1@Z
 _TEXT	SEGMENT
-_Stream$ = 64
-_Format$ = 72
-_Locale$dead$ = 80
-_ArgList$ = 88
-_vfprintf_l PROC					; COMDAT
-; File c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\stdio.h
-; Line 638
-$LN4:
+size$ = 8
+source$ = 16
+destination$ = 24
+?move@@YAXW4Size@@W4DataRegister@@1@Z PROC		; move, COMDAT
+; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
+; Line 212
+	test	ecx, ecx
+	je	SHORT $LN4@move
+	sub	ecx, 1
+	je	SHORT $LN5@move
+	cmp	ecx, 1
+	jne	SHORT $LN2@move
+; Line 220
+	movsxd	rax, edx
+	lea	rcx, OFFSET FLAT:?dataRegisters@@3PAPEATregisters@@A ; dataRegisters
+	mov	rdx, QWORD PTR [rcx+rax*8]
+	movsxd	rax, r8d
+	mov	rcx, QWORD PTR [rcx+rax*8]
+	mov	eax, DWORD PTR [rdx]
+	mov	DWORD PTR [rcx], eax
+; Line 222
+	ret	0
+$LN5@move:
+; Line 217
+	movsxd	rax, edx
+	lea	rcx, OFFSET FLAT:?dataRegisters@@3PAPEATregisters@@A ; dataRegisters
+	mov	rdx, QWORD PTR [rcx+rax*8]
+	movsxd	rax, r8d
+	mov	rcx, QWORD PTR [rcx+rax*8]
+	movzx	eax, WORD PTR [rdx]
+	mov	WORD PTR [rcx], ax
+; Line 222
+	ret	0
+$LN4@move:
+; Line 214
+	movsxd	rax, edx
+	lea	rcx, OFFSET FLAT:?dataRegisters@@3PAPEATregisters@@A ; dataRegisters
+	mov	rdx, QWORD PTR [rcx+rax*8]
+	movsxd	rax, r8d
+	mov	rcx, QWORD PTR [rcx+rax*8]
+	movzx	eax, BYTE PTR [rdx]
+	mov	BYTE PTR [rcx], al
+$LN2@move:
+; Line 222
+	ret	0
+?move@@YAXW4Size@@W4DataRegister@@1@Z ENDP		; move
+_TEXT	ENDS
+; Function compile flags: /Ogtpy
+;	COMDAT ?move@@YAXW4Size@@W4DataRegister@@G@Z
+_TEXT	SEGMENT
+size$ = 8
+source$ = 16
+destination$ = 24
+?move@@YAXW4Size@@W4DataRegister@@G@Z PROC		; move, COMDAT
+; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
+; Line 199
+	test	ecx, ecx
+	je	SHORT $LN4@move
+	sub	ecx, 1
+	je	SHORT $LN5@move
+	cmp	ecx, 1
+	jne	SHORT $LN2@move
+; Line 207
+	movsxd	rax, edx
+	lea	rcx, OFFSET FLAT:?dataRegisters@@3PAPEATregisters@@A ; dataRegisters
+; Line 47
+	movzx	edx, r8w
+; Line 207
+	mov	rax, QWORD PTR [rcx+rax*8]
+; Line 47
+	mov	ecx, DWORD PTR [rax]
+	mov	rax, QWORD PTR ?ramStart@@3PEATmem_union@@EA ; ramStart
+	mov	DWORD PTR [rax+rdx*4], ecx
+; Line 209
+	ret	0
+$LN5@move:
+; Line 204
+	movsxd	rax, edx
+	lea	rcx, OFFSET FLAT:?dataRegisters@@3PAPEATregisters@@A ; dataRegisters
+; Line 43
+	movzx	edx, r8w
+; Line 204
+	mov	rax, QWORD PTR [rcx+rax*8]
+; Line 43
+	movzx	ecx, WORD PTR [rax]
+	mov	rax, QWORD PTR ?ramStart@@3PEATmem_union@@EA ; ramStart
+	mov	WORD PTR [rax+rdx*2], cx
+; Line 209
+	ret	0
+$LN4@move:
+; Line 201
+	movsxd	rax, edx
+	lea	rcx, OFFSET FLAT:?dataRegisters@@3PAPEATregisters@@A ; dataRegisters
+; Line 39
+	movzx	edx, r8w
+; Line 201
+	mov	rax, QWORD PTR [rcx+rax*8]
+; Line 39
+	movzx	ecx, BYTE PTR [rax]
+	mov	rax, QWORD PTR ?ramStart@@3PEATmem_union@@EA ; ramStart
+	mov	BYTE PTR [rdx+rax], cl
+$LN2@move:
+; Line 209
+	ret	0
+?move@@YAXW4Size@@W4DataRegister@@G@Z ENDP		; move
+_TEXT	ENDS
+; Function compile flags: /Ogtpy
+;	COMDAT ?move@@YAXW4Size@@GW4DataRegister@@@Z
+_TEXT	SEGMENT
+size$ = 8
+source$ = 16
+destination$ = 24
+?move@@YAXW4Size@@GW4DataRegister@@@Z PROC		; move, COMDAT
+; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
+; Line 186
+	test	ecx, ecx
+	je	SHORT $LN4@move
+	sub	ecx, 1
+	je	SHORT $LN5@move
+	cmp	ecx, 1
+	jne	SHORT $LN2@move
+; Line 69
+	movzx	ecx, dx
+; Line 194
+	lea	rdx, OFFSET FLAT:?dataRegisters@@3PAPEATregisters@@A ; dataRegisters
+	movsxd	rax, r8d
+	mov	rdx, QWORD PTR [rdx+rax*8]
+	mov	rax, QWORD PTR ?ramStart@@3PEATmem_union@@EA ; ramStart
+	mov	ecx, DWORD PTR [rax+rcx*4]
+	mov	DWORD PTR [rdx], ecx
+; Line 196
+	ret	0
+$LN5@move:
+; Line 66
+	movzx	ecx, dx
+; Line 191
+	lea	rdx, OFFSET FLAT:?dataRegisters@@3PAPEATregisters@@A ; dataRegisters
+	movsxd	rax, r8d
+	mov	rdx, QWORD PTR [rdx+rax*8]
+	mov	rax, QWORD PTR ?ramStart@@3PEATmem_union@@EA ; ramStart
+	movzx	ecx, WORD PTR [rax+rcx*2]
+	mov	WORD PTR [rdx], cx
+; Line 196
+	ret	0
+$LN4@move:
+; Line 63
+	movzx	ecx, dx
+; Line 188
+	lea	rdx, OFFSET FLAT:?dataRegisters@@3PAPEATregisters@@A ; dataRegisters
+	movsxd	rax, r8d
+	mov	rdx, QWORD PTR [rdx+rax*8]
+	mov	rax, QWORD PTR ?ramStart@@3PEATmem_union@@EA ; ramStart
+	movzx	ecx, BYTE PTR [rcx+rax]
+	mov	BYTE PTR [rdx], cl
+$LN2@move:
+; Line 196
+	ret	0
+?move@@YAXW4Size@@GW4DataRegister@@@Z ENDP		; move
+_TEXT	ENDS
+; Function compile flags: /Ogtpy
+;	COMDAT ?move@@YAXW4Size@@GG@Z
+_TEXT	SEGMENT
+size$ = 8
+source$ = 16
+destination$ = 24
+?move@@YAXW4Size@@GG@Z PROC				; move, COMDAT
+; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
+; Line 173
+	test	ecx, ecx
+	je	SHORT $LN4@move
+	sub	ecx, 1
+	je	SHORT $LN5@move
+	cmp	ecx, 1
+	jne	SHORT $LN2@move
+; Line 47
+	mov	rcx, QWORD PTR ?ramStart@@3PEATmem_union@@EA ; ramStart
+; Line 69
+	movzx	eax, dx
+; Line 47
+	movzx	edx, r8w
+	mov	eax, DWORD PTR [rcx+rax*4]
+	mov	DWORD PTR [rcx+rdx*4], eax
+; Line 183
+	ret	0
+$LN5@move:
+; Line 43
+	mov	rcx, QWORD PTR ?ramStart@@3PEATmem_union@@EA ; ramStart
+; Line 66
+	movzx	eax, dx
+; Line 43
+	movzx	edx, r8w
+	movzx	eax, WORD PTR [rcx+rax*2]
+	mov	WORD PTR [rcx+rdx*2], ax
+; Line 183
+	ret	0
+$LN4@move:
+; Line 39
+	mov	rcx, QWORD PTR ?ramStart@@3PEATmem_union@@EA ; ramStart
+; Line 63
+	movzx	eax, dx
+; Line 39
+	movzx	edx, r8w
+	movzx	eax, BYTE PTR [rax+rcx]
+	mov	BYTE PTR [rdx+rcx], al
+$LN2@move:
+; Line 183
+	ret	0
+?move@@YAXW4Size@@GG@Z ENDP				; move
+_TEXT	ENDS
+; Function compile flags: /Ogtpy
+;	COMDAT ?and@@YAXW4Size@@GW4DataRegister@@@Z
+_TEXT	SEGMENT
+size$ = 8
+ea$ = 16
+dn$ = 24
+?and@@YAXW4Size@@GW4DataRegister@@@Z PROC		; and, COMDAT
+; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
+; Line 159
+	movzx	r9d, dx
+; Line 160
+	test	ecx, ecx
+	je	SHORT $LN4@and
+	sub	ecx, 1
+	je	SHORT $LN5@and
+	cmp	ecx, 1
+	jne	SHORT $LN2@and
+; Line 168
+	movsxd	rax, r8d
+	lea	rdx, OFFSET FLAT:?dataRegisters@@3PAPEATregisters@@A ; dataRegisters
+; Line 69
+	movzx	ecx, r9w
+	mov	rdx, QWORD PTR [rdx+rax*8]
+; Line 168
+	mov	rax, QWORD PTR ?ramStart@@3PEATmem_union@@EA ; ramStart
+	mov	ecx, DWORD PTR [rax+rcx*4]
+	and	DWORD PTR [rdx], ecx
+; Line 170
+	ret	0
+$LN5@and:
+; Line 165
+	movsxd	rax, r8d
+	lea	rdx, OFFSET FLAT:?dataRegisters@@3PAPEATregisters@@A ; dataRegisters
+; Line 66
+	movzx	ecx, r9w
+	mov	rdx, QWORD PTR [rdx+rax*8]
+; Line 165
+	mov	rax, QWORD PTR ?ramStart@@3PEATmem_union@@EA ; ramStart
+	movzx	ecx, WORD PTR [rax+rcx*2]
+	and	WORD PTR [rdx], cx
+; Line 170
+	ret	0
+$LN4@and:
+; Line 162
+	movsxd	rax, r8d
+	lea	rdx, OFFSET FLAT:?dataRegisters@@3PAPEATregisters@@A ; dataRegisters
+; Line 63
+	movzx	ecx, r9w
+	mov	rdx, QWORD PTR [rdx+rax*8]
+; Line 162
+	mov	rax, QWORD PTR ?ramStart@@3PEATmem_union@@EA ; ramStart
+	movzx	ecx, BYTE PTR [rcx+rax]
+	and	BYTE PTR [rdx], cl
+$LN2@and:
+; Line 170
+	ret	0
+?and@@YAXW4Size@@GW4DataRegister@@@Z ENDP		; and
+_TEXT	ENDS
+; Function compile flags: /Ogtpy
+;	COMDAT ?and@@YAXW4Size@@W4DataRegister@@G@Z
+_TEXT	SEGMENT
+size$ = 8
+dn$ = 16
+ea$ = 24
+?and@@YAXW4Size@@W4DataRegister@@G@Z PROC		; and, COMDAT
+; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
+; Line 146
+	movsxd	r9, edx
+; Line 147
+	test	ecx, ecx
+	je	SHORT $LN4@and
+	sub	ecx, 1
+	je	SHORT $LN5@and
+	cmp	ecx, 1
+	jne	SHORT $LN2@and
+; Line 69
+	mov	rax, QWORD PTR ?ramStart@@3PEATmem_union@@EA ; ramStart
+	movzx	ecx, r8w
+	lea	rdx, QWORD PTR [rax+rcx*4]
+; Line 155
+	lea	rcx, OFFSET FLAT:?dataRegisters@@3PAPEATregisters@@A ; dataRegisters
+	mov	rax, QWORD PTR [rcx+r9*8]
+; Line 47
+	mov	ecx, DWORD PTR [rax]
+	and	DWORD PTR [rdx], ecx
+; Line 157
+	ret	0
+$LN5@and:
+; Line 66
+	mov	rax, QWORD PTR ?ramStart@@3PEATmem_union@@EA ; ramStart
+	movzx	ecx, r8w
+	lea	rdx, QWORD PTR [rax+rcx*2]
+; Line 152
+	lea	rcx, OFFSET FLAT:?dataRegisters@@3PAPEATregisters@@A ; dataRegisters
+	mov	rax, QWORD PTR [rcx+r9*8]
+; Line 43
+	movzx	ecx, WORD PTR [rax]
+	and	WORD PTR [rdx], cx
+; Line 157
+	ret	0
+$LN4@and:
+; Line 149
+	lea	rcx, OFFSET FLAT:?dataRegisters@@3PAPEATregisters@@A ; dataRegisters
+; Line 63
+	movzx	edx, r8w
+; Line 149
+	mov	rax, QWORD PTR [rcx+r9*8]
+; Line 63
+	add	rdx, QWORD PTR ?ramStart@@3PEATmem_union@@EA ; ramStart
+; Line 39
+	movzx	ecx, BYTE PTR [rax]
+	and	BYTE PTR [rdx], cl
+$LN2@and:
+; Line 157
+	ret	0
+?and@@YAXW4Size@@W4DataRegister@@G@Z ENDP		; and
+_TEXT	ENDS
+; Function compile flags: /Ogtpy
+;	COMDAT ?addi@@YAXW4Size@@GI@Z
+_TEXT	SEGMENT
+size$ = 8
+ea$ = 16
+data$ = 24
+?addi@@YAXW4Size@@GI@Z PROC				; addi, COMDAT
+; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
+; Line 134
+	test	ecx, ecx
+	je	SHORT $LN4@addi
+	sub	ecx, 1
+	je	SHORT $LN5@addi
+	cmp	ecx, 1
+	jne	SHORT $LN2@addi
+; Line 59
+	mov	rax, QWORD PTR ?ramStart@@3PEATmem_union@@EA ; ramStart
+	movzx	ecx, dx
+	mov	DWORD PTR [rax+rcx*4], r8d
+; Line 144
+	ret	0
+$LN5@addi:
+; Line 55
+	mov	rax, QWORD PTR ?ramStart@@3PEATmem_union@@EA ; ramStart
+	movzx	ecx, dx
+	mov	WORD PTR [rax+rcx*2], r8w
+; Line 144
+	ret	0
+$LN4@addi:
+; Line 51
+	mov	rax, QWORD PTR ?ramStart@@3PEATmem_union@@EA ; ramStart
+	movzx	ecx, dx
+	mov	BYTE PTR [rcx+rax], r8b
+$LN2@addi:
+; Line 144
+	ret	0
+?addi@@YAXW4Size@@GI@Z ENDP				; addi
+_TEXT	ENDS
+; Function compile flags: /Ogtpy
+;	COMDAT ?adda@@YAXW4Size@@GW4AddressRegister@@@Z
+_TEXT	SEGMENT
+size$ = 8
+ea$ = 16
+an$ = 24
+?adda@@YAXW4Size@@GW4AddressRegister@@@Z PROC		; adda, COMDAT
+; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
+; Line 120
+	movzx	r9d, dx
+; Line 121
+	test	ecx, ecx
+	je	SHORT $LN4@adda
+	sub	ecx, 1
+	je	SHORT $LN5@adda
+	cmp	ecx, 1
+	jne	SHORT $LN2@adda
+; Line 129
+	movsxd	rax, r8d
+	lea	rdx, OFFSET FLAT:?addressRegisters@@3PAPEATregisters@@A ; addressRegisters
+; Line 69
+	movzx	ecx, r9w
+	mov	rdx, QWORD PTR [rdx+rax*8]
+; Line 129
+	mov	rax, QWORD PTR ?ramStart@@3PEATmem_union@@EA ; ramStart
+	mov	ecx, DWORD PTR [rax+rcx*4]
+	add	DWORD PTR [rdx], ecx
+; Line 131
+	ret	0
+$LN5@adda:
+; Line 126
+	movsxd	rax, r8d
+	lea	rdx, OFFSET FLAT:?addressRegisters@@3PAPEATregisters@@A ; addressRegisters
+; Line 66
+	movzx	ecx, r9w
+	mov	rdx, QWORD PTR [rdx+rax*8]
+; Line 126
+	mov	rax, QWORD PTR ?ramStart@@3PEATmem_union@@EA ; ramStart
+	movzx	ecx, WORD PTR [rax+rcx*2]
+	add	WORD PTR [rdx], cx
+; Line 131
+	ret	0
+$LN4@adda:
+; Line 123
+	movsxd	rax, r8d
+	lea	rdx, OFFSET FLAT:?addressRegisters@@3PAPEATregisters@@A ; addressRegisters
+; Line 63
+	movzx	ecx, r9w
+	mov	rdx, QWORD PTR [rdx+rax*8]
+; Line 123
+	mov	rax, QWORD PTR ?ramStart@@3PEATmem_union@@EA ; ramStart
+	movzx	ecx, BYTE PTR [rcx+rax]
+	add	BYTE PTR [rdx], cl
+$LN2@adda:
+; Line 131
+	ret	0
+?adda@@YAXW4Size@@GW4AddressRegister@@@Z ENDP		; adda
+_TEXT	ENDS
+; Function compile flags: /Ogtpy
+;	COMDAT ?add@@YAXW4Size@@GW4DataRegister@@@Z
+_TEXT	SEGMENT
+size$ = 8
+ea$ = 16
+dn$ = 24
+?add@@YAXW4Size@@GW4DataRegister@@@Z PROC		; add, COMDAT
+; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
+; Line 107
+	movzx	r9d, dx
+; Line 108
+	test	ecx, ecx
+	je	SHORT $LN4@add
+	sub	ecx, 1
+	je	SHORT $LN5@add
+	cmp	ecx, 1
+	jne	SHORT $LN2@add
+; Line 116
+	movsxd	rax, r8d
+	lea	rdx, OFFSET FLAT:?dataRegisters@@3PAPEATregisters@@A ; dataRegisters
+; Line 69
+	movzx	ecx, r9w
+	mov	rdx, QWORD PTR [rdx+rax*8]
+; Line 116
+	mov	rax, QWORD PTR ?ramStart@@3PEATmem_union@@EA ; ramStart
+	mov	ecx, DWORD PTR [rax+rcx*4]
+	add	DWORD PTR [rdx], ecx
+; Line 118
+	ret	0
+$LN5@add:
+; Line 113
+	movsxd	rax, r8d
+	lea	rdx, OFFSET FLAT:?dataRegisters@@3PAPEATregisters@@A ; dataRegisters
+; Line 66
+	movzx	ecx, r9w
+	mov	rdx, QWORD PTR [rdx+rax*8]
+; Line 113
+	mov	rax, QWORD PTR ?ramStart@@3PEATmem_union@@EA ; ramStart
+	movzx	ecx, WORD PTR [rax+rcx*2]
+	add	WORD PTR [rdx], cx
+; Line 118
+	ret	0
+$LN4@add:
+; Line 110
+	movsxd	rax, r8d
+	lea	rdx, OFFSET FLAT:?dataRegisters@@3PAPEATregisters@@A ; dataRegisters
+; Line 63
+	movzx	ecx, r9w
+	mov	rdx, QWORD PTR [rdx+rax*8]
+; Line 110
+	mov	rax, QWORD PTR ?ramStart@@3PEATmem_union@@EA ; ramStart
+	movzx	ecx, BYTE PTR [rcx+rax]
+	add	BYTE PTR [rdx], cl
+$LN2@add:
+; Line 118
+	ret	0
+?add@@YAXW4Size@@GW4DataRegister@@@Z ENDP		; add
+_TEXT	ENDS
+; Function compile flags: /Ogtpy
+;	COMDAT ?add@@YAXW4Size@@W4DataRegister@@G@Z
+_TEXT	SEGMENT
+size$ = 8
+dn$ = 16
+ea$ = 24
+?add@@YAXW4Size@@W4DataRegister@@G@Z PROC		; add, COMDAT
+; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
+; Line 95
+	test	ecx, ecx
+	je	SHORT $LN4@add
+	sub	ecx, 1
+	je	SHORT $LN5@add
+	cmp	ecx, 1
+	jne	SHORT $LN2@add
+; Line 103
+	movsxd	rax, edx
+	lea	rcx, OFFSET FLAT:?dataRegisters@@3PAPEATregisters@@A ; dataRegisters
+; Line 59
+	movzx	edx, r8w
+; Line 103
+	mov	rax, QWORD PTR [rcx+rax*8]
+; Line 59
+	mov	ecx, DWORD PTR [rax]
+	mov	rax, QWORD PTR ?ramStart@@3PEATmem_union@@EA ; ramStart
+	mov	DWORD PTR [rax+rdx*4], ecx
+; Line 105
+	ret	0
+$LN5@add:
+; Line 100
+	movsxd	rax, edx
+	lea	rcx, OFFSET FLAT:?dataRegisters@@3PAPEATregisters@@A ; dataRegisters
+; Line 55
+	movzx	edx, r8w
+; Line 100
+	mov	rax, QWORD PTR [rcx+rax*8]
+; Line 55
+	movzx	ecx, WORD PTR [rax]
+	mov	rax, QWORD PTR ?ramStart@@3PEATmem_union@@EA ; ramStart
+	mov	WORD PTR [rax+rdx*2], cx
+; Line 105
+	ret	0
+$LN4@add:
+; Line 97
+	movsxd	rax, edx
+	lea	rcx, OFFSET FLAT:?dataRegisters@@3PAPEATregisters@@A ; dataRegisters
+; Line 51
+	movzx	edx, r8w
+; Line 97
+	mov	rax, QWORD PTR [rcx+rax*8]
+; Line 51
+	movzx	ecx, BYTE PTR [rax]
+	mov	rax, QWORD PTR ?ramStart@@3PEATmem_union@@EA ; ramStart
+	mov	BYTE PTR [rdx+rax], cl
+$LN2@add:
+; Line 105
+	ret	0
+?add@@YAXW4Size@@W4DataRegister@@G@Z ENDP		; add
+_TEXT	ENDS
+; Function compile flags: /Ogtpy
+;	COMDAT ?pea@@YAXG@Z
+_TEXT	SEGMENT
+address$ = 8
+?pea@@YAXG@Z PROC					; pea, COMDAT
+; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
+; Line 90
+	mov	rdx, QWORD PTR ?addressRegisters@@3PAPEATregisters@@A+56
+	sub	rdx, 16
+; Line 91
+	movzx	eax, cx
+	mov	QWORD PTR ?addressRegisters@@3PAPEATregisters@@A+56, rdx
+	mov	DWORD PTR [rdx], eax
+; Line 92
+	ret	0
+?pea@@YAXG@Z ENDP					; pea
+_TEXT	ENDS
+; Function compile flags: /Ogtpy
+;	COMDAT ?lea@@YAXGW4AddressRegister@@@Z
+_TEXT	SEGMENT
+address$ = 8
+An$ = 16
+?lea@@YAXGW4AddressRegister@@@Z PROC			; lea, COMDAT
+; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
+; Line 86
+	mov	rax, QWORD PTR ?ramStart@@3PEATmem_union@@EA ; ramStart
+	movzx	r8d, cx
+	movzx	ecx, BYTE PTR [r8+rax]
+	movsxd	rax, edx
+	lea	rdx, OFFSET FLAT:?addressRegisters@@3PAPEATregisters@@A ; addressRegisters
+	mov	QWORD PTR [rdx+rax*8], rcx
+; Line 87
+	ret	0
+?lea@@YAXGW4AddressRegister@@@Z ENDP			; lea
+_TEXT	ENDS
+; Function compile flags: /Ogtpy
+;	COMDAT getRamSize
+_TEXT	SEGMENT
+getRamSize PROC						; COMDAT
+; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
+; Line 81
+	xor	eax, eax
+; Line 82
+	ret	0
+getRamSize ENDP
+_TEXT	ENDS
+; Function compile flags: /Ogtpy
+;	COMDAT getRamStart
+_TEXT	SEGMENT
+getRamStart PROC					; COMDAT
+; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
+; Line 77
+	lea	rax, OFFSET FLAT:?ramStart@@3PEATmem_union@@EA ; ramStart
+; Line 78
+	ret	0
+getRamStart ENDP
+_TEXT	ENDS
+; Function compile flags: /Ogtpy
+;	COMDAT clearMem
+_TEXT	SEGMENT
+clearMem PROC						; COMDAT
+; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
+; Line 74
+	ret	0
+clearMem ENDP
+_TEXT	ENDS
+; Function compile flags: /Ogtpy
+;	COMDAT getLongWord
+_TEXT	SEGMENT
+address$ = 8
+getLongWord PROC					; COMDAT
+; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
+; Line 69
+	mov	rax, QWORD PTR ?ramStart@@3PEATmem_union@@EA ; ramStart
+	movzx	edx, cx
+	mov	eax, DWORD PTR [rax+rdx*4]
+; Line 70
+	ret	0
+getLongWord ENDP
+_TEXT	ENDS
+; Function compile flags: /Ogtpy
+;	COMDAT getWord
+_TEXT	SEGMENT
+address$ = 8
+getWord	PROC						; COMDAT
+; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
+; Line 66
+	mov	rax, QWORD PTR ?ramStart@@3PEATmem_union@@EA ; ramStart
+	movzx	edx, cx
+	movzx	eax, WORD PTR [rax+rdx*2]
+; Line 67
+	ret	0
+getWord	ENDP
+_TEXT	ENDS
+; Function compile flags: /Ogtpy
+;	COMDAT getByte
+_TEXT	SEGMENT
+address$ = 8
+getByte	PROC						; COMDAT
+; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
+; Line 63
+	mov	rax, QWORD PTR ?ramStart@@3PEATmem_union@@EA ; ramStart
+	movzx	edx, cx
+	movzx	eax, BYTE PTR [rdx+rax]
+; Line 64
+	ret	0
+getByte	ENDP
+_TEXT	ENDS
+; Function compile flags: /Ogtpy
+;	COMDAT addLongWord
+_TEXT	SEGMENT
+address$ = 8
+num$ = 16
+addLongWord PROC					; COMDAT
+; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
+; Line 59
+	mov	rax, QWORD PTR ?ramStart@@3PEATmem_union@@EA ; ramStart
+	movzx	r8d, cx
+	mov	DWORD PTR [rax+r8*4], edx
+; Line 60
+	ret	0
+addLongWord ENDP
+_TEXT	ENDS
+; Function compile flags: /Ogtpy
+;	COMDAT addWord
+_TEXT	SEGMENT
+address$ = 8
+num$ = 16
+addWord	PROC						; COMDAT
+; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
+; Line 55
+	mov	rax, QWORD PTR ?ramStart@@3PEATmem_union@@EA ; ramStart
+	movzx	r8d, cx
+	mov	WORD PTR [rax+r8*2], dx
+; Line 56
+	ret	0
+addWord	ENDP
+_TEXT	ENDS
+; Function compile flags: /Ogtpy
+;	COMDAT addByte
+_TEXT	SEGMENT
+address$ = 8
+num$ = 16
+addByte	PROC						; COMDAT
+; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
+; Line 51
+	mov	rax, QWORD PTR ?ramStart@@3PEATmem_union@@EA ; ramStart
+	movzx	r8d, cx
+	mov	BYTE PTR [r8+rax], dl
+; Line 52
+	ret	0
+addByte	ENDP
+_TEXT	ENDS
+; Function compile flags: /Ogtpy
+;	COMDAT setLongWord
+_TEXT	SEGMENT
+address$ = 8
+num$ = 16
+setLongWord PROC					; COMDAT
+; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
+; Line 47
+	mov	rax, QWORD PTR ?ramStart@@3PEATmem_union@@EA ; ramStart
+	movzx	r8d, cx
+	mov	DWORD PTR [rax+r8*4], edx
+; Line 48
+	ret	0
+setLongWord ENDP
+_TEXT	ENDS
+; Function compile flags: /Ogtpy
+;	COMDAT setWord
+_TEXT	SEGMENT
+address$ = 8
+num$ = 16
+setWord	PROC						; COMDAT
+; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
+; Line 43
+	mov	rax, QWORD PTR ?ramStart@@3PEATmem_union@@EA ; ramStart
+	movzx	r8d, cx
+	mov	WORD PTR [rax+r8*2], dx
+; Line 44
+	ret	0
+setWord	ENDP
+_TEXT	ENDS
+; Function compile flags: /Ogtpy
+;	COMDAT setByte
+_TEXT	SEGMENT
+address$ = 8
+num$ = 16
+setByte	PROC						; COMDAT
+; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
+; Line 39
+	mov	rax, QWORD PTR ?ramStart@@3PEATmem_union@@EA ; ramStart
+	movzx	r8d, cx
+	mov	BYTE PTR [r8+rax], dl
+; Line 40
+	ret	0
+setByte	ENDP
+_TEXT	ENDS
+; Function compile flags: /Ogtpy
+;	COMDAT close
+_TEXT	SEGMENT
+close	PROC						; COMDAT
+; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
+; Line 16
+$LN11:
 	mov	QWORD PTR [rsp+8], rbx
-	mov	QWORD PTR [rsp+16], rsi
 	push	rdi
-	sub	rsp, 48					; 00000030H
-	mov	rbx, r9
-	mov	rdi, rdx
-	mov	rsi, rcx
-; Line 639
-	call	__local_stdio_printf_options
-	xor	r9d, r9d
-	mov	QWORD PTR [rsp+32], rbx
-	mov	r8, rdi
-	mov	rdx, rsi
-	mov	rcx, QWORD PTR [rax]
-	call	QWORD PTR __imp___stdio_common_vfprintf
-; Line 640
-	mov	rbx, QWORD PTR [rsp+64]
-	mov	rsi, QWORD PTR [rsp+72]
-	add	rsp, 48					; 00000030H
+	sub	rsp, 32					; 00000020H
+; Line 17
+	mov	rcx, QWORD PTR ?ramStart@@3PEATmem_union@@EA ; ramStart
+	call	QWORD PTR __imp_free
+	lea	rbx, OFFSET FLAT:?dataRegisters@@3PAPEATregisters@@A ; dataRegisters
+	lea	rdi, OFFSET FLAT:?dataRegisters@@3PAPEATregisters@@A+64
+$LL4@close:
+; Line 19
+	mov	rcx, QWORD PTR [rbx]
+	call	QWORD PTR __imp_free
+	add	rbx, 8
+	cmp	rbx, rdi
+	jl	SHORT $LL4@close
+; Line 21
+	mov	rbx, QWORD PTR [rsp+48]
+	add	rsp, 32					; 00000020H
 	pop	rdi
 	ret	0
-_vfprintf_l ENDP
+close	ENDP
+_TEXT	ENDS
+; Function compile flags: /Ogtpy
+;	COMDAT start
+_TEXT	SEGMENT
+start	PROC						; COMDAT
+; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
+; Line 6
+$LN11:
+	mov	QWORD PTR [rsp+8], rbx
+	push	rdi
+	sub	rsp, 32					; 00000020H
+; Line 7
+	lea	rcx, OFFSET FLAT:??_C@_0BD@JCDCPOBF@DEBUG?5?9?5DLL?5Loaded?$AA@
+	call	printf
+; Line 8
+	xor	ecx, ecx
+	call	QWORD PTR __imp_malloc
+	mov	QWORD PTR ?ramStart@@3PEATmem_union@@EA, rax ; ramStart
+	lea	rbx, OFFSET FLAT:?dataRegisters@@3PAPEATregisters@@A ; dataRegisters
+	lea	rdi, OFFSET FLAT:?dataRegisters@@3PAPEATregisters@@A+64
+$LL4@start:
+; Line 10
+	mov	ecx, 4
+	call	QWORD PTR __imp_malloc
+	mov	QWORD PTR [rbx], rax
+	add	rbx, 8
+	cmp	rbx, rdi
+	jl	SHORT $LL4@start
+; Line 13
+	lea	rdx, OFFSET FLAT:?ramStart@@3PEATmem_union@@EA ; ramStart
+	mov	DWORD PTR ?programCounter@@3IA, 0	; programCounter
+	lea	rcx, OFFSET FLAT:??_C@_0CO@FJDOOOIP@DEBUG?5?9?5M68K?5ram?5created?4?5Starti@
+; Line 14
+	mov	rbx, QWORD PTR [rsp+48]
+	add	rsp, 32					; 00000020H
+	pop	rdi
+; Line 13
+	jmp	printf
+start	ENDP
 _TEXT	ENDS
 ; Function compile flags: /Ogtpy
 ;	COMDAT printf
@@ -268,579 +1008,6 @@ $LN8:
 printf	ENDP
 _TEXT	ENDS
 ; Function compile flags: /Ogtpy
-;	COMDAT ?FindClass@JNIEnv_@@QEAAPEAV_jclass@@PEBD@Z
-_TEXT	SEGMENT
-this$ = 8
-name$dead$ = 16
-?FindClass@JNIEnv_@@QEAAPEAV_jclass@@PEBD@Z PROC	; JNIEnv_::FindClass, COMDAT
-; File c:\program files\java\jdk1.8.0_51\include\jni.h
-; Line 794
-	mov	rax, QWORD PTR [rcx]
-	lea	rdx, OFFSET FLAT:??_C@_0BH@LJJBNPH@com?1LilG?1Com?1m68k?1Size?$AA@
-	rex_jmp	QWORD PTR [rax+48]
-?FindClass@JNIEnv_@@QEAAPEAV_jclass@@PEBD@Z ENDP	; JNIEnv_::FindClass
-_TEXT	ENDS
-; Function compile flags: /Ogtpy
-;	COMDAT ?GetMethodID@JNIEnv_@@QEAAPEAU_jmethodID@@PEAV_jclass@@PEBD1@Z
-_TEXT	SEGMENT
-this$ = 8
-clazz$ = 16
-name$dead$ = 24
-sig$dead$ = 32
-?GetMethodID@JNIEnv_@@QEAAPEAU_jmethodID@@PEAV_jclass@@PEBD1@Z PROC ; JNIEnv_::GetMethodID, COMDAT
-; File c:\program files\java\jdk1.8.0_51\include\jni.h
-; Line 894
-	mov	rax, QWORD PTR [rcx]
-	lea	r9, OFFSET FLAT:??_C@_03KNBKCOBB@?$CI?$CJI?$AA@
-	lea	r8, OFFSET FLAT:??_C@_07LEACAOHP@ordinal?$AA@
-	rex_jmp	QWORD PTR [rax+264]
-?GetMethodID@JNIEnv_@@QEAAPEAU_jmethodID@@PEAV_jclass@@PEBD1@Z ENDP ; JNIEnv_::GetMethodID
-_TEXT	ENDS
-; Function compile flags: /Ogtpy
-;	COMDAT ?CallIntMethod@JNIEnv_@@QEAAJPEAV_jobject@@PEAU_jmethodID@@ZZ
-_TEXT	SEGMENT
-this$ = 48
-obj$ = 56
-methodID$ = 64
-?CallIntMethod@JNIEnv_@@QEAAJPEAV_jobject@@PEAU_jmethodID@@ZZ PROC ; JNIEnv_::CallIntMethod, COMDAT
-; File c:\program files\java\jdk1.8.0_51\include\jni.h
-; Line 983
-$LN6:
-	mov	QWORD PTR [rsp+24], r8
-	mov	QWORD PTR [rsp+32], r9
-	sub	rsp, 40					; 00000028H
-; Line 987
-	mov	rax, QWORD PTR [rcx]
-	lea	r9, QWORD PTR methodID$[rsp+8]
-	call	QWORD PTR [rax+400]
-; Line 990
-	add	rsp, 40					; 00000028H
-	ret	0
-?CallIntMethod@JNIEnv_@@QEAAJPEAV_jobject@@PEAU_jmethodID@@ZZ ENDP ; JNIEnv_::CallIntMethod
-_TEXT	ENDS
-; Function compile flags: /Ogtpy
-;	COMDAT ??0M68KSimulator@@QEAA@XZ
-_TEXT	SEGMENT
-this$ = 48
-??0M68KSimulator@@QEAA@XZ PROC				; M68KSimulator::M68KSimulator, COMDAT
-; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
-; Line 7
-$LN4:
-	mov	QWORD PTR [rsp+8], rbx
-	push	rdi
-	sub	rsp, 32					; 00000020H
-; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.h
-; Line 10
-	xor	edi, edi
-	mov	rbx, rcx
-	mov	DWORD PTR [rcx], edi
-; Line 12
-	mov	WORD PTR [rcx+4], di
-; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
-; Line 8
-	xor	ecx, ecx
-	call	QWORD PTR __imp_malloc
-	mov	QWORD PTR [rbx+8], rax
-; Line 10
-	mov	rax, rbx
-	mov	DWORD PTR [rbx+80], edi
-	mov	rbx, QWORD PTR [rsp+48]
-	add	rsp, 32					; 00000020H
-	pop	rdi
-	ret	0
-??0M68KSimulator@@QEAA@XZ ENDP				; M68KSimulator::M68KSimulator
-_TEXT	ENDS
-; Function compile flags: /Ogtpy
-;	COMDAT ??1M68KSimulator@@QEAA@XZ
-_TEXT	SEGMENT
-this$ = 8
-??1M68KSimulator@@QEAA@XZ PROC				; M68KSimulator::~M68KSimulator, COMDAT
-; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
-; Line 12
-	mov	rcx, QWORD PTR [rcx+8]
-	rex_jmp	QWORD PTR __imp_free
-??1M68KSimulator@@QEAA@XZ ENDP				; M68KSimulator::~M68KSimulator
-_TEXT	ENDS
-; Function compile flags: /Ogtpy
-;	COMDAT JNI_OnLoad
-_TEXT	SEGMENT
-vm$ = 48
-reserved$ = 56
-JNI_OnLoad PROC						; COMDAT
-; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
-; Line 16
-$LN11:
-	mov	QWORD PTR [rsp+8], rbx
-	push	rdi
-	sub	rsp, 32					; 00000020H
-; Line 17
-	mov	ecx, 88					; 00000058H
-	call	??2@YAPEAX_K@Z				; operator new
-	xor	edx, edx
-	mov	rcx, rax
-	mov	rbx, rax
-	lea	r8d, QWORD PTR [rdx+88]
-	call	memset
-; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.h
-; Line 10
-	xor	edi, edi
-; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
-; Line 8
-	xor	ecx, ecx
-	mov	DWORD PTR [rbx], edi
-	mov	WORD PTR [rbx+4], di
-	call	QWORD PTR __imp_malloc
-; Line 18
-	lea	rcx, OFFSET FLAT:??_C@_0L@IODJNECC@JNI?5Loaded?$AA@
-; Line 9
-	mov	DWORD PTR [rbx+80], edi
-	mov	QWORD PTR [rbx+8], rax
-; Line 17
-	mov	QWORD PTR ?instance@@3PEAVM68KSimulator@@EA, rbx ; instance
-; Line 18
-	call	printf
-; Line 20
-	mov	rbx, QWORD PTR [rsp+48]
-	mov	eax, 65542				; 00010006H
-	add	rsp, 32					; 00000020H
-	pop	rdi
-	ret	0
-JNI_OnLoad ENDP
-_TEXT	ENDS
-; Function compile flags: /Ogtpy
-;	COMDAT ?__autoclassinit2@M68KSimulator@@QEAAX_K@Z
-_TEXT	SEGMENT
-this$ = 8
-classSize$dead$ = 16
-?__autoclassinit2@M68KSimulator@@QEAAX_K@Z PROC		; M68KSimulator::__autoclassinit2, COMDAT
-	xor	edx, edx
-	lea	r8d, QWORD PTR [rdx+88]
-	jmp	memset
-?__autoclassinit2@M68KSimulator@@QEAAX_K@Z ENDP		; M68KSimulator::__autoclassinit2
-_TEXT	ENDS
-; Function compile flags: /Ogtpy
-;	COMDAT JNI_OnUnload
-_TEXT	SEGMENT
-vm$ = 48
-reserved$ = 56
-JNI_OnUnload PROC					; COMDAT
-; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
-; Line 23
-$LN13:
-	push	rbx
-	sub	rsp, 32					; 00000020H
-; Line 24
-	mov	rbx, QWORD PTR ?instance@@3PEAVM68KSimulator@@EA ; instance
-	test	rbx, rbx
-	je	SHORT $LN6@JNI_OnUnlo
-; Line 12
-	mov	rcx, QWORD PTR [rbx+8]
-	call	QWORD PTR __imp_free
-	mov	edx, 88					; 00000058H
-	mov	rcx, rbx
-	call	??3@YAXPEAX_K@Z				; operator delete
-$LN6@JNI_OnUnlo:
-; Line 25
-	lea	rcx, OFFSET FLAT:??_C@_0N@FLNILKML@JNI?5Unloaded?$AA@
-; Line 26
-	add	rsp, 32					; 00000020H
-	pop	rbx
-; Line 25
-	jmp	printf
-JNI_OnUnload ENDP
-_TEXT	ENDS
-; Function compile flags: /Ogtpy
-;	COMDAT ??_GM68KSimulator@@QEAAPEAXI@Z
-_TEXT	SEGMENT
-this$ = 48
-__flags$dead$ = 56
-??_GM68KSimulator@@QEAAPEAXI@Z PROC			; M68KSimulator::`scalar deleting destructor', COMDAT
-$LN8:
-	push	rbx
-	sub	rsp, 32					; 00000020H
-	mov	rbx, rcx
-; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
-; Line 12
-	mov	rcx, QWORD PTR [rcx+8]
-	call	QWORD PTR __imp_free
-	mov	edx, 88					; 00000058H
-	mov	rcx, rbx
-	call	??3@YAXPEAX_K@Z				; operator delete
-	mov	rax, rbx
-	add	rsp, 32					; 00000020H
-	pop	rbx
-	ret	0
-??_GM68KSimulator@@QEAAPEAXI@Z ENDP			; M68KSimulator::`scalar deleting destructor'
-_TEXT	ENDS
-; Function compile flags: /Ogtpy
-;	COMDAT Java_com_LilG_Com_m68k_M68kSimImpl_adda
-_TEXT	SEGMENT
-env$ = 48
-__formal$ = 56
-size$ = 64
-data$ = 72
-ea$ = 80
-Java_com_LilG_Com_m68k_M68kSimImpl_adda PROC		; COMDAT
-; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
-; Line 34
-$LN19:
-	mov	QWORD PTR [rsp+8], rbx
-	mov	QWORD PTR [rsp+16], rsi
-	push	rdi
-	sub	rsp, 32					; 00000020H
-; File c:\program files\java\jdk1.8.0_51\include\jni.h
-; Line 794
-	mov	rax, QWORD PTR [rcx]
-	lea	rdx, OFFSET FLAT:??_C@_0BH@LJJBNPH@com?1LilG?1Com?1m68k?1Size?$AA@
-; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
-; Line 34
-	mov	rsi, r9
-	mov	rdi, r8
-	mov	rbx, rcx
-; File c:\program files\java\jdk1.8.0_51\include\jni.h
-; Line 794
-	call	QWORD PTR [rax+48]
-; Line 894
-	mov	r10, QWORD PTR [rbx]
-	lea	r9, OFFSET FLAT:??_C@_03KNBKCOBB@?$CI?$CJI?$AA@
-	lea	r8, OFFSET FLAT:??_C@_07LEACAOHP@ordinal?$AA@
-	mov	rdx, rax
-	mov	rcx, rbx
-	call	QWORD PTR [r10+264]
-; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
-; Line 36
-	mov	rdx, rdi
-	mov	rcx, rbx
-	mov	r8, rax
-	call	?CallIntMethod@JNIEnv_@@QEAAJPEAV_jobject@@PEAU_jmethodID@@ZZ ; JNIEnv_::CallIntMethod
-; Line 37
-	test	eax, eax
-	je	SHORT $LN4@Java_com_L
-	sub	eax, 1
-	je	SHORT $LN5@Java_com_L
-	cmp	eax, 1
-	jne	SHORT $LN2@Java_com_L
-; Line 129
-	mov	rax, QWORD PTR ?instance@@3PEAVM68KSimulator@@EA ; instance
-	mov	edx, DWORD PTR ea$[rsp]
-	mov	rcx, QWORD PTR [rax+8]
-	mov	DWORD PTR [rcx+rdx*4], esi
-; Line 48
-	mov	rbx, QWORD PTR [rsp+48]
-	mov	rsi, QWORD PTR [rsp+56]
-	add	rsp, 32					; 00000020H
-	pop	rdi
-	ret	0
-$LN5@Java_com_L:
-; Line 124
-	mov	rax, QWORD PTR ?instance@@3PEAVM68KSimulator@@EA ; instance
-	mov	edx, DWORD PTR ea$[rsp]
-	mov	rcx, QWORD PTR [rax+8]
-	mov	WORD PTR [rcx+rdx*2], si
-; Line 48
-	mov	rbx, QWORD PTR [rsp+48]
-	mov	rsi, QWORD PTR [rsp+56]
-	add	rsp, 32					; 00000020H
-	pop	rdi
-	ret	0
-$LN4@Java_com_L:
-; Line 119
-	mov	rax, QWORD PTR ?instance@@3PEAVM68KSimulator@@EA ; instance
-	mov	edx, DWORD PTR ea$[rsp]
-	mov	rcx, QWORD PTR [rax+8]
-	mov	BYTE PTR [rdx+rcx], sil
-$LN2@Java_com_L:
-; Line 48
-	mov	rbx, QWORD PTR [rsp+48]
-	mov	rsi, QWORD PTR [rsp+56]
-	add	rsp, 32					; 00000020H
-	pop	rdi
-	ret	0
-Java_com_LilG_Com_m68k_M68kSimImpl_adda ENDP
-_TEXT	ENDS
-; Function compile flags: /Ogtpy
-;	COMDAT Java_com_LilG_Com_m68k_M68kSimImpl_move
-_TEXT	SEGMENT
-env$ = 48
-__formal$ = 56
-size$ = 64
-data$ = 72
-ea$ = 80
-Java_com_LilG_Com_m68k_M68kSimImpl_move PROC		; COMDAT
-; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
-; Line 56
-$LN19:
-	mov	QWORD PTR [rsp+8], rbx
-	mov	QWORD PTR [rsp+16], rsi
-	push	rdi
-	sub	rsp, 32					; 00000020H
-; File c:\program files\java\jdk1.8.0_51\include\jni.h
-; Line 794
-	mov	rax, QWORD PTR [rcx]
-	lea	rdx, OFFSET FLAT:??_C@_0BH@LJJBNPH@com?1LilG?1Com?1m68k?1Size?$AA@
-; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
-; Line 56
-	mov	rsi, r9
-	mov	rdi, r8
-	mov	rbx, rcx
-; File c:\program files\java\jdk1.8.0_51\include\jni.h
-; Line 794
-	call	QWORD PTR [rax+48]
-; Line 894
-	mov	r10, QWORD PTR [rbx]
-	lea	r9, OFFSET FLAT:??_C@_03KNBKCOBB@?$CI?$CJI?$AA@
-	lea	r8, OFFSET FLAT:??_C@_07LEACAOHP@ordinal?$AA@
-	mov	rdx, rax
-	mov	rcx, rbx
-	call	QWORD PTR [r10+264]
-; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
-; Line 58
-	mov	rdx, rdi
-	mov	rcx, rbx
-	mov	r8, rax
-	call	?CallIntMethod@JNIEnv_@@QEAAJPEAV_jobject@@PEAU_jmethodID@@ZZ ; JNIEnv_::CallIntMethod
-; Line 59
-	test	eax, eax
-	je	SHORT $LN4@Java_com_L
-	sub	eax, 1
-	je	SHORT $LN5@Java_com_L
-	cmp	eax, 1
-	jne	SHORT $LN2@Java_com_L
-; Line 114
-	mov	rax, QWORD PTR ?instance@@3PEAVM68KSimulator@@EA ; instance
-	mov	edx, DWORD PTR ea$[rsp]
-	mov	rcx, QWORD PTR [rax+8]
-	mov	DWORD PTR [rcx+rdx*4], esi
-; Line 70
-	mov	rbx, QWORD PTR [rsp+48]
-	mov	rsi, QWORD PTR [rsp+56]
-	add	rsp, 32					; 00000020H
-	pop	rdi
-	ret	0
-$LN5@Java_com_L:
-; Line 109
-	mov	rax, QWORD PTR ?instance@@3PEAVM68KSimulator@@EA ; instance
-	mov	edx, DWORD PTR ea$[rsp]
-	mov	rcx, QWORD PTR [rax+8]
-	mov	WORD PTR [rcx+rdx*2], si
-; Line 70
-	mov	rbx, QWORD PTR [rsp+48]
-	mov	rsi, QWORD PTR [rsp+56]
-	add	rsp, 32					; 00000020H
-	pop	rdi
-	ret	0
-$LN4@Java_com_L:
-; Line 104
-	mov	rax, QWORD PTR ?instance@@3PEAVM68KSimulator@@EA ; instance
-	mov	edx, DWORD PTR ea$[rsp]
-	mov	rcx, QWORD PTR [rax+8]
-	mov	BYTE PTR [rdx+rcx], sil
-$LN2@Java_com_L:
-; Line 70
-	mov	rbx, QWORD PTR [rsp+48]
-	mov	rsi, QWORD PTR [rsp+56]
-	add	rsp, 32					; 00000020H
-	pop	rdi
-	ret	0
-Java_com_LilG_Com_m68k_M68kSimImpl_move ENDP
-_TEXT	ENDS
-; Function compile flags: /Ogtpy
-;	COMDAT Java_com_LilG_Com_m68k_M68kSimImpl_getByte
-_TEXT	SEGMENT
-__formal$ = 8
-__formal$ = 16
-address$ = 24
-Java_com_LilG_Com_m68k_M68kSimImpl_getByte PROC		; COMDAT
-; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
-; Line 79
-	mov	rax, QWORD PTR ?instance@@3PEAVM68KSimulator@@EA ; instance
-	movsxd	rdx, r8d
-	mov	rcx, QWORD PTR [rax+8]
-	movzx	eax, BYTE PTR [rcx+rdx]
-; Line 80
-	ret	0
-Java_com_LilG_Com_m68k_M68kSimImpl_getByte ENDP
-_TEXT	ENDS
-; Function compile flags: /Ogtpy
-;	COMDAT Java_com_LilG_Com_m68k_M68kSimImpl_getWord
-_TEXT	SEGMENT
-__formal$ = 8
-__formal$ = 16
-address$ = 24
-Java_com_LilG_Com_m68k_M68kSimImpl_getWord PROC		; COMDAT
-; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
-; Line 89
-	mov	rax, QWORD PTR ?instance@@3PEAVM68KSimulator@@EA ; instance
-	movsxd	rdx, r8d
-	mov	rcx, QWORD PTR [rax+8]
-	movzx	eax, WORD PTR [rcx+rdx*2]
-; Line 90
-	ret	0
-Java_com_LilG_Com_m68k_M68kSimImpl_getWord ENDP
-_TEXT	ENDS
-; Function compile flags: /Ogtpy
-;	COMDAT Java_com_LilG_Com_m68k_M68kSimImpl_getLongWord
-_TEXT	SEGMENT
-env$ = 8
-__formal$ = 16
-address$ = 24
-Java_com_LilG_Com_m68k_M68kSimImpl_getLongWord PROC	; COMDAT
-; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
-; Line 99
-	mov	rax, QWORD PTR ?instance@@3PEAVM68KSimulator@@EA ; instance
-	movsxd	rdx, r8d
-	mov	rcx, QWORD PTR [rax+8]
-	mov	eax, DWORD PTR [rcx+rdx*4]
-; Line 100
-	ret	0
-Java_com_LilG_Com_m68k_M68kSimImpl_getLongWord ENDP
-_TEXT	ENDS
-; Function compile flags: /Ogtpy
-;	COMDAT ?setByte@M68KSimulator@@QEAAXII@Z
-_TEXT	SEGMENT
-this$dead$ = 8
-address$ = 16
-num$ = 24
-?setByte@M68KSimulator@@QEAAXII@Z PROC			; M68KSimulator::setByte, COMDAT
-; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
-; Line 104
-	mov	rax, QWORD PTR ?instance@@3PEAVM68KSimulator@@EA ; instance
-	mov	r9d, edx
-	mov	rcx, QWORD PTR [rax+8]
-	mov	BYTE PTR [r9+rcx], r8b
-; Line 105
-	ret	0
-?setByte@M68KSimulator@@QEAAXII@Z ENDP			; M68KSimulator::setByte
-_TEXT	ENDS
-; Function compile flags: /Ogtpy
-;	COMDAT ?setWord@M68KSimulator@@QEAAXII@Z
-_TEXT	SEGMENT
-this$dead$ = 8
-address$ = 16
-num$ = 24
-?setWord@M68KSimulator@@QEAAXII@Z PROC			; M68KSimulator::setWord, COMDAT
-; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
-; Line 109
-	mov	rax, QWORD PTR ?instance@@3PEAVM68KSimulator@@EA ; instance
-	mov	r9d, edx
-	mov	rcx, QWORD PTR [rax+8]
-	mov	WORD PTR [rcx+r9*2], r8w
-; Line 110
-	ret	0
-?setWord@M68KSimulator@@QEAAXII@Z ENDP			; M68KSimulator::setWord
-_TEXT	ENDS
-; Function compile flags: /Ogtpy
-;	COMDAT ?setLongWord@M68KSimulator@@QEAAXII@Z
-_TEXT	SEGMENT
-this$dead$ = 8
-address$ = 16
-num$ = 24
-?setLongWord@M68KSimulator@@QEAAXII@Z PROC		; M68KSimulator::setLongWord, COMDAT
-; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
-; Line 114
-	mov	rax, QWORD PTR ?instance@@3PEAVM68KSimulator@@EA ; instance
-	mov	r9d, edx
-	mov	rcx, QWORD PTR [rax+8]
-	mov	DWORD PTR [rcx+r9*4], r8d
-; Line 115
-	ret	0
-?setLongWord@M68KSimulator@@QEAAXII@Z ENDP		; M68KSimulator::setLongWord
-_TEXT	ENDS
-; Function compile flags: /Ogtpy
-;	COMDAT ?addByte@M68KSimulator@@QEAAXII@Z
-_TEXT	SEGMENT
-this$dead$ = 8
-address$ = 16
-num$ = 24
-?addByte@M68KSimulator@@QEAAXII@Z PROC			; M68KSimulator::addByte, COMDAT
-; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
-; Line 119
-	mov	rax, QWORD PTR ?instance@@3PEAVM68KSimulator@@EA ; instance
-	mov	r9d, edx
-	mov	rcx, QWORD PTR [rax+8]
-	mov	BYTE PTR [r9+rcx], r8b
-; Line 120
-	ret	0
-?addByte@M68KSimulator@@QEAAXII@Z ENDP			; M68KSimulator::addByte
-_TEXT	ENDS
-; Function compile flags: /Ogtpy
-;	COMDAT ?addWord@M68KSimulator@@QEAAXII@Z
-_TEXT	SEGMENT
-this$dead$ = 8
-address$ = 16
-num$ = 24
-?addWord@M68KSimulator@@QEAAXII@Z PROC			; M68KSimulator::addWord, COMDAT
-; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
-; Line 124
-	mov	rax, QWORD PTR ?instance@@3PEAVM68KSimulator@@EA ; instance
-	mov	r9d, edx
-	mov	rcx, QWORD PTR [rax+8]
-	mov	WORD PTR [rcx+r9*2], r8w
-; Line 125
-	ret	0
-?addWord@M68KSimulator@@QEAAXII@Z ENDP			; M68KSimulator::addWord
-_TEXT	ENDS
-; Function compile flags: /Ogtpy
-;	COMDAT ?addLongWord@M68KSimulator@@QEAAXII@Z
-_TEXT	SEGMENT
-this$dead$ = 8
-address$ = 16
-num$ = 24
-?addLongWord@M68KSimulator@@QEAAXII@Z PROC		; M68KSimulator::addLongWord, COMDAT
-; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
-; Line 129
-	mov	rax, QWORD PTR ?instance@@3PEAVM68KSimulator@@EA ; instance
-	mov	r9d, edx
-	mov	rcx, QWORD PTR [rax+8]
-	mov	DWORD PTR [rcx+r9*4], r8d
-; Line 130
-	ret	0
-?addLongWord@M68KSimulator@@QEAAXII@Z ENDP		; M68KSimulator::addLongWord
-_TEXT	ENDS
-; Function compile flags: /Ogtpy
-;	COMDAT Java_com_LilG_Com_m68k_M68kSimImpl_clearMem0
-_TEXT	SEGMENT
-env$ = 8
-__formal$ = 16
-Java_com_LilG_Com_m68k_M68kSimImpl_clearMem0 PROC	; COMDAT
-; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
-; Line 139
-	mov	rcx, QWORD PTR ?instance@@3PEAVM68KSimulator@@EA ; instance
-	xor	edx, edx
-	movzx	r8d, WORD PTR [rcx]
-	mov	rcx, QWORD PTR [rcx+8]
-	jmp	memset
-Java_com_LilG_Com_m68k_M68kSimImpl_clearMem0 ENDP
-_TEXT	ENDS
-; Function compile flags: /Ogtpy
-;	COMDAT Java_com_LilG_Com_m68k_M68kSimImpl_getRamStart
-_TEXT	SEGMENT
-env$ = 8
-__formal$ = 16
-Java_com_LilG_Com_m68k_M68kSimImpl_getRamStart PROC	; COMDAT
-; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
-; Line 149
-	mov	rax, QWORD PTR ?instance@@3PEAVM68KSimulator@@EA ; instance
-	add	rax, 8
-; Line 150
-	ret	0
-Java_com_LilG_Com_m68k_M68kSimImpl_getRamStart ENDP
-_TEXT	ENDS
-; Function compile flags: /Ogtpy
-;	COMDAT Java_com_LilG_Com_m68k_M68kSimImpl_getRamSize
-_TEXT	SEGMENT
-env$ = 8
-__formal$ = 16
-Java_com_LilG_Com_m68k_M68kSimImpl_getRamSize PROC	; COMDAT
-; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
-; Line 159
-	mov	rax, QWORD PTR ?instance@@3PEAVM68KSimulator@@EA ; instance
-	movzx	eax, WORD PTR [rax]
-; Line 160
-	ret	0
-Java_com_LilG_Com_m68k_M68kSimImpl_getRamSize ENDP
-_TEXT	ENDS
-; Function compile flags: /Ogtpy
 ;	COMDAT ??$__vcrt_va_start_verify_argument_type@QEBD@@YAXXZ
 _TEXT	SEGMENT
 ??$__vcrt_va_start_verify_argument_type@QEBD@@YAXXZ PROC ; __vcrt_va_start_verify_argument_type<char const * __ptr64 const>, COMDAT
@@ -850,12 +1017,51 @@ _TEXT	SEGMENT
 ??$__vcrt_va_start_verify_argument_type@QEBD@@YAXXZ ENDP ; __vcrt_va_start_verify_argument_type<char const * __ptr64 const>
 _TEXT	ENDS
 ; Function compile flags: /Ogtpy
-;	COMDAT ??$__vcrt_va_start_verify_argument_type@PEAU_jmethodID@@@@YAXXZ
+;	COMDAT _vfprintf_l
 _TEXT	SEGMENT
-??$__vcrt_va_start_verify_argument_type@PEAU_jmethodID@@@@YAXXZ PROC ; __vcrt_va_start_verify_argument_type<_jmethodID * __ptr64>, COMDAT
-; File c:\program files (x86)\microsoft visual studio 14.0\vc\include\vadefs.h
-; Line 146
+_Stream$ = 64
+_Format$ = 72
+_Locale$ = 80
+_ArgList$ = 88
+_vfprintf_l PROC					; COMDAT
+; File c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\stdio.h
+; Line 638
+$LN4:
+	mov	QWORD PTR [rsp+8], rbx
+	mov	QWORD PTR [rsp+16], rbp
+	mov	QWORD PTR [rsp+24], rsi
+	push	rdi
+	sub	rsp, 48					; 00000030H
+	mov	rbx, r9
+	mov	rdi, r8
+	mov	rsi, rdx
+	mov	rbp, rcx
+; Line 639
+	call	__local_stdio_printf_options
+	mov	r9, rdi
+	mov	QWORD PTR [rsp+32], rbx
+	mov	r8, rsi
+	mov	rdx, rbp
+	mov	rcx, QWORD PTR [rax]
+	call	QWORD PTR __imp___stdio_common_vfprintf
+; Line 640
+	mov	rbx, QWORD PTR [rsp+64]
+	mov	rbp, QWORD PTR [rsp+72]
+	mov	rsi, QWORD PTR [rsp+80]
+	add	rsp, 48					; 00000030H
+	pop	rdi
 	ret	0
-??$__vcrt_va_start_verify_argument_type@PEAU_jmethodID@@@@YAXXZ ENDP ; __vcrt_va_start_verify_argument_type<_jmethodID * __ptr64>
+_vfprintf_l ENDP
+_TEXT	ENDS
+; Function compile flags: /Ogtpy
+;	COMDAT __local_stdio_printf_options
+_TEXT	SEGMENT
+__local_stdio_printf_options PROC			; COMDAT
+; File c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\corecrt_stdio_config.h
+; Line 75
+	lea	rax, OFFSET FLAT:?_OptionsStorage@?1??__local_stdio_printf_options@@9@4_KA ; `__local_stdio_printf_options'::`2'::_OptionsStorage
+; Line 76
+	ret	0
+__local_stdio_printf_options ENDP
 _TEXT	ENDS
 END

@@ -1,37 +1,68 @@
 package com.LilG.Com.m68k;
 
-import java.io.ByteArrayOutputStream;
+import com.sun.jna.Library;
+import com.sun.jna.NativeLong;
 
 /**
- * Created by ggonz on 8/20/2016.
+ * Created by ggonz on 8/16/2016.
  */
-public interface M68kSim {
-    static M68kSim getInstance() {
-        return M68kSimImpl.instance;
-    }
+public interface M68kSim extends Library {
 
+    void start();
 
-    static void setNull() {
-        M68kSimImpl.instance = null;
-    }
+    void exit();
 
-    void adda(Size size, long data, int ea);
+    void setByte(short address, byte num);
 
-    void move(Size size, long data, int ea);
+    void setWord(short address, short num);
 
-    short getByte(int address);
+    void setLongWord(short address, NativeLong num);
 
-    int getWord(int address);
+    void addByte(short address, byte num);
 
-    long getLongWord(int address);
+    void addWord(short address, short num);
+
+    void addLongWord(short address, NativeLong num);
+
+    byte getByte(short address);
+
+    short getWord(short address);
+
+    NativeLong getLongWord(short address);
 
     void clearMem();
 
-    ByteArrayOutputStream getMem();
+    long getRamStart();
+
+    short getRamSize();
+
+    void lea(short address, int An);
+
+    void pea(short address);
+
+    void add(int size, int dn, short ea);
+
+    void add(int size, short ea, int dn);
+
+    void adda(Size size, short ea, int an);
+
+    void addi(int size, short ea, NativeLong data);
+
+    void and(int size, int dn, short ea);
+
+    void and(int size, short ea, int dn);
+
+    void move(int size, short source, short destination);
+
+    void move(int size, short source, int dn);
+
+    void move(int size, int dn, short destination);
+
+    void move(int size, int dn1, int dn2);
+
+    void moveq(byte data, short destination);
 
     void memDump();
-
-    long getRamStart();
 
     enum Size {
         Byte((byte) 8, 'b'), Word((byte) 16, 'w'), LongWord((byte) 32, 'l');
@@ -60,5 +91,4 @@ public interface M68kSim {
     enum AddressRegister {
         a0, a1, a2, a3, a4, a5, a6, a7
     }
-
 }

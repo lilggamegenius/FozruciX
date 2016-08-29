@@ -3,7 +3,6 @@ package com.LilG.Com;
 import ch.qos.logback.classic.Logger;
 import com.LilG.Com.DataClasses.SaveDataStore;
 import com.LilG.Com.utils.CryptoUtil;
-import com.LilG.Com.utils.LilGUtil;
 import com.thoughtworks.xstream.XStream;
 import org.jetbrains.annotations.NotNull;
 import org.pircbotx.Configuration;
@@ -41,7 +40,6 @@ public class FozConfig {
     private final static File saveFile = new File("Data/Data.xml");
     private final static MultiBotManager manager = new MultiBotManager();
     private final static SaveDataStore save = loadData(new XStream());
-
     public final static Configuration.Builder debugConfig = new Configuration.Builder()
             .setAutoReconnectDelay(connectDelay)
             .setEncoding(Charset.forName("UTF-8"))
@@ -186,7 +184,8 @@ public class FozConfig {
 
     static {
         try {
-            LilGUtil.loadLib("JNIThing");
+            System.setProperty("jna.debug_load", "true");
+            System.setProperty("jna.debug_load.jna", "true");
             Class.forName("com.mysql.jdbc.Driver").newInstance();
         } catch (ClassNotFoundException e) {
             LOGGER.error("SQL Driver not found", e);

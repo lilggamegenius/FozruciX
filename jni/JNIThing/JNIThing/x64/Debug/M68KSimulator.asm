@@ -5,119 +5,63 @@ include listing.inc
 INCLUDELIB MSVCRTD
 INCLUDELIB OLDNAMES
 
-PUBLIC	??0M68KSimulator@@QEAA@XZ			; M68KSimulator::M68KSimulator
-PUBLIC	??1M68KSimulator@@QEAA@XZ			; M68KSimulator::~M68KSimulator
-PUBLIC	?setByte@M68KSimulator@@QEAAXGE@Z		; M68KSimulator::setByte
-PUBLIC	?setWord@M68KSimulator@@QEAAXGG@Z		; M68KSimulator::setWord
-PUBLIC	?setLongWord@M68KSimulator@@QEAAXGI@Z		; M68KSimulator::setLongWord
-PUBLIC	?addByte@M68KSimulator@@QEAAXGE@Z		; M68KSimulator::addByte
-PUBLIC	?addWord@M68KSimulator@@QEAAXGG@Z		; M68KSimulator::addWord
-PUBLIC	?addLongWord@M68KSimulator@@QEAAXGI@Z		; M68KSimulator::addLongWord
+PUBLIC	?ramStart@@3PEATmem_union@@EA			; ramStart
+PUBLIC	?dataRegisters@@3PAPEATregisters@@A		; dataRegisters
+PUBLIC	?addressRegisters@@3PAPEATregisters@@A		; addressRegisters
+PUBLIC	?programCounter@@3IA				; programCounter
+_BSS	SEGMENT
+?ramStart@@3PEATmem_union@@EA DQ 01H DUP (?)		; ramStart
+?dataRegisters@@3PAPEATregisters@@A DQ 08H DUP (?)	; dataRegisters
+?addressRegisters@@3PAPEATregisters@@A DQ 09H DUP (?)	; addressRegisters
+?programCounter@@3IA DD 01H DUP (?)			; programCounter
+_BSS	ENDS
 PUBLIC	__local_stdio_printf_options
 PUBLIC	??$__vcrt_va_start_verify_argument_type@QEBD@@YAXXZ ; __vcrt_va_start_verify_argument_type<char const * __ptr64 const>
 PUBLIC	printf
-PUBLIC	?CallIntMethod@JNIEnv_@@QEAAJPEAV_jobject@@PEAU_jmethodID@@ZZ ; JNIEnv_::CallIntMethod
-PUBLIC	??$__vcrt_va_start_verify_argument_type@PEAU_jmethodID@@@@YAXXZ ; __vcrt_va_start_verify_argument_type<_jmethodID * __ptr64>
-PUBLIC	JNI_OnLoad
-PUBLIC	JNI_OnUnload
-PUBLIC	Java_com_LilG_Com_m68k_M68kSimImpl_adda
-PUBLIC	Java_com_LilG_Com_m68k_M68kSimImpl_move
-PUBLIC	Java_com_LilG_Com_m68k_M68kSimImpl_getByte
-PUBLIC	Java_com_LilG_Com_m68k_M68kSimImpl_getWord
-PUBLIC	Java_com_LilG_Com_m68k_M68kSimImpl_getLongWord
-PUBLIC	Java_com_LilG_Com_m68k_M68kSimImpl_clearMem0
-PUBLIC	Java_com_LilG_Com_m68k_M68kSimImpl_getRamStart
-PUBLIC	Java_com_LilG_Com_m68k_M68kSimImpl_getRamSize
-PUBLIC	DllMain
-PUBLIC	?instance@@3PEAVM68KSimulator@@EA		; instance
+PUBLIC	start
+PUBLIC	close
+PUBLIC	setByte
+PUBLIC	setWord
+PUBLIC	setLongWord
+PUBLIC	addByte
+PUBLIC	addWord
+PUBLIC	addLongWord
+PUBLIC	getByte
+PUBLIC	getWord
+PUBLIC	getLongWord
+PUBLIC	clearMem
+PUBLIC	getRamStart
+PUBLIC	getRamSize
+PUBLIC	?lea@@YAXGW4AddressRegister@@@Z			; lea
+PUBLIC	?pea@@YAXG@Z					; pea
+PUBLIC	?add@@YAXW4Size@@W4DataRegister@@G@Z		; add
+PUBLIC	?add@@YAXW4Size@@GW4DataRegister@@@Z		; add
+PUBLIC	?adda@@YAXW4Size@@GW4AddressRegister@@@Z	; adda
+PUBLIC	?addi@@YAXW4Size@@GI@Z				; addi
+PUBLIC	?and@@YAXW4Size@@W4DataRegister@@G@Z		; and
+PUBLIC	?and@@YAXW4Size@@GW4DataRegister@@@Z		; and
+PUBLIC	?move@@YAXW4Size@@GG@Z				; move
+PUBLIC	?move@@YAXW4Size@@GW4DataRegister@@@Z		; move
+PUBLIC	?move@@YAXW4Size@@W4DataRegister@@G@Z		; move
+PUBLIC	?move@@YAXW4Size@@W4DataRegister@@1@Z		; move
+PUBLIC	?moveq@@YAXW4Size@@EG@Z				; moveq
 PUBLIC	?_OptionsStorage@?1??__local_stdio_printf_options@@9@4_KA ; `__local_stdio_printf_options'::`2'::_OptionsStorage
-PUBLIC	??_C@_0L@JCCNGKFG@DLL?5Loaded?$AA@		; `string'
-PUBLIC	??_C@_0DD@HHCPJPAE@DEBUG?5?9?5M68KSimulator?5created?4?5S@ ; `string'
-PUBLIC	??_C@_0L@IODJNECC@JNI?5Loaded?$AA@		; `string'
-PUBLIC	??_C@_0N@FLNILKML@JNI?5Unloaded?$AA@		; `string'
-PUBLIC	??_C@_03KNBKCOBB@?$CI?$CJI?$AA@			; `string'
-PUBLIC	??_C@_07LEACAOHP@ordinal?$AA@			; `string'
-PUBLIC	??_C@_0BH@LJJBNPH@com?1LilG?1Com?1m68k?1Size?$AA@ ; `string'
-EXTRN	??2@YAPEAX_K@Z:PROC				; operator new
-EXTRN	??3@YAXPEAX_K@Z:PROC				; operator delete
-EXTRN	__imp_free:PROC
-EXTRN	__imp_malloc:PROC
+PUBLIC	??_C@_0BD@JCDCPOBF@DEBUG?5?9?5DLL?5Loaded?$AA@	; `string'
+PUBLIC	??_C@_0CO@FJDOOOIP@DEBUG?5?9?5M68K?5ram?5created?4?5Starti@ ; `string'
 EXTRN	__imp___acrt_iob_func:PROC
 EXTRN	__imp___stdio_common_vfprintf:PROC
+EXTRN	__imp_free:PROC
+EXTRN	__imp_malloc:PROC
 EXTRN	_RTC_CheckStackVars:PROC
 EXTRN	_RTC_InitBase:PROC
 EXTRN	_RTC_Shutdown:PROC
-EXTRN	__CxxFrameHandler3:PROC
 EXTRN	__GSHandlerCheck:PROC
 EXTRN	__security_check_cookie:PROC
 EXTRN	__security_cookie:QWORD
-_BSS	SEGMENT
-?instance@@3PEAVM68KSimulator@@EA DQ 01H DUP (?)	; instance
-_BSS	ENDS
 ;	COMDAT ?_OptionsStorage@?1??__local_stdio_printf_options@@9@4_KA
 _BSS	SEGMENT
 ?_OptionsStorage@?1??__local_stdio_printf_options@@9@4_KA DQ 01H DUP (?) ; `__local_stdio_printf_options'::`2'::_OptionsStorage
 _BSS	ENDS
-;	COMDAT pdata
-pdata	SEGMENT
-$pdata$??0M68KSimulator@@QEAA@XZ DD imagerel $LN3
-	DD	imagerel $LN3+119
-	DD	imagerel $unwind$??0M68KSimulator@@QEAA@XZ
-pdata	ENDS
-;	COMDAT pdata
-pdata	SEGMENT
-$pdata$??1M68KSimulator@@QEAA@XZ DD imagerel $LN3
-	DD	imagerel $LN3+68
-	DD	imagerel $unwind$??1M68KSimulator@@QEAA@XZ
-pdata	ENDS
-;	COMDAT pdata
-pdata	SEGMENT
-$pdata$?setByte@M68KSimulator@@QEAAXGE@Z DD imagerel $LN3
-	DD	imagerel $LN3+87
-	DD	imagerel $unwind$?setByte@M68KSimulator@@QEAAXGE@Z
-pdata	ENDS
-;	COMDAT pdata
-pdata	SEGMENT
-$pdata$?setWord@M68KSimulator@@QEAAXGG@Z DD imagerel $LN3
-	DD	imagerel $LN3+89
-	DD	imagerel $unwind$?setWord@M68KSimulator@@QEAAXGG@Z
-pdata	ENDS
-;	COMDAT pdata
-pdata	SEGMENT
-$pdata$?setLongWord@M68KSimulator@@QEAAXGI@Z DD imagerel $LN3
-	DD	imagerel $LN3+86
-	DD	imagerel $unwind$?setLongWord@M68KSimulator@@QEAAXGI@Z
-pdata	ENDS
-;	COMDAT pdata
-pdata	SEGMENT
-$pdata$?addByte@M68KSimulator@@QEAAXGE@Z DD imagerel $LN3
-	DD	imagerel $LN3+87
-	DD	imagerel $unwind$?addByte@M68KSimulator@@QEAAXGE@Z
-pdata	ENDS
-;	COMDAT pdata
-pdata	SEGMENT
-$pdata$?addWord@M68KSimulator@@QEAAXGG@Z DD imagerel $LN3
-	DD	imagerel $LN3+89
-	DD	imagerel $unwind$?addWord@M68KSimulator@@QEAAXGG@Z
-pdata	ENDS
-;	COMDAT pdata
-pdata	SEGMENT
-$pdata$?addLongWord@M68KSimulator@@QEAAXGI@Z DD imagerel $LN3
-	DD	imagerel $LN3+86
-	DD	imagerel $unwind$?addLongWord@M68KSimulator@@QEAAXGI@Z
-pdata	ENDS
-;	COMDAT pdata
-pdata	SEGMENT
-$pdata$??__Einstance@@YAXXZ DD imagerel ??__Einstance@@YAXXZ
-	DD	imagerel ??__Einstance@@YAXXZ+154
-	DD	imagerel $unwind$??__Einstance@@YAXXZ
-pdata	ENDS
-;	COMDAT pdata
-pdata	SEGMENT
-$pdata$?dtor$0@?0???__Einstance@@YAXXZ@4HA DD imagerel ?dtor$0@?0???__Einstance@@YAXXZ@4HA
-	DD	imagerel ?dtor$0@?0???__Einstance@@YAXXZ@4HA+44
-	DD	imagerel $unwind$?dtor$0@?0???__Einstance@@YAXXZ@4HA
-pdata	ENDS
 ;	COMDAT pdata
 pdata	SEGMENT
 $pdata$__local_stdio_printf_options DD imagerel $LN3
@@ -138,85 +82,166 @@ $pdata$printf DD imagerel $LN5
 pdata	ENDS
 ;	COMDAT pdata
 pdata	SEGMENT
-$pdata$?CallIntMethod@JNIEnv_@@QEAAJPEAV_jobject@@PEAU_jmethodID@@ZZ DD imagerel $LN3
-	DD	imagerel $LN3+190
-	DD	imagerel $unwind$?CallIntMethod@JNIEnv_@@QEAAJPEAV_jobject@@PEAU_jmethodID@@ZZ
+$pdata$start DD	imagerel $LN6
+	DD	imagerel $LN6+147
+	DD	imagerel $unwind$start
 pdata	ENDS
 ;	COMDAT pdata
 pdata	SEGMENT
-$pdata$??$__vcrt_va_start_verify_argument_type@PEAU_jmethodID@@@@YAXXZ DD imagerel $LN3
-	DD	imagerel $LN3+38
-	DD	imagerel $unwind$??$__vcrt_va_start_verify_argument_type@PEAU_jmethodID@@@@YAXXZ
+$pdata$close DD	imagerel $LN6
+	DD	imagerel $LN6+99
+	DD	imagerel $unwind$close
 pdata	ENDS
 ;	COMDAT pdata
 pdata	SEGMENT
-$pdata$JNI_OnLoad DD imagerel $LN3
-	DD	imagerel $LN3+74
-	DD	imagerel $unwind$JNI_OnLoad
-pdata	ENDS
-;	COMDAT pdata
-pdata	SEGMENT
-$pdata$JNI_OnUnload DD imagerel $LN9
-	DD	imagerel $LN9+189
-	DD	imagerel $unwind$JNI_OnUnload
-pdata	ENDS
-;	COMDAT pdata
-pdata	SEGMENT
-$pdata$Java_com_LilG_Com_m68k_M68kSimImpl_adda DD imagerel $LN12
-	DD	imagerel $LN12+298
-	DD	imagerel $unwind$Java_com_LilG_Com_m68k_M68kSimImpl_adda
-pdata	ENDS
-;	COMDAT pdata
-pdata	SEGMENT
-$pdata$Java_com_LilG_Com_m68k_M68kSimImpl_move DD imagerel $LN12
-	DD	imagerel $LN12+297
-	DD	imagerel $unwind$Java_com_LilG_Com_m68k_M68kSimImpl_move
-pdata	ENDS
-;	COMDAT pdata
-pdata	SEGMENT
-$pdata$Java_com_LilG_Com_m68k_M68kSimImpl_getByte DD imagerel $LN3
-	DD	imagerel $LN3+81
-	DD	imagerel $unwind$Java_com_LilG_Com_m68k_M68kSimImpl_getByte
-pdata	ENDS
-;	COMDAT pdata
-pdata	SEGMENT
-$pdata$Java_com_LilG_Com_m68k_M68kSimImpl_getWord DD imagerel $LN3
-	DD	imagerel $LN3+81
-	DD	imagerel $unwind$Java_com_LilG_Com_m68k_M68kSimImpl_getWord
-pdata	ENDS
-;	COMDAT pdata
-pdata	SEGMENT
-$pdata$Java_com_LilG_Com_m68k_M68kSimImpl_getLongWord DD imagerel $LN3
-	DD	imagerel $LN3+80
-	DD	imagerel $unwind$Java_com_LilG_Com_m68k_M68kSimImpl_getLongWord
-pdata	ENDS
-;	COMDAT pdata
-pdata	SEGMENT
-$pdata$Java_com_LilG_Com_m68k_M68kSimImpl_clearMem0 DD imagerel $LN3
-	DD	imagerel $LN3+74
-	DD	imagerel $unwind$Java_com_LilG_Com_m68k_M68kSimImpl_clearMem0
-pdata	ENDS
-;	COMDAT pdata
-pdata	SEGMENT
-$pdata$Java_com_LilG_Com_m68k_M68kSimImpl_getRamStart DD imagerel $LN3
-	DD	imagerel $LN3+62
-	DD	imagerel $unwind$Java_com_LilG_Com_m68k_M68kSimImpl_getRamStart
-pdata	ENDS
-;	COMDAT pdata
-pdata	SEGMENT
-$pdata$Java_com_LilG_Com_m68k_M68kSimImpl_getRamSize DD imagerel $LN3
-	DD	imagerel $LN3+60
-	DD	imagerel $unwind$Java_com_LilG_Com_m68k_M68kSimImpl_getRamSize
-pdata	ENDS
-;	COMDAT pdata
-pdata	SEGMENT
-$pdata$DllMain DD imagerel $LN3
+$pdata$setByte DD imagerel $LN3
 	DD	imagerel $LN3+78
-	DD	imagerel $unwind$DllMain
+	DD	imagerel $unwind$setByte
 pdata	ENDS
-CRT$XCU	SEGMENT
-?instance$initializer$@@3P6AXXZEA DQ FLAT:??__Einstance@@YAXXZ ; instance$initializer$
-CRT$XCU	ENDS
+;	COMDAT pdata
+pdata	SEGMENT
+$pdata$setWord DD imagerel $LN3
+	DD	imagerel $LN3+80
+	DD	imagerel $unwind$setWord
+pdata	ENDS
+;	COMDAT pdata
+pdata	SEGMENT
+$pdata$setLongWord DD imagerel $LN3
+	DD	imagerel $LN3+77
+	DD	imagerel $unwind$setLongWord
+pdata	ENDS
+;	COMDAT pdata
+pdata	SEGMENT
+$pdata$addByte DD imagerel $LN3
+	DD	imagerel $LN3+78
+	DD	imagerel $unwind$addByte
+pdata	ENDS
+;	COMDAT pdata
+pdata	SEGMENT
+$pdata$addWord DD imagerel $LN3
+	DD	imagerel $LN3+80
+	DD	imagerel $unwind$addWord
+pdata	ENDS
+;	COMDAT pdata
+pdata	SEGMENT
+$pdata$addLongWord DD imagerel $LN3
+	DD	imagerel $LN3+77
+	DD	imagerel $unwind$addLongWord
+pdata	ENDS
+;	COMDAT pdata
+pdata	SEGMENT
+$pdata$getByte DD imagerel $LN3
+	DD	imagerel $LN3+68
+	DD	imagerel $unwind$getByte
+pdata	ENDS
+;	COMDAT pdata
+pdata	SEGMENT
+$pdata$getWord DD imagerel $LN3
+	DD	imagerel $LN3+68
+	DD	imagerel $unwind$getWord
+pdata	ENDS
+;	COMDAT pdata
+pdata	SEGMENT
+$pdata$getLongWord DD imagerel $LN3
+	DD	imagerel $LN3+67
+	DD	imagerel $unwind$getLongWord
+pdata	ENDS
+;	COMDAT pdata
+pdata	SEGMENT
+$pdata$clearMem DD imagerel $LN3
+	DD	imagerel $LN3+51
+	DD	imagerel $unwind$clearMem
+pdata	ENDS
+;	COMDAT pdata
+pdata	SEGMENT
+$pdata$getRamStart DD imagerel $LN3
+	DD	imagerel $LN3+45
+	DD	imagerel $unwind$getRamStart
+pdata	ENDS
+;	COMDAT pdata
+pdata	SEGMENT
+$pdata$getRamSize DD imagerel $LN3
+	DD	imagerel $LN3+40
+	DD	imagerel $unwind$getRamSize
+pdata	ENDS
+;	COMDAT pdata
+pdata	SEGMENT
+$pdata$?lea@@YAXGW4AddressRegister@@@Z DD imagerel $LN3
+	DD	imagerel $LN3+90
+	DD	imagerel $unwind$?lea@@YAXGW4AddressRegister@@@Z
+pdata	ENDS
+;	COMDAT pdata
+pdata	SEGMENT
+$pdata$?pea@@YAXG@Z DD imagerel $LN3
+	DD	imagerel $LN3+123
+	DD	imagerel $unwind$?pea@@YAXG@Z
+pdata	ENDS
+;	COMDAT pdata
+pdata	SEGMENT
+$pdata$?add@@YAXW4Size@@W4DataRegister@@G@Z DD imagerel $LN8
+	DD	imagerel $LN8+223
+	DD	imagerel $unwind$?add@@YAXW4Size@@W4DataRegister@@G@Z
+pdata	ENDS
+;	COMDAT pdata
+pdata	SEGMENT
+$pdata$?add@@YAXW4Size@@GW4DataRegister@@@Z DD imagerel $LN8
+	DD	imagerel $LN8+402
+	DD	imagerel $unwind$?add@@YAXW4Size@@GW4DataRegister@@@Z
+pdata	ENDS
+;	COMDAT pdata
+pdata	SEGMENT
+$pdata$?adda@@YAXW4Size@@GW4AddressRegister@@@Z DD imagerel $LN8
+	DD	imagerel $LN8+402
+	DD	imagerel $unwind$?adda@@YAXW4Size@@GW4AddressRegister@@@Z
+pdata	ENDS
+;	COMDAT pdata
+pdata	SEGMENT
+$pdata$?addi@@YAXW4Size@@GI@Z DD imagerel $LN8
+	DD	imagerel $LN8+161
+	DD	imagerel $unwind$?addi@@YAXW4Size@@GI@Z
+pdata	ENDS
+;	COMDAT pdata
+pdata	SEGMENT
+$pdata$?and@@YAXW4Size@@W4DataRegister@@G@Z DD imagerel $LN8
+	DD	imagerel $LN8+284
+	DD	imagerel $unwind$?and@@YAXW4Size@@W4DataRegister@@G@Z
+pdata	ENDS
+;	COMDAT pdata
+pdata	SEGMENT
+$pdata$?and@@YAXW4Size@@GW4DataRegister@@@Z DD imagerel $LN8
+	DD	imagerel $LN8+406
+	DD	imagerel $unwind$?and@@YAXW4Size@@GW4DataRegister@@@Z
+pdata	ENDS
+;	COMDAT pdata
+pdata	SEGMENT
+$pdata$?move@@YAXW4Size@@GG@Z DD imagerel $LN8
+	DD	imagerel $LN8+186
+	DD	imagerel $unwind$?move@@YAXW4Size@@GG@Z
+pdata	ENDS
+;	COMDAT pdata
+pdata	SEGMENT
+$pdata$?move@@YAXW4Size@@GW4DataRegister@@@Z DD imagerel $LN8
+	DD	imagerel $LN8+222
+	DD	imagerel $unwind$?move@@YAXW4Size@@GW4DataRegister@@@Z
+pdata	ENDS
+;	COMDAT pdata
+pdata	SEGMENT
+$pdata$?move@@YAXW4Size@@W4DataRegister@@G@Z DD imagerel $LN8
+	DD	imagerel $LN8+223
+	DD	imagerel $unwind$?move@@YAXW4Size@@W4DataRegister@@G@Z
+pdata	ENDS
+;	COMDAT pdata
+pdata	SEGMENT
+$pdata$?move@@YAXW4Size@@W4DataRegister@@1@Z DD imagerel $LN8
+	DD	imagerel $LN8+276
+	DD	imagerel $unwind$?move@@YAXW4Size@@W4DataRegister@@1@Z
+pdata	ENDS
+;	COMDAT pdata
+pdata	SEGMENT
+$pdata$?moveq@@YAXW4Size@@EG@Z DD imagerel $LN8
+	DD	imagerel $LN8+175
+	DD	imagerel $unwind$?moveq@@YAXW4Size@@EG@Z
+pdata	ENDS
 ;	COMDAT rtc$TMZ
 rtc$TMZ	SEGMENT
 _RTC_Shutdown.rtc$TMZ DQ FLAT:_RTC_Shutdown
@@ -225,145 +250,204 @@ rtc$TMZ	ENDS
 rtc$IMZ	SEGMENT
 _RTC_InitBase.rtc$IMZ DQ FLAT:_RTC_InitBase
 rtc$IMZ	ENDS
-;	COMDAT ??_C@_0BH@LJJBNPH@com?1LilG?1Com?1m68k?1Size?$AA@
+;	COMDAT ??_C@_0CO@FJDOOOIP@DEBUG?5?9?5M68K?5ram?5created?4?5Starti@
 CONST	SEGMENT
-??_C@_0BH@LJJBNPH@com?1LilG?1Com?1m68k?1Size?$AA@ DB 'com/LilG/Com/m68k/S'
-	DB	'ize', 00H					; `string'
+??_C@_0CO@FJDOOOIP@DEBUG?5?9?5M68K?5ram?5created?4?5Starti@ DB 'DEBUG - M'
+	DB	'68K ram created. Starting offset: %p', 00H	; `string'
 CONST	ENDS
-;	COMDAT ??_C@_07LEACAOHP@ordinal?$AA@
+;	COMDAT ??_C@_0BD@JCDCPOBF@DEBUG?5?9?5DLL?5Loaded?$AA@
 CONST	SEGMENT
-??_C@_07LEACAOHP@ordinal?$AA@ DB 'ordinal', 00H		; `string'
-CONST	ENDS
-;	COMDAT ??_C@_03KNBKCOBB@?$CI?$CJI?$AA@
-CONST	SEGMENT
-??_C@_03KNBKCOBB@?$CI?$CJI?$AA@ DB '()I', 00H		; `string'
-CONST	ENDS
-;	COMDAT ??_C@_0N@FLNILKML@JNI?5Unloaded?$AA@
-CONST	SEGMENT
-??_C@_0N@FLNILKML@JNI?5Unloaded?$AA@ DB 'JNI Unloaded', 00H ; `string'
-CONST	ENDS
-;	COMDAT ??_C@_0L@IODJNECC@JNI?5Loaded?$AA@
-CONST	SEGMENT
-??_C@_0L@IODJNECC@JNI?5Loaded?$AA@ DB 'JNI Loaded', 00H	; `string'
-CONST	ENDS
-;	COMDAT ??_C@_0DD@HHCPJPAE@DEBUG?5?9?5M68KSimulator?5created?4?5S@
-CONST	SEGMENT
-??_C@_0DD@HHCPJPAE@DEBUG?5?9?5M68KSimulator?5created?4?5S@ DB 'DEBUG - M6'
-	DB	'8KSimulator created. Starting offset: %p', 00H ; `string'
-CONST	ENDS
-;	COMDAT ??_C@_0L@JCCNGKFG@DLL?5Loaded?$AA@
-CONST	SEGMENT
-??_C@_0L@JCCNGKFG@DLL?5Loaded?$AA@ DB 'DLL Loaded', 00H	; `string'
+??_C@_0BD@JCDCPOBF@DEBUG?5?9?5DLL?5Loaded?$AA@ DB 'DEBUG - DLL Loaded', 00H ; `string'
 CONST	ENDS
 ;	COMDAT xdata
 xdata	SEGMENT
-$unwind$DllMain DD 025053301H
+$unwind$?moveq@@YAXW4Size@@EG@Z DD 025053201H
 	DD	0117231cH
-	DD	07010001dH
+	DD	07010001fH
 	DD	0500fH
 xdata	ENDS
 ;	COMDAT xdata
 xdata	SEGMENT
-$unwind$Java_com_LilG_Com_m68k_M68kSimImpl_getRamSize DD 05052d01H
-	DD	01130316H
-	DD	0700c0019H
-	DD	0500bH
+$unwind$?move@@YAXW4Size@@W4DataRegister@@1@Z DD 05052f01H
+	DD	01160319H
+	DD	0700f001bH
+	DD	0500eH
 xdata	ENDS
 ;	COMDAT xdata
 xdata	SEGMENT
-$unwind$Java_com_LilG_Com_m68k_M68kSimImpl_getRamStart DD 05052d01H
-	DD	01130316H
-	DD	0700c0019H
-	DD	0500bH
+$unwind$?move@@YAXW4Size@@W4DataRegister@@G@Z DD 025053201H
+	DD	0117231cH
+	DD	07010001fH
+	DD	0500fH
 xdata	ENDS
 ;	COMDAT xdata
 xdata	SEGMENT
-$unwind$Java_com_LilG_Com_m68k_M68kSimImpl_clearMem0 DD 05052d01H
-	DD	01130316H
-	DD	0700c0019H
-	DD	0500bH
+$unwind$?move@@YAXW4Size@@GW4DataRegister@@@Z DD 025053201H
+	DD	0117231cH
+	DD	07010001fH
+	DD	0500fH
 xdata	ENDS
 ;	COMDAT xdata
 xdata	SEGMENT
-$unwind$Java_com_LilG_Com_m68k_M68kSimImpl_getLongWord DD 05053201H
-	DD	0118031bH
-	DD	070110019H
+$unwind$?move@@YAXW4Size@@GG@Z DD 025053301H
+	DD	0118231dH
+	DD	07011001fH
 	DD	05010H
 xdata	ENDS
 ;	COMDAT xdata
 xdata	SEGMENT
-$unwind$Java_com_LilG_Com_m68k_M68kSimImpl_getWord DD 05053201H
-	DD	0118031bH
-	DD	070110019H
-	DD	05010H
+$unwind$?and@@YAXW4Size@@GW4DataRegister@@@Z DD 025053201H
+	DD	0117231cH
+	DD	07010001fH
+	DD	0500fH
 xdata	ENDS
 ;	COMDAT xdata
 xdata	SEGMENT
-$unwind$Java_com_LilG_Com_m68k_M68kSimImpl_getByte DD 05053201H
-	DD	0118031bH
-	DD	070110019H
-	DD	05010H
+$unwind$?and@@YAXW4Size@@W4DataRegister@@G@Z DD 025053201H
+	DD	0117231cH
+	DD	07010001fH
+	DD	0500fH
 xdata	ENDS
 ;	COMDAT xdata
 xdata	SEGMENT
-$unwind$Java_com_LilG_Com_m68k_M68kSimImpl_move DD 025053901H
-	DD	011d2322H
-	DD	070160029H
-	DD	05015H
+$unwind$?addi@@YAXW4Size@@GI@Z DD 025053201H
+	DD	0117231cH
+	DD	07010001fH
+	DD	0500fH
 xdata	ENDS
 ;	COMDAT xdata
 xdata	SEGMENT
-$unwind$Java_com_LilG_Com_m68k_M68kSimImpl_adda DD 025053901H
-	DD	011d2322H
-	DD	070160029H
-	DD	05015H
+$unwind$?adda@@YAXW4Size@@GW4AddressRegister@@@Z DD 025053201H
+	DD	0117231cH
+	DD	07010001fH
+	DD	0500fH
 xdata	ENDS
 ;	COMDAT xdata
 xdata	SEGMENT
-$unwind$JNI_OnUnload DD 025052f01H
-	DD	01132318H
-	DD	0700c0029H
-	DD	0500bH
+$unwind$?add@@YAXW4Size@@GW4DataRegister@@@Z DD 025053201H
+	DD	0117231cH
+	DD	07010001fH
+	DD	0500fH
 xdata	ENDS
 ;	COMDAT xdata
 xdata	SEGMENT
-$unwind$JNI_OnLoad DD 025052f01H
-	DD	01132318H
-	DD	0700c001dH
-	DD	0500bH
+$unwind$?add@@YAXW4Size@@W4DataRegister@@G@Z DD 025053201H
+	DD	0117231cH
+	DD	07010001fH
+	DD	0500fH
 xdata	ENDS
 ;	COMDAT xdata
 xdata	SEGMENT
-$unwind$??$__vcrt_va_start_verify_argument_type@PEAU_jmethodID@@@@YAXXZ DD 05051c01H
+$unwind$?pea@@YAXG@Z DD 05052801H
+	DD	010e0311H
+	DD	070070019H
+	DD	05006H
+xdata	ENDS
+;	COMDAT xdata
+xdata	SEGMENT
+$unwind$?lea@@YAXGW4AddressRegister@@@Z DD 05052c01H
+	DD	01120315H
+	DD	0700b0019H
+	DD	0500aH
+xdata	ENDS
+;	COMDAT xdata
+xdata	SEGMENT
+$unwind$getRamSize DD 05051c01H
 	DD	010a030dH
 	DD	070030019H
 	DD	05002H
 xdata	ENDS
 ;	COMDAT xdata
 xdata	SEGMENT
-$unwind$?CallIntMethod@JNIEnv_@@QEAAJPEAV_jobject@@PEAU_jmethodID@@ZZ DD 025054a19H
-	DD	011d2322H
-	DD	070160025H
-	DD	05015H
-	DD	imagerel __GSHandlerCheck
-	DD	0118H
+$unwind$getRamStart DD 05051c01H
+	DD	010a030dH
+	DD	070030019H
+	DD	05002H
 xdata	ENDS
-;	COMDAT CONST
-CONST	SEGMENT
-?CallIntMethod@JNIEnv_@@QEAAJPEAV_jobject@@PEAU_jmethodID@@ZZ$rtcName$0 DB 061H ; JNIEnv_::CallIntMethod
-	DB	072H
-	DB	067H
-	DB	073H
-	DB	00H
-	ORG $+11
-?CallIntMethod@JNIEnv_@@QEAAJPEAV_jobject@@PEAU_jmethodID@@ZZ$rtcVarDesc DD 028H ; JNIEnv_::CallIntMethod
-	DD	08H
-	DQ	FLAT:?CallIntMethod@JNIEnv_@@QEAAJPEAV_jobject@@PEAU_jmethodID@@ZZ$rtcName$0
-	ORG $+48
-?CallIntMethod@JNIEnv_@@QEAAJPEAV_jobject@@PEAU_jmethodID@@ZZ$rtcFrameData DD 01H ; JNIEnv_::CallIntMethod
-	DD	00H
-	DQ	FLAT:?CallIntMethod@JNIEnv_@@QEAAJPEAV_jobject@@PEAU_jmethodID@@ZZ$rtcVarDesc
-CONST	ENDS
+;	COMDAT xdata
+xdata	SEGMENT
+$unwind$clearMem DD 05051c01H
+	DD	010a030dH
+	DD	070030019H
+	DD	05002H
+xdata	ENDS
+;	COMDAT xdata
+xdata	SEGMENT
+$unwind$getLongWord DD 05052801H
+	DD	010e0311H
+	DD	070070019H
+	DD	05006H
+xdata	ENDS
+;	COMDAT xdata
+xdata	SEGMENT
+$unwind$getWord DD 05052801H
+	DD	010e0311H
+	DD	070070019H
+	DD	05006H
+xdata	ENDS
+;	COMDAT xdata
+xdata	SEGMENT
+$unwind$getByte DD 05052801H
+	DD	010e0311H
+	DD	070070019H
+	DD	05006H
+xdata	ENDS
+;	COMDAT xdata
+xdata	SEGMENT
+$unwind$addLongWord DD 05052c01H
+	DD	01120315H
+	DD	0700b0019H
+	DD	0500aH
+xdata	ENDS
+;	COMDAT xdata
+xdata	SEGMENT
+$unwind$addWord DD 05052d01H
+	DD	01130316H
+	DD	0700c0019H
+	DD	0500bH
+xdata	ENDS
+;	COMDAT xdata
+xdata	SEGMENT
+$unwind$addByte DD 05052c01H
+	DD	01120315H
+	DD	0700b0019H
+	DD	0500aH
+xdata	ENDS
+;	COMDAT xdata
+xdata	SEGMENT
+$unwind$setLongWord DD 05052c01H
+	DD	01120315H
+	DD	0700b0019H
+	DD	0500aH
+xdata	ENDS
+;	COMDAT xdata
+xdata	SEGMENT
+$unwind$setWord DD 05052d01H
+	DD	01130316H
+	DD	0700c0019H
+	DD	0500bH
+xdata	ENDS
+;	COMDAT xdata
+xdata	SEGMENT
+$unwind$setByte DD 05052c01H
+	DD	01120315H
+	DD	0700b0019H
+	DD	0500aH
+xdata	ENDS
+;	COMDAT xdata
+xdata	SEGMENT
+$unwind$close DD 025051e01H
+	DD	010a230fH
+	DD	070030021H
+	DD	05002H
+xdata	ENDS
+;	COMDAT xdata
+xdata	SEGMENT
+$unwind$start DD 025051e01H
+	DD	010a230fH
+	DD	070030021H
+	DD	05002H
+xdata	ENDS
 ;	COMDAT xdata
 xdata	SEGMENT
 $unwind$printf DD 035054a19H
@@ -407,617 +491,1134 @@ $unwind$__local_stdio_printf_options DD 05051c01H
 	DD	070030019H
 	DD	05002H
 xdata	ENDS
-;	COMDAT xdata
-xdata	SEGMENT
-$unwind$?dtor$0@?0???__Einstance@@YAXXZ@4HA DD 031001H
-	DD	0700c4210H
-	DD	0500bH
-xdata	ENDS
-;	COMDAT xdata
-xdata	SEGMENT
-$ip2state$??__Einstance@@YAXXZ DD imagerel ??__Einstance@@YAXXZ
-	DD	0ffffffffH
-	DD	imagerel ??__Einstance@@YAXXZ+58
-	DD	00H
-	DD	imagerel ??__Einstance@@YAXXZ+130
-	DD	0ffffffffH
-xdata	ENDS
-;	COMDAT xdata
-xdata	SEGMENT
-$stateUnwindMap$??__Einstance@@YAXXZ DD 0ffffffffH
-	DD	imagerel ?dtor$0@?0???__Einstance@@YAXXZ@4HA
-xdata	ENDS
-;	COMDAT CONST
-CONST	SEGMENT
-$cppxdata$??__Einstance@@YAXXZ DD 019930522H
-	DD	01H
-	DD	imagerel $stateUnwindMap$??__Einstance@@YAXXZ
-	DD	00H
-	DD	00H
-	DD	03H
-	DD	imagerel $ip2state$??__Einstance@@YAXXZ
-	DD	0128H
-	DD	00H
-	DD	01H
-CONST	ENDS
-;	COMDAT xdata
-xdata	SEGMENT
-$unwind$??__Einstance@@YAXXZ DD 025052911H
-	DD	010a230fH
-	DD	070030029H
-	DD	05002H
-	DD	imagerel __CxxFrameHandler3
-	DD	imagerel $cppxdata$??__Einstance@@YAXXZ
-xdata	ENDS
-;	COMDAT xdata
-xdata	SEGMENT
-$unwind$?addLongWord@M68KSimulator@@QEAAXGI@Z DD 05053201H
-	DD	0118031bH
-	DD	070110019H
-	DD	05010H
-xdata	ENDS
-;	COMDAT xdata
-xdata	SEGMENT
-$unwind$?addWord@M68KSimulator@@QEAAXGG@Z DD 05053301H
-	DD	0119031cH
-	DD	070120019H
-	DD	05011H
-xdata	ENDS
-;	COMDAT xdata
-xdata	SEGMENT
-$unwind$?addByte@M68KSimulator@@QEAAXGE@Z DD 05053201H
-	DD	0118031bH
-	DD	070110019H
-	DD	05010H
-xdata	ENDS
-;	COMDAT xdata
-xdata	SEGMENT
-$unwind$?setLongWord@M68KSimulator@@QEAAXGI@Z DD 05053201H
-	DD	0118031bH
-	DD	070110019H
-	DD	05010H
-xdata	ENDS
-;	COMDAT xdata
-xdata	SEGMENT
-$unwind$?setWord@M68KSimulator@@QEAAXGG@Z DD 05053301H
-	DD	0119031cH
-	DD	070120019H
-	DD	05011H
-xdata	ENDS
-;	COMDAT xdata
-xdata	SEGMENT
-$unwind$?setByte@M68KSimulator@@QEAAXGE@Z DD 05053201H
-	DD	0118031bH
-	DD	070110019H
-	DD	05010H
-xdata	ENDS
-;	COMDAT xdata
-xdata	SEGMENT
-$unwind$??1M68KSimulator@@QEAA@XZ DD 025052a01H
-	DD	010e2313H
-	DD	07007001dH
-	DD	05006H
-xdata	ENDS
-;	COMDAT xdata
-xdata	SEGMENT
-$unwind$??0M68KSimulator@@QEAA@XZ DD 025052a01H
-	DD	010e2313H
-	DD	07007001dH
-	DD	05006H
-xdata	ENDS
 ; Function compile flags: /Odtp /RTCsu /ZI
-;	COMDAT DllMain
+;	COMDAT ?moveq@@YAXW4Size@@EG@Z
 _TEXT	SEGMENT
-hinstDLL$ = 224
-fdwReason$ = 232
-lpvReserved$ = 240
-DllMain	PROC						; COMDAT
+tv64 = 192
+size$ = 240
+source$ = 248
+destination$ = 256
+?moveq@@YAXW4Size@@EG@Z PROC				; moveq, COMDAT
 ; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
-; Line 8
-$LN3:
-	mov	QWORD PTR [rsp+24], r8
-	mov	DWORD PTR [rsp+16], edx
-	mov	QWORD PTR [rsp+8], rcx
+; Line 224
+$LN8:
+	mov	WORD PTR [rsp+24], r8w
+	mov	BYTE PTR [rsp+16], dl
+	mov	DWORD PTR [rsp+8], ecx
 	push	rbp
 	push	rdi
-	sub	rsp, 232				; 000000e8H
+	sub	rsp, 248				; 000000f8H
 	lea	rbp, QWORD PTR [rsp+32]
 	mov	rdi, rsp
-	mov	ecx, 58					; 0000003aH
+	mov	ecx, 62					; 0000003eH
 	mov	eax, -858993460				; ccccccccH
 	rep stosd
-	mov	rcx, QWORD PTR [rsp+264]
-; Line 9
-	lea	rcx, OFFSET FLAT:??_C@_0L@JCCNGKFG@DLL?5Loaded?$AA@
-	call	printf
-; Line 10
-	mov	eax, 1
-; Line 11
-	lea	rsp, QWORD PTR [rbp+200]
+	mov	ecx, DWORD PTR [rsp+280]
+; Line 225
+	mov	eax, DWORD PTR size$[rbp]
+	mov	DWORD PTR tv64[rbp], eax
+	cmp	DWORD PTR tv64[rbp], 0
+	je	SHORT $LN4@moveq
+	cmp	DWORD PTR tv64[rbp], 1
+	je	SHORT $LN5@moveq
+	cmp	DWORD PTR tv64[rbp], 2
+	je	SHORT $LN6@moveq
+	jmp	SHORT $LN2@moveq
+$LN4@moveq:
+; Line 227
+	movzx	edx, BYTE PTR source$[rbp]
+	movzx	ecx, WORD PTR destination$[rbp]
+	call	setByte
+; Line 228
+	jmp	SHORT $LN2@moveq
+$LN5@moveq:
+; Line 230
+	movzx	eax, BYTE PTR source$[rbp]
+	movzx	edx, ax
+	movzx	ecx, WORD PTR destination$[rbp]
+	call	setWord
+; Line 231
+	jmp	SHORT $LN2@moveq
+$LN6@moveq:
+; Line 233
+	movzx	eax, BYTE PTR source$[rbp]
+	movzx	ecx, ax
+	call	getLongWord
+	mov	edx, eax
+	movzx	ecx, WORD PTR destination$[rbp]
+	call	setLongWord
+$LN2@moveq:
+; Line 235
+	lea	rsp, QWORD PTR [rbp+216]
 	pop	rdi
 	pop	rbp
 	ret	0
-DllMain	ENDP
+?moveq@@YAXW4Size@@EG@Z ENDP				; moveq
 _TEXT	ENDS
 ; Function compile flags: /Odtp /RTCsu /ZI
-;	COMDAT Java_com_LilG_Com_m68k_M68kSimImpl_getRamSize
+;	COMDAT ?move@@YAXW4Size@@W4DataRegister@@1@Z
 _TEXT	SEGMENT
-env$ = 224
-__formal$ = 232
-Java_com_LilG_Com_m68k_M68kSimImpl_getRamSize PROC	; COMDAT
+tv64 = 192
+size$ = 240
+source$ = 248
+destination$ = 256
+?move@@YAXW4Size@@W4DataRegister@@1@Z PROC		; move, COMDAT
 ; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
-; Line 157
-$LN3:
-	mov	QWORD PTR [rsp+16], rdx
-	mov	QWORD PTR [rsp+8], rcx
-	push	rbp
-	push	rdi
-	sub	rsp, 200				; 000000c8H
-	mov	rbp, rsp
-	mov	rdi, rsp
-	mov	ecx, 50					; 00000032H
-	mov	eax, -858993460				; ccccccccH
-	rep stosd
-	mov	rcx, QWORD PTR [rsp+232]
-; Line 158
-	mov	eax, 65536				; 00010000H
-; Line 159
-	lea	rsp, QWORD PTR [rbp+200]
-	pop	rdi
-	pop	rbp
-	ret	0
-Java_com_LilG_Com_m68k_M68kSimImpl_getRamSize ENDP
-_TEXT	ENDS
-; Function compile flags: /Odtp /RTCsu /ZI
-;	COMDAT Java_com_LilG_Com_m68k_M68kSimImpl_getRamStart
-_TEXT	SEGMENT
-env$ = 224
-__formal$ = 232
-Java_com_LilG_Com_m68k_M68kSimImpl_getRamStart PROC	; COMDAT
-; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
-; Line 147
-$LN3:
-	mov	QWORD PTR [rsp+16], rdx
-	mov	QWORD PTR [rsp+8], rcx
-	push	rbp
-	push	rdi
-	sub	rsp, 200				; 000000c8H
-	mov	rbp, rsp
-	mov	rdi, rsp
-	mov	ecx, 50					; 00000032H
-	mov	eax, -858993460				; ccccccccH
-	rep stosd
-	mov	rcx, QWORD PTR [rsp+232]
-; Line 148
-	mov	rax, QWORD PTR ?instance@@3PEAVM68KSimulator@@EA ; instance
-; Line 149
-	lea	rsp, QWORD PTR [rbp+200]
-	pop	rdi
-	pop	rbp
-	ret	0
-Java_com_LilG_Com_m68k_M68kSimImpl_getRamStart ENDP
-_TEXT	ENDS
-; Function compile flags: /Odtp /RTCsu /ZI
-;	COMDAT Java_com_LilG_Com_m68k_M68kSimImpl_clearMem0
-_TEXT	SEGMENT
-env$ = 224
-__formal$ = 232
-Java_com_LilG_Com_m68k_M68kSimImpl_clearMem0 PROC	; COMDAT
-; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
-; Line 137
-$LN3:
-	mov	QWORD PTR [rsp+16], rdx
-	mov	QWORD PTR [rsp+8], rcx
-	push	rbp
-	push	rdi
-	sub	rsp, 200				; 000000c8H
-	mov	rbp, rsp
-	mov	rdi, rsp
-	mov	ecx, 50					; 00000032H
-	mov	eax, -858993460				; ccccccccH
-	rep stosd
-	mov	rcx, QWORD PTR [rsp+232]
-; Line 138
-	mov	rax, QWORD PTR ?instance@@3PEAVM68KSimulator@@EA ; instance
-	mov	rdi, QWORD PTR [rax]
-	xor	eax, eax
-	mov	ecx, 65536				; 00010000H
-	rep stosb
-; Line 139
-	lea	rsp, QWORD PTR [rbp+200]
-	pop	rdi
-	pop	rbp
-	ret	0
-Java_com_LilG_Com_m68k_M68kSimImpl_clearMem0 ENDP
-_TEXT	ENDS
-; Function compile flags: /Odtp /RTCsu /ZI
-;	COMDAT Java_com_LilG_Com_m68k_M68kSimImpl_getLongWord
-_TEXT	SEGMENT
-env$ = 224
-__formal$ = 232
-address$ = 240
-Java_com_LilG_Com_m68k_M68kSimImpl_getLongWord PROC	; COMDAT
-; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
-; Line 103
-$LN3:
+; Line 211
+$LN8:
 	mov	DWORD PTR [rsp+24], r8d
-	mov	QWORD PTR [rsp+16], rdx
-	mov	QWORD PTR [rsp+8], rcx
+	mov	DWORD PTR [rsp+16], edx
+	mov	DWORD PTR [rsp+8], ecx
 	push	rbp
 	push	rdi
-	sub	rsp, 200				; 000000c8H
+	sub	rsp, 216				; 000000d8H
 	mov	rbp, rsp
 	mov	rdi, rsp
-	mov	ecx, 50					; 00000032H
+	mov	ecx, 54					; 00000036H
 	mov	eax, -858993460				; ccccccccH
 	rep stosd
-	mov	rcx, QWORD PTR [rsp+232]
-; Line 104
-	mov	rax, QWORD PTR ?instance@@3PEAVM68KSimulator@@EA ; instance
-	mov	rax, QWORD PTR [rax]
-	movsxd	rcx, DWORD PTR address$[rbp]
-	mov	eax, DWORD PTR [rax+rcx*4]
-; Line 105
-	lea	rsp, QWORD PTR [rbp+200]
-	pop	rdi
-	pop	rbp
-	ret	0
-Java_com_LilG_Com_m68k_M68kSimImpl_getLongWord ENDP
-_TEXT	ENDS
-; Function compile flags: /Odtp /RTCsu /ZI
-;	COMDAT Java_com_LilG_Com_m68k_M68kSimImpl_getWord
-_TEXT	SEGMENT
-__formal$ = 224
-__formal$ = 232
-address$ = 240
-Java_com_LilG_Com_m68k_M68kSimImpl_getWord PROC		; COMDAT
-; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
-; Line 93
-$LN3:
-	mov	DWORD PTR [rsp+24], r8d
-	mov	QWORD PTR [rsp+16], rdx
-	mov	QWORD PTR [rsp+8], rcx
-	push	rbp
-	push	rdi
-	sub	rsp, 200				; 000000c8H
-	mov	rbp, rsp
-	mov	rdi, rsp
-	mov	ecx, 50					; 00000032H
-	mov	eax, -858993460				; ccccccccH
-	rep stosd
-	mov	rcx, QWORD PTR [rsp+232]
-; Line 94
-	mov	rax, QWORD PTR ?instance@@3PEAVM68KSimulator@@EA ; instance
-	mov	rax, QWORD PTR [rax]
-	movsxd	rcx, DWORD PTR address$[rbp]
-	movzx	eax, WORD PTR [rax+rcx*2]
-; Line 95
-	lea	rsp, QWORD PTR [rbp+200]
-	pop	rdi
-	pop	rbp
-	ret	0
-Java_com_LilG_Com_m68k_M68kSimImpl_getWord ENDP
-_TEXT	ENDS
-; Function compile flags: /Odtp /RTCsu /ZI
-;	COMDAT Java_com_LilG_Com_m68k_M68kSimImpl_getByte
-_TEXT	SEGMENT
-__formal$ = 224
-__formal$ = 232
-address$ = 240
-Java_com_LilG_Com_m68k_M68kSimImpl_getByte PROC		; COMDAT
-; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
-; Line 83
-$LN3:
-	mov	DWORD PTR [rsp+24], r8d
-	mov	QWORD PTR [rsp+16], rdx
-	mov	QWORD PTR [rsp+8], rcx
-	push	rbp
-	push	rdi
-	sub	rsp, 200				; 000000c8H
-	mov	rbp, rsp
-	mov	rdi, rsp
-	mov	ecx, 50					; 00000032H
-	mov	eax, -858993460				; ccccccccH
-	rep stosd
-	mov	rcx, QWORD PTR [rsp+232]
-; Line 84
-	mov	rax, QWORD PTR ?instance@@3PEAVM68KSimulator@@EA ; instance
-	mov	rax, QWORD PTR [rax]
-	movsxd	rcx, DWORD PTR address$[rbp]
+	mov	ecx, DWORD PTR [rsp+248]
+; Line 212
+	mov	eax, DWORD PTR size$[rbp]
+	mov	DWORD PTR tv64[rbp], eax
+	cmp	DWORD PTR tv64[rbp], 0
+	je	SHORT $LN4@move
+	cmp	DWORD PTR tv64[rbp], 1
+	je	SHORT $LN5@move
+	cmp	DWORD PTR tv64[rbp], 2
+	je	$LN6@move
+	jmp	$LN2@move
+$LN4@move:
+; Line 214
+	movsxd	rax, DWORD PTR source$[rbp]
+	lea	rcx, OFFSET FLAT:?dataRegisters@@3PAPEATregisters@@A ; dataRegisters
+	mov	rax, QWORD PTR [rcx+rax*8]
+	mov	ecx, 1
+	imul	rcx, rcx, 0
+	movsxd	rdx, DWORD PTR destination$[rbp]
+	lea	r8, OFFSET FLAT:?dataRegisters@@3PAPEATregisters@@A ; dataRegisters
+	mov	rdx, QWORD PTR [r8+rdx*8]
+	mov	r8d, 1
+	imul	r8, r8, 0
 	movzx	eax, BYTE PTR [rax+rcx]
-; Line 85
+	mov	BYTE PTR [rdx+r8], al
+; Line 215
+	jmp	SHORT $LN2@move
+$LN5@move:
+; Line 217
+	movsxd	rax, DWORD PTR source$[rbp]
+	lea	rcx, OFFSET FLAT:?dataRegisters@@3PAPEATregisters@@A ; dataRegisters
+	mov	rax, QWORD PTR [rcx+rax*8]
+	mov	ecx, 2
+	imul	rcx, rcx, 0
+	movsxd	rdx, DWORD PTR destination$[rbp]
+	lea	r8, OFFSET FLAT:?dataRegisters@@3PAPEATregisters@@A ; dataRegisters
+	mov	rdx, QWORD PTR [r8+rdx*8]
+	mov	r8d, 2
+	imul	r8, r8, 0
+	movzx	eax, WORD PTR [rax+rcx]
+	mov	WORD PTR [rdx+r8], ax
+; Line 218
+	jmp	SHORT $LN2@move
+$LN6@move:
+; Line 220
+	movsxd	rax, DWORD PTR source$[rbp]
+	lea	rcx, OFFSET FLAT:?dataRegisters@@3PAPEATregisters@@A ; dataRegisters
+	mov	rax, QWORD PTR [rcx+rax*8]
+	movsxd	rcx, DWORD PTR destination$[rbp]
+	lea	rdx, OFFSET FLAT:?dataRegisters@@3PAPEATregisters@@A ; dataRegisters
+	mov	rcx, QWORD PTR [rdx+rcx*8]
+	mov	eax, DWORD PTR [rax]
+	mov	DWORD PTR [rcx], eax
+$LN2@move:
+; Line 222
+	lea	rsp, QWORD PTR [rbp+216]
+	pop	rdi
+	pop	rbp
+	ret	0
+?move@@YAXW4Size@@W4DataRegister@@1@Z ENDP		; move
+_TEXT	ENDS
+; Function compile flags: /Odtp /RTCsu /ZI
+;	COMDAT ?move@@YAXW4Size@@W4DataRegister@@G@Z
+_TEXT	SEGMENT
+tv64 = 192
+size$ = 240
+source$ = 248
+destination$ = 256
+?move@@YAXW4Size@@W4DataRegister@@G@Z PROC		; move, COMDAT
+; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
+; Line 198
+$LN8:
+	mov	WORD PTR [rsp+24], r8w
+	mov	DWORD PTR [rsp+16], edx
+	mov	DWORD PTR [rsp+8], ecx
+	push	rbp
+	push	rdi
+	sub	rsp, 248				; 000000f8H
+	lea	rbp, QWORD PTR [rsp+32]
+	mov	rdi, rsp
+	mov	ecx, 62					; 0000003eH
+	mov	eax, -858993460				; ccccccccH
+	rep stosd
+	mov	ecx, DWORD PTR [rsp+280]
+; Line 199
+	mov	eax, DWORD PTR size$[rbp]
+	mov	DWORD PTR tv64[rbp], eax
+	cmp	DWORD PTR tv64[rbp], 0
+	je	SHORT $LN4@move
+	cmp	DWORD PTR tv64[rbp], 1
+	je	SHORT $LN5@move
+	cmp	DWORD PTR tv64[rbp], 2
+	je	SHORT $LN6@move
+	jmp	SHORT $LN2@move
+$LN4@move:
+; Line 201
+	movsxd	rax, DWORD PTR source$[rbp]
+	lea	rcx, OFFSET FLAT:?dataRegisters@@3PAPEATregisters@@A ; dataRegisters
+	mov	rax, QWORD PTR [rcx+rax*8]
+	mov	ecx, 1
+	imul	rcx, rcx, 0
+	movzx	edx, BYTE PTR [rax+rcx]
+	movzx	ecx, WORD PTR destination$[rbp]
+	call	setByte
+; Line 202
+	jmp	SHORT $LN2@move
+$LN5@move:
+; Line 204
+	movsxd	rax, DWORD PTR source$[rbp]
+	lea	rcx, OFFSET FLAT:?dataRegisters@@3PAPEATregisters@@A ; dataRegisters
+	mov	rax, QWORD PTR [rcx+rax*8]
+	mov	ecx, 2
+	imul	rcx, rcx, 0
+	movzx	edx, WORD PTR [rax+rcx]
+	movzx	ecx, WORD PTR destination$[rbp]
+	call	setWord
+; Line 205
+	jmp	SHORT $LN2@move
+$LN6@move:
+; Line 207
+	movsxd	rax, DWORD PTR source$[rbp]
+	lea	rcx, OFFSET FLAT:?dataRegisters@@3PAPEATregisters@@A ; dataRegisters
+	mov	rax, QWORD PTR [rcx+rax*8]
+	mov	edx, DWORD PTR [rax]
+	movzx	ecx, WORD PTR destination$[rbp]
+	call	setLongWord
+$LN2@move:
+; Line 209
+	lea	rsp, QWORD PTR [rbp+216]
+	pop	rdi
+	pop	rbp
+	ret	0
+?move@@YAXW4Size@@W4DataRegister@@G@Z ENDP		; move
+_TEXT	ENDS
+; Function compile flags: /Odtp /RTCsu /ZI
+;	COMDAT ?move@@YAXW4Size@@GW4DataRegister@@@Z
+_TEXT	SEGMENT
+tv64 = 192
+size$ = 240
+source$ = 248
+destination$ = 256
+?move@@YAXW4Size@@GW4DataRegister@@@Z PROC		; move, COMDAT
+; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
+; Line 185
+$LN8:
+	mov	DWORD PTR [rsp+24], r8d
+	mov	WORD PTR [rsp+16], dx
+	mov	DWORD PTR [rsp+8], ecx
+	push	rbp
+	push	rdi
+	sub	rsp, 248				; 000000f8H
+	lea	rbp, QWORD PTR [rsp+32]
+	mov	rdi, rsp
+	mov	ecx, 62					; 0000003eH
+	mov	eax, -858993460				; ccccccccH
+	rep stosd
+	mov	ecx, DWORD PTR [rsp+280]
+; Line 186
+	mov	eax, DWORD PTR size$[rbp]
+	mov	DWORD PTR tv64[rbp], eax
+	cmp	DWORD PTR tv64[rbp], 0
+	je	SHORT $LN4@move
+	cmp	DWORD PTR tv64[rbp], 1
+	je	SHORT $LN5@move
+	cmp	DWORD PTR tv64[rbp], 2
+	je	SHORT $LN6@move
+	jmp	SHORT $LN2@move
+$LN4@move:
+; Line 188
+	movzx	ecx, WORD PTR source$[rbp]
+	call	getByte
+	movsxd	rcx, DWORD PTR destination$[rbp]
+	lea	rdx, OFFSET FLAT:?dataRegisters@@3PAPEATregisters@@A ; dataRegisters
+	mov	rcx, QWORD PTR [rdx+rcx*8]
+	mov	edx, 1
+	imul	rdx, rdx, 0
+	mov	BYTE PTR [rcx+rdx], al
+; Line 189
+	jmp	SHORT $LN2@move
+$LN5@move:
+; Line 191
+	movzx	ecx, WORD PTR source$[rbp]
+	call	getWord
+	movsxd	rcx, DWORD PTR destination$[rbp]
+	lea	rdx, OFFSET FLAT:?dataRegisters@@3PAPEATregisters@@A ; dataRegisters
+	mov	rcx, QWORD PTR [rdx+rcx*8]
+	mov	edx, 2
+	imul	rdx, rdx, 0
+	mov	WORD PTR [rcx+rdx], ax
+; Line 192
+	jmp	SHORT $LN2@move
+$LN6@move:
+; Line 194
+	movzx	ecx, WORD PTR source$[rbp]
+	call	getLongWord
+	movsxd	rcx, DWORD PTR destination$[rbp]
+	lea	rdx, OFFSET FLAT:?dataRegisters@@3PAPEATregisters@@A ; dataRegisters
+	mov	rcx, QWORD PTR [rdx+rcx*8]
+	mov	DWORD PTR [rcx], eax
+$LN2@move:
+; Line 196
+	lea	rsp, QWORD PTR [rbp+216]
+	pop	rdi
+	pop	rbp
+	ret	0
+?move@@YAXW4Size@@GW4DataRegister@@@Z ENDP		; move
+_TEXT	ENDS
+; Function compile flags: /Odtp /RTCsu /ZI
+;	COMDAT ?move@@YAXW4Size@@GG@Z
+_TEXT	SEGMENT
+tv64 = 192
+size$ = 240
+source$ = 248
+destination$ = 256
+?move@@YAXW4Size@@GG@Z PROC				; move, COMDAT
+; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
+; Line 172
+$LN8:
+	mov	WORD PTR [rsp+24], r8w
+	mov	WORD PTR [rsp+16], dx
+	mov	DWORD PTR [rsp+8], ecx
+	push	rbp
+	push	rdi
+	sub	rsp, 248				; 000000f8H
+	lea	rbp, QWORD PTR [rsp+32]
+	mov	rdi, rsp
+	mov	ecx, 62					; 0000003eH
+	mov	eax, -858993460				; ccccccccH
+	rep stosd
+	mov	ecx, DWORD PTR [rsp+280]
+; Line 173
+	mov	eax, DWORD PTR size$[rbp]
+	mov	DWORD PTR tv64[rbp], eax
+	cmp	DWORD PTR tv64[rbp], 0
+	je	SHORT $LN4@move
+	cmp	DWORD PTR tv64[rbp], 1
+	je	SHORT $LN5@move
+	cmp	DWORD PTR tv64[rbp], 2
+	je	SHORT $LN6@move
+	jmp	SHORT $LN2@move
+$LN4@move:
+; Line 175
+	movzx	ecx, WORD PTR source$[rbp]
+	call	getByte
+	movzx	edx, al
+	movzx	ecx, WORD PTR destination$[rbp]
+	call	setByte
+; Line 176
+	jmp	SHORT $LN2@move
+$LN5@move:
+; Line 178
+	movzx	ecx, WORD PTR source$[rbp]
+	call	getWord
+	movzx	edx, ax
+	movzx	ecx, WORD PTR destination$[rbp]
+	call	setWord
+; Line 179
+	jmp	SHORT $LN2@move
+$LN6@move:
+; Line 181
+	movzx	ecx, WORD PTR source$[rbp]
+	call	getLongWord
+	mov	edx, eax
+	movzx	ecx, WORD PTR destination$[rbp]
+	call	setLongWord
+$LN2@move:
+; Line 183
+	lea	rsp, QWORD PTR [rbp+216]
+	pop	rdi
+	pop	rbp
+	ret	0
+?move@@YAXW4Size@@GG@Z ENDP				; move
+_TEXT	ENDS
+; Function compile flags: /Odtp /RTCsu /ZI
+;	COMDAT ?and@@YAXW4Size@@GW4DataRegister@@@Z
+_TEXT	SEGMENT
+tv158 = 192
+tv156 = 192
+tv154 = 192
+tv64 = 192
+tv87 = 200
+tv69 = 200
+size$ = 240
+ea$ = 248
+dn$ = 256
+?and@@YAXW4Size@@GW4DataRegister@@@Z PROC		; and, COMDAT
+; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
+; Line 159
+$LN8:
+	mov	DWORD PTR [rsp+24], r8d
+	mov	WORD PTR [rsp+16], dx
+	mov	DWORD PTR [rsp+8], ecx
+	push	rbp
+	push	rdi
+	sub	rsp, 248				; 000000f8H
+	lea	rbp, QWORD PTR [rsp+32]
+	mov	rdi, rsp
+	mov	ecx, 62					; 0000003eH
+	mov	eax, -858993460				; ccccccccH
+	rep stosd
+	mov	ecx, DWORD PTR [rsp+280]
+; Line 160
+	mov	eax, DWORD PTR size$[rbp]
+	mov	DWORD PTR tv64[rbp], eax
+	cmp	DWORD PTR tv64[rbp], 0
+	je	SHORT $LN4@and
+	cmp	DWORD PTR tv64[rbp], 1
+	je	$LN5@and
+	cmp	DWORD PTR tv64[rbp], 2
+	je	$LN6@and
+	jmp	$LN2@and
+$LN4@and:
+; Line 162
+	movsxd	rax, DWORD PTR dn$[rbp]
+	lea	rcx, OFFSET FLAT:?dataRegisters@@3PAPEATregisters@@A ; dataRegisters
+	mov	rax, QWORD PTR [rcx+rax*8]
+	mov	QWORD PTR tv158[rbp], rax
+	mov	ecx, 1
+	imul	rcx, rcx, 0
+	mov	QWORD PTR tv69[rbp], rcx
+	movzx	ecx, WORD PTR ea$[rbp]
+	call	getByte
+	movzx	eax, al
+	mov	rdx, QWORD PTR tv69[rbp]
+	mov	rcx, QWORD PTR tv158[rbp]
+	movzx	ecx, BYTE PTR [rcx+rdx]
+	and	ecx, eax
+	mov	eax, ecx
+	mov	ecx, 1
+	imul	rcx, rcx, 0
+	movsxd	rdx, DWORD PTR dn$[rbp]
+	lea	r8, OFFSET FLAT:?dataRegisters@@3PAPEATregisters@@A ; dataRegisters
+	mov	rdx, QWORD PTR [r8+rdx*8]
+	mov	BYTE PTR [rdx+rcx], al
+; Line 163
+	jmp	$LN2@and
+$LN5@and:
+; Line 165
+	movsxd	rax, DWORD PTR dn$[rbp]
+	lea	rcx, OFFSET FLAT:?dataRegisters@@3PAPEATregisters@@A ; dataRegisters
+	mov	rax, QWORD PTR [rcx+rax*8]
+	mov	QWORD PTR tv156[rbp], rax
+	mov	ecx, 2
+	imul	rcx, rcx, 0
+	mov	QWORD PTR tv87[rbp], rcx
+	movzx	ecx, WORD PTR ea$[rbp]
+	call	getWord
+	movzx	eax, ax
+	mov	rdx, QWORD PTR tv87[rbp]
+	mov	rcx, QWORD PTR tv156[rbp]
+	movzx	ecx, WORD PTR [rcx+rdx]
+	and	ecx, eax
+	mov	eax, ecx
+	mov	ecx, 2
+	imul	rcx, rcx, 0
+	movsxd	rdx, DWORD PTR dn$[rbp]
+	lea	r8, OFFSET FLAT:?dataRegisters@@3PAPEATregisters@@A ; dataRegisters
+	mov	rdx, QWORD PTR [r8+rdx*8]
+	mov	WORD PTR [rdx+rcx], ax
+; Line 166
+	jmp	SHORT $LN2@and
+$LN6@and:
+; Line 168
+	movsxd	rax, DWORD PTR dn$[rbp]
+	lea	rcx, OFFSET FLAT:?dataRegisters@@3PAPEATregisters@@A ; dataRegisters
+	mov	rax, QWORD PTR [rcx+rax*8]
+	mov	QWORD PTR tv154[rbp], rax
+	movzx	ecx, WORD PTR ea$[rbp]
+	call	getLongWord
+	mov	rcx, QWORD PTR tv154[rbp]
+	mov	ecx, DWORD PTR [rcx]
+	and	ecx, eax
+	mov	eax, ecx
+	movsxd	rcx, DWORD PTR dn$[rbp]
+	lea	rdx, OFFSET FLAT:?dataRegisters@@3PAPEATregisters@@A ; dataRegisters
+	mov	rcx, QWORD PTR [rdx+rcx*8]
+	mov	DWORD PTR [rcx], eax
+$LN2@and:
+; Line 170
+	lea	rsp, QWORD PTR [rbp+216]
+	pop	rdi
+	pop	rbp
+	ret	0
+?and@@YAXW4Size@@GW4DataRegister@@@Z ENDP		; and
+_TEXT	ENDS
+; Function compile flags: /Odtp /RTCsu /ZI
+;	COMDAT ?and@@YAXW4Size@@W4DataRegister@@G@Z
+_TEXT	SEGMENT
+tv64 = 192
+size$ = 240
+dn$ = 248
+ea$ = 256
+?and@@YAXW4Size@@W4DataRegister@@G@Z PROC		; and, COMDAT
+; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
+; Line 146
+$LN8:
+	mov	WORD PTR [rsp+24], r8w
+	mov	DWORD PTR [rsp+16], edx
+	mov	DWORD PTR [rsp+8], ecx
+	push	rbp
+	push	rdi
+	sub	rsp, 248				; 000000f8H
+	lea	rbp, QWORD PTR [rsp+32]
+	mov	rdi, rsp
+	mov	ecx, 62					; 0000003eH
+	mov	eax, -858993460				; ccccccccH
+	rep stosd
+	mov	ecx, DWORD PTR [rsp+280]
+; Line 147
+	mov	eax, DWORD PTR size$[rbp]
+	mov	DWORD PTR tv64[rbp], eax
+	cmp	DWORD PTR tv64[rbp], 0
+	je	SHORT $LN4@and
+	cmp	DWORD PTR tv64[rbp], 1
+	je	SHORT $LN5@and
+	cmp	DWORD PTR tv64[rbp], 2
+	je	$LN6@and
+	jmp	$LN2@and
+$LN4@and:
+; Line 149
+	movzx	ecx, WORD PTR ea$[rbp]
+	call	getByte
+	movzx	eax, al
+	movsxd	rcx, DWORD PTR dn$[rbp]
+	lea	rdx, OFFSET FLAT:?dataRegisters@@3PAPEATregisters@@A ; dataRegisters
+	mov	rcx, QWORD PTR [rdx+rcx*8]
+	mov	edx, 1
+	imul	rdx, rdx, 0
+	movzx	ecx, BYTE PTR [rcx+rdx]
+	and	eax, ecx
+	movzx	edx, al
+	movzx	ecx, WORD PTR ea$[rbp]
+	call	setByte
+; Line 150
+	jmp	SHORT $LN2@and
+$LN5@and:
+; Line 152
+	movzx	ecx, WORD PTR ea$[rbp]
+	call	getWord
+	movzx	eax, ax
+	movsxd	rcx, DWORD PTR dn$[rbp]
+	lea	rdx, OFFSET FLAT:?dataRegisters@@3PAPEATregisters@@A ; dataRegisters
+	mov	rcx, QWORD PTR [rdx+rcx*8]
+	mov	edx, 2
+	imul	rdx, rdx, 0
+	movzx	ecx, WORD PTR [rcx+rdx]
+	and	eax, ecx
+	movzx	edx, ax
+	movzx	ecx, WORD PTR ea$[rbp]
+	call	setWord
+; Line 153
+	jmp	SHORT $LN2@and
+$LN6@and:
+; Line 155
+	movzx	ecx, WORD PTR ea$[rbp]
+	call	getLongWord
+	movsxd	rcx, DWORD PTR dn$[rbp]
+	lea	rdx, OFFSET FLAT:?dataRegisters@@3PAPEATregisters@@A ; dataRegisters
+	mov	rcx, QWORD PTR [rdx+rcx*8]
+	and	eax, DWORD PTR [rcx]
+	mov	edx, eax
+	movzx	ecx, WORD PTR ea$[rbp]
+	call	setLongWord
+$LN2@and:
+; Line 157
+	lea	rsp, QWORD PTR [rbp+216]
+	pop	rdi
+	pop	rbp
+	ret	0
+?and@@YAXW4Size@@W4DataRegister@@G@Z ENDP		; and
+_TEXT	ENDS
+; Function compile flags: /Odtp /RTCsu /ZI
+;	COMDAT ?addi@@YAXW4Size@@GI@Z
+_TEXT	SEGMENT
+tv64 = 192
+size$ = 240
+ea$ = 248
+data$ = 256
+?addi@@YAXW4Size@@GI@Z PROC				; addi, COMDAT
+; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
+; Line 133
+$LN8:
+	mov	DWORD PTR [rsp+24], r8d
+	mov	WORD PTR [rsp+16], dx
+	mov	DWORD PTR [rsp+8], ecx
+	push	rbp
+	push	rdi
+	sub	rsp, 248				; 000000f8H
+	lea	rbp, QWORD PTR [rsp+32]
+	mov	rdi, rsp
+	mov	ecx, 62					; 0000003eH
+	mov	eax, -858993460				; ccccccccH
+	rep stosd
+	mov	ecx, DWORD PTR [rsp+280]
+; Line 134
+	mov	eax, DWORD PTR size$[rbp]
+	mov	DWORD PTR tv64[rbp], eax
+	cmp	DWORD PTR tv64[rbp], 0
+	je	SHORT $LN4@addi
+	cmp	DWORD PTR tv64[rbp], 1
+	je	SHORT $LN5@addi
+	cmp	DWORD PTR tv64[rbp], 2
+	je	SHORT $LN6@addi
+	jmp	SHORT $LN2@addi
+$LN4@addi:
+; Line 136
+	movzx	edx, BYTE PTR data$[rbp]
+	movzx	ecx, WORD PTR ea$[rbp]
+	call	addByte
+; Line 137
+	jmp	SHORT $LN2@addi
+$LN5@addi:
+; Line 139
+	movzx	edx, WORD PTR data$[rbp]
+	movzx	ecx, WORD PTR ea$[rbp]
+	call	addWord
+; Line 140
+	jmp	SHORT $LN2@addi
+$LN6@addi:
+; Line 142
+	mov	edx, DWORD PTR data$[rbp]
+	movzx	ecx, WORD PTR ea$[rbp]
+	call	addLongWord
+$LN2@addi:
+; Line 144
+	lea	rsp, QWORD PTR [rbp+216]
+	pop	rdi
+	pop	rbp
+	ret	0
+?addi@@YAXW4Size@@GI@Z ENDP				; addi
+_TEXT	ENDS
+; Function compile flags: /Odtp /RTCsu /ZI
+;	COMDAT ?adda@@YAXW4Size@@GW4AddressRegister@@@Z
+_TEXT	SEGMENT
+tv159 = 192
+tv157 = 192
+tv155 = 192
+tv64 = 192
+tv87 = 200
+tv69 = 200
+size$ = 240
+ea$ = 248
+an$ = 256
+?adda@@YAXW4Size@@GW4AddressRegister@@@Z PROC		; adda, COMDAT
+; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
+; Line 120
+$LN8:
+	mov	DWORD PTR [rsp+24], r8d
+	mov	WORD PTR [rsp+16], dx
+	mov	DWORD PTR [rsp+8], ecx
+	push	rbp
+	push	rdi
+	sub	rsp, 248				; 000000f8H
+	lea	rbp, QWORD PTR [rsp+32]
+	mov	rdi, rsp
+	mov	ecx, 62					; 0000003eH
+	mov	eax, -858993460				; ccccccccH
+	rep stosd
+	mov	ecx, DWORD PTR [rsp+280]
+; Line 121
+	mov	eax, DWORD PTR size$[rbp]
+	mov	DWORD PTR tv64[rbp], eax
+	cmp	DWORD PTR tv64[rbp], 0
+	je	SHORT $LN4@adda
+	cmp	DWORD PTR tv64[rbp], 1
+	je	$LN5@adda
+	cmp	DWORD PTR tv64[rbp], 2
+	je	$LN6@adda
+	jmp	$LN2@adda
+$LN4@adda:
+; Line 123
+	movsxd	rax, DWORD PTR an$[rbp]
+	lea	rcx, OFFSET FLAT:?addressRegisters@@3PAPEATregisters@@A ; addressRegisters
+	mov	rax, QWORD PTR [rcx+rax*8]
+	mov	QWORD PTR tv159[rbp], rax
+	mov	ecx, 1
+	imul	rcx, rcx, 0
+	mov	QWORD PTR tv69[rbp], rcx
+	movzx	ecx, WORD PTR ea$[rbp]
+	call	getByte
+	movzx	eax, al
+	mov	rdx, QWORD PTR tv69[rbp]
+	mov	rcx, QWORD PTR tv159[rbp]
+	movzx	ecx, BYTE PTR [rcx+rdx]
+	add	ecx, eax
+	mov	eax, ecx
+	mov	ecx, 1
+	imul	rcx, rcx, 0
+	movsxd	rdx, DWORD PTR an$[rbp]
+	lea	r8, OFFSET FLAT:?addressRegisters@@3PAPEATregisters@@A ; addressRegisters
+	mov	rdx, QWORD PTR [r8+rdx*8]
+	mov	BYTE PTR [rdx+rcx], al
+; Line 124
+	jmp	$LN2@adda
+$LN5@adda:
+; Line 126
+	movsxd	rax, DWORD PTR an$[rbp]
+	lea	rcx, OFFSET FLAT:?addressRegisters@@3PAPEATregisters@@A ; addressRegisters
+	mov	rax, QWORD PTR [rcx+rax*8]
+	mov	QWORD PTR tv157[rbp], rax
+	mov	ecx, 2
+	imul	rcx, rcx, 0
+	mov	QWORD PTR tv87[rbp], rcx
+	movzx	ecx, WORD PTR ea$[rbp]
+	call	getWord
+	movzx	eax, ax
+	mov	rdx, QWORD PTR tv87[rbp]
+	mov	rcx, QWORD PTR tv157[rbp]
+	movzx	ecx, WORD PTR [rcx+rdx]
+	add	ecx, eax
+	mov	eax, ecx
+	mov	ecx, 2
+	imul	rcx, rcx, 0
+	movsxd	rdx, DWORD PTR an$[rbp]
+	lea	r8, OFFSET FLAT:?addressRegisters@@3PAPEATregisters@@A ; addressRegisters
+	mov	rdx, QWORD PTR [r8+rdx*8]
+	mov	WORD PTR [rdx+rcx], ax
+; Line 127
+	jmp	SHORT $LN2@adda
+$LN6@adda:
+; Line 129
+	movsxd	rax, DWORD PTR an$[rbp]
+	lea	rcx, OFFSET FLAT:?addressRegisters@@3PAPEATregisters@@A ; addressRegisters
+	mov	rax, QWORD PTR [rcx+rax*8]
+	mov	QWORD PTR tv155[rbp], rax
+	movzx	ecx, WORD PTR ea$[rbp]
+	call	getLongWord
+	mov	rcx, QWORD PTR tv155[rbp]
+	add	eax, DWORD PTR [rcx]
+	movsxd	rcx, DWORD PTR an$[rbp]
+	lea	rdx, OFFSET FLAT:?addressRegisters@@3PAPEATregisters@@A ; addressRegisters
+	mov	rcx, QWORD PTR [rdx+rcx*8]
+	mov	DWORD PTR [rcx], eax
+$LN2@adda:
+; Line 131
+	lea	rsp, QWORD PTR [rbp+216]
+	pop	rdi
+	pop	rbp
+	ret	0
+?adda@@YAXW4Size@@GW4AddressRegister@@@Z ENDP		; adda
+_TEXT	ENDS
+; Function compile flags: /Odtp /RTCsu /ZI
+;	COMDAT ?add@@YAXW4Size@@GW4DataRegister@@@Z
+_TEXT	SEGMENT
+tv159 = 192
+tv157 = 192
+tv155 = 192
+tv64 = 192
+tv87 = 200
+tv69 = 200
+size$ = 240
+ea$ = 248
+dn$ = 256
+?add@@YAXW4Size@@GW4DataRegister@@@Z PROC		; add, COMDAT
+; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
+; Line 107
+$LN8:
+	mov	DWORD PTR [rsp+24], r8d
+	mov	WORD PTR [rsp+16], dx
+	mov	DWORD PTR [rsp+8], ecx
+	push	rbp
+	push	rdi
+	sub	rsp, 248				; 000000f8H
+	lea	rbp, QWORD PTR [rsp+32]
+	mov	rdi, rsp
+	mov	ecx, 62					; 0000003eH
+	mov	eax, -858993460				; ccccccccH
+	rep stosd
+	mov	ecx, DWORD PTR [rsp+280]
+; Line 108
+	mov	eax, DWORD PTR size$[rbp]
+	mov	DWORD PTR tv64[rbp], eax
+	cmp	DWORD PTR tv64[rbp], 0
+	je	SHORT $LN4@add
+	cmp	DWORD PTR tv64[rbp], 1
+	je	$LN5@add
+	cmp	DWORD PTR tv64[rbp], 2
+	je	$LN6@add
+	jmp	$LN2@add
+$LN4@add:
+; Line 110
+	movsxd	rax, DWORD PTR dn$[rbp]
+	lea	rcx, OFFSET FLAT:?dataRegisters@@3PAPEATregisters@@A ; dataRegisters
+	mov	rax, QWORD PTR [rcx+rax*8]
+	mov	QWORD PTR tv159[rbp], rax
+	mov	ecx, 1
+	imul	rcx, rcx, 0
+	mov	QWORD PTR tv69[rbp], rcx
+	movzx	ecx, WORD PTR ea$[rbp]
+	call	getByte
+	movzx	eax, al
+	mov	rdx, QWORD PTR tv69[rbp]
+	mov	rcx, QWORD PTR tv159[rbp]
+	movzx	ecx, BYTE PTR [rcx+rdx]
+	add	ecx, eax
+	mov	eax, ecx
+	mov	ecx, 1
+	imul	rcx, rcx, 0
+	movsxd	rdx, DWORD PTR dn$[rbp]
+	lea	r8, OFFSET FLAT:?dataRegisters@@3PAPEATregisters@@A ; dataRegisters
+	mov	rdx, QWORD PTR [r8+rdx*8]
+	mov	BYTE PTR [rdx+rcx], al
+; Line 111
+	jmp	$LN2@add
+$LN5@add:
+; Line 113
+	movsxd	rax, DWORD PTR dn$[rbp]
+	lea	rcx, OFFSET FLAT:?dataRegisters@@3PAPEATregisters@@A ; dataRegisters
+	mov	rax, QWORD PTR [rcx+rax*8]
+	mov	QWORD PTR tv157[rbp], rax
+	mov	ecx, 2
+	imul	rcx, rcx, 0
+	mov	QWORD PTR tv87[rbp], rcx
+	movzx	ecx, WORD PTR ea$[rbp]
+	call	getWord
+	movzx	eax, ax
+	mov	rdx, QWORD PTR tv87[rbp]
+	mov	rcx, QWORD PTR tv157[rbp]
+	movzx	ecx, WORD PTR [rcx+rdx]
+	add	ecx, eax
+	mov	eax, ecx
+	mov	ecx, 2
+	imul	rcx, rcx, 0
+	movsxd	rdx, DWORD PTR dn$[rbp]
+	lea	r8, OFFSET FLAT:?dataRegisters@@3PAPEATregisters@@A ; dataRegisters
+	mov	rdx, QWORD PTR [r8+rdx*8]
+	mov	WORD PTR [rdx+rcx], ax
+; Line 114
+	jmp	SHORT $LN2@add
+$LN6@add:
+; Line 116
+	movsxd	rax, DWORD PTR dn$[rbp]
+	lea	rcx, OFFSET FLAT:?dataRegisters@@3PAPEATregisters@@A ; dataRegisters
+	mov	rax, QWORD PTR [rcx+rax*8]
+	mov	QWORD PTR tv155[rbp], rax
+	movzx	ecx, WORD PTR ea$[rbp]
+	call	getLongWord
+	mov	rcx, QWORD PTR tv155[rbp]
+	add	eax, DWORD PTR [rcx]
+	movsxd	rcx, DWORD PTR dn$[rbp]
+	lea	rdx, OFFSET FLAT:?dataRegisters@@3PAPEATregisters@@A ; dataRegisters
+	mov	rcx, QWORD PTR [rdx+rcx*8]
+	mov	DWORD PTR [rcx], eax
+$LN2@add:
+; Line 118
+	lea	rsp, QWORD PTR [rbp+216]
+	pop	rdi
+	pop	rbp
+	ret	0
+?add@@YAXW4Size@@GW4DataRegister@@@Z ENDP		; add
+_TEXT	ENDS
+; Function compile flags: /Odtp /RTCsu /ZI
+;	COMDAT ?add@@YAXW4Size@@W4DataRegister@@G@Z
+_TEXT	SEGMENT
+tv64 = 192
+size$ = 240
+dn$ = 248
+ea$ = 256
+?add@@YAXW4Size@@W4DataRegister@@G@Z PROC		; add, COMDAT
+; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
+; Line 94
+$LN8:
+	mov	WORD PTR [rsp+24], r8w
+	mov	DWORD PTR [rsp+16], edx
+	mov	DWORD PTR [rsp+8], ecx
+	push	rbp
+	push	rdi
+	sub	rsp, 248				; 000000f8H
+	lea	rbp, QWORD PTR [rsp+32]
+	mov	rdi, rsp
+	mov	ecx, 62					; 0000003eH
+	mov	eax, -858993460				; ccccccccH
+	rep stosd
+	mov	ecx, DWORD PTR [rsp+280]
+; Line 95
+	mov	eax, DWORD PTR size$[rbp]
+	mov	DWORD PTR tv64[rbp], eax
+	cmp	DWORD PTR tv64[rbp], 0
+	je	SHORT $LN4@add
+	cmp	DWORD PTR tv64[rbp], 1
+	je	SHORT $LN5@add
+	cmp	DWORD PTR tv64[rbp], 2
+	je	SHORT $LN6@add
+	jmp	SHORT $LN2@add
+$LN4@add:
+; Line 97
+	movsxd	rax, DWORD PTR dn$[rbp]
+	lea	rcx, OFFSET FLAT:?dataRegisters@@3PAPEATregisters@@A ; dataRegisters
+	mov	rax, QWORD PTR [rcx+rax*8]
+	mov	ecx, 1
+	imul	rcx, rcx, 0
+	movzx	edx, BYTE PTR [rax+rcx]
+	movzx	ecx, WORD PTR ea$[rbp]
+	call	addByte
+; Line 98
+	jmp	SHORT $LN2@add
+$LN5@add:
+; Line 100
+	movsxd	rax, DWORD PTR dn$[rbp]
+	lea	rcx, OFFSET FLAT:?dataRegisters@@3PAPEATregisters@@A ; dataRegisters
+	mov	rax, QWORD PTR [rcx+rax*8]
+	mov	ecx, 2
+	imul	rcx, rcx, 0
+	movzx	edx, WORD PTR [rax+rcx]
+	movzx	ecx, WORD PTR ea$[rbp]
+	call	addWord
+; Line 101
+	jmp	SHORT $LN2@add
+$LN6@add:
+; Line 103
+	movsxd	rax, DWORD PTR dn$[rbp]
+	lea	rcx, OFFSET FLAT:?dataRegisters@@3PAPEATregisters@@A ; dataRegisters
+	mov	rax, QWORD PTR [rcx+rax*8]
+	mov	edx, DWORD PTR [rax]
+	movzx	ecx, WORD PTR ea$[rbp]
+	call	addLongWord
+$LN2@add:
+; Line 105
+	lea	rsp, QWORD PTR [rbp+216]
+	pop	rdi
+	pop	rbp
+	ret	0
+?add@@YAXW4Size@@W4DataRegister@@G@Z ENDP		; add
+_TEXT	ENDS
+; Function compile flags: /Odtp /RTCsu /ZI
+;	COMDAT ?pea@@YAXG@Z
+_TEXT	SEGMENT
+address$ = 224
+?pea@@YAXG@Z PROC					; pea, COMDAT
+; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
+; Line 89
+$LN3:
+	mov	WORD PTR [rsp+8], cx
+	push	rbp
+	push	rdi
+	sub	rsp, 200				; 000000c8H
+	mov	rbp, rsp
+	mov	rdi, rsp
+	mov	ecx, 50					; 00000032H
+	mov	eax, -858993460				; ccccccccH
+	rep stosd
+	movzx	ecx, WORD PTR [rsp+232]
+; Line 90
+	mov	eax, 8
+	imul	rax, rax, 7
+	lea	rcx, OFFSET FLAT:?addressRegisters@@3PAPEATregisters@@A ; addressRegisters
+	mov	rax, QWORD PTR [rcx+rax]
+	sub	rax, 16
+	mov	ecx, 8
+	imul	rcx, rcx, 7
+	lea	rdx, OFFSET FLAT:?addressRegisters@@3PAPEATregisters@@A ; addressRegisters
+	mov	QWORD PTR [rdx+rcx], rax
+; Line 91
+	movzx	eax, WORD PTR address$[rbp]
+	mov	ecx, 8
+	imul	rcx, rcx, 7
+	lea	rdx, OFFSET FLAT:?addressRegisters@@3PAPEATregisters@@A ; addressRegisters
+	mov	rcx, QWORD PTR [rdx+rcx]
+	mov	DWORD PTR [rcx], eax
+; Line 92
 	lea	rsp, QWORD PTR [rbp+200]
 	pop	rdi
 	pop	rbp
 	ret	0
-Java_com_LilG_Com_m68k_M68kSimImpl_getByte ENDP
+?pea@@YAXG@Z ENDP					; pea
 _TEXT	ENDS
 ; Function compile flags: /Odtp /RTCsu /ZI
-;	COMDAT Java_com_LilG_Com_m68k_M68kSimImpl_move
+;	COMDAT ?lea@@YAXGW4AddressRegister@@@Z
 _TEXT	SEGMENT
-envelopeGetValueMethod$ = 8
-value$ = 36
-$T1 = 264
-tv76 = 276
-env$ = 320
-__formal$ = 328
-size$ = 336
-data$ = 344
-ea$ = 352
-Java_com_LilG_Com_m68k_M68kSimImpl_move PROC		; COMDAT
+address$ = 224
+An$ = 232
+?lea@@YAXGW4AddressRegister@@@Z PROC			; lea, COMDAT
+; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
+; Line 85
+$LN3:
+	mov	DWORD PTR [rsp+16], edx
+	mov	WORD PTR [rsp+8], cx
+	push	rbp
+	push	rdi
+	sub	rsp, 200				; 000000c8H
+	mov	rbp, rsp
+	mov	rdi, rsp
+	mov	ecx, 50					; 00000032H
+	mov	eax, -858993460				; ccccccccH
+	rep stosd
+	movzx	ecx, WORD PTR [rsp+232]
+; Line 86
+	movzx	eax, WORD PTR address$[rbp]
+	mov	rcx, QWORD PTR ?ramStart@@3PEATmem_union@@EA ; ramStart
+	movzx	eax, BYTE PTR [rcx+rax]
+	movsxd	rcx, DWORD PTR An$[rbp]
+	lea	rdx, OFFSET FLAT:?addressRegisters@@3PAPEATregisters@@A ; addressRegisters
+	mov	QWORD PTR [rdx+rcx*8], rax
+; Line 87
+	lea	rsp, QWORD PTR [rbp+200]
+	pop	rdi
+	pop	rbp
+	ret	0
+?lea@@YAXGW4AddressRegister@@@Z ENDP			; lea
+_TEXT	ENDS
+; Function compile flags: /Odtp /RTCsu /ZI
+;	COMDAT getRamSize
+_TEXT	SEGMENT
+getRamSize PROC						; COMDAT
+; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
+; Line 80
+$LN3:
+	push	rbp
+	push	rdi
+	sub	rsp, 200				; 000000c8H
+	mov	rbp, rsp
+	mov	rdi, rsp
+	mov	ecx, 50					; 00000032H
+	mov	eax, -858993460				; ccccccccH
+	rep stosd
+; Line 81
+	xor	eax, eax
+; Line 82
+	lea	rsp, QWORD PTR [rbp+200]
+	pop	rdi
+	pop	rbp
+	ret	0
+getRamSize ENDP
+_TEXT	ENDS
+; Function compile flags: /Odtp /RTCsu /ZI
+;	COMDAT getRamStart
+_TEXT	SEGMENT
+getRamStart PROC					; COMDAT
+; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
+; Line 76
+$LN3:
+	push	rbp
+	push	rdi
+	sub	rsp, 200				; 000000c8H
+	mov	rbp, rsp
+	mov	rdi, rsp
+	mov	ecx, 50					; 00000032H
+	mov	eax, -858993460				; ccccccccH
+	rep stosd
+; Line 77
+	lea	rax, OFFSET FLAT:?ramStart@@3PEATmem_union@@EA ; ramStart
+; Line 78
+	lea	rsp, QWORD PTR [rbp+200]
+	pop	rdi
+	pop	rbp
+	ret	0
+getRamStart ENDP
+_TEXT	ENDS
+; Function compile flags: /Odtp /RTCsu /ZI
+;	COMDAT clearMem
+_TEXT	SEGMENT
+clearMem PROC						; COMDAT
+; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
+; Line 72
+$LN3:
+	push	rbp
+	push	rdi
+	sub	rsp, 200				; 000000c8H
+	mov	rbp, rsp
+	mov	rdi, rsp
+	mov	ecx, 50					; 00000032H
+	mov	eax, -858993460				; ccccccccH
+	rep stosd
+; Line 73
+	mov	rdi, QWORD PTR ?ramStart@@3PEATmem_union@@EA ; ramStart
+	xor	eax, eax
+	xor	ecx, ecx
+	rep stosb
+; Line 74
+	lea	rsp, QWORD PTR [rbp+200]
+	pop	rdi
+	pop	rbp
+	ret	0
+clearMem ENDP
+_TEXT	ENDS
+; Function compile flags: /Odtp /RTCsu /ZI
+;	COMDAT getLongWord
+_TEXT	SEGMENT
+address$ = 224
+getLongWord PROC					; COMDAT
+; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
+; Line 68
+$LN3:
+	mov	WORD PTR [rsp+8], cx
+	push	rbp
+	push	rdi
+	sub	rsp, 200				; 000000c8H
+	mov	rbp, rsp
+	mov	rdi, rsp
+	mov	ecx, 50					; 00000032H
+	mov	eax, -858993460				; ccccccccH
+	rep stosd
+	movzx	ecx, WORD PTR [rsp+232]
+; Line 69
+	movzx	eax, WORD PTR address$[rbp]
+	mov	rcx, QWORD PTR ?ramStart@@3PEATmem_union@@EA ; ramStart
+	mov	eax, DWORD PTR [rcx+rax*4]
+; Line 70
+	lea	rsp, QWORD PTR [rbp+200]
+	pop	rdi
+	pop	rbp
+	ret	0
+getLongWord ENDP
+_TEXT	ENDS
+; Function compile flags: /Odtp /RTCsu /ZI
+;	COMDAT getWord
+_TEXT	SEGMENT
+address$ = 224
+getWord	PROC						; COMDAT
+; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
+; Line 65
+$LN3:
+	mov	WORD PTR [rsp+8], cx
+	push	rbp
+	push	rdi
+	sub	rsp, 200				; 000000c8H
+	mov	rbp, rsp
+	mov	rdi, rsp
+	mov	ecx, 50					; 00000032H
+	mov	eax, -858993460				; ccccccccH
+	rep stosd
+	movzx	ecx, WORD PTR [rsp+232]
+; Line 66
+	movzx	eax, WORD PTR address$[rbp]
+	mov	rcx, QWORD PTR ?ramStart@@3PEATmem_union@@EA ; ramStart
+	movzx	eax, WORD PTR [rcx+rax*2]
+; Line 67
+	lea	rsp, QWORD PTR [rbp+200]
+	pop	rdi
+	pop	rbp
+	ret	0
+getWord	ENDP
+_TEXT	ENDS
+; Function compile flags: /Odtp /RTCsu /ZI
+;	COMDAT getByte
+_TEXT	SEGMENT
+address$ = 224
+getByte	PROC						; COMDAT
 ; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
 ; Line 62
-$LN12:
-	mov	QWORD PTR [rsp+32], r9
-	mov	QWORD PTR [rsp+24], r8
-	mov	QWORD PTR [rsp+16], rdx
-	mov	QWORD PTR [rsp+8], rcx
-	push	rbp
-	push	rdi
-	sub	rsp, 328				; 00000148H
-	lea	rbp, QWORD PTR [rsp+32]
-	mov	rdi, rsp
-	mov	ecx, 82					; 00000052H
-	mov	eax, -858993460				; ccccccccH
-	rep stosd
-	mov	rcx, QWORD PTR [rsp+360]
-; File c:\program files\java\jdk1.8.0_51\include\jni.h
-; Line 794
-	mov	rax, QWORD PTR env$[rbp]
-	mov	rax, QWORD PTR [rax]
-	lea	rdx, OFFSET FLAT:??_C@_0BH@LJJBNPH@com?1LilG?1Com?1m68k?1Size?$AA@
-	mov	rcx, QWORD PTR env$[rbp]
-	call	QWORD PTR [rax+48]
-	mov	QWORD PTR $T1[rbp], rax
-; Line 894
-	mov	rax, QWORD PTR env$[rbp]
-	mov	rax, QWORD PTR [rax]
-	lea	r9, OFFSET FLAT:??_C@_03KNBKCOBB@?$CI?$CJI?$AA@
-	lea	r8, OFFSET FLAT:??_C@_07LEACAOHP@ordinal?$AA@
-	mov	rdx, QWORD PTR $T1[rbp]
-	mov	rcx, QWORD PTR env$[rbp]
-	call	QWORD PTR [rax+264]
-; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
-; Line 63
-	mov	QWORD PTR envelopeGetValueMethod$[rbp], rax
-; Line 64
-	mov	r8, QWORD PTR envelopeGetValueMethod$[rbp]
-	mov	rdx, QWORD PTR size$[rbp]
-	mov	rcx, QWORD PTR env$[rbp]
-	call	?CallIntMethod@JNIEnv_@@QEAAJPEAV_jobject@@PEAU_jmethodID@@ZZ ; JNIEnv_::CallIntMethod
-	mov	DWORD PTR value$[rbp], eax
-; Line 65
-	mov	eax, DWORD PTR value$[rbp]
-	mov	DWORD PTR tv76[rbp], eax
-	cmp	DWORD PTR tv76[rbp], 0
-	je	SHORT $LN4@Java_com_L
-	cmp	DWORD PTR tv76[rbp], 1
-	je	SHORT $LN5@Java_com_L
-	cmp	DWORD PTR tv76[rbp], 2
-	je	SHORT $LN6@Java_com_L
-	jmp	SHORT $LN2@Java_com_L
-$LN4@Java_com_L:
-; Line 67
-	movzx	r8d, BYTE PTR data$[rbp]
-	movzx	edx, WORD PTR ea$[rbp]
-	mov	rcx, QWORD PTR ?instance@@3PEAVM68KSimulator@@EA ; instance
-	call	?setByte@M68KSimulator@@QEAAXGE@Z	; M68KSimulator::setByte
-; Line 68
-	jmp	SHORT $LN2@Java_com_L
-$LN5@Java_com_L:
-; Line 70
-	movzx	r8d, WORD PTR data$[rbp]
-	movzx	edx, WORD PTR ea$[rbp]
-	mov	rcx, QWORD PTR ?instance@@3PEAVM68KSimulator@@EA ; instance
-	call	?setWord@M68KSimulator@@QEAAXGG@Z	; M68KSimulator::setWord
-; Line 71
-	jmp	SHORT $LN2@Java_com_L
-$LN6@Java_com_L:
-; Line 73
-	mov	r8d, DWORD PTR data$[rbp]
-	movzx	edx, WORD PTR ea$[rbp]
-	mov	rcx, QWORD PTR ?instance@@3PEAVM68KSimulator@@EA ; instance
-	call	?setLongWord@M68KSimulator@@QEAAXGI@Z	; M68KSimulator::setLongWord
-$LN2@Java_com_L:
-; Line 75
-	lea	rsp, QWORD PTR [rbp+296]
-	pop	rdi
-	pop	rbp
-	ret	0
-Java_com_LilG_Com_m68k_M68kSimImpl_move ENDP
-_TEXT	ENDS
-; Function compile flags: /Odtp /RTCsu /ZI
-;	COMDAT Java_com_LilG_Com_m68k_M68kSimImpl_adda
-_TEXT	SEGMENT
-envelopeGetValueMethod$ = 8
-value$ = 36
-$T1 = 264
-tv78 = 276
-env$ = 320
-__formal$ = 328
-size$ = 336
-data$ = 344
-ea$ = 352
-Java_com_LilG_Com_m68k_M68kSimImpl_adda PROC		; COMDAT
-; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
-; Line 41
-$LN12:
-	mov	QWORD PTR [rsp+32], r9
-	mov	QWORD PTR [rsp+24], r8
-	mov	QWORD PTR [rsp+16], rdx
-	mov	QWORD PTR [rsp+8], rcx
-	push	rbp
-	push	rdi
-	sub	rsp, 328				; 00000148H
-	lea	rbp, QWORD PTR [rsp+32]
-	mov	rdi, rsp
-	mov	ecx, 82					; 00000052H
-	mov	eax, -858993460				; ccccccccH
-	rep stosd
-	mov	rcx, QWORD PTR [rsp+360]
-; File c:\program files\java\jdk1.8.0_51\include\jni.h
-; Line 794
-	mov	rax, QWORD PTR env$[rbp]
-	mov	rax, QWORD PTR [rax]
-	lea	rdx, OFFSET FLAT:??_C@_0BH@LJJBNPH@com?1LilG?1Com?1m68k?1Size?$AA@
-	mov	rcx, QWORD PTR env$[rbp]
-	call	QWORD PTR [rax+48]
-	mov	QWORD PTR $T1[rbp], rax
-; Line 894
-	mov	rax, QWORD PTR env$[rbp]
-	mov	rax, QWORD PTR [rax]
-	lea	r9, OFFSET FLAT:??_C@_03KNBKCOBB@?$CI?$CJI?$AA@
-	lea	r8, OFFSET FLAT:??_C@_07LEACAOHP@ordinal?$AA@
-	mov	rdx, QWORD PTR $T1[rbp]
-	mov	rcx, QWORD PTR env$[rbp]
-	call	QWORD PTR [rax+264]
-; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
-; Line 42
-	mov	QWORD PTR envelopeGetValueMethod$[rbp], rax
-; Line 43
-	mov	r8, QWORD PTR envelopeGetValueMethod$[rbp]
-	mov	rdx, QWORD PTR size$[rbp]
-	mov	rcx, QWORD PTR env$[rbp]
-	call	?CallIntMethod@JNIEnv_@@QEAAJPEAV_jobject@@PEAU_jmethodID@@ZZ ; JNIEnv_::CallIntMethod
-	mov	BYTE PTR value$[rbp], al
-; Line 44
-	movzx	eax, BYTE PTR value$[rbp]
-	mov	BYTE PTR tv78[rbp], al
-	cmp	BYTE PTR tv78[rbp], 0
-	je	SHORT $LN4@Java_com_L
-	cmp	BYTE PTR tv78[rbp], 1
-	je	SHORT $LN5@Java_com_L
-	cmp	BYTE PTR tv78[rbp], 2
-	je	SHORT $LN6@Java_com_L
-	jmp	SHORT $LN2@Java_com_L
-$LN4@Java_com_L:
-; Line 46
-	movzx	r8d, BYTE PTR data$[rbp]
-	movzx	edx, WORD PTR ea$[rbp]
-	mov	rcx, QWORD PTR ?instance@@3PEAVM68KSimulator@@EA ; instance
-	call	?addByte@M68KSimulator@@QEAAXGE@Z	; M68KSimulator::addByte
-; Line 47
-	jmp	SHORT $LN2@Java_com_L
-$LN5@Java_com_L:
-; Line 49
-	movzx	r8d, WORD PTR data$[rbp]
-	movzx	edx, WORD PTR ea$[rbp]
-	mov	rcx, QWORD PTR ?instance@@3PEAVM68KSimulator@@EA ; instance
-	call	?addWord@M68KSimulator@@QEAAXGG@Z	; M68KSimulator::addWord
-; Line 50
-	jmp	SHORT $LN2@Java_com_L
-$LN6@Java_com_L:
-; Line 52
-	mov	r8d, DWORD PTR data$[rbp]
-	movzx	edx, WORD PTR ea$[rbp]
-	mov	rcx, QWORD PTR ?instance@@3PEAVM68KSimulator@@EA ; instance
-	call	?addLongWord@M68KSimulator@@QEAAXGI@Z	; M68KSimulator::addLongWord
-$LN2@Java_com_L:
-; Line 54
-	lea	rsp, QWORD PTR [rbp+296]
-	pop	rdi
-	pop	rbp
-	ret	0
-Java_com_LilG_Com_m68k_M68kSimImpl_adda ENDP
-_TEXT	ENDS
-; Function compile flags: /Odtp /RTCsu /ZI
-;	COMDAT JNI_OnUnload
-_TEXT	SEGMENT
-$T1 = 200
-$T2 = 232
-$T3 = 264
-tv68 = 280
-vm$ = 320
-reserved$ = 328
-JNI_OnUnload PROC					; COMDAT
-; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
-; Line 30
-$LN9:
-	mov	QWORD PTR [rsp+16], rdx
-	mov	QWORD PTR [rsp+8], rcx
-	push	rbp
-	push	rdi
-	sub	rsp, 328				; 00000148H
-	lea	rbp, QWORD PTR [rsp+32]
-	mov	rdi, rsp
-	mov	ecx, 82					; 00000052H
-	mov	eax, -858993460				; ccccccccH
-	rep stosd
-	mov	rcx, QWORD PTR [rsp+360]
-; Line 31
-	mov	rax, QWORD PTR ?instance@@3PEAVM68KSimulator@@EA ; instance
-	mov	QWORD PTR $T2[rbp], rax
-	mov	rax, QWORD PTR $T2[rbp]
-	mov	QWORD PTR $T1[rbp], rax
-	cmp	QWORD PTR $T1[rbp], 0
-	je	SHORT $LN3@JNI_OnUnlo
-	mov	rax, QWORD PTR $T3[rbp]
-	mov	QWORD PTR tv68[rbp], rax
-	mov	rcx, QWORD PTR $T1[rbp]
-	call	??1M68KSimulator@@QEAA@XZ		; M68KSimulator::~M68KSimulator
-	mov	eax, 1
-	and	eax, 1
-	test	eax, eax
-	je	SHORT $LN6@JNI_OnUnlo
-	mov	edx, 524368				; 00080050H
-	mov	rcx, QWORD PTR $T1[rbp]
-	call	??3@YAXPEAX_K@Z				; operator delete
-$LN6@JNI_OnUnlo:
-	mov	rax, QWORD PTR $T1[rbp]
-	mov	QWORD PTR tv68[rbp], rax
-	jmp	SHORT $LN4@JNI_OnUnlo
-$LN3@JNI_OnUnlo:
-	mov	QWORD PTR tv68[rbp], 0
-$LN4@JNI_OnUnlo:
-; Line 32
-	lea	rcx, OFFSET FLAT:??_C@_0N@FLNILKML@JNI?5Unloaded?$AA@
-	call	printf
-; Line 33
-	lea	rsp, QWORD PTR [rbp+296]
-	pop	rdi
-	pop	rbp
-	ret	0
-JNI_OnUnload ENDP
-_TEXT	ENDS
-; Function compile flags: /Odtp /RTCsu /ZI
-;	COMDAT JNI_OnLoad
-_TEXT	SEGMENT
-vm$ = 224
-reserved$ = 232
-JNI_OnLoad PROC						; COMDAT
-; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
-; Line 24
 $LN3:
-	mov	QWORD PTR [rsp+16], rdx
-	mov	QWORD PTR [rsp+8], rcx
-	push	rbp
-	push	rdi
-	sub	rsp, 232				; 000000e8H
-	lea	rbp, QWORD PTR [rsp+32]
-	mov	rdi, rsp
-	mov	ecx, 58					; 0000003aH
-	mov	eax, -858993460				; ccccccccH
-	rep stosd
-	mov	rcx, QWORD PTR [rsp+264]
-; Line 25
-	lea	rcx, OFFSET FLAT:??_C@_0L@IODJNECC@JNI?5Loaded?$AA@
-	call	printf
-; Line 26
-	mov	eax, 65542				; 00010006H
-; Line 27
-	lea	rsp, QWORD PTR [rbp+200]
-	pop	rdi
-	pop	rbp
-	ret	0
-JNI_OnLoad ENDP
-_TEXT	ENDS
-; Function compile flags: /Odtp /RTCsu /ZI
-;	COMDAT ??$__vcrt_va_start_verify_argument_type@PEAU_jmethodID@@@@YAXXZ
-_TEXT	SEGMENT
-??$__vcrt_va_start_verify_argument_type@PEAU_jmethodID@@@@YAXXZ PROC ; __vcrt_va_start_verify_argument_type<_jmethodID * __ptr64>, COMDAT
-; File c:\program files (x86)\microsoft visual studio 14.0\vc\include\vadefs.h
-; Line 144
-$LN3:
+	mov	WORD PTR [rsp+8], cx
 	push	rbp
 	push	rdi
 	sub	rsp, 200				; 000000c8H
@@ -1026,73 +1627,308 @@ $LN3:
 	mov	ecx, 50					; 00000032H
 	mov	eax, -858993460				; ccccccccH
 	rep stosd
-; Line 146
+	movzx	ecx, WORD PTR [rsp+232]
+; Line 63
+	movzx	eax, WORD PTR address$[rbp]
+	mov	rcx, QWORD PTR ?ramStart@@3PEATmem_union@@EA ; ramStart
+	movzx	eax, BYTE PTR [rcx+rax]
+; Line 64
 	lea	rsp, QWORD PTR [rbp+200]
 	pop	rdi
 	pop	rbp
 	ret	0
-??$__vcrt_va_start_verify_argument_type@PEAU_jmethodID@@@@YAXXZ ENDP ; __vcrt_va_start_verify_argument_type<_jmethodID * __ptr64>
+getByte	ENDP
 _TEXT	ENDS
 ; Function compile flags: /Odtp /RTCsu /ZI
-;	COMDAT ?CallIntMethod@JNIEnv_@@QEAAJPEAV_jobject@@PEAU_jmethodID@@ZZ
+;	COMDAT addLongWord
 _TEXT	SEGMENT
-args$ = 8
-result$ = 36
-__$ArrayPad$ = 248
-this$ = 288
-obj$ = 296
-methodID$ = 304
-?CallIntMethod@JNIEnv_@@QEAAJPEAV_jobject@@PEAU_jmethodID@@ZZ PROC ; JNIEnv_::CallIntMethod, COMDAT
-; File c:\program files\java\jdk1.8.0_51\include\jni.h
-; Line 983
+address$ = 224
+num$ = 232
+addLongWord PROC					; COMDAT
+; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
+; Line 58
 $LN3:
-	mov	QWORD PTR [rsp+24], r8
-	mov	QWORD PTR [rsp+16], rdx
-	mov	QWORD PTR [rsp+8], rcx
-	mov	QWORD PTR [rsp+32], r9
+	mov	DWORD PTR [rsp+16], edx
+	mov	WORD PTR [rsp+8], cx
 	push	rbp
 	push	rdi
-	sub	rsp, 296				; 00000128H
-	lea	rbp, QWORD PTR [rsp+32]
+	sub	rsp, 200				; 000000c8H
+	mov	rbp, rsp
 	mov	rdi, rsp
-	mov	ecx, 74					; 0000004aH
+	mov	ecx, 50					; 00000032H
 	mov	eax, -858993460				; ccccccccH
 	rep stosd
-	mov	rcx, QWORD PTR [rsp+328]
-	mov	rax, QWORD PTR __security_cookie
-	xor	rax, rbp
-	mov	QWORD PTR __$ArrayPad$[rbp], rax
-; Line 986
-	call	??$__vcrt_va_start_verify_argument_type@PEAU_jmethodID@@@@YAXXZ ; __vcrt_va_start_verify_argument_type<_jmethodID * __ptr64>
-	lea	rax, QWORD PTR methodID$[rbp+8]
-	mov	QWORD PTR args$[rbp], rax
-; Line 987
-	mov	rax, QWORD PTR this$[rbp]
-	mov	rax, QWORD PTR [rax]
-	mov	r9, QWORD PTR args$[rbp]
-	mov	r8, QWORD PTR methodID$[rbp]
-	mov	rdx, QWORD PTR obj$[rbp]
-	mov	rcx, QWORD PTR this$[rbp]
-	call	QWORD PTR [rax+400]
-	mov	DWORD PTR result$[rbp], eax
-; Line 988
-	mov	QWORD PTR args$[rbp], 0
-; Line 989
-	mov	eax, DWORD PTR result$[rbp]
-; Line 990
-	mov	edi, eax
-	lea	rcx, QWORD PTR [rbp-32]
-	lea	rdx, OFFSET FLAT:?CallIntMethod@JNIEnv_@@QEAAJPEAV_jobject@@PEAU_jmethodID@@ZZ$rtcFrameData
-	call	_RTC_CheckStackVars
-	mov	eax, edi
-	mov	rcx, QWORD PTR __$ArrayPad$[rbp]
-	xor	rcx, rbp
-	call	__security_check_cookie
-	lea	rsp, QWORD PTR [rbp+264]
+	movzx	ecx, WORD PTR [rsp+232]
+; Line 59
+	movzx	eax, WORD PTR address$[rbp]
+	mov	rcx, QWORD PTR ?ramStart@@3PEATmem_union@@EA ; ramStart
+	mov	edx, DWORD PTR num$[rbp]
+	mov	DWORD PTR [rcx+rax*4], edx
+; Line 60
+	lea	rsp, QWORD PTR [rbp+200]
 	pop	rdi
 	pop	rbp
 	ret	0
-?CallIntMethod@JNIEnv_@@QEAAJPEAV_jobject@@PEAU_jmethodID@@ZZ ENDP ; JNIEnv_::CallIntMethod
+addLongWord ENDP
+_TEXT	ENDS
+; Function compile flags: /Odtp /RTCsu /ZI
+;	COMDAT addWord
+_TEXT	SEGMENT
+address$ = 224
+num$ = 232
+addWord	PROC						; COMDAT
+; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
+; Line 54
+$LN3:
+	mov	WORD PTR [rsp+16], dx
+	mov	WORD PTR [rsp+8], cx
+	push	rbp
+	push	rdi
+	sub	rsp, 200				; 000000c8H
+	mov	rbp, rsp
+	mov	rdi, rsp
+	mov	ecx, 50					; 00000032H
+	mov	eax, -858993460				; ccccccccH
+	rep stosd
+	movzx	ecx, WORD PTR [rsp+232]
+; Line 55
+	movzx	eax, WORD PTR address$[rbp]
+	mov	rcx, QWORD PTR ?ramStart@@3PEATmem_union@@EA ; ramStart
+	movzx	edx, WORD PTR num$[rbp]
+	mov	WORD PTR [rcx+rax*2], dx
+; Line 56
+	lea	rsp, QWORD PTR [rbp+200]
+	pop	rdi
+	pop	rbp
+	ret	0
+addWord	ENDP
+_TEXT	ENDS
+; Function compile flags: /Odtp /RTCsu /ZI
+;	COMDAT addByte
+_TEXT	SEGMENT
+address$ = 224
+num$ = 232
+addByte	PROC						; COMDAT
+; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
+; Line 50
+$LN3:
+	mov	BYTE PTR [rsp+16], dl
+	mov	WORD PTR [rsp+8], cx
+	push	rbp
+	push	rdi
+	sub	rsp, 200				; 000000c8H
+	mov	rbp, rsp
+	mov	rdi, rsp
+	mov	ecx, 50					; 00000032H
+	mov	eax, -858993460				; ccccccccH
+	rep stosd
+	movzx	ecx, WORD PTR [rsp+232]
+; Line 51
+	movzx	eax, WORD PTR address$[rbp]
+	mov	rcx, QWORD PTR ?ramStart@@3PEATmem_union@@EA ; ramStart
+	movzx	edx, BYTE PTR num$[rbp]
+	mov	BYTE PTR [rcx+rax], dl
+; Line 52
+	lea	rsp, QWORD PTR [rbp+200]
+	pop	rdi
+	pop	rbp
+	ret	0
+addByte	ENDP
+_TEXT	ENDS
+; Function compile flags: /Odtp /RTCsu /ZI
+;	COMDAT setLongWord
+_TEXT	SEGMENT
+address$ = 224
+num$ = 232
+setLongWord PROC					; COMDAT
+; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
+; Line 46
+$LN3:
+	mov	DWORD PTR [rsp+16], edx
+	mov	WORD PTR [rsp+8], cx
+	push	rbp
+	push	rdi
+	sub	rsp, 200				; 000000c8H
+	mov	rbp, rsp
+	mov	rdi, rsp
+	mov	ecx, 50					; 00000032H
+	mov	eax, -858993460				; ccccccccH
+	rep stosd
+	movzx	ecx, WORD PTR [rsp+232]
+; Line 47
+	movzx	eax, WORD PTR address$[rbp]
+	mov	rcx, QWORD PTR ?ramStart@@3PEATmem_union@@EA ; ramStart
+	mov	edx, DWORD PTR num$[rbp]
+	mov	DWORD PTR [rcx+rax*4], edx
+; Line 48
+	lea	rsp, QWORD PTR [rbp+200]
+	pop	rdi
+	pop	rbp
+	ret	0
+setLongWord ENDP
+_TEXT	ENDS
+; Function compile flags: /Odtp /RTCsu /ZI
+;	COMDAT setWord
+_TEXT	SEGMENT
+address$ = 224
+num$ = 232
+setWord	PROC						; COMDAT
+; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
+; Line 42
+$LN3:
+	mov	WORD PTR [rsp+16], dx
+	mov	WORD PTR [rsp+8], cx
+	push	rbp
+	push	rdi
+	sub	rsp, 200				; 000000c8H
+	mov	rbp, rsp
+	mov	rdi, rsp
+	mov	ecx, 50					; 00000032H
+	mov	eax, -858993460				; ccccccccH
+	rep stosd
+	movzx	ecx, WORD PTR [rsp+232]
+; Line 43
+	movzx	eax, WORD PTR address$[rbp]
+	mov	rcx, QWORD PTR ?ramStart@@3PEATmem_union@@EA ; ramStart
+	movzx	edx, WORD PTR num$[rbp]
+	mov	WORD PTR [rcx+rax*2], dx
+; Line 44
+	lea	rsp, QWORD PTR [rbp+200]
+	pop	rdi
+	pop	rbp
+	ret	0
+setWord	ENDP
+_TEXT	ENDS
+; Function compile flags: /Odtp /RTCsu /ZI
+;	COMDAT setByte
+_TEXT	SEGMENT
+address$ = 224
+num$ = 232
+setByte	PROC						; COMDAT
+; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
+; Line 38
+$LN3:
+	mov	BYTE PTR [rsp+16], dl
+	mov	WORD PTR [rsp+8], cx
+	push	rbp
+	push	rdi
+	sub	rsp, 200				; 000000c8H
+	mov	rbp, rsp
+	mov	rdi, rsp
+	mov	ecx, 50					; 00000032H
+	mov	eax, -858993460				; ccccccccH
+	rep stosd
+	movzx	ecx, WORD PTR [rsp+232]
+; Line 39
+	movzx	eax, WORD PTR address$[rbp]
+	mov	rcx, QWORD PTR ?ramStart@@3PEATmem_union@@EA ; ramStart
+	movzx	edx, BYTE PTR num$[rbp]
+	mov	BYTE PTR [rcx+rax], dl
+; Line 40
+	lea	rsp, QWORD PTR [rbp+200]
+	pop	rdi
+	pop	rbp
+	ret	0
+setByte	ENDP
+_TEXT	ENDS
+; Function compile flags: /Odtp /RTCsu /ZI
+;	COMDAT close
+_TEXT	SEGMENT
+i$1 = 4
+close	PROC						; COMDAT
+; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
+; Line 16
+$LN6:
+	push	rbp
+	push	rdi
+	sub	rsp, 264				; 00000108H
+	lea	rbp, QWORD PTR [rsp+32]
+	mov	rdi, rsp
+	mov	ecx, 66					; 00000042H
+	mov	eax, -858993460				; ccccccccH
+	rep stosd
+; Line 17
+	mov	rcx, QWORD PTR ?ramStart@@3PEATmem_union@@EA ; ramStart
+	call	QWORD PTR __imp_free
+; Line 18
+	mov	DWORD PTR i$1[rbp], 0
+	jmp	SHORT $LN4@close
+$LN2@close:
+	mov	eax, DWORD PTR i$1[rbp]
+	inc	eax
+	mov	DWORD PTR i$1[rbp], eax
+$LN4@close:
+	cmp	DWORD PTR i$1[rbp], 8
+	jge	SHORT $LN3@close
+; Line 19
+	movsxd	rax, DWORD PTR i$1[rbp]
+	lea	rcx, OFFSET FLAT:?dataRegisters@@3PAPEATregisters@@A ; dataRegisters
+	mov	rcx, QWORD PTR [rcx+rax*8]
+	call	QWORD PTR __imp_free
+; Line 20
+	jmp	SHORT $LN2@close
+$LN3@close:
+; Line 21
+	lea	rsp, QWORD PTR [rbp+232]
+	pop	rdi
+	pop	rbp
+	ret	0
+close	ENDP
+_TEXT	ENDS
+; Function compile flags: /Odtp /RTCsu /ZI
+;	COMDAT start
+_TEXT	SEGMENT
+i$1 = 4
+start	PROC						; COMDAT
+; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
+; Line 6
+$LN6:
+	push	rbp
+	push	rdi
+	sub	rsp, 264				; 00000108H
+	lea	rbp, QWORD PTR [rsp+32]
+	mov	rdi, rsp
+	mov	ecx, 66					; 00000042H
+	mov	eax, -858993460				; ccccccccH
+	rep stosd
+; Line 7
+	lea	rcx, OFFSET FLAT:??_C@_0BD@JCDCPOBF@DEBUG?5?9?5DLL?5Loaded?$AA@
+	call	printf
+; Line 8
+	xor	ecx, ecx
+	call	QWORD PTR __imp_malloc
+	mov	QWORD PTR ?ramStart@@3PEATmem_union@@EA, rax ; ramStart
+; Line 9
+	mov	DWORD PTR i$1[rbp], 0
+	jmp	SHORT $LN4@start
+$LN2@start:
+	mov	eax, DWORD PTR i$1[rbp]
+	inc	eax
+	mov	DWORD PTR i$1[rbp], eax
+$LN4@start:
+	cmp	DWORD PTR i$1[rbp], 8
+	jge	SHORT $LN3@start
+; Line 10
+	mov	ecx, 4
+	call	QWORD PTR __imp_malloc
+	movsxd	rcx, DWORD PTR i$1[rbp]
+	lea	rdx, OFFSET FLAT:?dataRegisters@@3PAPEATregisters@@A ; dataRegisters
+	mov	QWORD PTR [rdx+rcx*8], rax
+; Line 11
+	jmp	SHORT $LN2@start
+$LN3@start:
+; Line 12
+	mov	DWORD PTR ?programCounter@@3IA, 0	; programCounter
+; Line 13
+	lea	rdx, OFFSET FLAT:?ramStart@@3PEATmem_union@@EA ; ramStart
+	lea	rcx, OFFSET FLAT:??_C@_0CO@FJDOOOIP@DEBUG?5?9?5M68K?5ram?5created?4?5Starti@
+	call	printf
+; Line 14
+	lea	rsp, QWORD PTR [rbp+232]
+	pop	rdi
+	pop	rbp
+	ret	0
+start	ENDP
 _TEXT	ENDS
 ; Function compile flags: /Odtp /RTCsu /ZI
 ;	COMDAT printf
@@ -1211,373 +2047,5 @@ $LN3:
 	pop	rbp
 	ret	0
 __local_stdio_printf_options ENDP
-_TEXT	ENDS
-; Function compile flags: /Odtp /RTCsu /ZI
-;	COMDAT ??__Einstance@@YAXXZ
-text$di	SEGMENT
-$T1 = 200
-$T2 = 232
-$T3 = 264
-tv77 = 280
-??__Einstance@@YAXXZ PROC				; `dynamic initializer for 'instance'', COMDAT
-; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.h
-; Line 43
-	push	rbp
-	push	rdi
-	sub	rsp, 328				; 00000148H
-	lea	rbp, QWORD PTR [rsp+32]
-	mov	rdi, rsp
-	mov	ecx, 82					; 00000052H
-	mov	eax, -858993460				; ccccccccH
-	rep stosd
-	mov	QWORD PTR $T3[rbp], -2
-	mov	ecx, 524368				; 00080050H
-	call	??2@YAPEAX_K@Z				; operator new
-	mov	QWORD PTR $T2[rbp], rax
-	cmp	QWORD PTR $T2[rbp], 0
-	je	SHORT $LN3@dynamic
-	mov	rdi, QWORD PTR $T2[rbp]
-	xor	eax, eax
-	mov	ecx, 524368				; 00080050H
-	rep stosb
-	mov	rcx, QWORD PTR $T2[rbp]
-	call	??0M68KSimulator@@QEAA@XZ		; M68KSimulator::M68KSimulator
-	mov	QWORD PTR tv77[rbp], rax
-	jmp	SHORT $LN4@dynamic
-$LN3@dynamic:
-	mov	QWORD PTR tv77[rbp], 0
-$LN4@dynamic:
-	mov	rax, QWORD PTR tv77[rbp]
-	mov	QWORD PTR $T1[rbp], rax
-	mov	rax, QWORD PTR $T1[rbp]
-	mov	QWORD PTR ?instance@@3PEAVM68KSimulator@@EA, rax ; instance
-	lea	rsp, QWORD PTR [rbp+296]
-	pop	rdi
-	pop	rbp
-	ret	0
-??__Einstance@@YAXXZ ENDP				; `dynamic initializer for 'instance''
-text$di	ENDS
-;	COMDAT text$x
-text$x	SEGMENT
-$T1 = 200
-$T2 = 232
-$T3 = 264
-tv77 = 280
-?dtor$0@?0???__Einstance@@YAXXZ@4HA PROC		; ``dynamic initializer for 'instance'''::`1'::dtor$0
-	mov	QWORD PTR [rsp+8], rcx
-	mov	QWORD PTR [rsp+16], rdx
-	push	rbp
-	push	rdi
-	sub	rsp, 40					; 00000028H
-	lea	rbp, QWORD PTR [rdx+32]
-	mov	edx, 524368				; 00080050H
-	mov	rcx, QWORD PTR $T2[rbp]
-	call	??3@YAXPEAX_K@Z				; operator delete
-	add	rsp, 40					; 00000028H
-	pop	rdi
-	pop	rbp
-	ret	0
-?dtor$0@?0???__Einstance@@YAXXZ@4HA ENDP		; ``dynamic initializer for 'instance'''::`1'::dtor$0
-text$x	ENDS
-; Function compile flags: /Odtp /RTCsu /ZI
-;	COMDAT text$x
-text$x	SEGMENT
-$T1 = 200
-$T2 = 232
-$T3 = 264
-tv77 = 280
-?dtor$0@?0???__Einstance@@YAXXZ@4HA PROC		; ``dynamic initializer for 'instance'''::`1'::dtor$0
-	mov	QWORD PTR [rsp+8], rcx
-	mov	QWORD PTR [rsp+16], rdx
-	push	rbp
-	push	rdi
-	sub	rsp, 40					; 00000028H
-	lea	rbp, QWORD PTR [rdx+32]
-	mov	edx, 524368				; 00080050H
-	mov	rcx, QWORD PTR $T2[rbp]
-	call	??3@YAXPEAX_K@Z				; operator delete
-	add	rsp, 40					; 00000028H
-	pop	rdi
-	pop	rbp
-	ret	0
-?dtor$0@?0???__Einstance@@YAXXZ@4HA ENDP		; ``dynamic initializer for 'instance'''::`1'::dtor$0
-text$x	ENDS
-; Function compile flags: /Odtp /RTCsu /ZI
-;	COMDAT ?addLongWord@M68KSimulator@@QEAAXGI@Z
-_TEXT	SEGMENT
-this$ = 224
-address$ = 232
-num$ = 240
-?addLongWord@M68KSimulator@@QEAAXGI@Z PROC		; M68KSimulator::addLongWord, COMDAT
-; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
-; Line 127
-$LN3:
-	mov	DWORD PTR [rsp+24], r8d
-	mov	WORD PTR [rsp+16], dx
-	mov	QWORD PTR [rsp+8], rcx
-	push	rbp
-	push	rdi
-	sub	rsp, 200				; 000000c8H
-	mov	rbp, rsp
-	mov	rdi, rsp
-	mov	ecx, 50					; 00000032H
-	mov	eax, -858993460				; ccccccccH
-	rep stosd
-	mov	rcx, QWORD PTR [rsp+232]
-; Line 128
-	mov	rax, QWORD PTR this$[rbp]
-	mov	rax, QWORD PTR [rax]
-	movzx	ecx, WORD PTR address$[rbp]
-	mov	edx, DWORD PTR num$[rbp]
-	mov	DWORD PTR [rax+rcx*4], edx
-; Line 129
-	lea	rsp, QWORD PTR [rbp+200]
-	pop	rdi
-	pop	rbp
-	ret	0
-?addLongWord@M68KSimulator@@QEAAXGI@Z ENDP		; M68KSimulator::addLongWord
-_TEXT	ENDS
-; Function compile flags: /Odtp /RTCsu /ZI
-;	COMDAT ?addWord@M68KSimulator@@QEAAXGG@Z
-_TEXT	SEGMENT
-this$ = 224
-address$ = 232
-num$ = 240
-?addWord@M68KSimulator@@QEAAXGG@Z PROC			; M68KSimulator::addWord, COMDAT
-; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
-; Line 123
-$LN3:
-	mov	WORD PTR [rsp+24], r8w
-	mov	WORD PTR [rsp+16], dx
-	mov	QWORD PTR [rsp+8], rcx
-	push	rbp
-	push	rdi
-	sub	rsp, 200				; 000000c8H
-	mov	rbp, rsp
-	mov	rdi, rsp
-	mov	ecx, 50					; 00000032H
-	mov	eax, -858993460				; ccccccccH
-	rep stosd
-	mov	rcx, QWORD PTR [rsp+232]
-; Line 124
-	mov	rax, QWORD PTR this$[rbp]
-	mov	rax, QWORD PTR [rax]
-	movzx	ecx, WORD PTR address$[rbp]
-	movzx	edx, WORD PTR num$[rbp]
-	mov	WORD PTR [rax+rcx*2], dx
-; Line 125
-	lea	rsp, QWORD PTR [rbp+200]
-	pop	rdi
-	pop	rbp
-	ret	0
-?addWord@M68KSimulator@@QEAAXGG@Z ENDP			; M68KSimulator::addWord
-_TEXT	ENDS
-; Function compile flags: /Odtp /RTCsu /ZI
-;	COMDAT ?addByte@M68KSimulator@@QEAAXGE@Z
-_TEXT	SEGMENT
-this$ = 224
-address$ = 232
-num$ = 240
-?addByte@M68KSimulator@@QEAAXGE@Z PROC			; M68KSimulator::addByte, COMDAT
-; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
-; Line 119
-$LN3:
-	mov	BYTE PTR [rsp+24], r8b
-	mov	WORD PTR [rsp+16], dx
-	mov	QWORD PTR [rsp+8], rcx
-	push	rbp
-	push	rdi
-	sub	rsp, 200				; 000000c8H
-	mov	rbp, rsp
-	mov	rdi, rsp
-	mov	ecx, 50					; 00000032H
-	mov	eax, -858993460				; ccccccccH
-	rep stosd
-	mov	rcx, QWORD PTR [rsp+232]
-; Line 120
-	mov	rax, QWORD PTR this$[rbp]
-	mov	rax, QWORD PTR [rax]
-	movzx	ecx, WORD PTR address$[rbp]
-	movzx	edx, BYTE PTR num$[rbp]
-	mov	BYTE PTR [rax+rcx], dl
-; Line 121
-	lea	rsp, QWORD PTR [rbp+200]
-	pop	rdi
-	pop	rbp
-	ret	0
-?addByte@M68KSimulator@@QEAAXGE@Z ENDP			; M68KSimulator::addByte
-_TEXT	ENDS
-; Function compile flags: /Odtp /RTCsu /ZI
-;	COMDAT ?setLongWord@M68KSimulator@@QEAAXGI@Z
-_TEXT	SEGMENT
-this$ = 224
-address$ = 232
-num$ = 240
-?setLongWord@M68KSimulator@@QEAAXGI@Z PROC		; M68KSimulator::setLongWord, COMDAT
-; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
-; Line 115
-$LN3:
-	mov	DWORD PTR [rsp+24], r8d
-	mov	WORD PTR [rsp+16], dx
-	mov	QWORD PTR [rsp+8], rcx
-	push	rbp
-	push	rdi
-	sub	rsp, 200				; 000000c8H
-	mov	rbp, rsp
-	mov	rdi, rsp
-	mov	ecx, 50					; 00000032H
-	mov	eax, -858993460				; ccccccccH
-	rep stosd
-	mov	rcx, QWORD PTR [rsp+232]
-; Line 116
-	mov	rax, QWORD PTR this$[rbp]
-	mov	rax, QWORD PTR [rax]
-	movzx	ecx, WORD PTR address$[rbp]
-	mov	edx, DWORD PTR num$[rbp]
-	mov	DWORD PTR [rax+rcx*4], edx
-; Line 117
-	lea	rsp, QWORD PTR [rbp+200]
-	pop	rdi
-	pop	rbp
-	ret	0
-?setLongWord@M68KSimulator@@QEAAXGI@Z ENDP		; M68KSimulator::setLongWord
-_TEXT	ENDS
-; Function compile flags: /Odtp /RTCsu /ZI
-;	COMDAT ?setWord@M68KSimulator@@QEAAXGG@Z
-_TEXT	SEGMENT
-this$ = 224
-address$ = 232
-num$ = 240
-?setWord@M68KSimulator@@QEAAXGG@Z PROC			; M68KSimulator::setWord, COMDAT
-; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
-; Line 111
-$LN3:
-	mov	WORD PTR [rsp+24], r8w
-	mov	WORD PTR [rsp+16], dx
-	mov	QWORD PTR [rsp+8], rcx
-	push	rbp
-	push	rdi
-	sub	rsp, 200				; 000000c8H
-	mov	rbp, rsp
-	mov	rdi, rsp
-	mov	ecx, 50					; 00000032H
-	mov	eax, -858993460				; ccccccccH
-	rep stosd
-	mov	rcx, QWORD PTR [rsp+232]
-; Line 112
-	mov	rax, QWORD PTR this$[rbp]
-	mov	rax, QWORD PTR [rax]
-	movzx	ecx, WORD PTR address$[rbp]
-	movzx	edx, WORD PTR num$[rbp]
-	mov	WORD PTR [rax+rcx*2], dx
-; Line 113
-	lea	rsp, QWORD PTR [rbp+200]
-	pop	rdi
-	pop	rbp
-	ret	0
-?setWord@M68KSimulator@@QEAAXGG@Z ENDP			; M68KSimulator::setWord
-_TEXT	ENDS
-; Function compile flags: /Odtp /RTCsu /ZI
-;	COMDAT ?setByte@M68KSimulator@@QEAAXGE@Z
-_TEXT	SEGMENT
-this$ = 224
-address$ = 232
-num$ = 240
-?setByte@M68KSimulator@@QEAAXGE@Z PROC			; M68KSimulator::setByte, COMDAT
-; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
-; Line 107
-$LN3:
-	mov	BYTE PTR [rsp+24], r8b
-	mov	WORD PTR [rsp+16], dx
-	mov	QWORD PTR [rsp+8], rcx
-	push	rbp
-	push	rdi
-	sub	rsp, 200				; 000000c8H
-	mov	rbp, rsp
-	mov	rdi, rsp
-	mov	ecx, 50					; 00000032H
-	mov	eax, -858993460				; ccccccccH
-	rep stosd
-	mov	rcx, QWORD PTR [rsp+232]
-; Line 108
-	mov	rax, QWORD PTR this$[rbp]
-	mov	rax, QWORD PTR [rax]
-	movzx	ecx, WORD PTR address$[rbp]
-	movzx	edx, BYTE PTR num$[rbp]
-	mov	BYTE PTR [rax+rcx], dl
-; Line 109
-	lea	rsp, QWORD PTR [rbp+200]
-	pop	rdi
-	pop	rbp
-	ret	0
-?setByte@M68KSimulator@@QEAAXGE@Z ENDP			; M68KSimulator::setByte
-_TEXT	ENDS
-; Function compile flags: /Odtp /RTCsu /ZI
-;	COMDAT ??1M68KSimulator@@QEAA@XZ
-_TEXT	SEGMENT
-this$ = 224
-??1M68KSimulator@@QEAA@XZ PROC				; M68KSimulator::~M68KSimulator, COMDAT
-; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
-; Line 19
-$LN3:
-	mov	QWORD PTR [rsp+8], rcx
-	push	rbp
-	push	rdi
-	sub	rsp, 232				; 000000e8H
-	lea	rbp, QWORD PTR [rsp+32]
-	mov	rdi, rsp
-	mov	ecx, 58					; 0000003aH
-	mov	eax, -858993460				; ccccccccH
-	rep stosd
-	mov	rcx, QWORD PTR [rsp+264]
-; Line 20
-	mov	rax, QWORD PTR this$[rbp]
-	mov	rcx, QWORD PTR [rax]
-	call	QWORD PTR __imp_free
-; Line 21
-	lea	rsp, QWORD PTR [rbp+200]
-	pop	rdi
-	pop	rbp
-	ret	0
-??1M68KSimulator@@QEAA@XZ ENDP				; M68KSimulator::~M68KSimulator
-_TEXT	ENDS
-; Function compile flags: /Odtp /RTCsu /ZI
-;	COMDAT ??0M68KSimulator@@QEAA@XZ
-_TEXT	SEGMENT
-this$ = 224
-??0M68KSimulator@@QEAA@XZ PROC				; M68KSimulator::M68KSimulator, COMDAT
-; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
-; Line 13
-$LN3:
-	mov	QWORD PTR [rsp+8], rcx
-	push	rbp
-	push	rdi
-	sub	rsp, 232				; 000000e8H
-	lea	rbp, QWORD PTR [rsp+32]
-	mov	rdi, rsp
-	mov	ecx, 58					; 0000003aH
-	mov	eax, -858993460				; ccccccccH
-	rep stosd
-	mov	rcx, QWORD PTR [rsp+264]
-; Line 14
-	mov	ecx, 65536				; 00010000H
-	call	QWORD PTR __imp_malloc
-	mov	rcx, QWORD PTR this$[rbp]
-	mov	QWORD PTR [rcx], rax
-; Line 15
-	mov	rax, QWORD PTR this$[rbp]
-	mov	DWORD PTR [rax+524360], 0
-; Line 16
-	mov	rax, QWORD PTR this$[rbp]
-	mov	rdx, rax
-	lea	rcx, OFFSET FLAT:??_C@_0DD@HHCPJPAE@DEBUG?5?9?5M68KSimulator?5created?4?5S@
-	call	printf
-; Line 17
-	mov	rax, QWORD PTR this$[rbp]
-	lea	rsp, QWORD PTR [rbp+200]
-	pop	rdi
-	pop	rbp
-	ret	0
-??0M68KSimulator@@QEAA@XZ ENDP				; M68KSimulator::M68KSimulator
 _TEXT	ENDS
 END

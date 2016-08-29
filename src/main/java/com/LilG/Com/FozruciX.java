@@ -10,7 +10,6 @@ import com.LilG.Com.DataClasses.Meme;
 import com.LilG.Com.DataClasses.Note;
 import com.LilG.Com.DataClasses.SaveDataStore;
 import com.LilG.Com.m68k.M68kSim;
-import com.LilG.Com.m68k.M68kSimImpl;
 import com.LilG.Com.math.ArbitraryPrecisionEvaluator;
 import com.LilG.Com.utils.CryptoUtil;
 import com.LilG.Com.utils.LilGUtil;
@@ -27,6 +26,10 @@ import com.rmtheis.yandtran.YandexTranslatorAPI;
 import com.rmtheis.yandtran.detect.Detect;
 import com.rmtheis.yandtran.language.Language;
 import com.rmtheis.yandtran.translate.Translate;
+import com.sun.jna.Library;
+import com.sun.jna.Native;
+import com.sun.jna.win32.StdCallLibrary;
+import com.sun.jna.win32.W32APIOptions;
 import com.thoughtworks.xstream.XStream;
 import com.wolfram.alpha.*;
 import de.tudarmstadt.ukp.jwktl.JWKTL;
@@ -174,6 +177,20 @@ public class FozruciX extends ListenerAdapter {
     private static volatile StopWatch qTimer = new StopWatch();
     private static volatile DiscordAdapter discord;
     private static volatile boolean updateAvatar = false;
+    private static volatile M68kSim m68k = (M68kSim) Native.loadLibrary("JNIThing", M68kSim.class, new HashMap<Object, Object>() {{
+        put(Library.OPTION_CALLING_CONVENTION, StdCallLibrary.STDCALL_CONVENTION);
+        putAll(W32APIOptions.DEFAULT_OPTIONS);
+        //put(Library.OPTION_FUNCTION_MAPPER, M68kSim.FUNCTION_MAPPER);
+    }});
+    /*static {
+        System.out.println(m68k);
+        try {
+            m68k.start();
+        }catch(UnsatisfiedLinkError e){
+            LOGGER.error("JNA Error", e);
+            System.exit(0);
+        }
+    }*/
     @NotNull
     private String prefix = "!";
     private DebugWindow debug;
@@ -2640,8 +2657,12 @@ public class FozruciX extends ListenerAdapter {
 // !prefix - Changes the command prefix when it isn't the standard "!"
             else if (arg[0].equalsIgnoreCase("!prefix") && !prefix.equals("!")) {
                 if (checkPerm(event.getUser(), 9001)) {
-                    prefix = argJoiner(arg, 1);
-                    sendMessage(event, "Command variable is now \"" + prefix + "\"", true);
+                    if (getArg(arg, 1) != null) {
+                        prefix = argJoiner(arg, 1);
+                        sendMessage(event, "Command variable is now \"" + prefix + "\"", true);
+                    } else {
+                        sendMessage(event, "Command variable is \"" + prefix + "\"", true);
+                    }
                 } else {
                     permError(event.getUser());
                 }
@@ -3001,6 +3022,9 @@ public class FozruciX extends ListenerAdapter {
                     sendMessage(event, "Missing args", true);
                     return;
                 }
+                if (m68k == null) {
+                    return;
+                }
                 String[] args = formatStringArgs(splitMessage(message, 0, false));
                 ArgumentParser parser = ArgumentParsers.newArgumentParser("68kTest")
                         .description("Simulates a M68k environment");
@@ -3020,52 +3044,67 @@ public class FozruciX extends ListenerAdapter {
                     LOGGER.debug(ns.toString());
                     if (checkPerm(event.getUser(), 10) && getArg(arg, 1).equalsIgnoreCase("debug")) {
                         if (getArg(arg, 2) == null) {
-                            sendMessage(event, "Missing args", true);
+                            sendMessage(event, m68k.toString(), true);
                             return;
                         }
                         if (getArg(arg, 2).equalsIgnoreCase("dump")) {
-                            M68kSim.getInstance().memDump();
+                            m68k.memDump();
                         } else if (getArg(arg, 2).equalsIgnoreCase("clear")) {
-                            M68kSim.getInstance().clearMem();
-                            M68kSim.getInstance().memDump();
+                            long time = System.currentTimeMillis();
+                            m68k.clearMem();
+                            LOGGER.info("Took " + (System.currentTimeMillis() - time) + " ms to clear M68k memory");
+                            m68k.memDump();
+                        } else if (getArg(arg, 2).equalsIgnoreCase("Ramstart")) {
+                            sendMessage(event, "M68k ram starts at 0x" + String.format("%02X ", m68k.getRamStart()), true);
                         } else if (getArg(arg, 2).equalsIgnoreCase("start")) {
-                            sendMessage(event, "M68k ram starts at 0x" + String.format("%02X ", M68kSim.getInstance().getRamStart()), true);
+                            m68k.start();
+                        } else if (getArg(arg, 2).equalsIgnoreCase("unload")) {
+                            m68k = null;
+                            gc();
+                        } else if (getArg(arg, 2).equalsIgnoreCase("load")) {
+                            m68k = (M68kSim) Native.loadLibrary("JNIThing", M68kSim.class);
                         } else if (getArg(arg, 2).toLowerCase().startsWith("move")) {
-                            M68kSimImpl.Size[] sizes = M68kSimImpl.Size.values();
-                            for (M68kSimImpl.Size size : sizes) {
+                            M68kSim.Size[] sizes = M68kSim.Size.values();
+                            for (M68kSim.Size size : sizes) {
                                 if (size.getSymbol() == getArg(arg, 2).toLowerCase().charAt(getArg(arg, 2).length() - 1)) {
-                                    M68kSim.getInstance().move(size, Long.decode(getArg(arg, 3)), Integer.decode(getArg(arg, 4)));
+                                    m68k.move(size.ordinal(), Integer.decode(getArg(arg, 3)).shortValue(), Integer.decode(getArg(arg, 4)).shortValue());
                                     break;
                                 }
                             }
-                            M68kSim.getInstance().memDump();
+                            m68k.memDump();
+                        } else if (getArg(arg, 2).toLowerCase().startsWith("moveq")) {
+                            m68k.moveq(Byte.decode(getArg(arg, 3)), Integer.decode(getArg(arg, 4)).shortValue());
+                            m68k.memDump();
+                        } else if (getArg(arg, 2).toLowerCase().startsWith("lea")) {
+                            m68k.lea(Integer.decode(getArg(arg, 3)).shortValue(), M68kSim.AddressRegister.valueOf(getArg(arg, 4).toLowerCase()).ordinal());
+                            m68k.memDump();
                         } else if (getArg(arg, 2).toLowerCase().startsWith("adda")) {
-                            M68kSimImpl.Size[] sizes = M68kSimImpl.Size.values();
-                            for (M68kSimImpl.Size size : sizes) {
+                            M68kSim.Size[] sizes = M68kSim.Size.values();
+                            for (M68kSim.Size size : sizes) {
                                 if (size.getSymbol() == getArg(arg, 2).toLowerCase().charAt(getArg(arg, 2).length() - 1)) {
-                                    M68kSim.getInstance().adda(size, Long.decode(getArg(arg, 3)), Integer.decode(getArg(arg, 4)));
+                                    m68k.adda(size, Long.decode(getArg(arg, 3)).shortValue(), Integer.decode(getArg(arg, 4)));
                                     break;
                                 }
                             }
-                            M68kSim.getInstance().memDump();
+                            m68k.memDump();
                         } else if (getArg(arg, 2).toLowerCase().startsWith("get")) {
-                            M68kSimImpl.Size[] sizes = M68kSimImpl.Size.values();
-                            for (M68kSimImpl.Size size : sizes) {
+                            M68kSim.Size[] sizes = M68kSim.Size.values();
+                            for (M68kSim.Size size : sizes) {
                                 if (size.getSymbol() == getArg(arg, 2).toLowerCase().charAt(getArg(arg, 2).length() - 1)) {
                                     switch (size) {
                                         case Byte:
-                                            sendMessage(event, "0x" + String.format("%02x", M68kSim.getInstance().getByte(Integer.decode(getArg(arg, 3)))).toUpperCase(), true);
+                                            sendMessage(event, "0x" + String.format("%02x", m68k.getByte(Integer.decode(getArg(arg, 3)).shortValue())).toUpperCase(), true);
                                             break;
                                         case Word:
-                                            sendMessage(event, "0x" + String.format("%02x", M68kSim.getInstance().getWord(Integer.decode(getArg(arg, 3)))).toUpperCase(), true);
+                                            sendMessage(event, "0x" + String.format("%02x", m68k.getWord(Integer.decode(getArg(arg, 3)).shortValue())).toUpperCase(), true);
                                             break;
                                         case LongWord:
-                                            sendMessage(event, "0x" + String.format("%02x", M68kSim.getInstance().getLongWord(Integer.decode(getArg(arg, 3)))).toUpperCase(), true);
+                                            sendMessage(event, "0x" + String.format("%02x", m68k.getLongWord(Integer.decode(getArg(arg, 3)).shortValue()).intValue()).toUpperCase(), true);
                                     }
                                     break;
                                 }
                             }
-                            M68kSim.getInstance().memDump();
+                            m68k.memDump();
                         }
                     }
                 } catch (Exception e) {
@@ -3515,13 +3554,25 @@ public class FozruciX extends ListenerAdapter {
 
             }
 
-// !reloadLibs - reloads DLLs
-            else if (commandChecker(event, arg, "reloadLibs")) {
-                try {
-                    LilGUtil.unload();
-                    LilGUtil.loadLib("JNIThing");
-                } catch (Exception e) {
-                    sendError(event, e);
+// !loadLib - loads a library
+            else if (commandChecker(event, arg, "loadLib")) {
+                if (checkPerm(event.getUser(), 9001)) {
+                    try {
+                        LilGUtil.loadLib(argJoiner(arg, 1));
+                    } catch (Exception e) {
+                        sendError(event, e);
+                    }
+                }
+            }
+
+// !unloadLibs - reloads DLLs
+            else if (commandChecker(event, arg, "unloadLibs")) {
+                if (checkPerm(event.getUser(), 9001)) {
+                    try {
+                        LilGUtil.unload();
+                    } catch (Exception e) {
+                        sendError(event, e);
+                    }
                 }
             }
 
