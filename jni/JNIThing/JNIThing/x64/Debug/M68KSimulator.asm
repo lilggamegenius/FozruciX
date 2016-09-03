@@ -32,6 +32,7 @@ PUBLIC	getLongWord
 PUBLIC	clearMem
 PUBLIC	getRamStart
 PUBLIC	getRamSize
+PUBLIC	memDump
 PUBLIC	?lea@@YAXGW4AddressRegister@@@Z			; lea
 PUBLIC	?pea@@YAXG@Z					; pea
 PUBLIC	?add@@YAXW4Size@@W4DataRegister@@G@Z		; add
@@ -48,7 +49,11 @@ PUBLIC	?moveq@@YAXW4Size@@EG@Z				; moveq
 PUBLIC	?_OptionsStorage@?1??__local_stdio_printf_options@@9@4_KA ; `__local_stdio_printf_options'::`2'::_OptionsStorage
 PUBLIC	??_C@_0BD@JCDCPOBF@DEBUG?5?9?5DLL?5Loaded?$AA@	; `string'
 PUBLIC	??_C@_0CO@FJDOOOIP@DEBUG?5?9?5M68K?5ram?5created?4?5Starti@ ; `string'
+PUBLIC	??_C@_02GMLFBBN@wb?$AA@				; `string'
+PUBLIC	??_C@_0BC@EPNOPCCD@Data?2M68kDump?4bin?$AA@	; `string'
 EXTRN	__imp___acrt_iob_func:PROC
+EXTRN	__imp_fopen_s:PROC
+EXTRN	__imp_fwrite:PROC
 EXTRN	__imp___stdio_common_vfprintf:PROC
 EXTRN	__imp_free:PROC
 EXTRN	__imp_malloc:PROC
@@ -166,6 +171,12 @@ $pdata$getRamSize DD imagerel $LN3
 pdata	ENDS
 ;	COMDAT pdata
 pdata	SEGMENT
+$pdata$memDump DD imagerel $LN3
+	DD	imagerel $LN3+137
+	DD	imagerel $unwind$memDump
+pdata	ENDS
+;	COMDAT pdata
+pdata	SEGMENT
 $pdata$?lea@@YAXGW4AddressRegister@@@Z DD imagerel $LN3
 	DD	imagerel $LN3+90
 	DD	imagerel $unwind$?lea@@YAXGW4AddressRegister@@@Z
@@ -250,6 +261,14 @@ rtc$TMZ	ENDS
 rtc$IMZ	SEGMENT
 _RTC_InitBase.rtc$IMZ DQ FLAT:_RTC_InitBase
 rtc$IMZ	ENDS
+;	COMDAT ??_C@_0BC@EPNOPCCD@Data?2M68kDump?4bin?$AA@
+CONST	SEGMENT
+??_C@_0BC@EPNOPCCD@Data?2M68kDump?4bin?$AA@ DB 'Data\M68kDump.bin', 00H ; `string'
+CONST	ENDS
+;	COMDAT ??_C@_02GMLFBBN@wb?$AA@
+CONST	SEGMENT
+??_C@_02GMLFBBN@wb?$AA@ DB 'wb', 00H			; `string'
+CONST	ENDS
 ;	COMDAT ??_C@_0CO@FJDOOOIP@DEBUG?5?9?5M68K?5ram?5created?4?5Starti@
 CONST	SEGMENT
 ??_C@_0CO@FJDOOOIP@DEBUG?5?9?5M68K?5ram?5created?4?5Starti@ DB 'DEBUG - M'
@@ -350,6 +369,38 @@ $unwind$?lea@@YAXGW4AddressRegister@@@Z DD 05052c01H
 	DD	0700b0019H
 	DD	0500aH
 xdata	ENDS
+;	COMDAT xdata
+xdata	SEGMENT
+$unwind$memDump DD 025052f19H
+	DD	010a230fH
+	DD	070030021H
+	DD	05002H
+	DD	imagerel __GSHandlerCheck
+	DD	0f8H
+xdata	ENDS
+;	COMDAT CONST
+CONST	SEGMENT
+memDump$rtcName$0 DB 06dH
+	DB	065H
+	DB	06dH
+	DB	044H
+	DB	075H
+	DB	06dH
+	DB	070H
+	DB	046H
+	DB	069H
+	DB	06cH
+	DB	065H
+	DB	00H
+	ORG $+4
+memDump$rtcVarDesc DD 028H
+	DD	08H
+	DQ	FLAT:memDump$rtcName$0
+	ORG $+48
+memDump$rtcFrameData DD 01H
+	DD	00H
+	DQ	FLAT:memDump$rtcVarDesc
+CONST	ENDS
 ;	COMDAT xdata
 xdata	SEGMENT
 $unwind$getRamSize DD 05051c01H
@@ -500,7 +551,7 @@ source$ = 248
 destination$ = 256
 ?moveq@@YAXW4Size@@EG@Z PROC				; moveq, COMDAT
 ; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
-; Line 224
+; Line 230
 $LN8:
 	mov	WORD PTR [rsp+24], r8w
 	mov	BYTE PTR [rsp+16], dl
@@ -514,7 +565,7 @@ $LN8:
 	mov	eax, -858993460				; ccccccccH
 	rep stosd
 	mov	ecx, DWORD PTR [rsp+280]
-; Line 225
+; Line 231
 	mov	eax, DWORD PTR size$[rbp]
 	mov	DWORD PTR tv64[rbp], eax
 	cmp	DWORD PTR tv64[rbp], 0
@@ -525,22 +576,22 @@ $LN8:
 	je	SHORT $LN6@moveq
 	jmp	SHORT $LN2@moveq
 $LN4@moveq:
-; Line 227
+; Line 233
 	movzx	edx, BYTE PTR source$[rbp]
 	movzx	ecx, WORD PTR destination$[rbp]
 	call	setByte
-; Line 228
+; Line 234
 	jmp	SHORT $LN2@moveq
 $LN5@moveq:
-; Line 230
+; Line 236
 	movzx	eax, BYTE PTR source$[rbp]
 	movzx	edx, ax
 	movzx	ecx, WORD PTR destination$[rbp]
 	call	setWord
-; Line 231
+; Line 237
 	jmp	SHORT $LN2@moveq
 $LN6@moveq:
-; Line 233
+; Line 239
 	movzx	eax, BYTE PTR source$[rbp]
 	movzx	ecx, ax
 	call	getLongWord
@@ -548,7 +599,7 @@ $LN6@moveq:
 	movzx	ecx, WORD PTR destination$[rbp]
 	call	setLongWord
 $LN2@moveq:
-; Line 235
+; Line 241
 	lea	rsp, QWORD PTR [rbp+216]
 	pop	rdi
 	pop	rbp
@@ -564,7 +615,7 @@ source$ = 248
 destination$ = 256
 ?move@@YAXW4Size@@W4DataRegister@@1@Z PROC		; move, COMDAT
 ; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
-; Line 211
+; Line 217
 $LN8:
 	mov	DWORD PTR [rsp+24], r8d
 	mov	DWORD PTR [rsp+16], edx
@@ -578,7 +629,7 @@ $LN8:
 	mov	eax, -858993460				; ccccccccH
 	rep stosd
 	mov	ecx, DWORD PTR [rsp+248]
-; Line 212
+; Line 218
 	mov	eax, DWORD PTR size$[rbp]
 	mov	DWORD PTR tv64[rbp], eax
 	cmp	DWORD PTR tv64[rbp], 0
@@ -589,7 +640,7 @@ $LN8:
 	je	$LN6@move
 	jmp	$LN2@move
 $LN4@move:
-; Line 214
+; Line 220
 	movsxd	rax, DWORD PTR source$[rbp]
 	lea	rcx, OFFSET FLAT:?dataRegisters@@3PAPEATregisters@@A ; dataRegisters
 	mov	rax, QWORD PTR [rcx+rax*8]
@@ -602,10 +653,10 @@ $LN4@move:
 	imul	r8, r8, 0
 	movzx	eax, BYTE PTR [rax+rcx]
 	mov	BYTE PTR [rdx+r8], al
-; Line 215
+; Line 221
 	jmp	SHORT $LN2@move
 $LN5@move:
-; Line 217
+; Line 223
 	movsxd	rax, DWORD PTR source$[rbp]
 	lea	rcx, OFFSET FLAT:?dataRegisters@@3PAPEATregisters@@A ; dataRegisters
 	mov	rax, QWORD PTR [rcx+rax*8]
@@ -618,10 +669,10 @@ $LN5@move:
 	imul	r8, r8, 0
 	movzx	eax, WORD PTR [rax+rcx]
 	mov	WORD PTR [rdx+r8], ax
-; Line 218
+; Line 224
 	jmp	SHORT $LN2@move
 $LN6@move:
-; Line 220
+; Line 226
 	movsxd	rax, DWORD PTR source$[rbp]
 	lea	rcx, OFFSET FLAT:?dataRegisters@@3PAPEATregisters@@A ; dataRegisters
 	mov	rax, QWORD PTR [rcx+rax*8]
@@ -631,7 +682,7 @@ $LN6@move:
 	mov	eax, DWORD PTR [rax]
 	mov	DWORD PTR [rcx], eax
 $LN2@move:
-; Line 222
+; Line 228
 	lea	rsp, QWORD PTR [rbp+216]
 	pop	rdi
 	pop	rbp
@@ -647,7 +698,7 @@ source$ = 248
 destination$ = 256
 ?move@@YAXW4Size@@W4DataRegister@@G@Z PROC		; move, COMDAT
 ; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
-; Line 198
+; Line 204
 $LN8:
 	mov	WORD PTR [rsp+24], r8w
 	mov	DWORD PTR [rsp+16], edx
@@ -661,7 +712,7 @@ $LN8:
 	mov	eax, -858993460				; ccccccccH
 	rep stosd
 	mov	ecx, DWORD PTR [rsp+280]
-; Line 199
+; Line 205
 	mov	eax, DWORD PTR size$[rbp]
 	mov	DWORD PTR tv64[rbp], eax
 	cmp	DWORD PTR tv64[rbp], 0
@@ -672,7 +723,7 @@ $LN8:
 	je	SHORT $LN6@move
 	jmp	SHORT $LN2@move
 $LN4@move:
-; Line 201
+; Line 207
 	movsxd	rax, DWORD PTR source$[rbp]
 	lea	rcx, OFFSET FLAT:?dataRegisters@@3PAPEATregisters@@A ; dataRegisters
 	mov	rax, QWORD PTR [rcx+rax*8]
@@ -681,10 +732,10 @@ $LN4@move:
 	movzx	edx, BYTE PTR [rax+rcx]
 	movzx	ecx, WORD PTR destination$[rbp]
 	call	setByte
-; Line 202
+; Line 208
 	jmp	SHORT $LN2@move
 $LN5@move:
-; Line 204
+; Line 210
 	movsxd	rax, DWORD PTR source$[rbp]
 	lea	rcx, OFFSET FLAT:?dataRegisters@@3PAPEATregisters@@A ; dataRegisters
 	mov	rax, QWORD PTR [rcx+rax*8]
@@ -693,10 +744,10 @@ $LN5@move:
 	movzx	edx, WORD PTR [rax+rcx]
 	movzx	ecx, WORD PTR destination$[rbp]
 	call	setWord
-; Line 205
+; Line 211
 	jmp	SHORT $LN2@move
 $LN6@move:
-; Line 207
+; Line 213
 	movsxd	rax, DWORD PTR source$[rbp]
 	lea	rcx, OFFSET FLAT:?dataRegisters@@3PAPEATregisters@@A ; dataRegisters
 	mov	rax, QWORD PTR [rcx+rax*8]
@@ -704,7 +755,7 @@ $LN6@move:
 	movzx	ecx, WORD PTR destination$[rbp]
 	call	setLongWord
 $LN2@move:
-; Line 209
+; Line 215
 	lea	rsp, QWORD PTR [rbp+216]
 	pop	rdi
 	pop	rbp
@@ -720,7 +771,7 @@ source$ = 248
 destination$ = 256
 ?move@@YAXW4Size@@GW4DataRegister@@@Z PROC		; move, COMDAT
 ; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
-; Line 185
+; Line 191
 $LN8:
 	mov	DWORD PTR [rsp+24], r8d
 	mov	WORD PTR [rsp+16], dx
@@ -734,7 +785,7 @@ $LN8:
 	mov	eax, -858993460				; ccccccccH
 	rep stosd
 	mov	ecx, DWORD PTR [rsp+280]
-; Line 186
+; Line 192
 	mov	eax, DWORD PTR size$[rbp]
 	mov	DWORD PTR tv64[rbp], eax
 	cmp	DWORD PTR tv64[rbp], 0
@@ -745,7 +796,7 @@ $LN8:
 	je	SHORT $LN6@move
 	jmp	SHORT $LN2@move
 $LN4@move:
-; Line 188
+; Line 194
 	movzx	ecx, WORD PTR source$[rbp]
 	call	getByte
 	movsxd	rcx, DWORD PTR destination$[rbp]
@@ -754,10 +805,10 @@ $LN4@move:
 	mov	edx, 1
 	imul	rdx, rdx, 0
 	mov	BYTE PTR [rcx+rdx], al
-; Line 189
+; Line 195
 	jmp	SHORT $LN2@move
 $LN5@move:
-; Line 191
+; Line 197
 	movzx	ecx, WORD PTR source$[rbp]
 	call	getWord
 	movsxd	rcx, DWORD PTR destination$[rbp]
@@ -766,10 +817,10 @@ $LN5@move:
 	mov	edx, 2
 	imul	rdx, rdx, 0
 	mov	WORD PTR [rcx+rdx], ax
-; Line 192
+; Line 198
 	jmp	SHORT $LN2@move
 $LN6@move:
-; Line 194
+; Line 200
 	movzx	ecx, WORD PTR source$[rbp]
 	call	getLongWord
 	movsxd	rcx, DWORD PTR destination$[rbp]
@@ -777,7 +828,7 @@ $LN6@move:
 	mov	rcx, QWORD PTR [rdx+rcx*8]
 	mov	DWORD PTR [rcx], eax
 $LN2@move:
-; Line 196
+; Line 202
 	lea	rsp, QWORD PTR [rbp+216]
 	pop	rdi
 	pop	rbp
@@ -793,7 +844,7 @@ source$ = 248
 destination$ = 256
 ?move@@YAXW4Size@@GG@Z PROC				; move, COMDAT
 ; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
-; Line 172
+; Line 178
 $LN8:
 	mov	WORD PTR [rsp+24], r8w
 	mov	WORD PTR [rsp+16], dx
@@ -807,7 +858,7 @@ $LN8:
 	mov	eax, -858993460				; ccccccccH
 	rep stosd
 	mov	ecx, DWORD PTR [rsp+280]
-; Line 173
+; Line 179
 	mov	eax, DWORD PTR size$[rbp]
 	mov	DWORD PTR tv64[rbp], eax
 	cmp	DWORD PTR tv64[rbp], 0
@@ -818,32 +869,32 @@ $LN8:
 	je	SHORT $LN6@move
 	jmp	SHORT $LN2@move
 $LN4@move:
-; Line 175
+; Line 181
 	movzx	ecx, WORD PTR source$[rbp]
 	call	getByte
 	movzx	edx, al
 	movzx	ecx, WORD PTR destination$[rbp]
 	call	setByte
-; Line 176
+; Line 182
 	jmp	SHORT $LN2@move
 $LN5@move:
-; Line 178
+; Line 184
 	movzx	ecx, WORD PTR source$[rbp]
 	call	getWord
 	movzx	edx, ax
 	movzx	ecx, WORD PTR destination$[rbp]
 	call	setWord
-; Line 179
+; Line 185
 	jmp	SHORT $LN2@move
 $LN6@move:
-; Line 181
+; Line 187
 	movzx	ecx, WORD PTR source$[rbp]
 	call	getLongWord
 	mov	edx, eax
 	movzx	ecx, WORD PTR destination$[rbp]
 	call	setLongWord
 $LN2@move:
-; Line 183
+; Line 189
 	lea	rsp, QWORD PTR [rbp+216]
 	pop	rdi
 	pop	rbp
@@ -864,7 +915,7 @@ ea$ = 248
 dn$ = 256
 ?and@@YAXW4Size@@GW4DataRegister@@@Z PROC		; and, COMDAT
 ; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
-; Line 159
+; Line 165
 $LN8:
 	mov	DWORD PTR [rsp+24], r8d
 	mov	WORD PTR [rsp+16], dx
@@ -878,7 +929,7 @@ $LN8:
 	mov	eax, -858993460				; ccccccccH
 	rep stosd
 	mov	ecx, DWORD PTR [rsp+280]
-; Line 160
+; Line 166
 	mov	eax, DWORD PTR size$[rbp]
 	mov	DWORD PTR tv64[rbp], eax
 	cmp	DWORD PTR tv64[rbp], 0
@@ -889,7 +940,7 @@ $LN8:
 	je	$LN6@and
 	jmp	$LN2@and
 $LN4@and:
-; Line 162
+; Line 168
 	movsxd	rax, DWORD PTR dn$[rbp]
 	lea	rcx, OFFSET FLAT:?dataRegisters@@3PAPEATregisters@@A ; dataRegisters
 	mov	rax, QWORD PTR [rcx+rax*8]
@@ -911,10 +962,10 @@ $LN4@and:
 	lea	r8, OFFSET FLAT:?dataRegisters@@3PAPEATregisters@@A ; dataRegisters
 	mov	rdx, QWORD PTR [r8+rdx*8]
 	mov	BYTE PTR [rdx+rcx], al
-; Line 163
+; Line 169
 	jmp	$LN2@and
 $LN5@and:
-; Line 165
+; Line 171
 	movsxd	rax, DWORD PTR dn$[rbp]
 	lea	rcx, OFFSET FLAT:?dataRegisters@@3PAPEATregisters@@A ; dataRegisters
 	mov	rax, QWORD PTR [rcx+rax*8]
@@ -936,10 +987,10 @@ $LN5@and:
 	lea	r8, OFFSET FLAT:?dataRegisters@@3PAPEATregisters@@A ; dataRegisters
 	mov	rdx, QWORD PTR [r8+rdx*8]
 	mov	WORD PTR [rdx+rcx], ax
-; Line 166
+; Line 172
 	jmp	SHORT $LN2@and
 $LN6@and:
-; Line 168
+; Line 174
 	movsxd	rax, DWORD PTR dn$[rbp]
 	lea	rcx, OFFSET FLAT:?dataRegisters@@3PAPEATregisters@@A ; dataRegisters
 	mov	rax, QWORD PTR [rcx+rax*8]
@@ -955,7 +1006,7 @@ $LN6@and:
 	mov	rcx, QWORD PTR [rdx+rcx*8]
 	mov	DWORD PTR [rcx], eax
 $LN2@and:
-; Line 170
+; Line 176
 	lea	rsp, QWORD PTR [rbp+216]
 	pop	rdi
 	pop	rbp
@@ -971,7 +1022,7 @@ dn$ = 248
 ea$ = 256
 ?and@@YAXW4Size@@W4DataRegister@@G@Z PROC		; and, COMDAT
 ; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
-; Line 146
+; Line 152
 $LN8:
 	mov	WORD PTR [rsp+24], r8w
 	mov	DWORD PTR [rsp+16], edx
@@ -985,7 +1036,7 @@ $LN8:
 	mov	eax, -858993460				; ccccccccH
 	rep stosd
 	mov	ecx, DWORD PTR [rsp+280]
-; Line 147
+; Line 153
 	mov	eax, DWORD PTR size$[rbp]
 	mov	DWORD PTR tv64[rbp], eax
 	cmp	DWORD PTR tv64[rbp], 0
@@ -996,7 +1047,7 @@ $LN8:
 	je	$LN6@and
 	jmp	$LN2@and
 $LN4@and:
-; Line 149
+; Line 155
 	movzx	ecx, WORD PTR ea$[rbp]
 	call	getByte
 	movzx	eax, al
@@ -1010,10 +1061,10 @@ $LN4@and:
 	movzx	edx, al
 	movzx	ecx, WORD PTR ea$[rbp]
 	call	setByte
-; Line 150
+; Line 156
 	jmp	SHORT $LN2@and
 $LN5@and:
-; Line 152
+; Line 158
 	movzx	ecx, WORD PTR ea$[rbp]
 	call	getWord
 	movzx	eax, ax
@@ -1027,10 +1078,10 @@ $LN5@and:
 	movzx	edx, ax
 	movzx	ecx, WORD PTR ea$[rbp]
 	call	setWord
-; Line 153
+; Line 159
 	jmp	SHORT $LN2@and
 $LN6@and:
-; Line 155
+; Line 161
 	movzx	ecx, WORD PTR ea$[rbp]
 	call	getLongWord
 	movsxd	rcx, DWORD PTR dn$[rbp]
@@ -1041,7 +1092,7 @@ $LN6@and:
 	movzx	ecx, WORD PTR ea$[rbp]
 	call	setLongWord
 $LN2@and:
-; Line 157
+; Line 163
 	lea	rsp, QWORD PTR [rbp+216]
 	pop	rdi
 	pop	rbp
@@ -1057,7 +1108,7 @@ ea$ = 248
 data$ = 256
 ?addi@@YAXW4Size@@GI@Z PROC				; addi, COMDAT
 ; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
-; Line 133
+; Line 139
 $LN8:
 	mov	DWORD PTR [rsp+24], r8d
 	mov	WORD PTR [rsp+16], dx
@@ -1071,7 +1122,7 @@ $LN8:
 	mov	eax, -858993460				; ccccccccH
 	rep stosd
 	mov	ecx, DWORD PTR [rsp+280]
-; Line 134
+; Line 140
 	mov	eax, DWORD PTR size$[rbp]
 	mov	DWORD PTR tv64[rbp], eax
 	cmp	DWORD PTR tv64[rbp], 0
@@ -1082,26 +1133,26 @@ $LN8:
 	je	SHORT $LN6@addi
 	jmp	SHORT $LN2@addi
 $LN4@addi:
-; Line 136
+; Line 142
 	movzx	edx, BYTE PTR data$[rbp]
 	movzx	ecx, WORD PTR ea$[rbp]
 	call	addByte
-; Line 137
+; Line 143
 	jmp	SHORT $LN2@addi
 $LN5@addi:
-; Line 139
+; Line 145
 	movzx	edx, WORD PTR data$[rbp]
 	movzx	ecx, WORD PTR ea$[rbp]
 	call	addWord
-; Line 140
+; Line 146
 	jmp	SHORT $LN2@addi
 $LN6@addi:
-; Line 142
+; Line 148
 	mov	edx, DWORD PTR data$[rbp]
 	movzx	ecx, WORD PTR ea$[rbp]
 	call	addLongWord
 $LN2@addi:
-; Line 144
+; Line 150
 	lea	rsp, QWORD PTR [rbp+216]
 	pop	rdi
 	pop	rbp
@@ -1122,7 +1173,7 @@ ea$ = 248
 an$ = 256
 ?adda@@YAXW4Size@@GW4AddressRegister@@@Z PROC		; adda, COMDAT
 ; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
-; Line 120
+; Line 126
 $LN8:
 	mov	DWORD PTR [rsp+24], r8d
 	mov	WORD PTR [rsp+16], dx
@@ -1136,7 +1187,7 @@ $LN8:
 	mov	eax, -858993460				; ccccccccH
 	rep stosd
 	mov	ecx, DWORD PTR [rsp+280]
-; Line 121
+; Line 127
 	mov	eax, DWORD PTR size$[rbp]
 	mov	DWORD PTR tv64[rbp], eax
 	cmp	DWORD PTR tv64[rbp], 0
@@ -1147,7 +1198,7 @@ $LN8:
 	je	$LN6@adda
 	jmp	$LN2@adda
 $LN4@adda:
-; Line 123
+; Line 129
 	movsxd	rax, DWORD PTR an$[rbp]
 	lea	rcx, OFFSET FLAT:?addressRegisters@@3PAPEATregisters@@A ; addressRegisters
 	mov	rax, QWORD PTR [rcx+rax*8]
@@ -1169,10 +1220,10 @@ $LN4@adda:
 	lea	r8, OFFSET FLAT:?addressRegisters@@3PAPEATregisters@@A ; addressRegisters
 	mov	rdx, QWORD PTR [r8+rdx*8]
 	mov	BYTE PTR [rdx+rcx], al
-; Line 124
+; Line 130
 	jmp	$LN2@adda
 $LN5@adda:
-; Line 126
+; Line 132
 	movsxd	rax, DWORD PTR an$[rbp]
 	lea	rcx, OFFSET FLAT:?addressRegisters@@3PAPEATregisters@@A ; addressRegisters
 	mov	rax, QWORD PTR [rcx+rax*8]
@@ -1194,10 +1245,10 @@ $LN5@adda:
 	lea	r8, OFFSET FLAT:?addressRegisters@@3PAPEATregisters@@A ; addressRegisters
 	mov	rdx, QWORD PTR [r8+rdx*8]
 	mov	WORD PTR [rdx+rcx], ax
-; Line 127
+; Line 133
 	jmp	SHORT $LN2@adda
 $LN6@adda:
-; Line 129
+; Line 135
 	movsxd	rax, DWORD PTR an$[rbp]
 	lea	rcx, OFFSET FLAT:?addressRegisters@@3PAPEATregisters@@A ; addressRegisters
 	mov	rax, QWORD PTR [rcx+rax*8]
@@ -1211,7 +1262,7 @@ $LN6@adda:
 	mov	rcx, QWORD PTR [rdx+rcx*8]
 	mov	DWORD PTR [rcx], eax
 $LN2@adda:
-; Line 131
+; Line 137
 	lea	rsp, QWORD PTR [rbp+216]
 	pop	rdi
 	pop	rbp
@@ -1232,7 +1283,7 @@ ea$ = 248
 dn$ = 256
 ?add@@YAXW4Size@@GW4DataRegister@@@Z PROC		; add, COMDAT
 ; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
-; Line 107
+; Line 113
 $LN8:
 	mov	DWORD PTR [rsp+24], r8d
 	mov	WORD PTR [rsp+16], dx
@@ -1246,7 +1297,7 @@ $LN8:
 	mov	eax, -858993460				; ccccccccH
 	rep stosd
 	mov	ecx, DWORD PTR [rsp+280]
-; Line 108
+; Line 114
 	mov	eax, DWORD PTR size$[rbp]
 	mov	DWORD PTR tv64[rbp], eax
 	cmp	DWORD PTR tv64[rbp], 0
@@ -1257,7 +1308,7 @@ $LN8:
 	je	$LN6@add
 	jmp	$LN2@add
 $LN4@add:
-; Line 110
+; Line 116
 	movsxd	rax, DWORD PTR dn$[rbp]
 	lea	rcx, OFFSET FLAT:?dataRegisters@@3PAPEATregisters@@A ; dataRegisters
 	mov	rax, QWORD PTR [rcx+rax*8]
@@ -1279,10 +1330,10 @@ $LN4@add:
 	lea	r8, OFFSET FLAT:?dataRegisters@@3PAPEATregisters@@A ; dataRegisters
 	mov	rdx, QWORD PTR [r8+rdx*8]
 	mov	BYTE PTR [rdx+rcx], al
-; Line 111
+; Line 117
 	jmp	$LN2@add
 $LN5@add:
-; Line 113
+; Line 119
 	movsxd	rax, DWORD PTR dn$[rbp]
 	lea	rcx, OFFSET FLAT:?dataRegisters@@3PAPEATregisters@@A ; dataRegisters
 	mov	rax, QWORD PTR [rcx+rax*8]
@@ -1304,10 +1355,10 @@ $LN5@add:
 	lea	r8, OFFSET FLAT:?dataRegisters@@3PAPEATregisters@@A ; dataRegisters
 	mov	rdx, QWORD PTR [r8+rdx*8]
 	mov	WORD PTR [rdx+rcx], ax
-; Line 114
+; Line 120
 	jmp	SHORT $LN2@add
 $LN6@add:
-; Line 116
+; Line 122
 	movsxd	rax, DWORD PTR dn$[rbp]
 	lea	rcx, OFFSET FLAT:?dataRegisters@@3PAPEATregisters@@A ; dataRegisters
 	mov	rax, QWORD PTR [rcx+rax*8]
@@ -1321,7 +1372,7 @@ $LN6@add:
 	mov	rcx, QWORD PTR [rdx+rcx*8]
 	mov	DWORD PTR [rcx], eax
 $LN2@add:
-; Line 118
+; Line 124
 	lea	rsp, QWORD PTR [rbp+216]
 	pop	rdi
 	pop	rbp
@@ -1337,7 +1388,7 @@ dn$ = 248
 ea$ = 256
 ?add@@YAXW4Size@@W4DataRegister@@G@Z PROC		; add, COMDAT
 ; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
-; Line 94
+; Line 100
 $LN8:
 	mov	WORD PTR [rsp+24], r8w
 	mov	DWORD PTR [rsp+16], edx
@@ -1351,7 +1402,7 @@ $LN8:
 	mov	eax, -858993460				; ccccccccH
 	rep stosd
 	mov	ecx, DWORD PTR [rsp+280]
-; Line 95
+; Line 101
 	mov	eax, DWORD PTR size$[rbp]
 	mov	DWORD PTR tv64[rbp], eax
 	cmp	DWORD PTR tv64[rbp], 0
@@ -1362,7 +1413,7 @@ $LN8:
 	je	SHORT $LN6@add
 	jmp	SHORT $LN2@add
 $LN4@add:
-; Line 97
+; Line 103
 	movsxd	rax, DWORD PTR dn$[rbp]
 	lea	rcx, OFFSET FLAT:?dataRegisters@@3PAPEATregisters@@A ; dataRegisters
 	mov	rax, QWORD PTR [rcx+rax*8]
@@ -1371,10 +1422,10 @@ $LN4@add:
 	movzx	edx, BYTE PTR [rax+rcx]
 	movzx	ecx, WORD PTR ea$[rbp]
 	call	addByte
-; Line 98
+; Line 104
 	jmp	SHORT $LN2@add
 $LN5@add:
-; Line 100
+; Line 106
 	movsxd	rax, DWORD PTR dn$[rbp]
 	lea	rcx, OFFSET FLAT:?dataRegisters@@3PAPEATregisters@@A ; dataRegisters
 	mov	rax, QWORD PTR [rcx+rax*8]
@@ -1383,10 +1434,10 @@ $LN5@add:
 	movzx	edx, WORD PTR [rax+rcx]
 	movzx	ecx, WORD PTR ea$[rbp]
 	call	addWord
-; Line 101
+; Line 107
 	jmp	SHORT $LN2@add
 $LN6@add:
-; Line 103
+; Line 109
 	movsxd	rax, DWORD PTR dn$[rbp]
 	lea	rcx, OFFSET FLAT:?dataRegisters@@3PAPEATregisters@@A ; dataRegisters
 	mov	rax, QWORD PTR [rcx+rax*8]
@@ -1394,7 +1445,7 @@ $LN6@add:
 	movzx	ecx, WORD PTR ea$[rbp]
 	call	addLongWord
 $LN2@add:
-; Line 105
+; Line 111
 	lea	rsp, QWORD PTR [rbp+216]
 	pop	rdi
 	pop	rbp
@@ -1407,7 +1458,7 @@ _TEXT	SEGMENT
 address$ = 224
 ?pea@@YAXG@Z PROC					; pea, COMDAT
 ; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
-; Line 89
+; Line 95
 $LN3:
 	mov	WORD PTR [rsp+8], cx
 	push	rbp
@@ -1419,7 +1470,7 @@ $LN3:
 	mov	eax, -858993460				; ccccccccH
 	rep stosd
 	movzx	ecx, WORD PTR [rsp+232]
-; Line 90
+; Line 96
 	mov	eax, 8
 	imul	rax, rax, 7
 	lea	rcx, OFFSET FLAT:?addressRegisters@@3PAPEATregisters@@A ; addressRegisters
@@ -1429,14 +1480,14 @@ $LN3:
 	imul	rcx, rcx, 7
 	lea	rdx, OFFSET FLAT:?addressRegisters@@3PAPEATregisters@@A ; addressRegisters
 	mov	QWORD PTR [rdx+rcx], rax
-; Line 91
+; Line 97
 	movzx	eax, WORD PTR address$[rbp]
 	mov	ecx, 8
 	imul	rcx, rcx, 7
 	lea	rdx, OFFSET FLAT:?addressRegisters@@3PAPEATregisters@@A ; addressRegisters
 	mov	rcx, QWORD PTR [rdx+rcx]
 	mov	DWORD PTR [rcx], eax
-; Line 92
+; Line 98
 	lea	rsp, QWORD PTR [rbp+200]
 	pop	rdi
 	pop	rbp
@@ -1450,7 +1501,7 @@ address$ = 224
 An$ = 232
 ?lea@@YAXGW4AddressRegister@@@Z PROC			; lea, COMDAT
 ; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
-; Line 85
+; Line 91
 $LN3:
 	mov	DWORD PTR [rsp+16], edx
 	mov	WORD PTR [rsp+8], cx
@@ -1463,19 +1514,63 @@ $LN3:
 	mov	eax, -858993460				; ccccccccH
 	rep stosd
 	movzx	ecx, WORD PTR [rsp+232]
-; Line 86
+; Line 92
 	movzx	eax, WORD PTR address$[rbp]
 	mov	rcx, QWORD PTR ?ramStart@@3PEATmem_union@@EA ; ramStart
 	movzx	eax, BYTE PTR [rcx+rax]
 	movsxd	rcx, DWORD PTR An$[rbp]
 	lea	rdx, OFFSET FLAT:?addressRegisters@@3PAPEATregisters@@A ; addressRegisters
 	mov	QWORD PTR [rdx+rcx*8], rax
-; Line 87
+; Line 93
 	lea	rsp, QWORD PTR [rbp+200]
 	pop	rdi
 	pop	rbp
 	ret	0
 ?lea@@YAXGW4AddressRegister@@@Z ENDP			; lea
+_TEXT	ENDS
+; Function compile flags: /Odtp /RTCsu /ZI
+;	COMDAT memDump
+_TEXT	SEGMENT
+memDumpFile$ = 8
+__$ArrayPad$ = 216
+memDump	PROC						; COMDAT
+; File c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\m68ksimulator.cpp
+; Line 84
+$LN3:
+	push	rbp
+	push	rdi
+	sub	rsp, 264				; 00000108H
+	lea	rbp, QWORD PTR [rsp+32]
+	mov	rdi, rsp
+	mov	ecx, 66					; 00000042H
+	mov	eax, -858993460				; ccccccccH
+	rep stosd
+	mov	rax, QWORD PTR __security_cookie
+	xor	rax, rbp
+	mov	QWORD PTR __$ArrayPad$[rbp], rax
+; Line 86
+	lea	r8, OFFSET FLAT:??_C@_02GMLFBBN@wb?$AA@
+	lea	rdx, OFFSET FLAT:??_C@_0BC@EPNOPCCD@Data?2M68kDump?4bin?$AA@
+	lea	rcx, QWORD PTR memDumpFile$[rbp]
+	call	QWORD PTR __imp_fopen_s
+; Line 87
+	mov	r9, QWORD PTR memDumpFile$[rbp]
+	xor	r8d, r8d
+	mov	edx, 1
+	mov	rcx, QWORD PTR ?ramStart@@3PEATmem_union@@EA ; ramStart
+	call	QWORD PTR __imp_fwrite
+; Line 88
+	lea	rcx, QWORD PTR [rbp-32]
+	lea	rdx, OFFSET FLAT:memDump$rtcFrameData
+	call	_RTC_CheckStackVars
+	mov	rcx, QWORD PTR __$ArrayPad$[rbp]
+	xor	rcx, rbp
+	call	__security_check_cookie
+	lea	rsp, QWORD PTR [rbp+232]
+	pop	rdi
+	pop	rbp
+	ret	0
+memDump	ENDP
 _TEXT	ENDS
 ; Function compile flags: /Odtp /RTCsu /ZI
 ;	COMDAT getRamSize

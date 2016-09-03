@@ -21,6 +21,8 @@
 
 typedef uint16_t M68kAddr;
 
+#pragma warning( push )
+#pragma warning( disable : 4200 )
 typedef union{
 	uint8_t u8[ramSize];
 	uint16_t u16[ramSize / 2];
@@ -30,6 +32,7 @@ typedef union{
 	int16_t s16[ramSize / 2];
 	int32_t s32[ramSize / 4];
 } mem_union;
+#pragma warning( pop )
 
 typedef union{
 	uint8_t u8[4];

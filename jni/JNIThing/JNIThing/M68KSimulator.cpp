@@ -81,6 +81,12 @@ extern "C" EXPORT M68kAddr getRamSize() {
 	return ramSize;
 }
 
+extern "C" EXPORT void memDump() {
+	FILE *memDumpFile;
+	fopen_s(&memDumpFile, "Data\\M68kDump.bin", "wb");  // w for write, b for binary
+	fwrite(ramStart, 1, ramSize, memDumpFile); // write from our buffer
+}
+
 
 EXPORT void lea(M68kAddr address, AddressRegister An){
 	addressRegisters[An] = reinterpret_cast<registers*>(ramStart->u8[address]);
