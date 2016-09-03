@@ -26,10 +26,7 @@ import com.rmtheis.yandtran.YandexTranslatorAPI;
 import com.rmtheis.yandtran.detect.Detect;
 import com.rmtheis.yandtran.language.Language;
 import com.rmtheis.yandtran.translate.Translate;
-import com.sun.jna.Library;
 import com.sun.jna.Native;
-import com.sun.jna.win32.StdCallLibrary;
-import com.sun.jna.win32.W32APIOptions;
 import com.thoughtworks.xstream.XStream;
 import com.wolfram.alpha.*;
 import de.tudarmstadt.ukp.jwktl.JWKTL;
@@ -177,20 +174,18 @@ public class FozruciX extends ListenerAdapter {
     private static volatile StopWatch qTimer = new StopWatch();
     private static volatile DiscordAdapter discord;
     private static volatile boolean updateAvatar = false;
-    private static volatile M68kSim m68k = (M68kSim) Native.loadLibrary("JNIThing", M68kSim.class, new HashMap<Object, Object>() {{
-        put(Library.OPTION_CALLING_CONVENTION, StdCallLibrary.STDCALL_CONVENTION);
-        putAll(W32APIOptions.DEFAULT_OPTIONS);
-        //put(Library.OPTION_FUNCTION_MAPPER, M68kSim.FUNCTION_MAPPER);
-    }});
-    /*static {
+    private static volatile M68kSim m68k = (M68kSim) Native.loadLibrary("JNIThing", M68kSim.class);
+
+    static {
         System.out.println(m68k);
         try {
             m68k.start();
+            Runtime.getRuntime().addShutdownHook(new Thread(m68k::exit, "Shutdown-thread"));
         }catch(UnsatisfiedLinkError e){
             LOGGER.error("JNA Error", e);
             System.exit(0);
         }
-    }*/
+    }
     @NotNull
     private String prefix = "!";
     private DebugWindow debug;
@@ -228,7 +223,7 @@ public class FozruciX extends ListenerAdapter {
 
         loadData(save, true);
         LOGGER.setLevel(Level.ALL);
-        Runtime.getRuntime().addShutdownHook(new Thread(this::saveData, "Shutdown-thread"));
+        Runtime.getRuntime().addShutdownHook(new Thread(this::saveData, "Shutdown-Save-thread"));
     }
 
     @NotNull
@@ -711,7 +706,7 @@ public class FozruciX extends ListenerAdapter {
     }
 
     private synchronized void makeDebug() {
-        if (debug == null && debug.getConnectEvent() == null) {
+        if (debug == null || debug.getConnectEvent() == null) {
             return;
         }
         makeDebug(debug.getConnectEvent());

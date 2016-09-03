@@ -22,7 +22,7 @@ dependencies {
     compile group: 'org.json', name: 'json', version: '20140107'
     compile group: 'org.objenesis', name: 'objenesis-parent', version: '2.1'
     compile group: 'org.objenesis', name: 'objenesis', version: '1.0'
-    compile group: 'com.sun.jna', name: 'jna', version: '3.0.9'
+    compile group: 'net.java.dev.jna', name: 'jna', version: '4.2.2'
     compile group: 'org.sweble.wikitext', name: 'swc-engine', version: '1.1.0'
     compile group: 'org.sweble.wikitext', name: 'sweble-wikitext', version: '1.1.0'
     compile group: 'org.sweble.wikitext', name: 'swc-parser-lazy', version: '1.1.0'
