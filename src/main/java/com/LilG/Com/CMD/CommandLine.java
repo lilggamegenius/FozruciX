@@ -61,7 +61,9 @@ public class CommandLine extends Thread {
                 String user = host.substring(0, host.indexOf('@'));
                 host = host.substring(host.indexOf('@') + 1);
                 try {
-                    sshSession = (new JSch()).getSession(user, host, 22);
+                    JSch ssh = new JSch();
+                    ssh.setKnownHosts("C:\\Users\\ggonz\\AppData\\Local\\lxss\\home\\lil-g\\.ssh\\known_hosts");
+                    sshSession = ssh.getSession(user, host, 22);
                     String passwd = JOptionPane.showInputDialog("Enter password");
                     sshSession.setPassword(passwd);
                     UserInfo ui = new MyUserInfo() {

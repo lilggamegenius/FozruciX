@@ -91,7 +91,7 @@ public class DiscordAdapter extends ListenerAdapter {
         return discordAdapter;
     }
 
-    static JDA getJda() {
+    public static JDA getJda() {
         return jda;
     }
 

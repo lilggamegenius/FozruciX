@@ -1,16 +1,17 @@
 #include "M68KSimulator.h"
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <fstream>
+#include <iostream>
 
 extern "C" EXPORT void start() {
-	printf("DEBUG - DLL Loaded");
+	std::cout << "DEBUG - DLL Loaded" << std::endl;
 	ramStart = reinterpret_cast<mem_union*>(malloc(ramSize));
 	for (int i = 0; i < 8; i++) {
 		dataRegisters[i] = reinterpret_cast<registers*>(malloc(sizeof(uint32_t)));
 	}
 	programCounter = 0;
-	printf("DEBUG - M68K ram created. Starting offset: %p", &ramStart);
+	std::cout << "DEBUG - M68K ram created. Starting offset: " << &ramStart << std::endl;
 }
 
 extern "C" EXPORT void close(){
@@ -82,9 +83,9 @@ extern "C" EXPORT M68kAddr getRamSize() {
 }
 
 extern "C" EXPORT void memDump() {
-	FILE *memDumpFile;
-	fopen_s(&memDumpFile, "Data\\M68kDump.bin", "wb");  // w for write, b for binary
-	fwrite(ramStart, 1, ramSize, memDumpFile); // write from our buffer
+	std::ofstream memDumpFile;
+	memDumpFile.open("C:\\Users\\FozruciX\\Workspace\\FozruciX\\Data\\M68kDump.bin", std::ios::out | std::ios::binary);
+	memDumpFile.write(reinterpret_cast<const char *>(ramStart), ramSize);
 }
 
 

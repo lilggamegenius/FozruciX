@@ -1,5 +1,8 @@
 #pragma once
+
 #include <cstdint>
+
+
 #define ramSize (M68kAddr)0x10000
 #define M68kRamOffset 0xE00000
 #define M68kRamOffsetMirror 0xFF0000

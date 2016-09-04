@@ -231,6 +231,8 @@ public class FozConfig {
             file = new File("key.bin");
         } else if (password == Password.salt) {
             file = new File("salt.bin");
+        } else if (password == Password.ssh) {
+            file = new File("ssh.bin");
         }
         FileInputStream fin = null;
         String ret = " ";
@@ -306,7 +308,7 @@ public class FozConfig {
     }
 
     public enum Password {
-        normal, twitch, discord, key, salt
+        normal, twitch, discord, key, salt, ssh
     }
 
 }
