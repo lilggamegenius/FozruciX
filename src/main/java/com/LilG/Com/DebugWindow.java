@@ -52,6 +52,8 @@ class DebugWindow extends JFrame {
     private final JTextField messageTF;
     @Nullable
     private PircBotX bot;
+    @NotNull
+    private FozruciX.Network network;
     @Nullable
     private JDA jda;
     @Nullable
@@ -63,22 +65,22 @@ class DebugWindow extends JFrame {
     private DefaultComboBoxModel<String> comboBox;
     private Runtime runtime = Runtime.getRuntime();
 
-    DebugWindow(@NotNull ConnectEvent event) {
+    DebugWindow(@NotNull ConnectEvent event, @NotNull FozruciX.Network network) {
         this.bot = event.getBot();
+        this.network = network;
         JLabel currentNickL, lastMessageL, currDML, myPlayerNameL, myPlayerHPL, myPlayerXPL, myFamiliarL, myFamiliarHPL, myFamiliarXPL, memoryUsageL;
-        String network = bot.getServerInfo().getNetwork();
+        String networkName = bot.getServerInfo().getNetwork();
         String nick = bot.getNick();
-        if (network == null) {
-            if (event instanceof DiscordConnectEvent) {
-                network = "Discord";
-                nick = ((DiscordConnectEvent) event).getReadyEvent().getJDA().getSelfInfo().getUsername();
-            } else {
-                network = bot.getServerHostname();
-                network = network.substring(network.indexOf(".") + 1, network.lastIndexOf("."));
-            }
+        if (network == FozruciX.Network.discord) {
+            jda = DiscordAdapter.getJda();
+            networkName = "Discord";
+            nick = jda.getSelfInfo().getUsername();
+        } else if (networkName == null) {
+            networkName = bot.getServerHostname();
+            networkName = networkName.substring(networkName.indexOf(".") + 1, networkName.lastIndexOf("."));
         }
-        setTitle(nick + " @ " + network);
-        channels = getChannels(event);
+        setTitle(nick + " @ " + networkName);
+        channels = getChannels();
 
 
         currentNickL = new JLabel("Currently Registered User", SwingConstants.LEFT);
@@ -186,17 +188,10 @@ class DebugWindow extends JFrame {
         return connectEvent;
     }
 
-    private String[] getChannels(ConnectEvent event) {
-        if (event instanceof DiscordConnectEvent) {
-            jda = ((DiscordConnectEvent) event).getReadyEvent().getJDA();
-        }
-        return getChannels();
-    }
-
     private String[] getChannels() {
         ArrayList<String> channelList = new ArrayList<>();
 
-        if (jda != null) {
+        if (network == FozruciX.Network.discord) {
             java.util.List<Guild> guildList = jda.getGuilds();
             for (Guild guild : guildList) {
                 java.util.List<TextChannel> channels = guild.getTextChannels();
@@ -211,7 +206,17 @@ class DebugWindow extends JFrame {
 
     private void sendMessage() {
         selectedChannel = (String) comboBox.getSelectedItem();
-        bot.send().message(selectedChannel, FozruciX.getScramble(messageTF.getText()));
+        if (network == FozruciX.Network.discord) {
+            String guildName = selectedChannel.substring(0, selectedChannel.indexOf(':'));
+            String channel = selectedChannel.substring(selectedChannel.indexOf('#') + 1);
+            jda.getGuildsByName(guildName).stream().filter(guild -> guild.getName().equalsIgnoreCase(guildName)).forEachOrdered(guild -> {
+                guild.getTextChannels().stream().filter(textChannel -> textChannel.getName().equalsIgnoreCase(channel)).forEachOrdered(textChannel -> {
+                    textChannel.sendMessage(FozruciX.getScramble(messageTF.getText()));
+                });
+            });
+        } else {
+            bot.send().message(selectedChannel, FozruciX.getScramble(messageTF.getText()));
+        }
         messageTF.setText("");
     }
 

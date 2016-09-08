@@ -42,9 +42,13 @@ import info.bliki.wiki.model.WikiModel;
 import jdk.nashorn.api.scripting.ClassFilter;
 import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
 import net.dv8tion.jda.MessageBuilder;
+import net.dv8tion.jda.Permission;
 import net.dv8tion.jda.entities.Guild;
+import net.dv8tion.jda.entities.PermissionOverride;
+import net.dv8tion.jda.entities.Role;
 import net.dv8tion.jda.entities.TextChannel;
 import net.dv8tion.jda.events.guild.member.GuildMemberBanEvent;
+import net.dv8tion.jda.managers.PermissionOverrideManager;
 import net.sourceforge.argparse4j.ArgumentParsers;
 import net.sourceforge.argparse4j.impl.Arguments;
 import net.sourceforge.argparse4j.inf.ArgumentParser;
@@ -303,14 +307,51 @@ public class FozruciX extends ListenerAdapter {
     }
 
     private synchronized static void sendFile(MessageEvent event, File file, String message) {
-        if (event instanceof DiscordMessageEvent) {
-            if (message == null) {
-                ((DiscordMessageEvent) event).getDiscordEvent().getTextChannel().sendFile(file, null);
-            } else {
-                ((DiscordMessageEvent) event).getDiscordEvent().getTextChannel().sendFile(file, new MessageBuilder().appendString(message).build());
-            }
+        sendFile(event, file, message, true);
+    }
+
+    private synchronized static void sendFile(MessageEvent event, File file, String message, boolean discordUpload) {
+        if (event instanceof DiscordMessageEvent && discordUpload) {
+            ((DiscordMessageEvent) event).getDiscordEvent().getTextChannel().sendFile(file, message != null ? new MessageBuilder().appendString(message).build() : null);
         } else {
-            //todo DCC support
+            uploadFile(event, file, null, message);
+        }
+    }
+
+
+    private synchronized static void uploadFile(@NotNull GenericMessageEvent event, @NotNull File file, @Nullable String folder, @Nullable String suffix) {
+        Session session = null;
+        com.jcraft.jsch.Channel channel = null;
+        try {
+            JSch ssh = new JSch();
+            ssh.setKnownHosts("C:\\Users\\ggonz\\AppData\\Local\\lxss\\home\\lil-g\\.ssh\\known_hosts");
+            session = ssh.getSession("lil-g",
+                    //"ssh.lilggamegenuis.tk"
+                    "10.0.0.63"
+                    , 22);
+            session.setPassword(CryptoUtil.decrypt(FozConfig.setPassword(FozConfig.Password.ssh)));
+            UserInfo ui = new CommandLine.MyUserInfo() {
+                public boolean promptYesNo(String message) {
+                    return true;
+                }
+            };
+            session.setUserInfo(ui);
+            session.connect();
+            channel = session.openChannel("sftp");
+            channel.connect();
+            ChannelSftp sftp = (ChannelSftp) channel;
+            folder = folder != null ? folder + "/" : "";
+            sftp.put(file.getAbsolutePath(), "/var/www/html/upload/" + folder);
+            sendMessage(event, "http://lilggamegenuis.tk/upload/" + folder + file.getName() + (suffix == null ? "" : " " + suffix));
+        } catch (JSchException | SftpException e) {
+            e.printStackTrace();
+        } finally {
+            if (channel != null) {
+                channel.disconnect();
+            }
+            if (session != null) {
+                session.disconnect();
+            }
         }
     }
 
@@ -742,7 +783,7 @@ public class FozruciX extends ListenerAdapter {
 
     private synchronized void makeDebug(@NotNull ConnectEvent event) {
         LOGGER.debug("Creating Debug window");
-        debug = new DebugWindow(event);
+        debug = new DebugWindow(event, network);
         LOGGER.debug("Debug window created");
         debug.setCurrentNick(currentUser.getHostmask());
     }
@@ -813,35 +854,8 @@ public class FozruciX extends ListenerAdapter {
             bw.write("</html>");
 
             bw.close();
-            Session session = null;
-            com.jcraft.jsch.Channel channel = null;
-            try {
-                JSch ssh = new JSch();
-                ssh.setKnownHosts("C:\\Users\\ggonz\\AppData\\Local\\lxss\\home\\lil-g\\.ssh\\known_hosts");
-                session = ssh.getSession("lil-g", "ssh.lilggamegenuis.tk", 22);
-                session.setPassword(CryptoUtil.decrypt(FozConfig.setPassword(FozConfig.Password.ssh)));
-                UserInfo ui = new CommandLine.MyUserInfo() {
-                    public boolean promptYesNo(String message) {
-                        return true;
-                    }
-                };
-                session.setUserInfo(ui);
-                session.connect();
-                channel = session.openChannel("sftp");
-                channel.connect();
-                ChannelSftp sftp = (ChannelSftp) channel;
-                sftp.put(f.getAbsolutePath(), "/var/www/html/output");
-            } catch (JSchException | SftpException e) {
-                e.printStackTrace();
-            } finally {
-                if (channel != null) {
-                    channel.disconnect();
-                }
-                if (session != null) {
-                    session.disconnect();
-                }
-            }
-            sendMessage(event, "http://lilggamegenuis.tk/output/" + name + ".htm");
+            uploadFile(event, f, "output", null);
+
         } catch (Exception e) {
             sendError(event, e);
         }
@@ -1155,6 +1169,78 @@ public class FozruciX extends ListenerAdapter {
                             checkJoinsAndQuits.put(guildID, ((DiscordMessageEvent) event).getDiscordEvent().getTextChannel().getId());
                             sendMessage(event, "set Join and quit message channel to #" + ((DiscordMessageEvent) event).getDiscordEvent().getTextChannel().getName());
                         }
+                    }
+                }
+            }
+
+// !+m - Sets +m on a channel
+            else if (commandChecker(event, arg, "+m")) {
+                if (checkPerm(event.getUser(), /*2*/ 9001)) {
+                    String[] args = formatStringArgs(splitMessage(message, 0, false));
+                    ArgumentParser parser = ArgumentParsers.newArgumentParser("+m")
+                            .description("Sets a channel so only certain users can speak");
+                    parser.addArgument("-s", "--state").type(Arguments.booleanType("on", "off")).setDefault((Boolean) null)
+                            .help("Sets +m mode on or off. Otherwise toggle");
+                    parser.addArgument("roles").nargs("*")
+                            .help("Roles to white/black list");
+                    parser.addArgument("-w", "--whitelist").type(Boolean.class).action(Arguments.storeTrue()).setDefault(false)
+                            .help("Sets the channel to white list mode");
+                    Namespace ns;
+                    try {
+                        ns = parser.parseArgs(args);
+                        LOGGER.debug(ns.toString());
+                        Boolean state = ns.getBoolean("state"); // True = on, False = off, null = toggle
+                        if (event instanceof DiscordMessageEvent) {
+                            String topicStr = "+m | ";
+                            TextChannel mChannel = ((DiscordMessageEvent) event).getDiscordEvent().getTextChannel();
+                            Role publicRole = mChannel.getGuild().getPublicRole();
+                            if (PlusM.channelRoleMap.containsKey(mChannel)) {
+                                List<Role> roles = PlusM.channelRoleMap.get(mChannel);
+                                if (state == null || !state) { // disabling +m mode
+                                    for (Role role : roles) {
+                                        PermissionOverrideManager overRide = mChannel.createPermissionOverride(role);
+                                        overRide.reset(Permission.MESSAGE_WRITE).update();
+                                    }
+                                    PlusM.channelRoleMap.remove(mChannel);
+                                    if (mChannel.getTopic().startsWith(topicStr)) {
+                                        mChannel.getManager().setTopic(mChannel.getTopic().substring(topicStr.length())).update();
+                                    }
+
+                                } else { // overwriting role list?
+                                    for (Role role : roles) {
+                                        PermissionOverrideManager overRide = mChannel.createPermissionOverride(role);
+                                        overRide.reset(Permission.MESSAGE_WRITE).update();
+                                    }
+                                    roles.clear();
+                                    roles.add(publicRole);
+                                    PermissionOverrideManager overRide = mChannel.createPermissionOverride(publicRole);
+                                    overRide.deny(Permission.MESSAGE_WRITE);
+                                    List<Role> guildRoleList = mChannel.getGuild().getRoles();
+                                    for (Role role : guildRoleList) {
+                                        PermissionOverride permOverride = mChannel.getOverrideForRole(role);
+                                        List<Permission> permissions = permOverride.getAllowed();
+                                        permissions.addAll(permOverride.getInherit());
+                                        if (permissions.indexOf(Permission.MESSAGE_WRITE) >= 0) {
+                                            overRide = mChannel.createPermissionOverride(role);
+                                            overRide.deny(Permission.MESSAGE_WRITE).update();
+                                            roles.add(role);
+                                        }
+                                    }
+                                }
+                            } else {
+                                PermissionOverrideManager overRide = mChannel.createPermissionOverride(publicRole);
+                                overRide.deny(Permission.MESSAGE_WRITE);
+                            }
+                        } else {
+                            Channel chan = event.getChannel();
+                            if (chan.containsMode('m')) {
+                                chan.send().removeModerated();
+                            } else {
+                                chan.send().setModerated();
+                            }
+                        }
+                    } catch (Exception e) {
+                        sendError(event, e);
                     }
                 }
             }
@@ -1908,7 +1994,7 @@ public class FozruciX extends ListenerAdapter {
                             sendMessage(event, "Avatar updates are now on");
                         }
                     }
-                    if (getArg(arg, 1).equalsIgnoreCase("upload")) {
+                    if (getArg(arg, 1).equalsIgnoreCase("upload") && checkPerm(event.getUser(), 1)) {
                         sendFile(event, DiscordAdapter.avatarFile, "[Me]");
                     }
                 } else {
