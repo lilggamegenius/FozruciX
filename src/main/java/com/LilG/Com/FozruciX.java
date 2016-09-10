@@ -61,9 +61,8 @@ import org.jetbrains.annotations.Nullable;
 import org.jsoup.Jsoup;
 import org.jsoup.UnsupportedMimeTypeException;
 import org.jsoup.nodes.Document;
-import org.pircbotx.Channel;
 import org.pircbotx.*;
-import org.pircbotx.hooks.Event;
+import org.pircbotx.Channel;
 import org.pircbotx.hooks.ListenerAdapter;
 import org.pircbotx.hooks.events.*;
 import org.pircbotx.hooks.types.GenericEvent;
@@ -96,7 +95,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.Date;
 import java.util.List;
-import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -1216,11 +1214,10 @@ public class FozruciX extends ListenerAdapter {
                                     PermissionOverrideManager overRide = mChannel.createPermissionOverride(publicRole);
                                     overRide.deny(Permission.MESSAGE_WRITE);
                                     List<Role> guildRoleList = mChannel.getGuild().getRoles();
+
                                     for (Role role : guildRoleList) {
                                         PermissionOverride permOverride = mChannel.getOverrideForRole(role);
-                                        List<Permission> permissions = permOverride.getAllowed();
-                                        permissions.addAll(permOverride.getInherit());
-                                        if (permissions.indexOf(Permission.MESSAGE_WRITE) >= 0) {
+                                        if (ns.getList("roles").contains(role.getName())) {
                                             overRide = mChannel.createPermissionOverride(role);
                                             overRide.deny(Permission.MESSAGE_WRITE).update();
                                             roles.add(role);

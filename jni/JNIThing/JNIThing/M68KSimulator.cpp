@@ -86,6 +86,7 @@ extern "C" EXPORT void memDump() {
 	std::ofstream memDumpFile;
 	memDumpFile.open("C:\\Users\\FozruciX\\Workspace\\FozruciX\\Data\\M68kDump.bin", std::ios::out | std::ios::binary);
 	memDumpFile.write(reinterpret_cast<const char *>(ramStart), ramSize);
+	memDumpFile.close();
 }
 
 
