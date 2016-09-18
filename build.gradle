@@ -7,6 +7,7 @@ version '2.2'
 
 repositories {
     jcenter()
+    maven { url 'http://amelentev.github.io/mvnrepo/' }
 }
 
 dependencies {
@@ -62,8 +63,9 @@ dependencies {
     compile group: 'de.dfki.mary', name: 'voice-cmu-slt-hsmm', version: '5.2'
     compile files('/home/lil-g/.gradle/caches/modules-2/files-2.1/de.dfki.mary/voice-cmu-bdl-hsmm/5.2/voice-cmu-bdl-hsmm-5.2.jar')
 
+    compile 'java-oo:javac-oo-plugin:0.5'
+
     compile files('lib/WolframAlphaJavaLibrary/WolframAlpha-1.1.jar')
-    compile files('lib/javac8-oo-plugin.jar')
     compile files('/home/lil-g/Downloads/idea-IU-162.2032.8/redist/annotations-java8.jar')
 
     compile project('yandex-translator-java-api')

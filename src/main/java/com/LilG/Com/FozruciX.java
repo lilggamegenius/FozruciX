@@ -32,10 +32,7 @@ import com.sun.jna.Platform;
 import com.thoughtworks.xstream.XStream;
 import com.wolfram.alpha.*;
 import de.tudarmstadt.ukp.jwktl.JWKTL;
-import de.tudarmstadt.ukp.jwktl.api.IWiktionaryEdition;
-import de.tudarmstadt.ukp.jwktl.api.IWiktionaryEntry;
-import de.tudarmstadt.ukp.jwktl.api.IWiktionaryPage;
-import de.tudarmstadt.ukp.jwktl.api.IWiktionarySense;
+import de.tudarmstadt.ukp.jwktl.api.*;
 import info.bliki.api.Page;
 import info.bliki.wiki.filter.PlainTextConverter;
 import info.bliki.wiki.model.WikiModel;
@@ -244,7 +241,7 @@ public class FozruciX extends ListenerAdapter {
             LinkedList<String> message = new LinkedList<>(Arrays.asList(msgToSend.split("\\s+")));
             msgToSend = "";
             for (int i = message.size() - 1; i >= 0; i--) {
-                msgToSend += message.get(i) + " ";
+                msgToSend += message[i] + " ";
             }
         } else if (messageMode == MessageModes.scrambled) {
             char[] msgChars = msgToSend.toCharArray();
@@ -255,7 +252,7 @@ public class FozruciX extends ListenerAdapter {
             msgToSend = "";
             while (chars.size() != 0) {
                 int num = randInt(0, chars.size() - 1);
-                msgToSend += chars.get(num) + "";
+                msgToSend += chars[num] + "";
                 chars.remove(num);
             }
         } else if (messageMode == MessageModes.wordScrambled) {
@@ -263,7 +260,7 @@ public class FozruciX extends ListenerAdapter {
             msgToSend = "";
             while (message.size() != 0) {
                 int num = randInt(0, message.size() - 1);
-                msgToSend += message.get(num) + " ";
+                msgToSend += message[num] + " ";
                 message.remove(num);
             }
         }
@@ -275,7 +272,7 @@ public class FozruciX extends ListenerAdapter {
         if (levels.size() == 0) {
             ret = 0;
         } else {
-            UserLevel level = levels.get(levels.size() - 1);
+            UserLevel level = levels[levels.size() - 1];
             switch (level) {
                 case VOICE:
                     ret = 1;
@@ -464,7 +461,7 @@ public class FozruciX extends ListenerAdapter {
     }
 
     private static void addCooldown(User user, long cooldownTime) {
-        commandCooldown.put(user, System.currentTimeMillis() + cooldownTime);
+        commandCooldown[user] = System.currentTimeMillis() + cooldownTime;
     }
 
     private static int hash(@NotNull String string, int maxNum) {
@@ -586,19 +583,19 @@ public class FozruciX extends ListenerAdapter {
                 String parent;
                 String path;
                 Calendar today = Calendar.getInstance();
-                parent = "logs/" + network + "/" + escapePath(aChannel) + "/" + today.get(Calendar.YEAR) + "/";
+                parent = "logs/" + network + "/" + escapePath(aChannel) + "/" + today[Calendar.YEAR] + "/";
                 File parentDir = new File(parent);
                 if (!parentDir.mkdirs() && !parentDir.exists()) {
                     LOGGER.error("Couldn't make dirs");
                 }
-                path = String.format("%02d", (today.get(Calendar.MONTH) + 1)) + "." + String.format("%02d", today.get(Calendar.DATE)) + ".txt";
+                path = String.format("%02d", (int)(today[Calendar.MONTH] + 1)) + "." + String.format("%02d", (int)today[Calendar.DATE]) + ".txt";
                 File file = new File(parent, path);
-                String minute = String.format("%02d", today.get(Calendar.MINUTE));
+                String minute = String.format("%02d", (int)today[Calendar.MINUTE]);
                 if (minute.length() < 2) {
                     minute = "0" + minute;
                 }
                 PrintWriter out;
-                String logFile = String.format("%02d", today.get(Calendar.HOUR)) + ":" + minute + ":" + String.format("%02d", today.get(Calendar.SECOND)) + String.format("%1$" + 12 + "s", String.format(eventType.getVal(), user) + message);
+                String logFile = String.format("%02d", (int)today[Calendar.HOUR]) + ":" + minute + ":" + String.format("%02d", (int)today[Calendar.SECOND]) + String.format("%1$" + 12 + "s", String.format(eventType.getVal(), user) + message);
                 if (file.exists() && !file.isDirectory()) {
                     out = new PrintWriter(new FileOutputStream(file, true));
                     out.append(logFile).append(System.lineSeparator());
@@ -667,7 +664,7 @@ public class FozruciX extends ListenerAdapter {
         String discordFormating = event instanceof DiscordMessageEvent ? "`" : "";
         String cause = "";
         String from;
-        if (BOOLS.get(COLOR) && discordFormating.isEmpty()) {
+        if (BOOLS[COLOR] && discordFormating.isEmpty()) {
             color = Colors.RED;
         }
         if (e.getCause() != null) {
@@ -717,7 +714,7 @@ public class FozruciX extends ListenerAdapter {
 
     private boolean checkCooldown(MessageEvent event) {
         if (event.getUser() != null && commandCooldown.containsKey(event.getUser())) {
-            sendNotice(event, event.getUser().getNick(), "Sorry, you have to wait " + (commandCooldown.get(event.getUser()) - System.currentTimeMillis()) + " Milliseconds for the cool down");
+            sendNotice(event, event.getUser().getNick(), "Sorry, you have to wait " + (commandCooldown[event.getUser()] - System.currentTimeMillis()) + " Milliseconds for the cool down");
             return true;
         }
         return false;
@@ -856,7 +853,7 @@ public class FozruciX extends ListenerAdapter {
     }
 
     private void setArrayOffset(@NotNull String prefix) {
-        if (!BOOLS.get(ARRAY_OFFSET_SET)) {
+        if (!BOOLS[ARRAY_OFFSET_SET]) {
             if (prefix.length() > 1 && !prefix.endsWith(".")) {
                 arrayOffset = StringUtils.countMatches(prefix, " ");
             } else {
@@ -906,11 +903,11 @@ public class FozruciX extends ListenerAdapter {
 
         }
         lastEvents.add(event);
-        if (!BOOLS.get(DATA_LOADED)) {
-            BOOLS.set(DATA_LOADED);
+        if (!BOOLS[DATA_LOADED]) {
+            BOOLS[DATA_LOADED] = true;
             loadData();
         }
-        if (network == Network.normal && BOOLS.get(NICK_IN_USE)) {
+        if (network == Network.normal && BOOLS[NICK_IN_USE]) {
             if (!bot.getNick().equalsIgnoreCase(bot.getConfiguration().getName())) {
                 sendNotice(event, currentUser.getNick(), "Ghost detected, recovering in 10 seconds");
                 new Thread(() -> {
@@ -949,10 +946,15 @@ public class FozruciX extends ListenerAdapter {
         try {
             String channel = event.getChannel().getName();
             String[] arg = splitMessage(event.getMessage());
-            if (!commandChecker(event, arg, "checkLink", false) && BOOLS.get(CHECK_LINKS) && !((event.getUser().getNick().equalsIgnoreCase("aqua-sama") && event.getMessage().contains("taglink: https://is.gd/")))) {
-                boolean containsServer = allowedCommands.get(getSeverName(event, true)) != null;
-                boolean containsChannel = containsServer && allowedCommands.get(getSeverName(event, true)).get(channel) != null;
-                boolean channelContains = containsChannel && allowedCommands.get(getSeverName(event, true)).get(channel).contains("url checker");
+            if (!commandChecker(event, arg, "checkLink", false) && BOOLS[CHECK_LINKS] && !((event.getUser().getNick().equalsIgnoreCase("aqua-sama") && event.getMessage().contains("taglink: https://is.gd/")))) {
+                boolean channelContains = false;
+                boolean containsServer = false;
+                boolean containsChannel = false;
+                try {
+                    containsServer = allowedCommands.get(getSeverName(event, true)) != null;
+                    containsChannel = allowedCommands.get(getSeverName(event, true)).get(channel) != null;
+                    channelContains = allowedCommands.get(getSeverName(event, true)).get(channel).contains("url checker");
+                }catch(NullPointerException ignored){}
                 LOGGER.trace(getSeverName(event, true) + ": containsServer: " + containsServer + " containsChannel: " + containsChannel + " channelContains: " + channelContains + " " + allowedCommands);
                 if (!channelContains) {
                     // NOTES:   1) \w includes 0-9, a-z, A-Z, _
@@ -1105,7 +1107,7 @@ public class FozruciX extends ListenerAdapter {
             else if (commandChecker(event, arg, "checkLink")) {
                 if (checkPerm(event.getUser(), 4)) {
                     BOOLS.flip(CHECK_LINKS);
-                    if (BOOLS.get(CHECK_LINKS)) {
+                    if (BOOLS[CHECK_LINKS]) {
                         sendMessage(event, "Link checking is on");
                     } else {
                         sendMessage(event, "Link checking is off");
@@ -1118,7 +1120,7 @@ public class FozruciX extends ListenerAdapter {
             else if (commandChecker(event, arg, "formatting")) {
                 if (checkPerm(event.getUser(), 9001)) {
                     BOOLS.flip(COLOR);
-                    if (BOOLS.get(COLOR)) {
+                    if (BOOLS[COLOR]) {
                         sendMessage(event, "Color formatting is now On");
                     } else {
                         sendMessage(event, "Color formatting is now Off");
@@ -1190,7 +1192,7 @@ public class FozruciX extends ListenerAdapter {
                             List<String> roleArgs = ns.getList("roles");
                             net.dv8tion.jda.entities.User currentDiscordUser = ((DiscordUser)currentUser).getDiscordUser();
                             if (PlusM.channelRoleMap.containsKey(mChannel)) {
-                                List<Role> roles = PlusM.channelRoleMap.get(mChannel);
+                                List<Role> roles = PlusM.channelRoleMap[mChannel];
                                 if (state == null || !state) { // disabling +m mode
                                     for (Role role : roles) {
                                         PermissionOverrideManager overRide = mChannel.createPermissionOverride(role);
@@ -1271,10 +1273,10 @@ public class FozruciX extends ListenerAdapter {
 // !command - Sets what commands can be used where
             else if (commandChecker(event, arg, "command")) {
                 if (checkPerm(event.getUser(), 9001)) {
-                    HashMap<String, ArrayList<String>> allowedCommands = FozruciX.allowedCommands.get(getSeverName(event, true));
+                    HashMap<String, ArrayList<String>> allowedCommands = FozruciX.allowedCommands[getSeverName(event, true)];
                     if (allowedCommands == null) {
                         allowedCommands = new HashMap<>();
-                        FozruciX.allowedCommands.put(getSeverName(event, true), allowedCommands);
+                        FozruciX.allowedCommands[getSeverName(event, true)] = allowedCommands;
                     }
                     if (getArg(arg, 2) != null) {
                         byte mode = 0;
@@ -1289,16 +1291,16 @@ public class FozruciX extends ListenerAdapter {
                                 command = command.substring(1, command.length());
                             }
                             if (mode == -1) {
-                                allowedCommands.get(chan).remove(command);
+                                ((ArrayList<String>)allowedCommands[chan]).remove(command);
                                 sendMessage(event, "Removed command ban on " + command + " For channel " + chan);
                             } else if (mode == 1) {
                                 if (!allowedCommands.containsKey(chan)) {
                                     allowedCommands.put(chan, new ArrayList<>());
                                 }
-                                allowedCommands.get(chan).add(command);
+                                ((ArrayList<String>)allowedCommands[chan]).add(command);
                                 sendMessage(event, "Added command ban on " + command + " for channel " + chan);
                             } else {
-                                sendMessage(event, "The command " + command + " is " + (allowedCommands.get(chan).contains(command) ? "" : "not ") + "Banned from " + chan);
+                                sendMessage(event, "The command " + command + " is " + (((ArrayList<String>)allowedCommands[chan]).contains(command) ? "" : "not ") + "Banned from " + chan);
                             }
                         }
                     } else if (getArg(arg, 1) != null) {
@@ -1474,7 +1476,7 @@ public class FozruciX extends ListenerAdapter {
             else if (commandChecker(event, arg, "RESPOND_TO_PMS")) {
                 if (checkPerm(event.getUser(), 9001)) {
                     BOOLS.flip(RESPOND_TO_PMS);
-                    sendMessage(event, "Responding to PMs: " + BOOLS.get(RESPOND_TO_PMS), false);
+                    sendMessage(event, "Responding to PMs: " + (boolean)(BOOLS[RESPOND_TO_PMS]), false);
                 } else {
                     permErrorchn(event);
                 }
@@ -1626,17 +1628,17 @@ public class FozruciX extends ListenerAdapter {
                                     newPhrase += " ";
                                 }
                                 // Select the first word
-                                LinkedList<String> startWords = markovChain.get("_start");
+                                LinkedList<String> startWords = (LinkedList<String>)markovChain["_start"];
 
                                 for (int i = 1 + arrayOffset; i < arg.length; i++) {
                                     if (startWords.contains(arg[i])) {
                                         matches = false;
-                                        nextWord = startWords.get(startWords.indexOf(arg[i]));
+                                        nextWord = startWords[startWords.indexOf(arg[i])];
                                     }
                                 }
                                 if (nextWord == null) {
                                     int startWordsLen = startWords.size();
-                                    nextWord = startWords.get(rnd.nextInt(startWordsLen));
+                                    nextWord = startWords[rnd.nextInt(startWordsLen)];
                                 }
 
 
@@ -1645,18 +1647,18 @@ public class FozruciX extends ListenerAdapter {
 
                                 // Keep looping through the words until we've reached the end
                                 while (nextWord.charAt(nextWord.length() - 1) != '.') {
-                                    List<String> wordSelection = markovChain.get(nextWord);
+                                    List<String> wordSelection = (List<String>)markovChain[nextWord];
                                     nextWord = null;
 
                                     for (int i = 1; i < arg.length; i++) {
                                         if (startWords.contains(arg[i])) {
                                             matches = false;
-                                            nextWord = startWords.get(startWords.indexOf(arg[i]));
+                                            nextWord = startWords[startWords.indexOf(arg[i])];
                                         }
                                     }
                                     if (nextWord == null) {
                                         int wordSelectionLen = wordSelection.size();
-                                        nextWord = wordSelection.get(rnd.nextInt(wordSelectionLen));
+                                        nextWord = wordSelection[rnd.nextInt(wordSelectionLen)];
                                     }
 
                                     greaterThanOne = nextWord.length() > 1 ? 2 : (nextWord.length() > 0 ? 1 : 0);
@@ -1864,7 +1866,7 @@ public class FozruciX extends ListenerAdapter {
                         int place = -1;
                         try {
                             for (int i = 0; authedUser.size() >= i; i++) {
-                                if (authedUser.get(i).equalsIgnoreCase(getArg(arg, 1))) {
+                                if (((String)authedUser[i]).equalsIgnoreCase(getArg(arg, 1))) {
                                     place = i;
                                 }
                             }
@@ -1874,7 +1876,7 @@ public class FozruciX extends ListenerAdapter {
                         if (place == -1) {
                             sendMessage(event, "That user wasn't found in the list of authed users", false);
                         } else {
-                            sendMessage(event, "User " + authedUser.get(place) + " Has permission level " + authedUserLevel.get(place), false);
+                            sendMessage(event, "User " + (String)authedUser[place] + " Has permission level " + authedUserLevel[place], false);
                         }
 
                     }
@@ -1982,7 +1984,7 @@ public class FozruciX extends ListenerAdapter {
                         int count = 0;
                         LinkedList<Apfloat> eval = new LinkedList<>();
                         while (count <= calcAmount) {
-                            VARIABLE_SET.set(ns.get("char"), x);
+                            VARIABLE_SET.set((String)ns["char"], x);
                             //noinspection SuspiciousToArrayCall
                             eval.add(EVALUATOR.evaluate(argJoiner(ns.getList("expression").toArray(new String[]{}), 0).toLowerCase(), VARIABLE_SET));
                             x += step;
@@ -2233,7 +2235,7 @@ public class FozruciX extends ListenerAdapter {
                             }
                             if (arg.length > subCommandNum + arrayOffset && arg[subCommandNum - 1].equalsIgnoreCase("Example")) {
                                 if (sense.getExamples().size() > 0) {
-                                    lookedUpWord = sense.getExamples().get(0).getPlainText();
+                                    lookedUpWord = ((IWikiString)sense.getExamples()[0]).getPlainText();
                                 } else {
                                     sendMessage(event, "No examples found");
                                 }
@@ -2273,7 +2275,7 @@ public class FozruciX extends ListenerAdapter {
                     List<Page> pages = user.queryContent(listOfTitleStrings);
                     boolean found = false;
                     while (pages.size() > 0) {
-                        Page page = pages.get(0);
+                        Page page = (Page)pages[0];
                         if (page.toString().contains("#REDIRECT")) {
                             LOGGER.debug("Found redirect");
                             String link = page.toString();
@@ -2292,13 +2294,13 @@ public class FozruciX extends ListenerAdapter {
                             related = new LinkedList<>();
                             boolean category = true;
                             for (int i = 0; strings.size() > i; i++) {
-                                LOGGER.trace(strings.get(i));
-                                if (wildCardMatch(strings.get(i), "==*==")) {
+                                LOGGER.trace((String)strings[i]);
+                                if (wildCardMatch((String)strings[i], "==*==")) {
                                     category = false;
                                 } else if (!category) {
-                                    if (!strings.get(i).isEmpty()) {
-                                        related.add(strings.get(i));
-                                    } else if (strings.get(i + 1).isEmpty()) {
+                                    if (!((String)strings[i]).isEmpty()) {
+                                        related.add((String)strings[i]);
+                                    } else if (((String)strings[i + 1]).isEmpty()) {
                                         category = true;
                                     }
                                 }
@@ -2307,7 +2309,7 @@ public class FozruciX extends ListenerAdapter {
                         if (related != null) {
                             plainStr = page.getTitle() + " may refer to: ";
                             for (int i = 0; i < related.size() && i < 5; i++) {
-                                plainStr += related.get(i).replace("* ", "").replace("*", "") + "; ";
+                                plainStr += ((String)related[i]).replace("* ", "").replace("*", "") + "; ";
                             }
                             int lastIndex = plainStr.lastIndexOf(",");
                             if (lastIndex != -1)
@@ -2354,7 +2356,7 @@ public class FozruciX extends ListenerAdapter {
 // !chat - chat's with a internet conversation bot
             else if (commandChecker(event, arg, "chat")) {
                 if (getArg(arg, 1).equalsIgnoreCase("clever")) {
-                    if (!BOOLS.get(CLEVER_BOT_INT)) {
+                    if (!BOOLS[CLEVER_BOT_INT]) {
                         try {
                             chatterBotSession = BOT_FACTORY.create(ChatterBotType.CLEVERBOT).createSession();
                             BOOLS.set(CLEVER_BOT_INT);
@@ -2370,7 +2372,7 @@ public class FozruciX extends ListenerAdapter {
                         sendMessage(event, "Error: Problem with bot. Error was: " + e);
                     }
                 } else if (getArg(arg, 1).equalsIgnoreCase("pandora")) {
-                    if (!BOOLS.get(PANDORA_BOT_INT)) {
+                    if (!BOOLS[PANDORA_BOT_INT]) {
                         try {
                             pandoraBotSession = BOT_FACTORY.create(ChatterBotType.PANDORABOTS, "b0dafd24ee35a477").createSession();
                             BOOLS.set(PANDORA_BOT_INT);
@@ -2386,7 +2388,7 @@ public class FozruciX extends ListenerAdapter {
                         sendMessage(event, "Error: Problem with bot. Error was: " + e);
                     }
                 } else if (getArg(arg, 1).equalsIgnoreCase("jabber")) {
-                    if (!BOOLS.get(JABBER_BOT_INT)) {
+                    if (!BOOLS[JABBER_BOT_INT]) {
                         try {
                             jabberBotSession = BOT_FACTORY.create(ChatterBotType.JABBERWACKY, "b0dafd24ee35a477").createSession();
                             BOOLS.set(JABBER_BOT_INT);
@@ -2525,7 +2527,7 @@ public class FozruciX extends ListenerAdapter {
                             }
 
                         } else if (FCList.containsKey(getArg(arg, 1).toLowerCase())) {
-                            String fc = FCList.get(getArg(arg, 1).toLowerCase());
+                            String fc = FCList[getArg(arg, 1).toLowerCase()];
                             String fcParts[] = new String[3];
                             fcParts[0] = fc.substring(0, 4);
                             fcParts[1] = fc.substring(4, 8);
@@ -2605,7 +2607,7 @@ public class FozruciX extends ListenerAdapter {
                     try {
                         if (getArg(arg, 1).equalsIgnoreCase("set")) {
                             if (memes.containsKey(getArg(arg, 2).toLowerCase().replace("\u0001", ""))) {
-                                Meme meme = memes.get(getArg(arg, 2).toLowerCase());
+                                Meme meme = (Meme)memes[getArg(arg, 2).toLowerCase()];
                                 if (checkPerm(event.getUser(), 9001) || meme.getCreator().equalsIgnoreCase(event.getUser().getNick())) {
                                     if (getArg(arg, 3) == null) {
                                         memes.remove(getArg(arg, 2).toLowerCase().replace("\u0001", ""));
@@ -2626,7 +2628,7 @@ public class FozruciX extends ListenerAdapter {
                             sendMessage(event, memes.toString().replace("\u0001", ""));
                         } else {
                             if (memes.containsKey(getArg(arg, 1).toLowerCase())) {
-                                sendMessage(event, getArg(arg, 1).replace("\u0001", "") + ": " + memes.get(getArg(arg, 1).toLowerCase()).getMeme().replace("\u0001", ""), false);
+                                sendMessage(event, getArg(arg, 1).replace("\u0001", "") + ": " + ((Meme)memes[getArg(arg, 1).toLowerCase()]).getMeme().replace("\u0001", ""), false);
                             } else {
                                 sendMessage(event, "That Meme doesn't exist!");
                             }
@@ -2700,7 +2702,7 @@ public class FozruciX extends ListenerAdapter {
                         int index = -1;
                         boolean found = false;
                         while (i < noteList.size() && !found) {
-                            if (noteList.get(i).getId().toString().equals(getArg(arg, 2))) {
+                            if (((Note)noteList[i]).getId().toString().equals(getArg(arg, 2))) {
                                 found = true;
                                 index = i;
                             } else {
@@ -3522,7 +3524,9 @@ public class FozruciX extends ListenerAdapter {
                         terminal.interrupt();
                         terminal = new CommandLine(event, trimFrontOfArray(arg, 1));
                         terminal.start();
-                        sendMessage(event, "Command line started", false);
+                        if(!terminal.isAlive()) {
+                            sendMessage(event, "Command line started", false);
+                        }
                     } else if (arg[0].substring(consolePrefix.length()).equalsIgnoreCase(consolePrefix + "close")) {
                         terminal.doCommand(event, "exit");
                     } else if (arg[0].substring(consolePrefix.length()).equalsIgnoreCase(consolePrefix + "stop")) {
@@ -4717,7 +4721,7 @@ public class FozruciX extends ListenerAdapter {
                     } else {
                         suffix.add(words[i + 1]);
                     }
-                    markovChain.put(words[i], suffix);
+                    markovChain[words[i]] = suffix;
                 }
 
             } else if (i == words.length - 1) {
@@ -4733,14 +4737,14 @@ public class FozruciX extends ListenerAdapter {
                     } else {
                         suffix.add(words[i + 1]);
                     }
-                    markovChain.put(words[i], suffix);
+                    markovChain[words[i]] = suffix;
                 } else {
                     if (words.length == 1) {
                         return;
                     } else {
                         suffix.add(words[i + 1]);
                     }
-                    markovChain.put(words[i], suffix);
+                    markovChain[words[i]] = suffix;
                 }
             }
         }

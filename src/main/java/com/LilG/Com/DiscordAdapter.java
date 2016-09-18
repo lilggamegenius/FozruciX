@@ -12,6 +12,7 @@ import lombok.NonNull;
 import net.dv8tion.jda.JDA;
 import net.dv8tion.jda.JDABuilder;
 import net.dv8tion.jda.entities.TextChannel;
+import net.dv8tion.jda.entities.VoiceStatus;
 import net.dv8tion.jda.events.ReadyEvent;
 import net.dv8tion.jda.events.guild.member.GuildMemberBanEvent;
 import net.dv8tion.jda.events.guild.member.GuildMemberJoinEvent;
@@ -140,6 +141,7 @@ public class DiscordAdapter extends ListenerAdapter {
 
     @Override
     public void onMessageReceived(MessageReceivedEvent event) {
+        VoiceStatus chan = event.getGuild().getVoiceStatusOfUser(event.getAuthor());
         String discordNick = event.getAuthorName();
         String discordUsername = event.getAuthor().getUsername();
         String discordHostmask = event.getAuthor().getId(); //misnomer but it acts as the same thing

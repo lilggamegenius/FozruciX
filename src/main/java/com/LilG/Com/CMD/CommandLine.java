@@ -2,6 +2,7 @@ package com.LilG.Com.CMD;
 
 import ch.qos.logback.classic.Level;
 import com.LilG.Com.FozruciX;
+import com.LilG.Com.utils.LilGUtil;
 import com.jcraft.jsch.*;
 import com.sun.jna.Platform;
 import org.jetbrains.annotations.NotNull;
@@ -10,10 +11,7 @@ import org.pircbotx.hooks.types.GenericMessageEvent;
 import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
+import java.io.*;
 
 /**
  * Created by Lil-G on 11/13/2015.
@@ -41,7 +39,7 @@ public class CommandLine extends Thread {
         if (commandLine[0].equalsIgnoreCase("cmd") || commandLine[0].equalsIgnoreCase("command")) {
             console[0] = "cmd.exe";
         } else if (commandLine[0].equalsIgnoreCase("term") || commandLine[0].equalsIgnoreCase("terminal") || commandLine[0].equalsIgnoreCase("bash")) {
-            console[0] = "bash.exe";
+            console[0] = "bash";
         } else if (commandLine[0].equalsIgnoreCase("ps") || commandLine[0].equalsIgnoreCase("powershell")) {
             console[0] = "powershell.exe";
             console[1] = "-Command";
@@ -51,12 +49,19 @@ public class CommandLine extends Thread {
         }
         try {
             if (!ssh) {
-                p = new ProcessBuilder(console).start();
+                ProcessBuilder builder = new ProcessBuilder(console);
+                p = builder.start();
+                builder.redirectErrorStream(true);
                 p_stdin = new BufferedWriter(new OutputStreamWriter(p.getOutputStream()));
                 if (console[0].equals("cmd.exe")) {
                     p_stdin.write("@echo off\n");
                 }
                 p_inputStream = new BufferedReader(new InputStreamReader(p.getInputStream()));
+                LilGUtil.pause(1);
+                if(!p.isAlive()){
+                    interrupt();
+                    throw new IllegalStateException("Process exited");
+                }
             } else {
                 String host = JOptionPane.showInputDialog("Enter username@hostname", "lil-g@ssh.lilggamegenuis.tk");
                 String user = host.substring(0, host.indexOf('@'));
@@ -101,7 +106,7 @@ public class CommandLine extends Thread {
                     sendError(event, e);
                 }
             }
-            if (ssh || console[0].equals("bash.exe")) {
+            if (ssh || console[0].equals("bash")) {
                 p_stdin.write("export PS1=''\n");
             }
         } catch (Exception e) {
@@ -139,7 +144,7 @@ public class CommandLine extends Thread {
     @Override
     public void run() {
         exitLoop:
-        while (!Thread.interrupted()) {
+        while (!Thread.interrupted()) { //--------------- Main Waiting Loop ----------------------
             if (newCommand) {
                 try {
                     // write stdout of shell (=output of all commands)
@@ -182,12 +187,13 @@ public class CommandLine extends Thread {
                             }
                             LOGGER.info("Exiting output loop");
                             newCommand = false;
-                        } catch (NullPointerException e) {
+                        } catch (NullPointerException|IOException e) {
                             LOGGER.error("Error ", e);
                             interrupt();
                             break exitLoop;
                         } catch (InterruptedException e) {
                             interrupt();
+                            break exitLoop;
                         } catch (Exception e) {
                             sendError(event, e);
                             interrupt();
@@ -195,10 +201,14 @@ public class CommandLine extends Thread {
                     } else {
                         echoOff = true;
                     }
+                } catch (IOException e) {
+                    sendError(event, e);
+                    interrupt();
+                    break;
                 } catch (Exception e) {
                     sendError(event, e);
                 }
-            } else { //--------------- Main Waiting Loop ----------------------
+            } else {
                 try {
                     int count = 0;
                     while (p_inputStream.ready()) {
