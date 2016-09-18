@@ -12,10 +12,8 @@ import com.LilG.Com.DataClasses.SaveDataStore;
 import com.LilG.Com.m68k.M68kSim;
 import com.LilG.Com.math.ArbitraryPrecisionEvaluator;
 import com.LilG.Com.utils.CryptoUtil;
-import com.LilG.Com.utils.LilGUtil;
 import com.LilG.Com.utils.SizedArray;
 import com.fathzer.soft.javaluator.StaticVariableSet;
-import com.google.appengine.api.memcache.InvalidValueException;
 import com.google.code.chatterbotapi.ChatterBotFactory;
 import com.google.code.chatterbotapi.ChatterBotSession;
 import com.google.code.chatterbotapi.ChatterBotType;
@@ -29,6 +27,8 @@ import com.rmtheis.yandtran.detect.Detect;
 import com.rmtheis.yandtran.language.Language;
 import com.rmtheis.yandtran.translate.Translate;
 import com.sun.jna.Native;
+import com.sun.jna.NativeLibrary;
+import com.sun.jna.Platform;
 import com.thoughtworks.xstream.XStream;
 import com.wolfram.alpha.*;
 import de.tudarmstadt.ukp.jwktl.JWKTL;
@@ -44,7 +44,6 @@ import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
 import net.dv8tion.jda.MessageBuilder;
 import net.dv8tion.jda.Permission;
 import net.dv8tion.jda.entities.Guild;
-import net.dv8tion.jda.entities.PermissionOverride;
 import net.dv8tion.jda.entities.Role;
 import net.dv8tion.jda.entities.TextChannel;
 import net.dv8tion.jda.events.guild.member.GuildMemberBanEvent;
@@ -56,13 +55,15 @@ import net.sourceforge.argparse4j.inf.ArgumentParserException;
 import net.sourceforge.argparse4j.inf.Namespace;
 import org.apache.commons.lang.time.StopWatch;
 import org.apache.commons.lang3.StringUtils;
+import org.apfloat.Apfloat;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jsoup.Jsoup;
 import org.jsoup.UnsupportedMimeTypeException;
 import org.jsoup.nodes.Document;
-import org.pircbotx.*;
 import org.pircbotx.Channel;
+import org.pircbotx.*;
+import org.pircbotx.hooks.Event;
 import org.pircbotx.hooks.ListenerAdapter;
 import org.pircbotx.hooks.events.*;
 import org.pircbotx.hooks.types.GenericEvent;
@@ -81,7 +82,6 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.lang.management.ManagementFactory;
-import java.math.BigDecimal;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -95,6 +95,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.Date;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -109,7 +110,7 @@ import static com.citumpe.ctpTools.jWMI.getWMIValue;
  */
 public class FozruciX extends ListenerAdapter {
     private final static double VERSION = 2.2;
-    private final static File WIKTIONARY_DIRECTORY = new File("Data\\Wiktionary");
+    private final static File WIKTIONARY_DIRECTORY = new File("Data/Wiktionary");
     private final static int JOKE_COMMANDS = 0;
     private final static int ARRAY_OFFSET_SET = 1;
     private final static int CLEVER_BOT_INT = 2;
@@ -137,7 +138,6 @@ public class FozruciX extends ListenerAdapter {
     private static volatile ChatterBotSession chatterBotSession;
     private static volatile ChatterBotSession pandoraBotSession;
     private static volatile ChatterBotSession jabberBotSession;
-    @SuppressWarnings("ConstantConditions")
     private static volatile @NotNull SizedArray<MessageEvent> lastEvents = new SizedArray<>(30);
     private static volatile String lastLinkTitle = "";
     @Nullable
@@ -181,7 +181,8 @@ public class FozruciX extends ListenerAdapter {
     private static volatile StopWatch qTimer = new StopWatch();
     private static volatile DiscordAdapter discord;
     private static volatile boolean updateAvatar = false;
-    private static volatile M68kSim m68k = (M68kSim) Native.loadLibrary("JNIThing", M68kSim.class);
+    private static final String JNI_PATH = "JNIThing";
+    private static volatile M68kSim m68k = (M68kSim) Native.loadLibrary(JNI_PATH, M68kSim.class);
 
     static {
         System.out.println(m68k);
@@ -200,16 +201,14 @@ public class FozruciX extends ListenerAdapter {
     @Nullable
     private User currentUser;
     private UserHostmask lastJsUser;
-    private Channel lastJsChannel;
+    private org.pircbotx.Channel lastJsChannel;
     private Network network = Network.normal;
     private PircBotX bot;
 
-    @SuppressWarnings("unused")
     public FozruciX(MultiBotManager manager, SaveDataStore save) {
         this(Network.normal, manager, save);
     }
 
-    @SuppressWarnings("unused")
     public FozruciX(Network network, MultiBotManager manager, SaveDataStore save) {
         /*if (network == Network.twitch) {
             currentNick = "lilggamegenuis";
@@ -322,7 +321,7 @@ public class FozruciX extends ListenerAdapter {
         com.jcraft.jsch.Channel channel = null;
         try {
             JSch ssh = new JSch();
-            ssh.setKnownHosts("C:\\Users\\ggonz\\AppData\\Local\\lxss\\home\\lil-g\\.ssh\\known_hosts");
+            ssh.setKnownHosts(Platform.isLinux() ? "~/.ssh/known_hosts" : "C:/Users/ggonz/AppData/Local/lxss/home/lil-g/.ssh/known_hosts");
             session = ssh.getSession("lil-g",
                     //"ssh.lilggamegenuis.tk"
                     "10.0.0.63"
@@ -388,7 +387,7 @@ public class FozruciX extends ListenerAdapter {
         log((MessageEvent) event, msgToSend, true);
     }
 
-    private static boolean checkOP(@NotNull Channel chn) {
+    private static boolean checkOP(@NotNull org.pircbotx.Channel chn) {
         User bot = chn.getBot().getUserBot();
         return chn.isHalfOp(bot) || chn.isOp(bot) || chn.isSuperOp(bot) || chn.isOwner(bot);
     }
@@ -468,8 +467,6 @@ public class FozruciX extends ListenerAdapter {
         commandCooldown.put(user, System.currentTimeMillis() + cooldownTime);
     }
 
-    private synchronized static native String jniTest();
-
     private static int hash(@NotNull String string, int maxNum) {
         int hash = 0;
         for (int i = 0; i < string.length(); i++) {
@@ -494,6 +491,7 @@ public class FozruciX extends ListenerAdapter {
         } catch (Exception e) {
             return null;
         }
+
     }
 
     private static void log(Event event) {
@@ -588,7 +586,7 @@ public class FozruciX extends ListenerAdapter {
                 String parent;
                 String path;
                 Calendar today = Calendar.getInstance();
-                parent = "logs\\" + network + "\\" + escapePath(aChannel) + "\\" + today.get(Calendar.YEAR) + "\\";
+                parent = "logs/" + network + "/" + escapePath(aChannel) + "/" + today.get(Calendar.YEAR) + "/";
                 File parentDir = new File(parent);
                 if (!parentDir.mkdirs() && !parentDir.exists()) {
                     LOGGER.error("Couldn't make dirs");
@@ -666,18 +664,19 @@ public class FozruciX extends ListenerAdapter {
     public synchronized static void sendError(@NotNull MessageEvent event, @NotNull Exception e) {
         LOGGER.error("Error: ", e);
         String color = "";
+        String discordFormating = event instanceof DiscordMessageEvent ? "`" : "";
         String cause = "";
         String from;
-        if (BOOLS.get(COLOR)) {
+        if (BOOLS.get(COLOR) && discordFormating.isEmpty()) {
             color = Colors.RED;
         }
         if (e.getCause() != null) {
-            cause = "Error: " + e.getCause();
+            cause = "Error: " + discordFormating + e.getCause() + discordFormating;
         }
         if (cause.isEmpty()) {
-            from = "Error: " + e;
+            from = "Error: " + discordFormating + e + discordFormating;
         } else {
-            from = ". From " + e;
+            from = ". From " + discordFormating + e + discordFormating;
         }
         if (cause.contains("jdk.nashorn.internal.runtime.ParserException") || from.contains("javax.script.ScriptException")) {
             if (cause.contains("TypeError: Cannot read property")) {
@@ -728,7 +727,6 @@ public class FozruciX extends ListenerAdapter {
         sendNotice(event, ((GenericMessageEvent) event).getUser().getNick(), msgToSend);
     }
 
-    @SuppressWarnings("SameParameterValue")
     private synchronized void sendNotice(@NotNull GenericEvent event, String userToSendTo, String msgToSend) {
         msgToSend = getScramble(msgToSend);
         if (network == Network.discord) {
@@ -738,19 +736,17 @@ public class FozruciX extends ListenerAdapter {
         }
     }
 
-    @SuppressWarnings("SameParameterValue")
-    private synchronized void sendNotice(@NotNull String userToSendTo, @NotNull String msgToSend) {
+    private synchronized void sendNotice(@NotNull String userToSendTo, @NotNull String msgToSend){
         if (network == Network.discord || network == Network.twitch) {
-            throw new InvalidValueException("Not enough info to send to " + network);
+            throw new RuntimeException("Not enough info to send to " + network);
         }
         msgToSend = getScramble(msgToSend);
         bot.send().notice(userToSendTo, msgToSend);
     }
 
-    @SuppressWarnings("SameParameterValue")
     private synchronized void sendPrivateMessage(@NotNull String userToSendTo, @NotNull String msgToSend) {
         if (network == Network.discord || network == Network.twitch) {
-            throw new InvalidValueException("Not enough info to send to " + network);
+            throw new RuntimeException("Not enough info to send to " + network);
         }
         msgToSend = getScramble(msgToSend);
         bot.send().message(userToSendTo, msgToSend);
@@ -891,7 +887,6 @@ public class FozruciX extends ListenerAdapter {
         return ret;
     }
 
-    @SuppressWarnings({"StatementWithEmptyBody", "ConstantConditions"})
     @Override
     public synchronized void onMessage(@NotNull MessageEvent event) {
         onMessage(event, true);
@@ -1173,7 +1168,7 @@ public class FozruciX extends ListenerAdapter {
 
 // !+m - Sets +m on a channel
             else if (commandChecker(event, arg, "+m")) {
-                if (checkPerm(event.getUser(), /*2*/ 9001)) {
+                if (checkPerm(event.getUser(), 2)) {
                     String[] args = formatStringArgs(splitMessage(message, 0, false));
                     ArgumentParser parser = ArgumentParsers.newArgumentParser("+m")
                             .description("Sets a channel so only certain users can speak");
@@ -1188,10 +1183,12 @@ public class FozruciX extends ListenerAdapter {
                         ns = parser.parseArgs(args);
                         LOGGER.debug(ns.toString());
                         Boolean state = ns.getBoolean("state"); // True = on, False = off, null = toggle
-                        if (event instanceof DiscordMessageEvent) {
+                        if (event instanceof DiscordMessageEvent) { // ---------------------------Discord---------------------------
                             String topicStr = "+m | ";
                             TextChannel mChannel = ((DiscordMessageEvent) event).getDiscordEvent().getTextChannel();
                             Role publicRole = mChannel.getGuild().getPublicRole();
+                            List<String> roleArgs = ns.getList("roles");
+                            net.dv8tion.jda.entities.User currentDiscordUser = ((DiscordUser)currentUser).getDiscordUser();
                             if (PlusM.channelRoleMap.containsKey(mChannel)) {
                                 List<Role> roles = PlusM.channelRoleMap.get(mChannel);
                                 if (state == null || !state) { // disabling +m mode
@@ -1203,7 +1200,9 @@ public class FozruciX extends ListenerAdapter {
                                     if (mChannel.getTopic().startsWith(topicStr)) {
                                         mChannel.getManager().setTopic(mChannel.getTopic().substring(topicStr.length())).update();
                                     }
-
+                                    if(currentDiscordUser != null) {
+                                        mChannel.createPermissionOverride(currentDiscordUser).delete();
+                                    }
                                 } else { // overwriting role list?
                                     for (Role role : roles) {
                                         PermissionOverrideManager overRide = mChannel.createPermissionOverride(role);
@@ -1212,24 +1211,51 @@ public class FozruciX extends ListenerAdapter {
                                     roles.clear();
                                     roles.add(publicRole);
                                     PermissionOverrideManager overRide = mChannel.createPermissionOverride(publicRole);
-                                    overRide.deny(Permission.MESSAGE_WRITE);
+                                    overRide.deny(Permission.MESSAGE_WRITE).update();
                                     List<Role> guildRoleList = mChannel.getGuild().getRoles();
-
+                                    if(currentDiscordUser != null) {
+                                        mChannel.createPermissionOverride(currentDiscordUser).grant(Permission.MESSAGE_WRITE).update();
+                                    }
+                                    if(!roleArgs.isEmpty())
                                     for (Role role : guildRoleList) {
-                                        PermissionOverride permOverride = mChannel.getOverrideForRole(role);
-                                        if (ns.getList("roles").contains(role.getName())) {
-                                            overRide = mChannel.createPermissionOverride(role);
-                                            overRide.deny(Permission.MESSAGE_WRITE).update();
-                                            roles.add(role);
+                                        for(String roleArg : roleArgs){
+                                            if (roleArg.equalsIgnoreCase(role.getName())) {
+                                                overRide = mChannel.createPermissionOverride(role);
+                                                overRide.deny(Permission.MESSAGE_WRITE).update();
+                                                roles.add(role);
+                                                roleArgs.remove(roleArg);
+                                                break;
+                                            }
                                         }
                                     }
                                 }
                             } else {
+                                List<Role> guildRoleList = mChannel.getGuild().getRoles();
+                                List<Role> roles = new ArrayList<>();
+
                                 PermissionOverrideManager overRide = mChannel.createPermissionOverride(publicRole);
-                                overRide.deny(Permission.MESSAGE_WRITE);
+                                overRide.deny(Permission.MESSAGE_WRITE).update();
+                                if(currentDiscordUser != null) {
+                                    mChannel.createPermissionOverride(currentDiscordUser).grant(Permission.MESSAGE_WRITE).update();
+                                }
+                                roles.add(publicRole);
+                                if(!roleArgs.isEmpty())
+                                for (Role role : guildRoleList) {
+                                    for(String roleArg : roleArgs){
+                                        if (roleArg.equalsIgnoreCase(role.getName())) {
+                                            overRide = mChannel.createPermissionOverride(role);
+                                            overRide.deny(Permission.MESSAGE_WRITE).update();
+                                            roles.add(role);
+                                            roleArgs.remove(roleArg);
+                                            break;
+                                        }
+                                    }
+                                }
+                                PlusM.channelRoleMap.put(mChannel, roles);
+                                mChannel.getManager().setTopic(topicStr + mChannel.getTopic()).update();
                             }
-                        } else {
-                            Channel chan = event.getChannel();
+                        } else { // ----------------------------------------------------IRC----------------------------------------------------
+                            org.pircbotx.Channel chan = event.getChannel();
                             if (chan.containsMode('m')) {
                                 chan.send().removeModerated();
                             } else {
@@ -1954,7 +1980,7 @@ public class FozruciX extends ListenerAdapter {
                             calcAmount = 5;
                         }
                         int count = 0;
-                        LinkedList<BigDecimal> eval = new LinkedList<>();
+                        LinkedList<Apfloat> eval = new LinkedList<>();
                         while (count <= calcAmount) {
                             VARIABLE_SET.set(ns.get("char"), x);
                             //noinspection SuspiciousToArrayCall
@@ -1966,7 +1992,7 @@ public class FozruciX extends ListenerAdapter {
                     } else {
                         //noinspection SuspiciousToArrayCall
                         String[] expression = ns.getList("expression").toArray(new String[]{});
-                        BigDecimal eval = EVALUATOR.evaluate(argJoiner(expression, 0, 0));
+                        Apfloat eval = EVALUATOR.evaluate(argJoiner(expression, 0, 0));
                         DecimalFormat df = new DecimalFormat("0", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
                         df.setMaximumFractionDigits(340); //340 = DecimalFormat.DOUBLE_FRACTION_DIGITS
                         sendMessage(event, df.format(eval));
@@ -2053,7 +2079,7 @@ public class FozruciX extends ListenerAdapter {
                     LOGGER.debug(ns.toString());
                     if (ns.getBoolean("kill")) {
                         //noinspection deprecation
-                        js.stop();
+                        js.interrupt();
                         js = null;
                         sendMessage(event, "JavaScript Thread killed", false);
                     } else {
@@ -2107,7 +2133,7 @@ public class FozruciX extends ListenerAdapter {
                     LOGGER.debug(ns.toString());
                     if (ns.getBoolean("kill")) {
                         //noinspection deprecation
-                        py.stop();
+                        py.interrupt();
                         py = null;
                         sendMessage(event, "Python Thread killed", false);
                     } else {
@@ -3121,7 +3147,7 @@ public class FozruciX extends ListenerAdapter {
                                 BufferedImage bi = new BufferedImage(frame.getWidth(), frame.getHeight(), BufferedImage.TYPE_INT_ARGB);
                                 Graphics2D ig2 = bi.createGraphics();
                                 new DrawWindow(DNDDungeon.getMap(), DNDDungeon.getMap_size(), DNDDungeon.getLocation()).paint(ig2);
-                                File output = new File("./output_image.png");
+                                File output = new File("Data/output_image.png");
                                 if (ImageIO.write(bi, "PNG", output)) {
                                     ((DiscordMessageEvent) event).getDiscordEvent().getTextChannel().sendFile(output, null);
                                 } else {
@@ -3172,9 +3198,6 @@ public class FozruciX extends ListenerAdapter {
                     sendMessage(event, "Missing args");
                     return;
                 }
-                if (m68k == null) {
-                    return;
-                }
                 String[] args = formatStringArgs(splitMessage(message, 0, false));
                 ArgumentParser parser = ArgumentParsers.newArgumentParser("68kTest")
                         .description("Simulates a M68k environment");
@@ -3192,7 +3215,7 @@ public class FozruciX extends ListenerAdapter {
                 try {
                     ns = parser.parseArgs(args);
                     LOGGER.debug(ns.toString());
-                    if (checkPerm(event.getUser(), 10) && getArg(arg, 1).equalsIgnoreCase("debug")) {
+                    if (checkPerm(event.getUser(), 5) && getArg(arg, 1).equalsIgnoreCase("debug")) {
                         if (getArg(arg, 2) == null) {
                             sendMessage(event, m68k.toString());
                             return;
@@ -3212,11 +3235,14 @@ public class FozruciX extends ListenerAdapter {
                             m68k.start();
                             sendMessage(event, "M68K Initialized");
                         } else if (getArg(arg, 2).equalsIgnoreCase("unload")) {
+                            NativeLibrary lib = NativeLibrary.getInstance("JNIThing");
                             m68k = null;
+                            lib.dispose();
+                            lib = null;
                             gc();
                             sendMessage(event, "DLL unloaded");
                         } else if (getArg(arg, 2).equalsIgnoreCase("load")) {
-                            m68k = (M68kSim) Native.loadLibrary("JNIThing", M68kSim.class);
+                            m68k = (M68kSim) Native.loadLibrary(JNI_PATH, M68kSim.class);
                             sendMessage(event, "DLL loaded as " + m68k);
                         } else if (getArg(arg, 2).toLowerCase().startsWith("move")) {
                             M68kSim.Size[] sizes = M68kSim.Size.values();
@@ -3262,6 +3288,9 @@ public class FozruciX extends ListenerAdapter {
                             m68k.memDump();
                         }
                     }
+                    if (m68k == null) {
+                        return;
+                    }
                 } catch (Exception e) {
                     sendError(event, e);
                 }
@@ -3270,26 +3299,29 @@ public class FozruciX extends ListenerAdapter {
 // !acc/68kcyc/asmcyclecounter - counts asm cycles
             else if (commandChecker(event, arg, "acc") || commandChecker(event, arg, "68kcyc") || commandChecker(event, arg, "asmcyclecounter")) {
                 try {
-                    Process process = new ProcessBuilder("asmcyclecount\\asmCycleCount.exe", "t", "t", "\t" + argJoiner(arg, 1).replace("||", "\r\n\t").replace("//", "\r\n\t")).start();
-                    //noinspection StatementWithEmptyBody
+                    Process process = new ProcessBuilder("asmcyclecount/asmCycleCount.exe", "t", "t", "\t" + argJoiner(arg, 1).replace("||", "\r\n\t").replace("//", "\r\n\t")).start();
                     process.waitFor();
-                    Scanner s = new Scanner(process.getInputStream());
-                    LinkedList<String> output = new LinkedList<>();
-                    while (s.hasNext()) {
-                        output.add(s.nextLine());
-                    }
-                    output = new LinkedList<>(output.subList(0, output.size() / 2));
-                    LOGGER.debug(output.toString());
-                    if (output.size() > 3) {
-                        sendPage(event, arg, output);
-                    } else {
-                        for (String anOutput : output) {
-                            sendMessage(event, anOutput.replace('\t', ' ').replace(";", "  ;"));
+                    try (Scanner s = new Scanner(process.getInputStream())) {
+
+                        LinkedList<String> output = new LinkedList<>();
+                        while (s.hasNext()) {
+                            output.add(s.nextLine());
                         }
+                        output = new LinkedList<>(output.subList(0, output.size() / 2));
+                        LOGGER.debug(output.toString());
+                        if (output.size() > 3) {
+                            sendPage(event, arg, output);
+                        } else {
+                            for (String anOutput : output) {
+                                sendMessage(event, anOutput.replace('\t', ' ').replace(";", "  ;"));
+                            }
+                        }
+                        addCooldown(event.getUser());
+                    } catch (Exception e) {
+                        sendError(event, e);
                     }
-                    addCooldown(event.getUser());
-                } catch (Exception e) {
-                    sendError(event, e);
+                }catch(Exception e2){
+
                 }
 
             }
@@ -3298,8 +3330,8 @@ public class FozruciX extends ListenerAdapter {
             else if (commandChecker(event, arg, "disasm")) {
                 String byteStr = argJoiner(arg, 2).replace(" ", "");
                 byte[] bytes = DatatypeConverter.parseHexBinary(byteStr);
-                try (FileOutputStream fos = new FileOutputStream("Data\\temp.68k")) {
-                    BufferedWriter delFile = new BufferedWriter(new FileWriter("Data\\temp.asm", false));
+                try (FileOutputStream fos = new FileOutputStream("Data/temp.68k")) {
+                    BufferedWriter delFile = new BufferedWriter(new FileWriter("Data/temp.asm", false));
                     delFile.close();
                     fos.write(bytes);
                     String processor = getArg(arg, 1);
@@ -3308,10 +3340,11 @@ public class FozruciX extends ListenerAdapter {
                     } else if (processor.equalsIgnoreCase("x86")) {
                         processor = "8086";
                     }
-                    Process process = new ProcessBuilder("C:\\Program Files (x86)\\IDA 6.8\\idaq", "-B", "-p" + processor, "data\\temp.68k").start();
+                    // todo move to radare2
+                    Process process = new ProcessBuilder("C:/Program Files (x86)/IDA 6.8/idaq", "-B", "-p" + processor, "data/temp.68k").start();
                     //noinspection StatementWithEmptyBody
                     process.waitFor();
-                    BufferedReader disasm = new BufferedReader(new FileReader("Data\\temp.asm"));
+                    BufferedReader disasm = new BufferedReader(new FileReader("Data/temp.asm"));
                     String disasmTemp;
                     boolean fileIsEmpty = true;
                     LinkedList<String> messagesToSend = new LinkedList<>();
@@ -3709,28 +3742,6 @@ public class FozruciX extends ListenerAdapter {
 
             }
 
-// !loadLib - loads a library
-            else if (commandChecker(event, arg, "loadLib")) {
-                if (checkPerm(event.getUser(), 9001)) {
-                    try {
-                        LilGUtil.loadLib(argJoiner(arg, 1));
-                    } catch (Exception e) {
-                        sendError(event, e);
-                    }
-                }
-            }
-
-// !unloadLibs - reloads DLLs
-            else if (commandChecker(event, arg, "unloadLibs")) {
-                if (checkPerm(event.getUser(), 9001)) {
-                    try {
-                        LilGUtil.unload();
-                    } catch (Exception e) {
-                        sendError(event, e);
-                    }
-                }
-            }
-
 // !ChangeNick - Changes the nick of the bot
             else if (commandChecker(event, arg, "changeNick")) {
                 if (checkPerm(event.getUser(), 9001)) {
@@ -3981,7 +3992,7 @@ public class FozruciX extends ListenerAdapter {
                     return;
                 }
                 HashMap<String, ArrayList<String>> map = allowedCommands.get(getSeverName(event, true));
-                ArrayList commands;
+                ArrayList<String> commands;
                 if (map != null) {
                     commands = map.get(channel);
                 } else {
@@ -4101,6 +4112,10 @@ public class FozruciX extends ListenerAdapter {
         else if (commandChecker(PM, arg, "login")) {
             if (CryptoUtil.encrypt(getArg(arg, 1)).equals(FozConfig.PASSWORD)) {
                 currentUser = PM.getUser();
+                if(network == Network.discord){
+                    currentUser = new DiscordUser(PM.getUserHostmask());
+                    ((DiscordUser)currentUser).setUser(((DiscordPrivateMessageEvent)PM).getDiscordEvent().getAuthor());
+                }
                 sendNotice(PM, "Welcome back Lil-G");
             } else {
                 sendNotice(PM, "password is incorrect.");
@@ -4227,7 +4242,7 @@ public class FozruciX extends ListenerAdapter {
     }
 
     public void onJoin(@NotNull JoinEvent join) {
-        @SuppressWarnings("ConstantConditions") String hostmask = join.getUser().getHostmask();
+        String hostmask = join.getUser().getHostmask();
         LOGGER.debug("User Joined: " + (hostmask == null ? join.getUser().getNick() : hostmask));
         if (join instanceof DiscordJoinEvent) {
             String channelToMessage = checkJoinsAndQuits.get(((DiscordJoinEvent) join).getJoinEvent().getGuild().getId());
@@ -4522,7 +4537,7 @@ public class FozruciX extends ListenerAdapter {
             }
             if (isCommand) {
                 HashMap<String, ArrayList<String>> temp = allowedCommands.get(getSeverName((Event) event, true));
-                ArrayList commands;
+                ArrayList<String> commands;
                 if (temp != null) {
                     commands = temp.get(chanName);
                 } else {
@@ -4575,7 +4590,7 @@ public class FozruciX extends ListenerAdapter {
                 break;
             case "chat":
                 sendNotice(event, event.getUser().getNick(), "This command functions like ELIZA. Talk to it and it talks back.");
-                sendNotice(event, event.getUser().getNick(), "Usage: First parameter defines what service to use. it supports CleverBot, PandoraBot, and JabberWacky. Second parameter is the Message to send. Could also be the special param \"\\setup\" to actually start the bot.");
+                sendNotice(event, event.getUser().getNick(), "Usage: First parameter defines what service to use. it supports CleverBot, PandoraBot, and JabberWacky. Second parameter is the Message to send.");
                 break;
             case "calcJ":
                 sendNotice(event, event.getUser().getNick(), "This command takes a expression and evaluates it. There are 2 different functions. Currently the only variable is \"x\"");

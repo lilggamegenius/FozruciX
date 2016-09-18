@@ -9,11 +9,11 @@ import java.util.Scanner;
 
 /**
  * Created by ggonz on 10/16/2015.
+ * Single use Command prompt - closes after a single command
  */
 public class CMD extends Thread {
     private final GenericMessageEvent event;
     private final String[] arg;
-    private String console;
 
     public CMD(GenericMessageEvent event, String[] arg) {
         this.event = event;
@@ -22,6 +22,7 @@ public class CMD extends Thread {
 
     @Override
     public void run() {
+        String console;
         if (arg[1].equalsIgnoreCase("cmd") || arg[1].equalsIgnoreCase("command")) {
             console = "cmd.exe";
         } else if (arg[1].equalsIgnoreCase("term") || arg[1].equalsIgnoreCase("terminal")) {
@@ -37,7 +38,7 @@ public class CMD extends Thread {
             p = builder.start();
         } catch (IOException e) {
             e.printStackTrace();
-            p = null;
+            return;
         }
         try {
             BufferedWriter p_stdin = new BufferedWriter(new OutputStreamWriter(p.getOutputStream()));

@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="Gradle: com.mashape.unirest:unirest-java:1.4.7">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.mashape.unirest/unirest-java/1.4.7/f8526ec572d5d9e02ae968e2ddab00c5fd4c0fc5/unirest-java-1.4.7.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.mashape.unirest/unirest-java/1.4.7/ee1147d95f124e21bf08ce579a01aef7faf19a4d/unirest-java-1.4.7-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

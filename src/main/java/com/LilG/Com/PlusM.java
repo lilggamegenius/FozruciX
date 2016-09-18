@@ -9,9 +9,10 @@ import java.util.Map;
 
 /**
  * Created by ggonz on 9/7/2016.
+ * Storage class for the +m command
  */
-public class PlusM {
-    public static Map<TextChannel, List<Role>> channelRoleMap = new HashMap<>();
+class PlusM {
+    static Map<TextChannel, List<Role>> channelRoleMap = new HashMap<>();
 
     private PlusM() {
     }

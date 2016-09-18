@@ -18,6 +18,7 @@ import static com.LilG.Com.utils.LilGUtil.searchEnum;
 public class DNDPlayer {
     final static int XPLevelDivider = 24;
     private final List<Items> inventory = new ArrayList<>();
+    @SuppressWarnings("MismatchedReadAndWriteOfArray")
     private int[] stats = new int[DNDStats.values().length];
     private User player;
     private int maxHP = 100;
@@ -40,7 +41,7 @@ public class DNDPlayer {
 
     public DNDPlayer(String name, String race, String Class, User user, String familiarName, String familiar) {
         this(name, race, Class, user);
-        this.familiar = new DNDFamiliar(familiarName/*, this*/, DNDFamiliars.valueOf(familiar));
+        this.familiar = new DNDFamiliar(familiarName, this, DNDFamiliars.valueOf(familiar));
     }
 
     public static boolean ifClassExists(String str) {

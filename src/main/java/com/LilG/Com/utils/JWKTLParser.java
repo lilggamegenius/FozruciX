@@ -6,6 +6,7 @@ import java.io.File;
 
 /**
  * Created by ggonz on 11/27/2015.
+ * Wikitionary parser
  */
 class JWKTLParser {
     private static final String PATH_TO_DUMP_FILE = "C:\\Users\\ggonz\\workspace\\FozruciX\\Data\\enwiktionary-20151123-pages-articles.xml";
@@ -15,8 +16,7 @@ class JWKTLParser {
     public static void main(String[] args) throws Exception {
         File dumpFile = new File(PATH_TO_DUMP_FILE);
         File outputDirectory = new File(TARGET_DIRECTORY);
-        boolean overwriteExisting = OVERWRITE_EXISTING_FILES;
 
-        JWKTL.parseWiktionaryDump(dumpFile, outputDirectory, overwriteExisting);
+        JWKTL.parseWiktionaryDump(dumpFile, outputDirectory, OVERWRITE_EXISTING_FILES);
     }
 }

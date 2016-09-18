@@ -1,22 +1,35 @@
 package com.LilG.Com;
 
+import ch.qos.logback.classic.Logger;
 import com.google.common.collect.ImmutableSortedSet;
+import marytts.LocalMaryInterface;
+import marytts.MaryInterface;
 import net.dv8tion.jda.JDA;
+import net.dv8tion.jda.audio.AudioSendHandler;
+import net.dv8tion.jda.audio.player.FilePlayer;
 import net.dv8tion.jda.entities.Guild;
 import net.dv8tion.jda.entities.TextChannel;
+import net.dv8tion.jda.entities.VoiceChannel;
+import net.dv8tion.jda.managers.AudioManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.pircbotx.Channel;
 import org.pircbotx.PircBotX;
 import org.pircbotx.hooks.events.ConnectEvent;
+import org.slf4j.LoggerFactory;
 
+import javax.sound.sampled.AudioFileFormat;
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
 import javax.swing.*;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.io.File;
 import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 import static com.LilG.Com.utils.LilGUtil.formatFileSize;
@@ -65,6 +78,11 @@ class DebugWindow extends JFrame {
     private DefaultComboBoxModel<String> comboBox;
     private Runtime runtime = Runtime.getRuntime();
 
+    private MaryInterface marytts;
+    private FilePlayer player = new FilePlayer();
+
+    private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(DebugWindow.class);
+
     DebugWindow(@NotNull ConnectEvent event, @NotNull FozruciX.Network network) {
         this.bot = event.getBot();
         this.network = network;
@@ -75,6 +93,12 @@ class DebugWindow extends JFrame {
             jda = DiscordAdapter.getJda();
             networkName = "Discord";
             nick = jda.getSelfInfo().getUsername();
+            try {
+                marytts = new LocalMaryInterface();
+                marytts.setVoice("cmu-bdl-hsmm");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         } else if (networkName == null) {
             networkName = bot.getServerHostname();
             networkName = networkName.substring(networkName.indexOf(".") + 1, networkName.lastIndexOf("."));
@@ -175,6 +199,7 @@ class DebugWindow extends JFrame {
         setSize(WIDTH, HEIGHT);
 
         setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+        setState(Frame.ICONIFIED);
         setVisible(true);
 
         selectedChannel = (String) comboBox.getSelectedItem();
@@ -196,6 +221,8 @@ class DebugWindow extends JFrame {
             for (Guild guild : guildList) {
                 java.util.List<TextChannel> channels = guild.getTextChannels();
                 channelList.addAll(channels.stream().map(channel -> guild.getName() + ": #" + channel.getName()).collect(Collectors.toList()));
+                java.util.List<VoiceChannel> voiceChannels = guild.getVoiceChannels();
+                channelList.addAll(voiceChannels.stream().map(channel -> guild.getName() + ": v#" + channel.getName()).collect(Collectors.toList()));
             }
         } else {
             ImmutableSortedSet<Channel> channel = bot.getUserBot().getChannels();
@@ -209,11 +236,42 @@ class DebugWindow extends JFrame {
         if (network == FozruciX.Network.discord) {
             String guildName = selectedChannel.substring(0, selectedChannel.indexOf(':'));
             String channel = selectedChannel.substring(selectedChannel.indexOf('#') + 1);
-            jda.getGuildsByName(guildName).stream().filter(guild -> guild.getName().equalsIgnoreCase(guildName)).forEachOrdered(guild -> {
-                guild.getTextChannels().stream().filter(textChannel -> textChannel.getName().equalsIgnoreCase(channel)).forEachOrdered(textChannel -> {
-                    textChannel.sendMessage(FozruciX.getScramble(messageTF.getText()));
-                });
-            });
+            exitLoop:
+            for (Guild guild : jda.getGuildsByName(guildName)) {
+                if (guild.getName().equalsIgnoreCase(guildName)) {
+                    for (TextChannel textChannel : guild.getTextChannels()) {
+                        if (textChannel.getName().equalsIgnoreCase(channel) && !selectedChannel.contains(": v#")) {
+                            textChannel.sendMessage(FozruciX.getScramble(messageTF.getText()));
+                            break exitLoop;
+                        }
+                    }
+                    for (VoiceChannel voiceChannel : guild.getVoiceChannels()) {
+                        if (voiceChannel.getName().equalsIgnoreCase(channel) && selectedChannel.contains(": v#")) {
+                            AudioManager audioManager = jda.getAudioManager(guild);
+                            VoiceChannel currentVoiceChannel = audioManager.getConnectedChannel();
+                            File outputFile = new File("Data/messageSent.wav");
+                            LOGGER.info("I currently have " + marytts.getAvailableVoices() + " voices in "
+                                    + marytts.getAvailableLocales() + " languages available.");
+                            LOGGER.info("Out of these, " + marytts.getAvailableVoices(Locale.US) + " are for US English.");
+                            try {
+                                if (!voiceChannel.equals(currentVoiceChannel)) {
+                                    audioManager.closeAudioConnection();
+                                    audioManager.openAudioConnection(voiceChannel);
+                                    audioManager.setSendingHandler(player);
+
+                                }
+                                AudioInputStream audio = marytts.generateAudio(messageTF.getText());
+                                AudioSystem.write(AudioSystem.getAudioInputStream(AudioSendHandler.INPUT_FORMAT, audio), AudioFileFormat.Type.WAVE, outputFile);
+                                player.setAudioFile(outputFile);
+                                player.play();
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                            break exitLoop;
+                        }
+                    }
+                }
+            }
         } else {
             bot.send().message(selectedChannel, FozruciX.getScramble(messageTF.getText()));
         }

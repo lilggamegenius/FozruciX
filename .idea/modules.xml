@@ -3,6 +3,11 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/FozruciX.iml" filepath="$PROJECT_DIR$/.idea/modules/FozruciX.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/FozruciX_main.iml" filepath="$PROJECT_DIR$/.idea/modules/FozruciX_main.iml" group="FozruciX" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/FozruciX_test.iml" filepath="$PROJECT_DIR$/.idea/modules/FozruciX_test.iml" group="FozruciX" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/yandex-translator-java-api-master.iml" filepath="$PROJECT_DIR$/.idea/modules/yandex-translator-java-api-master.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/yandex-translator-java-api_main.iml" filepath="$PROJECT_DIR$/.idea/modules/yandex-translator-java-api_main.iml" group="yandex-translator-java-api" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/yandex-translator-java-api_test.iml" filepath="$PROJECT_DIR$/.idea/modules/yandex-translator-java-api_test.iml" group="yandex-translator-java-api" />
     </modules>
   </component>
 </project>

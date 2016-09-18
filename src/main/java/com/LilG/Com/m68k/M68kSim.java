@@ -5,6 +5,7 @@ import com.sun.jna.NativeLong;
 
 /**
  * Created by ggonz on 8/16/2016.
+ * Interface for the M68k simulator
  */
 public interface M68kSim extends Library {
 

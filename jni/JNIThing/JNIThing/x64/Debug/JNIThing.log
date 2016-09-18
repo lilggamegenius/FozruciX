@@ -1,5 +1,5 @@
 ﻿  M68KSimulator.cpp
-  Note: including file: c:\users\fozrucix\workspace\fozrucix\jni\jnithing\jnithing\M68KSimulator.h
+  Note: including file: c:\users\ggonz\workspace\fozrucix\jni\jnithing\jnithing\M68KSimulator.h
   Note: including file:  C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\include\cstdint
   Note: including file:   C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\include\yvals.h
   Note: including file:    C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\include\xkeycheck.h
@@ -108,6 +108,5 @@
   Note: including file:         C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\include\cerrno
   Note: including file:        C:\Program Files (x86)\Windows Kits\10\Include\10.0.10240.0\ucrt\share.h
   Note: including file: C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\include\iostream
-     Creating library C:\Users\FozruciX\Workspace\FozruciX\jni\JNIThing\x64\Debug\JNIThing.lib and object C:\Users\FozruciX\Workspace\FozruciX\jni\JNIThing\x64\Debug\JNIThing.exp
-  JNIThing.vcxproj -> C:\Users\FozruciX\Workspace\FozruciX\jni\JNIThing\x64\Debug\JNIThing.dll
-  JNIThing.vcxproj -> C:\Users\FozruciX\Workspace\FozruciX\jni\JNIThing\x64\Debug\JNIThing.pdb (Partial PDB)
+  JNIThing.vcxproj -> C:\Users\ggonz\workspace\FozruciX\jni\JNIThing\x64\Debug\JNIThing.dll
+  JNIThing.vcxproj -> C:\Users\ggonz\workspace\FozruciX\jni\JNIThing\x64\Debug\JNIThing.pdb (Partial PDB)

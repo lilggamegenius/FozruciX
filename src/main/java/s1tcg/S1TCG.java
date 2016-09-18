@@ -81,7 +81,7 @@ public class S1TCG {
         for (Letter l : letters) {
             if (l != null) {
                 out.add(make_titlecard_line(l, xpos, ypos));
-                xpos += l.pixwidth;
+                xpos += l.pixelWidth;
             } else {
                 out.add("\t\t; Space");
                 xpos += 16;
@@ -135,10 +135,10 @@ public class S1TCG {
     private static class Letter {
         public final int width;
         public final int height;
-        public final int pixwidth;
-        public final int pixheight;
+        public final int pixelWidth;
+        public final int pixelHeight;
         public final int sprite;
-        public final int spritecount;
+        public final int spriteCount;
         public final char letter;
 
         public Letter(int sprite_index, int width, int height, char l) {
@@ -147,10 +147,10 @@ public class S1TCG {
             int proper_height = (height / 8) & 3;
             this.width = proper_width - 1;
             this.height = proper_height - 1;
-            this.pixwidth = proper_width * 8;
-            this.pixheight = proper_height * 8;
+            this.pixelWidth = proper_width * 8;
+            this.pixelHeight = proper_height * 8;
             this.sprite = sprite_index;
-            this.spritecount = proper_width * proper_height;
+            this.spriteCount = proper_width * proper_height;
             this.letter = l;
         }
 

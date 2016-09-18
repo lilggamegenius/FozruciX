@@ -6,6 +6,7 @@ import com.LilG.Com.utils.CryptoUtil;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.mashape.unirest.http.Unirest;
+import com.sun.jna.Platform;
 import com.thoughtworks.xstream.XStream;
 import lombok.NonNull;
 import net.dv8tion.jda.JDA;
@@ -47,6 +48,7 @@ public class DiscordAdapter extends ListenerAdapter {
     private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(DiscordAdapter.class);
     public static File avatarFile;
     private static DiscordAdapter discordAdapter = null;
+    private static ReadyEvent readyEvent;
     private static FozruciX bot;
     private static PircBotX pircBotX;
     private static JDA jda;
@@ -58,7 +60,7 @@ public class DiscordAdapter extends ListenerAdapter {
             jda = new JDABuilder()
                     .setBotToken(CryptoUtil.decrypt(FozConfig.setPassword(FozConfig.Password.discord)))
                     .setAutoReconnect(true)
-                    .setAudioEnabled(false)
+                    .setAudioEnabled(true)
                     .setEnableShutdownHook(true)
                     .addListener(this)
                     .buildBlocking();
@@ -71,9 +73,11 @@ public class DiscordAdapter extends ListenerAdapter {
             avatar = new AvatarThread(jda.getAccountManager(), bot);
         avatar.setName("Avatar Setter thread");
             avatar.start();
-            LOGGER.trace("Calling onConnect() method");
-            bot.onConnect(new ConnectEvent(pircBotX));
             LOGGER.trace("DiscordAdapter created");
+        LOGGER.trace("Calling onConnect() method");
+        synchronized (readyEvent) {
+            bot.onConnect(new DiscordConnectEvent(pircBotX).setReadyEvent(readyEvent));
+        }
     }
 
     static synchronized DiscordAdapter makeDiscord(PircBotX pircBotX) {
@@ -98,7 +102,10 @@ public class DiscordAdapter extends ListenerAdapter {
     @Override
     public void onReady(ReadyEvent event) {
         try {
-            bot.onConnect(new DiscordConnectEvent(pircBotX).setReadyEvent(event));
+            synchronized (event) {
+                readyEvent = event;
+                LOGGER.info("Discord is ready");
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -348,14 +355,20 @@ class AvatarThread extends Thread {
 
     @Override
     public void run() {
-        File avatarPath = new File("C:\\Users\\ggonz\\Pictures\\avatar\\burgerpants\\");
-        File tempImage = new File("data\\temp.png");
+        File avatarPath = new File(Platform.isLinux() ? "/media/lil-g/OS/Users/ggonz/Pictures/avatar/burgerpants" : "C:/Users/ggonz/Pictures/avatar/burgerpants/");
+        File tempImage = new File("./data/temp.png");
         while (!Thread.currentThread().isInterrupted()) {
             try {
                 pause(randInt(30, 120));
                 File[] avatarList = avatarPath.listFiles();
+                StringBuilder pathArray = new StringBuilder();
                 if (avatarList != null) {
+                    for (File anAvatarList : avatarList) {
+                        pathArray.append(anAvatarList);
+                    }
+                    LOGGER.info("File list: " + pathArray);
                     avatarFile = avatarList[randInt(0, avatarList.length - 1)];
+                    LOGGER.info("Picked file: " + avatarFile);
                     try {
                         accountManager.setAvatar(AvatarUtil.getAvatar(avatarFile));
                     } catch (UnsupportedEncodingException e) {

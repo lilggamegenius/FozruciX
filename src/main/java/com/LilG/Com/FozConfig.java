@@ -22,7 +22,7 @@ import java.nio.file.StandardCopyOption;
 
 public class FozConfig {
     public final static boolean debug = false;
-    public final static String badnik = "irc.badnik.zone"; //TL;DR Shit went down
+    public final static String badnik = "irc.badnik.zone";
     public final static String twitch = "irc.twitch.tv";
     public final static String caffie = "irc.caffie.net";
     public final static String esper = "irc.esper.net";
@@ -40,6 +40,20 @@ public class FozConfig {
     private final static File saveFile = new File("Data/Data.xml");
     private final static MultiBotManager manager = new MultiBotManager();
     private final static SaveDataStore save = loadData(new XStream());
+
+    static {
+        try {
+            System.setProperty("jna.library.path", "jni");
+            System.setProperty("jna.debug_load", "true");
+            System.setProperty("jna.debug_load.jna", "true");
+            Class.forName("com.mysql.jdbc.Driver").newInstance();
+        } catch (ClassNotFoundException e) {
+            LOGGER.error("SQL Driver not found", e);
+        } catch (Exception e2) {
+            LOGGER.error("Error", e2);
+        }
+    }
+
     public final static Configuration.Builder debugConfig = new Configuration.Builder()
             .setAutoReconnectDelay(connectDelay)
             .setEncoding(Charset.forName("UTF-8"))
@@ -182,18 +196,6 @@ public class FozConfig {
             //.setIdentServerEnabled(true)
             .addListener(new FozruciX(manager, save)); //Add our listener that will be called on Events
 
-    static {
-        try {
-            System.setProperty("jna.debug_load", "true");
-            System.setProperty("jna.debug_load.jna", "true");
-            Class.forName("com.mysql.jdbc.Driver").newInstance();
-        } catch (ClassNotFoundException e) {
-            LOGGER.error("SQL Driver not found", e);
-        } catch (Exception e2) {
-            LOGGER.error("Error", e2);
-        }
-    }
-
     public static void main(String[] args) throws Exception {
 
         //Before anything else
@@ -219,8 +221,7 @@ public class FozConfig {
 
     @NotNull
     public static String setPassword(Password password) {
-        @SuppressWarnings("ConstantConditions") @NotNull
-        File file = null;
+        @NotNull File file;
         if (password == Password.normal) {
             file = new File("pass.bin");
         } else if (password == Password.twitch) {
@@ -233,6 +234,8 @@ public class FozConfig {
             file = new File("salt.bin");
         } else if (password == Password.ssh) {
             file = new File("ssh.bin");
+        } else {
+            throw new RuntimeException("Can't find file specified");
         }
         FileInputStream fin = null;
         String ret = " ";

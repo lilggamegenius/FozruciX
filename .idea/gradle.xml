@@ -7,13 +7,23 @@
         <option name="distributionType" value="LOCAL" />
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
         <option name="gradleHome" value="$USER_HOME$/Downloads/gradle-3.0" />
-        <option name="gradleJvm" value="#JAVA_HOME" />
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
           </set>
         </option>
-        <option name="resolveModulePerSourceSet" value="false" />
+        <option name="useAutoImport" value="true" />
+      </GradleProjectSettings>
+      <GradleProjectSettings>
+        <option name="createEmptyContentRootDirectories" value="true" />
+        <option name="distributionType" value="LOCAL" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$/../yandex-translator-java-api-master" />
+        <option name="gradleHome" value="$USER_HOME$/Downloads/gradle-3.0" />
+        <option name="modules">
+          <set>
+            <option value="$PROJECT_DIR$/../yandex-translator-java-api-master" />
+          </set>
+        </option>
         <option name="useAutoImport" value="true" />
       </GradleProjectSettings>
     </option>

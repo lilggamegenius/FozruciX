@@ -9,12 +9,14 @@ import static com.LilG.Com.utils.LilGUtil.randInt;
 
 /**
  * Created by ggonz on 10/30/2015.
+ * Dnd familiar - like a pet
  */
 public class DNDFamiliar {
     private final static int XPLevelDivider = DNDPlayer.XPLevelDivider;
     private final List<DNDPlayer.Items> inventory = new ArrayList<>();
-    //private final DNDPlayer owner;
+    private final DNDPlayer owner;
     private final DNDPlayer.DNDFamiliars species;
+    @SuppressWarnings("MismatchedReadAndWriteOfArray")
     private int[] stats = new int[DNDPlayer.DNDStats.values().length];
     private int maxHP = 100;
     private int HP = maxHP;
@@ -22,9 +24,9 @@ public class DNDFamiliar {
     private int level = 1;
     private String name;
 
-    DNDFamiliar(String name, /*DNDPlayer owner,*/ DNDPlayer.DNDFamiliars species) {
+    DNDFamiliar(String name, DNDPlayer owner, DNDPlayer.DNDFamiliars species) {
         this.name = name;
-        //this.owner = owner;
+        this.owner = owner;
         this.species = species;
     }
 

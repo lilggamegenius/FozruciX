@@ -1,11 +1,11 @@
 package com.LilG.Com.math;
 
 import com.fathzer.soft.javaluator.*;
+import org.apfloat.Apfloat;
+import org.apfloat.ApfloatMath;
 
-import java.math.BigDecimal;
-import java.math.MathContext;
+import java.math.RoundingMode;
 import java.text.NumberFormat;
-import java.text.ParsePosition;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Locale;
@@ -51,7 +51,7 @@ import java.util.Locale;
  * @author Jean-Marc Astesana
  * @see <a href="../../../license.html">License information</a>
  */
-public class ArbitraryPrecisionEvaluator extends AbstractEvaluator<BigDecimal> {
+public class ArbitraryPrecisionEvaluator extends AbstractEvaluator<Apfloat> {
     /**
      * A constant that represents pi (3.14159...)
      */
@@ -260,29 +260,19 @@ public class ArbitraryPrecisionEvaluator extends AbstractEvaluator<BigDecimal> {
     }
 
     @Override
-    protected BigDecimal toValue(String literal, Object evaluationContext) {
-        ParsePosition p = new ParsePosition(0);
-        Number result;
-        try {
-            result = FORMATTER.get().parse(Long.decode(literal) + "", p);
-        } catch (NumberFormatException ignored) {
-            result = FORMATTER.get().parse(literal, p);
-        }
-        if (p.getIndex() == 0 || p.getIndex() != literal.length()) {
-            throw new IllegalArgumentException(literal + " is not a number");
-        }
-        return BigDecimal.valueOf(result.doubleValue());
+    protected Apfloat toValue(String literal, Object evaluationContext) {
+        return new Apfloat(literal);
     }
 
     /* (non-Javadoc)
      * @see net.astesana.javaluator.AbstractEvaluator#evaluate(net.astesana.javaluator.Constant)
      */
     @Override
-    protected BigDecimal evaluate(Constant constant, Object evaluationContext) {
+    protected Apfloat evaluate(Constant constant, Object evaluationContext) {
         if (PI.equals(constant)) {
-            return BigDecimal.valueOf(Math.PI);
+            return new Apfloat(Math.PI);
         } else if (E.equals(constant)) {
-            return BigDecimal.valueOf(Math.E);
+            return new Apfloat(Math.E);
         } else {
             return super.evaluate(constant, evaluationContext);
         }
@@ -292,7 +282,7 @@ public class ArbitraryPrecisionEvaluator extends AbstractEvaluator<BigDecimal> {
      * @see net.astesana.javaluator.AbstractEvaluator#evaluate(net.astesana.javaluator.Operator, java.util.Iterator)
      */
     @Override
-    protected BigDecimal evaluate(Operator operator, Iterator<BigDecimal> operands, Object evaluationContext) {
+    protected Apfloat evaluate(Operator operator, Iterator<Apfloat> operands, Object evaluationContext) {
         if (NEGATE.equals(operator) || NEGATE_HIGH.equals(operator)) {
             return operands.next().negate();
         } else if (MINUS.equals(operator)) {
@@ -304,9 +294,9 @@ public class ArbitraryPrecisionEvaluator extends AbstractEvaluator<BigDecimal> {
         } else if (DIVIDE.equals(operator)) {
             return operands.next().divide(operands.next());
         } else if (EXPONENT.equals(operator)) {
-            return operands.next().pow(operands.next().intValueExact());
+            return ApfloatMath.pow(operands.next(),(operands.next()));
         } else if (MODULO.equals(operator)) {
-            return operands.next().remainder(operands.next());
+            return ApfloatMath.fmod(operands.next(),(operands.next()));
         } else {
             return super.evaluate(operator, operands, evaluationContext);
         }
@@ -316,63 +306,69 @@ public class ArbitraryPrecisionEvaluator extends AbstractEvaluator<BigDecimal> {
      * @see net.astesana.javaluator.AbstractEvaluator#evaluate(net.astesana.javaluator.Function, java.util.Iterator)
      */
     @Override
-    protected BigDecimal evaluate(Function function, Iterator<BigDecimal> arguments, Object evaluationContext) {
-        BigDecimal result;
+    protected Apfloat evaluate(Function function, Iterator<Apfloat> arguments, Object evaluationContext) {
+        Apfloat result;
         if (ABS.equals(function)) {
-            result = arguments.next().abs();
+            result = ApfloatMath.abs(arguments.next());
         } else if (CEIL.equals(function)) {
-            result = BigDecimal.valueOf(Math.ceil(arguments.next().doubleValue()));
+            result = arguments.next().ceil();
         } else if (FLOOR.equals(function)) {
-            result = BigDecimal.valueOf(Math.floor(arguments.next().doubleValue()));
+            result = arguments.next().floor();
         } else if (ROUND.equals(function)) {
-            result = arguments.next().round(MathContext.DECIMAL32);
+            result = ApfloatMath.round(arguments.next(),0, RoundingMode.UP);
         } else if (SINEH.equals(function)) {
-            result = BigDecimal.valueOf(Math.sinh(arguments.next().doubleValue()));
+            result = ApfloatMath.sinh(arguments.next());
         } else if (COSINEH.equals(function)) {
-            result = BigDecimal.valueOf(Math.cosh(arguments.next().doubleValue()));
+            result = ApfloatMath.cosh(arguments.next());
         } else if (TANGENTH.equals(function)) {
-            result = BigDecimal.valueOf(Math.tanh(arguments.next().doubleValue()));
+            result = ApfloatMath.tanh(arguments.next());
         } else if (SINE.equals(function)) {
-            result = BigDecimal.valueOf(Math.sin(arguments.next().doubleValue()));
+            result = ApfloatMath.sin(arguments.next());
         } else if (COSINE.equals(function)) {
-            result = BigDecimal.valueOf(Math.cos(arguments.next().doubleValue()));
+            result = ApfloatMath.cos(arguments.next());
         } else if (TANGENT.equals(function)) {
-            result = BigDecimal.valueOf(Math.tan(arguments.next().doubleValue()));
+            result = ApfloatMath.tan(arguments.next());
         } else if (ACOSINE.equals(function)) {
-            result = BigDecimal.valueOf(Math.acos(arguments.next().doubleValue()));
+            result = ApfloatMath.acos(arguments.next());
         } else if (ASINE.equals(function)) {
-            result = BigDecimal.valueOf(Math.asin(arguments.next().doubleValue()));
+            result = ApfloatMath.asin(arguments.next());
         } else if (ATAN.equals(function)) {
-            result = BigDecimal.valueOf(Math.atan(arguments.next().doubleValue()));
+            result = ApfloatMath.atan(arguments.next());
         } else if (MIN.equals(function)) {
             result = arguments.next();
             while (arguments.hasNext()) {
-                result = result.min(arguments.next());
+                Apfloat next = arguments.next();
+                if(result.compareTo(next) == 1) {
+                    result = next;
+                }
             }
         } else if (MAX.equals(function)) {
             result = arguments.next();
             while (arguments.hasNext()) {
-                result = result.min(arguments.next());
+                Apfloat next = arguments.next();
+                if(result.compareTo(next) == -1) {
+                    result = next;
+                }
             }
         } else if (SUM.equals(function)) {
-            result = BigDecimal.ZERO;
+            result = Apfloat.ZERO;
             while (arguments.hasNext()) {
                 result = result.add(arguments.next());
             }
         } else if (AVERAGE.equals(function)) {
-            result = BigDecimal.ZERO;
+            result = Apfloat.ZERO;
             int nb = 0;
             while (arguments.hasNext()) {
                 result = result.add(arguments.next());
                 nb++;
             }
-            result = result.divide(BigDecimal.valueOf(nb));
+            result = result.divide(new Apfloat(nb));
         } else if (LN.equals(function)) {
-            result = BigDecimal.valueOf(Math.log(arguments.next().doubleValue()));
+            result = ApfloatMath.log(arguments.next());
         } else if (LOG.equals(function)) {
-            result = BigDecimal.valueOf(Math.log10(arguments.next().doubleValue()));
+            result = ApfloatMath.log(arguments.next(), new Apfloat(10));
         } else if (RANDOM.equals(function)) {
-            result = BigDecimal.valueOf(Math.random());
+            result = new Apfloat(Math.random());
         } else {
             result = super.evaluate(function, arguments, evaluationContext);
         }
@@ -380,7 +376,7 @@ public class ArbitraryPrecisionEvaluator extends AbstractEvaluator<BigDecimal> {
         return result;
     }
 
-    private void errIfNaN(BigDecimal result, Function function) {
+    private void errIfNaN(Apfloat result, Function function) {
         if (result == null) {
             throw new IllegalArgumentException("Invalid argument passed to " + function.getName());
         }

@@ -3,6 +3,7 @@ package com.LilG.Com.CMD;
 import ch.qos.logback.classic.Level;
 import com.LilG.Com.FozruciX;
 import com.jcraft.jsch.*;
+import com.sun.jna.Platform;
 import org.jetbrains.annotations.NotNull;
 import org.pircbotx.hooks.events.MessageEvent;
 import org.pircbotx.hooks.types.GenericMessageEvent;
@@ -62,7 +63,7 @@ public class CommandLine extends Thread {
                 host = host.substring(host.indexOf('@') + 1);
                 try {
                     JSch ssh = new JSch();
-                    ssh.setKnownHosts("C:\\Users\\ggonz\\AppData\\Local\\lxss\\home\\lil-g\\.ssh\\known_hosts");
+                    ssh.setKnownHosts(Platform.isLinux() ? "~/.ssh/known_hosts" : "C:/Users/ggonz/AppData/Local/lxss/home/lil-g/.ssh/known_hosts");
                     sshSession = ssh.getSession(user, host, 22);
                     String passwd = JOptionPane.showInputDialog("Enter password");
                     sshSession.setPassword(passwd);
@@ -111,11 +112,12 @@ public class CommandLine extends Thread {
 
     public CommandLine() {
         LOGGER.setLevel(Level.ALL);
-        ProcessBuilder builder = new ProcessBuilder("cmd.exe");
+
+        ProcessBuilder builder = new ProcessBuilder(Platform.isLinux() ? "bash" : "cmd.exe");
         try {
             p = builder.start();
             p_stdin = new BufferedWriter(new OutputStreamWriter(p.getOutputStream()));
-            p_stdin.write("@echo off\n");
+            p_stdin.write(Platform.isLinux() ? "export PS1=''" : "@echo off\n");
             p_inputStream = new BufferedReader(new InputStreamReader(p.getInputStream()));
         } catch (Exception e) {
             e.printStackTrace();
@@ -180,6 +182,10 @@ public class CommandLine extends Thread {
                             }
                             LOGGER.info("Exiting output loop");
                             newCommand = false;
+                        } catch (NullPointerException e) {
+                            LOGGER.error("Error ", e);
+                            interrupt();
+                            break exitLoop;
                         } catch (InterruptedException e) {
                             interrupt();
                         } catch (Exception e) {
@@ -192,16 +198,21 @@ public class CommandLine extends Thread {
                 } catch (Exception e) {
                     sendError(event, e);
                 }
-            } else {
+            } else { //--------------- Main Waiting Loop ----------------------
                 try {
                     int count = 0;
                     while (p_inputStream.ready()) {
+                        //noinspection ResultOfMethodCallIgnored
                         p_inputStream.read();
                         count++;
                     }
                     if (count > 0) {
                         LOGGER.trace("Read " + count + " bytes");
                     }
+                } catch (NullPointerException e) {
+                    LOGGER.error("Error ", e);
+                    interrupt();
+                    break exitLoop;
                 } catch (Exception e) {
                     LOGGER.error("Error ", e);
                 }

@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" promptOnRemoteOverwrite="CHECK_TIMESTAMP" serverName="My Server" overwriteAll="false" traceLevel="DETAILS" autoUploadExternalChanges="true">
+  <component name="PublishConfigData">
     <serverData>
       <paths name="My Server">
         <serverdata>
           <mappings>
-            <mapping deploy="/home/lil-g/FozruciX" local="$PROJECT_DIR$" web="/" />
+            <mapping local="$PROJECT_DIR$" web="/" />
           </mappings>
         </serverdata>
       </paths>

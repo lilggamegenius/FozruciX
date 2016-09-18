@@ -2,14 +2,14 @@ package com.LilG.Com.DataClasses;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.io.Serializable;
 import java.util.Date;
 import java.util.UUID;
 
 /**
  * Created by ggonz on 10/31/2015.
+ * Note class - Stores a note from one user to another
  */
-public class Note implements Serializable {
+public class Note {
     private final String sender;
     private final String receiver;
     private final String message;

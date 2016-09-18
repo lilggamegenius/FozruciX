@@ -1,14 +1,16 @@
 #pragma once
 
 #include <cstdint>
+#include <stdint.h>
 
 
 #define ramSize (M68kAddr)0x10000
+// todo Add offsets to commands
 #define M68kRamOffset 0xE00000
 #define M68kRamOffsetMirror 0xFF0000
 
 #if defined(_MSC_VER)
-//  Microsoft 
+//  Microsoft
 #define EXPORT __declspec(dllexport)
 #define IMPORT __declspec(dllimport)
 #elif defined(__GNUC__)
@@ -49,7 +51,7 @@ typedef union{
 
 mem_union* ramStart;
 registers* dataRegisters[8]; // d0 - d7
-registers* addressRegisters[9];
+registers* addressRegisters[9]; // a0=a7, sp, usp
 uint32_t programCounter;
 
 enum Size{

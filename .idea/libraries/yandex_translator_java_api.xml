@@ -1,9 +1,0 @@
-<component name="libraryTable">
-  <library name="yandex-translator-java-api">
-    <CLASSES>
-      <root url="jar://$PROJECT_DIR$/out/artifacts/yandex_translator_java_api_jar/yandex-translator-java-api.jar!/" />
-    </CLASSES>
-    <JAVADOC />
-    <SOURCES />
-  </library>
-</component>
