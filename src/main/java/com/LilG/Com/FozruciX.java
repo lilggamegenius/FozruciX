@@ -2001,7 +2001,6 @@ public class FozruciX extends ListenerAdapter {
                     sendError(event, e);
                 }
                 addCooldown(event.getUser());
-
             }
 
 // !pix - shows everyone the real face
@@ -2024,7 +2023,6 @@ public class FozruciX extends ListenerAdapter {
                     sendMessage(event, avatar + " [Me]");
                 }
                 addCooldown(event.getUser());
-
             }
 
 // !Git - gets the link to source code

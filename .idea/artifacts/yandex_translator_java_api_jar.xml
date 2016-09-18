@@ -1,0 +1,10 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="yandex-translator-java-api:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/yandex_translator_java_api_jar</output-path>
+    <root id="archive" name="yandex-translator-java-api.jar">
+      <element id="directory" name="META-INF">
+        <element id="file-copy" path="$PROJECT_DIR$/../yandex-translator-java-api/META-INF/MANIFEST.MF" />
+      </element>
+    </root>
+  </artifact>
+</component>

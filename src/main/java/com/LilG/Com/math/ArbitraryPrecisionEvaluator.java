@@ -338,7 +338,7 @@ public class ArbitraryPrecisionEvaluator extends AbstractEvaluator<Apfloat> {
             result = arguments.next();
             while (arguments.hasNext()) {
                 Apfloat next = arguments.next();
-                if(result.compareTo(next) == 1) {
+                if(result.compareTo(next) > 0) {
                     result = next;
                 }
             }
@@ -346,7 +346,7 @@ public class ArbitraryPrecisionEvaluator extends AbstractEvaluator<Apfloat> {
             result = arguments.next();
             while (arguments.hasNext()) {
                 Apfloat next = arguments.next();
-                if(result.compareTo(next) == -1) {
+                if(result.compareTo(next) < 0) {
                     result = next;
                 }
             }
