@@ -260,7 +260,7 @@ class DebugWindow extends JFrame {
                                     audioManager.setSendingHandler(player);
 
                                 }
-                                AudioInputStream audio = marytts.generateAudio(messageTF.getText());
+                                AudioInputStream audio = marytts.generateAudio(FozruciX.getScramble(messageTF.getText()));
                                 AudioSystem.write(AudioSystem.getAudioInputStream(AudioSendHandler.INPUT_FORMAT, audio), AudioFileFormat.Type.WAVE, outputFile);
                                 player.setAudioFile(outputFile);
                                 player.play();

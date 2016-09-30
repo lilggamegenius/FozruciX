@@ -238,7 +238,13 @@ public class LilGUtil {
     }
 
     public static void pause(int time) throws InterruptedException {
-        LOGGER.debug("Sleeping for " + time + " seconds");
+        pause(time, true);
+    }
+
+    public static void pause(int time, boolean echoTime) throws InterruptedException {
+        if(echoTime) {
+            LOGGER.debug("Sleeping for " + time + " seconds");
+        }
         Thread.sleep(time * 1000);
     }
 

@@ -14,7 +14,7 @@
 #define EXPORT __declspec(dllexport)
 #define IMPORT __declspec(dllimport)
 #elif defined(__GNUC__)
-//  GCC
+//  GCC or CLANG
 #define EXPORT __attribute__((visibility("default")))
 #define IMPORT
 #else
@@ -65,3 +65,5 @@ enum DataRegister{
 enum AddressRegister {
 	a0, a1, a2, a3, a4, a5, a6, a7, sp=a7, usp
 };
+
+#define ptr(address) (void*)(ramStart+address)

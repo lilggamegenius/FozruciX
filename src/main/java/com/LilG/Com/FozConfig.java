@@ -28,9 +28,9 @@ public class FozConfig {
     public final static String esper = "irc.esper.net";
     public final static String nova = "irc.novasquirrel.com";
     //Configure what we want our bot to do
-    private final static String nick = "FozruciX";
-    private final static String login = "SmugLeaf";
-    private final static String realName = "\u00034\u000F* What can I do for you, little buddy?";
+    public final static String nick = "FozruciX";
+    public final static String login = "SmugLeaf";
+    public final static String realName = "\u00034\u000F* What can I do for you, little buddy?";
     private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(FozConfig.class);
     transient final static String PASSWORD = setPassword(Password.normal);
     private final static int attempts = Integer.MAX_VALUE;
@@ -38,7 +38,7 @@ public class FozConfig {
     //Create our bot with the configuration
     private final static File bak = new File("Data/DataBak.xml");
     private final static File saveFile = new File("Data/Data.xml");
-    private final static MultiBotManager manager = new MultiBotManager();
+    public final static MultiBotManager manager = new MultiBotManager();
     private final static SaveDataStore save = loadData(new XStream());
 
     static {
