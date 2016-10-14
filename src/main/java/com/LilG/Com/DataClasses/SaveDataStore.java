@@ -32,10 +32,14 @@ public class SaveDataStore {
     @NotNull
     private ConcurrentHashMap<String, String> checkJoinsAndQuits = new ConcurrentHashMap<>();
     @NotNull
+    private LinkedList<String> mutedServerList = new LinkedList<>();
+
+    @NotNull
     private ConcurrentHashMap<String, LinkedList<String>> markovChain = new ConcurrentHashMap<>();
 
 
-    public SaveDataStore(@NotNull LinkedList<String> authedUser, @NotNull LinkedList<Integer> authedUserLevel, @NotNull LinkedList<String> DNDJoined, @NotNull LinkedList<DNDPlayer> DNDList, @NotNull LinkedList<Note> noteList, @NotNull String avatarLink, @NotNull TreeMap<String, Meme> memes, @NotNull TreeMap<String, String> FCList, @NotNull ConcurrentHashMap<String, @NotNull LinkedList<String>> markovChain, @NotNull HashMap<String, HashMap<String, ArrayList<String>>> allowedCommands, ConcurrentHashMap<String, String> checkJoinsAndQuits) {
+
+    public SaveDataStore(@NotNull LinkedList<String> authedUser, @NotNull LinkedList<Integer> authedUserLevel, @NotNull LinkedList<String> DNDJoined, @NotNull LinkedList<DNDPlayer> DNDList, @NotNull LinkedList<Note> noteList, @NotNull String avatarLink, @NotNull TreeMap<String, Meme> memes, @NotNull TreeMap<String, String> FCList, @NotNull ConcurrentHashMap<String, @NotNull LinkedList<String>> markovChain, @NotNull HashMap<String, HashMap<String, ArrayList<String>>> allowedCommands, @NotNull ConcurrentHashMap<String, String> checkJoinsAndQuits, @NotNull LinkedList<String> mutedServerList) {
         if (authedUser != null)
             this.authedUser = authedUser;
         if (authedUserLevel != null)
@@ -58,6 +62,8 @@ public class SaveDataStore {
             this.allowedCommands = allowedCommands;
         if (checkJoinsAndQuits != null)
             this.checkJoinsAndQuits = checkJoinsAndQuits;
+        if (mutedServerList != null)
+            this.mutedServerList = mutedServerList;
     }
 
     @NotNull
@@ -142,5 +148,12 @@ public class SaveDataStore {
             checkJoinsAndQuits.put("191548246332538880", "214906329498648576");
         }
         return checkJoinsAndQuits;
+    }
+
+    public LinkedList<String> getMutedServerList() {
+        if(mutedServerList.isEmpty()){
+            mutedServerList.add("110373943822540800");
+        }
+        return mutedServerList;
     }
 }

@@ -1,11 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData">
+  <component name="PublishConfigData" serverName="My Server">
     <serverData>
       <paths name="My Server">
         <serverdata>
           <mappings>
-            <mapping local="$PROJECT_DIR$" web="/" />
+            <mapping deploy="/home/lil-g/FozruciX" local="$PROJECT_DIR$" web="../../../home/lil-g/FozruciX" />
+            <mapping deploy="/home/lil-g/yandex-translator-java-api" local="$PROJECT_DIR$/../yandex-translator-java-api" web="../../../home/lil-g/yandex-translator-java-api" />
+            <mapping deploy="/home/lil-g/FozruciX/src/main" local="$PROJECT_DIR$/src/main" web="../../../home/lil-g/FozruciX/src/main" />
+            <mapping deploy="/home/lil-g/yandex-translator-java-api\src\main" local="$PROJECT_DIR$/../yandex-translator-java-api/src/main" web="../../../home/lil-g/yandex-translator-java-api/src/main" />
+            <mapping deploy="/home/lil-g/FozruciX/src/test" local="$PROJECT_DIR$/src/test" web="../../../home/lil-g/FozruciX/src/test" />
+            <mapping deploy="/home/lil-g/yandex-translator-java-api\src\test" local="$PROJECT_DIR$/../yandex-translator-java-api/src/test" web="../../../home/lil-g/yandex-translator-java-api/src/test" />
           </mappings>
         </serverdata>
       </paths>

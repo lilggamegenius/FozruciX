@@ -15,7 +15,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.pircbotx.Channel;
 import org.pircbotx.PircBotX;
+import org.pircbotx.Utils;
 import org.pircbotx.hooks.events.ConnectEvent;
+import org.pircbotx.hooks.events.OutputEvent;
 import org.slf4j.LoggerFactory;
 
 import javax.sound.sampled.AudioFileFormat;
@@ -63,8 +65,10 @@ class DebugWindow extends JFrame {
     private final JTextField memoryUsageTF = new JTextField(10);
     @NotNull
     private final JTextField messageTF;
-    @Nullable
+    @NotNull
     private PircBotX bot;
+    @NotNull
+    private FozruciX fozruciX;
     @NotNull
     private FozruciX.Network network;
     @Nullable
@@ -83,7 +87,8 @@ class DebugWindow extends JFrame {
 
     private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(DebugWindow.class);
 
-    DebugWindow(@NotNull ConnectEvent event, @NotNull FozruciX.Network network) {
+    DebugWindow(@NotNull ConnectEvent event, @NotNull FozruciX.Network network, @NotNull FozruciX fozruciX) {
+        this.fozruciX = fozruciX;
         this.bot = event.getBot();
         this.network = network;
         JLabel currentNickL, lastMessageL, currDML, myPlayerNameL, myPlayerHPL, myPlayerXPL, myFamiliarL, myFamiliarHPL, myFamiliarXPL, memoryUsageL;
@@ -241,7 +246,14 @@ class DebugWindow extends JFrame {
                 if (guild.getName().equalsIgnoreCase(guildName)) {
                     for (TextChannel textChannel : guild.getTextChannels()) {
                         if (textChannel.getName().equalsIgnoreCase(channel) && !selectedChannel.contains(": v#")) {
-                            textChannel.sendMessage(FozruciX.getScramble(messageTF.getText()));
+                            String messageToSend = FozruciX.getScramble(messageTF.getText());
+                            textChannel.sendMessage(messageToSend);
+                            try {
+                                messageToSend = "PRIVMSG #" + textChannel.getName() + " :" + messageToSend;
+                                fozruciX.onOutput(new OutputEvent(bot, messageToSend, Utils.tokenizeLine(messageToSend)));
+                            }catch(Exception e) {
+                                LOGGER.error("Error sending output event", e);
+                            }
                             break exitLoop;
                         }
                     }

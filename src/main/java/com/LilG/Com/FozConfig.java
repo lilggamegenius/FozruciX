@@ -3,6 +3,10 @@ package com.LilG.Com;
 import ch.qos.logback.classic.Logger;
 import com.LilG.Com.DataClasses.SaveDataStore;
 import com.LilG.Com.utils.CryptoUtil;
+import com.rmtheis.yandtran.ApiKeys;
+import com.rmtheis.yandtran.YandexTranslatorAPI;
+import com.rmtheis.yandtran.detect.Detect;
+import com.rmtheis.yandtran.translate.Translate;
 import com.thoughtworks.xstream.XStream;
 import org.jetbrains.annotations.NotNull;
 import org.pircbotx.Configuration;
@@ -27,10 +31,12 @@ public class FozConfig {
     public final static String caffie = "irc.caffie.net";
     public final static String esper = "irc.esper.net";
     public final static String nova = "irc.novasquirrel.com";
+    public final static String rizon = "irc.rizon.io";
     //Configure what we want our bot to do
     public final static String nick = "FozruciX";
     public final static String login = "SmugLeaf";
-    public final static String realName = "\u00034\u000F* What can I do for you, little buddy?";
+    public final static String kvircFlags = "\u00034\u000F";
+    public final static String realName = kvircFlags + "* Why do i always get the freaks...";
     private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(FozConfig.class);
     transient final static String PASSWORD = setPassword(Password.normal);
     private final static int attempts = Integer.MAX_VALUE;
@@ -130,7 +136,6 @@ public class FozConfig {
             .addAutoJoinChannel("#pokemon")
             .addAutoJoinChannel("#retrotech")
             .addAutoJoinChannel("#SSB")
-            .addAutoJoinChannel("#origami64")
             .addAutoJoinChannel("#idkwtf")
             .addListener(new FozruciX(manager, save)); //Add our listener that will be called on Events
     public final static Configuration.Builder normalSmwc = new Configuration.Builder()
@@ -196,11 +201,45 @@ public class FozConfig {
             //.setIdentServerEnabled(true)
             .addListener(new FozruciX(manager, save)); //Add our listener that will be called on Events
 
+    public final static Configuration.Builder normalRizon = new Configuration.Builder()
+            .setAutoReconnectDelay(connectDelay)
+            .setEncoding(Charset.forName("UTF-8"))
+            .setAutoReconnect(true)
+            .setAutoReconnectAttempts(attempts)
+            .setNickservPassword(CryptoUtil.decrypt(PASSWORD))
+            .setName(nick) //Set the nick of the bot.
+            .setLogin(login)
+            .setRealName(realName)
+            .setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates())
+            .addAutoJoinChannel("#origami64")
+            .addAutoJoinChannel("#FozruciX")
+            //.setIdentServerEnabled(true)
+            .addListener(new FozruciX(manager, save)); //Add our listener that will be called on Events
+
+    public final static Configuration.Builder debugConfigRizon = new Configuration.Builder()
+            .setAutoReconnectDelay(connectDelay)
+            .setEncoding(Charset.forName("UTF-8"))
+            .setAutoReconnect(true)
+            .setAutoReconnectAttempts(attempts)
+            .setNickservPassword(CryptoUtil.decrypt(PASSWORD))
+            .setName(nick) //Set the nick of the bot.
+            .setLogin(login)
+            .setRealName(realName)
+            .setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates())
+            .addAutoJoinChannel("#FozruciX")
+            //.setIdentServerEnabled(true)
+            .addListener(new FozruciX(manager, save)); //Add our listener that will be called on Events
+
+
+
     public static void main(String[] args) throws Exception {
 
         //Before anything else
         //IdentServer.startServer();
-
+        LOGGER.debug("Setting key");
+        YandexTranslatorAPI.setKey(ApiKeys.YANDEX_API_KEY);
+        Translate.setKey(ApiKeys.YANDEX_API_KEY);
+        Detect.setKey(ApiKeys.YANDEX_API_KEY);
 
         if (debug) {
             manager.addBot(debugConfig.buildForServer(badnik, 6697));
@@ -208,12 +247,14 @@ public class FozConfig {
             manager.addBot(debugConfigEsper.buildForServer(esper, 6697));
             //manager.addBot(twitchDebug.buildForServer(twitch, 6667, CryptoUtil.decrypt(setPassword(Password.twitch))));
             manager.addBot(debugConfigNova.buildForServer(nova, 6697));
+            manager.addBot(debugConfigRizon.buildForServer(rizon, 9999));
         } else {
             manager.addBot(normal.buildForServer(badnik, 6697));
             manager.addBot(normalSmwc.buildForServer(caffie, 6697));
             manager.addBot(normalEsper.buildForServer(esper, 6697));
             //manager.addBot(twitchNormal.buildForServer(twitch, 6667, CryptoUtil.decrypt(setPassword(Password.twitch))));
             manager.addBot(normalNova.buildForServer(nova, 6697));
+            manager.addBot(normalRizon.buildForServer(rizon, 9999));
         }
         //Connect to the server
         manager.start();
@@ -287,7 +328,7 @@ public class FozConfig {
             LOGGER.info("Attempting to load data");
             SaveDataStore save = (SaveDataStore) xstream.fromXML(br);
             if (save == null) throw new FileNotFoundException("Couldn't find save data");
-            save = new SaveDataStore(save.getAuthedUser(), save.getAuthedUserLevel(), save.getDNDJoined(), save.getDNDList(), save.getNoteList(), save.getAvatarLink(), save.getMemes(), save.getFCList(), save.getMarkovChain(), save.getAllowedCommands(), save.getCheckJoinsAndQuits());
+            save = new SaveDataStore(save.getAuthedUser(), save.getAuthedUserLevel(), save.getDNDJoined(), save.getDNDList(), save.getNoteList(), save.getAvatarLink(), save.getMemes(), save.getFCList(), save.getMarkovChain(), save.getAllowedCommands(), save.getCheckJoinsAndQuits(), save.getMutedServerList());
             LOGGER.info("Loaded data");
             return save;
         } catch (Exception e) {
@@ -304,6 +345,7 @@ public class FozConfig {
             LOGGER.error("Couldn't save data", e);
         }
         Files.move(bak.toPath(), saveFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        LOGGER.info("Data saved");
     }
 
     public static MultiBotManager getManager() {

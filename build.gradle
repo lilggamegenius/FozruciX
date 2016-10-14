@@ -66,8 +66,8 @@ dependencies {
 
     compile files('lib/WolframAlphaJavaLibrary/WolframAlpha-1.1.jar')
 
-    compile files('/home/lil-g/Downloads/idea-IU-162.2032.8/redist/annotations-java8.jar')
-    //compile files('C:\\Program Files (x86)\\JetBrains\\IntelliJ IDEA 2016.2.3\\redist\\annotations-java8.jar')
+    //compile files('/home/lil-g/Downloads/idea-IU-162.2032.8/redist/annotations-java8.jar')
+    compile files('C:\\Program Files (x86)\\JetBrains\\IntelliJ IDEA 2016.2.3\\redist\\annotations-java8.jar')
 
-    //compile project('yandex-translator-java-api')
+    //compile project('yandex-translator-java-api_main')
 }

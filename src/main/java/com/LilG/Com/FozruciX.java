@@ -8,6 +8,7 @@ import com.LilG.Com.DND.DNDPlayer;
 import com.LilG.Com.DND.Dungeon;
 import com.LilG.Com.DataClasses.Meme;
 import com.LilG.Com.DataClasses.Note;
+import com.LilG.Com.DataClasses.PlusM;
 import com.LilG.Com.DataClasses.SaveDataStore;
 import com.LilG.Com.m68k.M68kSim;
 import com.LilG.Com.math.ArbitraryPrecisionEvaluator;
@@ -20,10 +21,12 @@ import com.google.code.chatterbotapi.ChatterBotSession;
 import com.google.code.chatterbotapi.ChatterBotType;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.jcraft.jsch.*;
+import com.jcraft.jsch.ChannelSftp;
+import com.jcraft.jsch.JSch;
+import com.jcraft.jsch.Session;
+import com.jcraft.jsch.UserInfo;
 import com.joestelmach.natty.DateGroup;
 import com.joestelmach.natty.Parser;
-import com.rmtheis.yandtran.YandexTranslatorAPI;
 import com.rmtheis.yandtran.detect.Detect;
 import com.rmtheis.yandtran.language.Language;
 import com.rmtheis.yandtran.translate.Translate;
@@ -41,16 +44,14 @@ import jdk.nashorn.api.scripting.ClassFilter;
 import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
 import net.dv8tion.jda.MessageBuilder;
 import net.dv8tion.jda.Permission;
-import net.dv8tion.jda.entities.Guild;
-import net.dv8tion.jda.entities.Role;
-import net.dv8tion.jda.entities.TextChannel;
+import net.dv8tion.jda.entities.*;
 import net.dv8tion.jda.events.guild.member.GuildMemberBanEvent;
+import net.dv8tion.jda.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.managers.GuildManager;
 import net.dv8tion.jda.managers.PermissionOverrideManager;
 import net.sourceforge.argparse4j.ArgumentParsers;
 import net.sourceforge.argparse4j.impl.Arguments;
-import net.sourceforge.argparse4j.inf.ArgumentParser;
-import net.sourceforge.argparse4j.inf.ArgumentParserException;
-import net.sourceforge.argparse4j.inf.Namespace;
+import net.sourceforge.argparse4j.inf.*;
 import org.apache.commons.lang.time.StopWatch;
 import org.apache.commons.lang3.StringUtils;
 import org.apfloat.Apfloat;
@@ -59,8 +60,9 @@ import org.jetbrains.annotations.Nullable;
 import org.jsoup.Jsoup;
 import org.jsoup.UnsupportedMimeTypeException;
 import org.jsoup.nodes.Document;
-import org.pircbotx.Channel;
 import org.pircbotx.*;
+import org.pircbotx.Channel;
+import org.pircbotx.User;
 import org.pircbotx.hooks.Event;
 import org.pircbotx.hooks.ListenerAdapter;
 import org.pircbotx.hooks.events.*;
@@ -93,7 +95,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.Date;
 import java.util.List;
-import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -108,6 +109,9 @@ import static com.citumpe.ctpTools.jWMI.getWMIValue;
  */
 public class FozruciX extends ListenerAdapter {
     public final static float VERSION = 2.2f;
+    public final static String[] DICTIONARY = {"i don't know what \"%s\" is, do i look like a DICTIONARY?", "Go look it up yourself.", "Why not use your computer and look \"%s\" up.", "Google it.", "Nope.", "Get someone else to do it.", "Why not get that " + Colors.RED + "Other bot" + Colors.NORMAL + " to do it?", "There appears to be a error between your " + Colors.BOLD + "seat" + Colors.NORMAL + " and the " + Colors.BOLD + "Keyboard" + Colors.NORMAL + " >_>", "Uh oh, there appears to be a User error.", "error: Fuck count too low, Cannot give Fuck.", ">_>"};
+    public final static String[] LIST_OF_NOES = {" It’s not a priority for me at this time.", "I’d rather stick needles in my eyes.", "My schedule is up in the air right now. SEE IT WAFTING GENTLY DOWN THE CORRIDOR.", "I don’t love it, which means I’m not the right person for it.", "I would prefer another option.", "I would be the absolute worst person to execute, are you on crack?!", "Life is too short TO DO THINGS YOU don’t LOVE.", "I no longer do things that make me want to kill myself", "You should do this yourself, you would be awesome sauce.", "I would love to say yes to everything, but that would be stupid", "Fuck no.", "Some things have come up that need my attention.", "There is a person who totally kicks ass at this. I AM NOT THAT PERSON.", "Shoot me now...", "It would cause the slow withering death of my soul.", "I’d rather remove my own gallbladder with an oyster fork.", "I'd love to but I did my own thing and now I've got to undo it."};
+    public final static String[] COMMANDS = {"COMMANDS", " Time", " calcj", " randomNum", " StringToBytes", " Chat", " Temp", " BlockConv", " Hello", " Bot", " GetName", " recycle", " Login", " GetLogin", " GetID", " GetSate", " prefix", " SayThis", " ToSciNo", " Trans", " DebugVar", " cmd", " SayRaw", " SayCTCPCommnad", " Leave", " Respawn", " Kill", " ChangeNick", " SayAction", " NoteJ", "Memes", " jToggle", " Joke: Splatoon", "Joke: Attempt", " Joke: potato", " Joke: whatIs?", "Joke: getFinger", " Joke: GayDar"};
     private final static File WIKTIONARY_DIRECTORY = new File("Data/Wiktionary");
     private final static int JOKE_COMMANDS = 0;
     private final static int ARRAY_OFFSET_SET = 1;
@@ -119,9 +123,6 @@ public class FozruciX extends ListenerAdapter {
     private final static int RESPOND_TO_PMS = 7;
     private final static int DATA_LOADED = 8;
     private final static int CHECK_LINKS = 9;
-    public final static String[] DICTIONARY = {"i don't know what \"%s\" is, do i look like a DICTIONARY?", "Go look it up yourself.", "Why not use your computer and look \"%s\" up.", "Google it.", "Nope.", "Get someone else to do it.", "Why not get that " + Colors.RED + "Other bot" + Colors.NORMAL + " to do it?", "There appears to be a error between your " + Colors.BOLD + "seat" + Colors.NORMAL + " and the " + Colors.BOLD + "Keyboard" + Colors.NORMAL + " >_>", "Uh oh, there appears to be a User error.", "error: Fuck count too low, Cannot give Fuck.", ">_>"};
-    public final static String[] LIST_OF_NOES = {" It’s not a priority for me at this time.", "I’d rather stick needles in my eyes.", "My schedule is up in the air right now. SEE IT WAFTING GENTLY DOWN THE CORRIDOR.", "I don’t love it, which means I’m not the right person for it.", "I would prefer another option.", "I would be the absolute worst person to execute, are you on crack?!", "Life is too short TO DO THINGS YOU don’t LOVE.", "I no longer do things that make me want to kill myself", "You should do this yourself, you would be awesome sauce.", "I would love to say yes to everything, but that would be stupid", "Fuck no.", "Some things have come up that need my attention.", "There is a person who totally kicks ass at this. I AM NOT THAT PERSON.", "Shoot me now...", "It would cause the slow withering death of my soul.", "I’d rather remove my own gallbladder with an oyster fork.", "I'd love to but I did my own thing and now I've got to undo it."};
-    public final static String[] COMMANDS = {"COMMANDS", " Time", " calcj", " randomNum", " StringToBytes", " Chat", " Temp", " BlockConv", " Hello", " Bot", " GetName", " recycle", " Login", " GetLogin", " GetID", " GetSate", " prefix", " SayThis", " ToSciNo", " Trans", " DebugVar", " cmd", " SayRaw", " SayCTCPCommnad", " Leave", " Respawn", " Kill", " ChangeNick", " SayAction", " NoteJ", "Memes", " jToggle", " Joke: Splatoon", "Joke: Attempt", " Joke: potato", " Joke: whatIs?", "Joke: getFinger", " Joke: GayDar"};
     private final static ChatterBotFactory BOT_FACTORY = new ChatterBotFactory();
     private final static ArbitraryPrecisionEvaluator EVALUATOR = new ArbitraryPrecisionEvaluator();
     private final static StaticVariableSet<Double> VARIABLE_SET = new StaticVariableSet<>();
@@ -130,6 +131,7 @@ public class FozruciX extends ListenerAdapter {
     private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(FozruciX.class);
     private final static XStream xstream = new XStream();
     private final static BitSet BOOLS = new BitSet(10); // true, false, null, null, null, false, true, true, false, false
+    private static final String JNI_PATH = "JNIThing";
     public static volatile ConcurrentHashMap<String, LinkedList<String>> markovChain = null;
     @NotNull
     private static volatile Random rnd = new Random();
@@ -140,6 +142,7 @@ public class FozruciX extends ListenerAdapter {
     private static volatile String lastLinkTitle = "";
     @Nullable
     private static volatile CMD singleCMD = null;
+    //------------- save data -----------------------------------
     private static volatile LinkedList<Note> noteList = null;
     private static volatile LinkedList<String> authedUser = null;
     private static volatile LinkedList<Integer> authedUserLevel = null;
@@ -147,6 +150,8 @@ public class FozruciX extends ListenerAdapter {
     private static volatile LinkedList<DNDPlayer> DNDList = null;
     private static volatile HashMap<String, HashMap<String, ArrayList<String>>> allowedCommands = null;
     private static volatile ConcurrentHashMap<String, String> checkJoinsAndQuits = null;
+    private static volatile LinkedList<String> mutedServerList = null;
+    //-----------------------------------------------------------
     @NotNull
     private static volatile Dungeon DNDDungeon = new Dungeon();
     @NotNull
@@ -180,18 +185,20 @@ public class FozruciX extends ListenerAdapter {
     private static volatile DiscordAdapter discord;
     private static volatile boolean updateAvatar = false;
     private static volatile int saveTime = 20;
-    private static final String JNI_PATH = "JNIThing";
-    private static volatile M68kSim m68k = (M68kSim) Native.loadLibrary(JNI_PATH, M68kSim.class);
+    private static volatile M68kSim m68k = null;
+
     static {
-        System.out.println(m68k);
         try {
+            m68k = (M68kSim) Native.loadLibrary(JNI_PATH, M68kSim.class);
+            System.out.println(m68k);
             m68k.start();
             Runtime.getRuntime().addShutdownHook(new Thread(m68k::exit, "Shutdown-thread"));
         } catch (UnsatisfiedLinkError e) {
             LOGGER.error("JNA Error", e);
-            System.exit(0);
+
         }
     }
+
     public final Network network;
     @NotNull
     private String prefix = "!";
@@ -236,7 +243,7 @@ public class FozruciX extends ListenerAdapter {
 
     @NotNull
     static String getScramble(@NotNull String msgToSend, boolean replaceNewLines) {
-         if (replaceNewLines && (msgToSend.contains("\r") || msgToSend.contains("\n"))) {
+        if (replaceNewLines && (msgToSend.contains("\r") || msgToSend.contains("\n"))) {
             msgToSend = msgToSend.replace("\r", "").replace("\n", "");
         }
         if (messageMode == MessageModes.reversed) {
@@ -499,6 +506,10 @@ public class FozruciX extends ListenerAdapter {
         log(event, null);
     }
 
+    private static void log(Event event, boolean botTalking) {
+        log(event, null, botTalking);
+    }
+
     private static void log(Event event, String messageOverride) {
         log(event, messageOverride, false);
     }
@@ -565,9 +576,56 @@ public class FozruciX extends ListenerAdapter {
             eventType = EventType.quit;
         }
         if (event instanceof KickEvent) {
+            channel.add(((KickEvent) event).getChannel().getName());
             user = ((KickEvent) event).getRecipient().getHostmask();
             message = "Kicked " + network + " by " + ((KickEvent) event).getUser().getHostmask() + "(" + ((KickEvent) event).getReason() + ")";
             eventType = EventType.part;
+        }
+        if (event instanceof OutputEvent) {
+            botTalking = true;
+            List<String> lines = ((OutputEvent) event).getLineParsed();
+            switch (lines.get(0)) {
+                case "PRIVMSG":
+                    eventType = EventType.message;
+                    break;
+                case "ACTION":
+                    eventType = EventType.action;
+                    break;
+                case "NOTICE":
+                    eventType = EventType.notice;
+                    break;
+                case "JOIN":
+                    eventType = EventType.join;
+                    break;
+                case "PONG":
+                    return;
+            }
+            if (lines.get(1).contains("#")) {
+                channel.add(lines.get(1));
+            } else {
+                if (event.getBot() == DiscordAdapter.pircBotX) {
+                    for (Guild guild : DiscordAdapter.getJda().getGuilds()) {
+                        for (net.dv8tion.jda.entities.User discordUser : guild.getUsers()) {
+                            String nick = guild.getNicknameForUser(discordUser);
+                            if (nick == null) {
+                                nick = discordUser.getUsername();
+                            }
+                            if (nick.equals(lines.get(1))) {
+                                channel.add(nick + "!" + discordUser.getUsername() + "@" + discordUser.getId());
+                            }
+                        }
+                    }
+                } else {
+                    for (org.pircbotx.Channel aChannel : event.getBot().getUserBot().getChannels()) {
+                        for (User aUser : aChannel.getUsers()) {
+                            if (aUser.getNick().equals(lines.get(1))) {
+                                channel.add(aUser.getHostmask());
+                            }
+                        }
+                    }
+                }
+            }
+            message = lines.get(2);
         }
         if (botTalking) {
             user = event.getBot().getUserBot().getHostmask();
@@ -592,14 +650,14 @@ public class FozruciX extends ListenerAdapter {
                 if (!parentDir.mkdirs() && !parentDir.exists()) {
                     LOGGER.error("Couldn't make dirs");
                 }
-                path = String.format("%02d", (int)(today[Calendar.MONTH] + 1)) + "." + String.format("%02d", (int)today[Calendar.DATE]) + ".txt";
+                path = String.format("%02d", (int) (today[Calendar.MONTH] + 1)) + "." + String.format("%02d", (int) today[Calendar.DATE]) + ".txt";
                 File file = new File(parent, path);
-                String minute = String.format("%02d", (int)today[Calendar.MINUTE]);
+                String minute = String.format("%02d", (int) today[Calendar.MINUTE]);
                 if (minute.length() < 2) {
                     minute = "0" + minute;
                 }
                 PrintWriter out;
-                String logFile = String.format("%02d", (int)today[Calendar.HOUR]) + ":" + minute + ":" + String.format("%02d", (int)today[Calendar.SECOND]) + String.format("%1$" + 12 + "s", String.format(eventType.getVal(), user) + message);
+                String logFile = String.format("%02d", (int) today[Calendar.HOUR]) + ":" + minute + ":" + String.format("%02d", (int) today[Calendar.SECOND]) + String.format("%1$" + 12 + "s", String.format(eventType.getVal(), user) + message);
                 if (file.exists() && !file.isDirectory()) {
                     out = new PrintWriter(new FileOutputStream(file, true));
                     out.append(logFile).append(System.lineSeparator());
@@ -697,19 +755,6 @@ public class FozruciX extends ListenerAdapter {
         e.printStackTrace();
     }
 
-    private void sendCommandHelp(GenericEvent event, ArgumentParser parser, ArgumentParserException e){
-        try {
-            StringWriter stringWriter = new StringWriter();
-            PrintWriter writer = new PrintWriter(stringWriter);
-            parser.printHelp(writer);
-            String content = stringWriter.toString();
-            LOGGER.debug(content);
-            sendNotice(event, content, false);
-        } catch (Exception ex) {
-            LOGGER.error("Error sending comand help", ex);
-        }
-    }
-
     private static boolean checkChatFunction(String args, String function) {
         return wildCardMatch(args, "[$" + function + "(*)]");
     }
@@ -717,6 +762,19 @@ public class FozruciX extends ListenerAdapter {
     private static String[] getChatArgs(String function) {
         String args = function.substring(function.indexOf('(') + 1, function.indexOf(')'));
         return args.split(",");
+    }
+
+    private void sendCommandHelp(GenericEvent event, ArgumentParser parser, ArgumentParserException e) {
+        try {
+            StringWriter stringWriter = new StringWriter();
+            PrintWriter writer = new PrintWriter(stringWriter);
+            parser.printHelp(writer);
+            String content = stringWriter.toString();
+            LOGGER.debug(content);
+            sendNotice(event, "```" + content + "```", false);
+        } catch (Exception ex) {
+            LOGGER.error("Error sending command help", ex);
+        }
     }
 
     private void removeFromCooldown() {
@@ -754,15 +812,15 @@ public class FozruciX extends ListenerAdapter {
         if (network == Network.discord) {
             sendPrivateMessage(event, userToSendTo, msgToSend, replaceNewLines);
         } else {
-            for(String messagePart : msgToSend.split("\n")) {
-                if(!messagePart.isEmpty()) {
+            for (String messagePart : msgToSend.split("\n")) {
+                if (!messagePart.isEmpty()) {
                     event.getBot().send().notice(userToSendTo, messagePart);
                 }
             }
         }
     }
 
-    private synchronized void sendNotice(@NotNull String userToSendTo, @NotNull String msgToSend){
+    private synchronized void sendNotice(@NotNull String userToSendTo, @NotNull String msgToSend) {
         if (network == Network.discord || network == Network.twitch) {
             throw new RuntimeException("Not enough info to send to " + network);
         }
@@ -807,7 +865,7 @@ public class FozruciX extends ListenerAdapter {
 
     private synchronized void makeDebug(@NotNull ConnectEvent event) {
         LOGGER.debug("Creating Debug window");
-        debug = new DebugWindow(event, network);
+        debug = new DebugWindow(event, network, this);
         LOGGER.debug("Debug window created");
         debug.setCurrentNick(currentUser.getHostmask());
     }
@@ -834,9 +892,9 @@ public class FozruciX extends ListenerAdapter {
     public synchronized void onConnect(@NotNull ConnectEvent event) {
         bot = event.getBot();
         bot.sendIRC().mode(bot.getNick(), "+BI");
-        if(event instanceof DiscordConnectEvent){
+        if (event instanceof DiscordConnectEvent) {
             currentUser = new DiscordUser(new DiscordUserHostmask(bot, event.getBot().getUserBot().getHostmask()), DiscordAdapter.getJda().getSelfInfo(), null);
-        }else {
+        } else {
             currentUser = event.getBot().getUserBot();
         }
 
@@ -845,11 +903,13 @@ public class FozruciX extends ListenerAdapter {
         makeDebug(event);
         makeDiscord();
         new Thread(() -> {
-            while(!Thread.interrupted()) {
+            while (!Thread.interrupted()) {
                 try {
-                    LilGUtil.pause(saveTime, false);
+                    int numberOfBots = manager.getBots().size();
+                    LilGUtil.pause(saveTime * numberOfBots + LilGUtil.randInt(0, saveTime), false);
                     saveData();
-                } catch (Exception ignored) {}
+                } catch (Exception ignored) {
+                }
             }
         }).start();
         /*boolean drawDungeon = false;
@@ -979,12 +1039,16 @@ public class FozruciX extends ListenerAdapter {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        if (event.getMessage() != null) {
-            doCommand(event);
-        }
         debug.setCurrentNick(currentUser.getHostmask());
         debug.setCurrDM(DNDDungeonMaster);
         debug.setMessage(event.getUser().getNick() + ": " + event.getMessage());
+        String server = network == Network.discord ? ((DiscordMessageEvent) event).getDiscordEvent().getGuild().getId() : event.getBot().getServerHostname();
+        if (mutedServerList.contains(server) && !checkPerm(event.getUser(), 9001)) {
+            return;
+        }
+        if (event.getMessage() != null) {
+            doCommand(event);
+        }
 
 // url checker - Checks if string contains a url and parses
         try {
@@ -998,7 +1062,9 @@ public class FozruciX extends ListenerAdapter {
                     containsServer = allowedCommands.get(getSeverName(event, true)) != null;
                     containsChannel = allowedCommands.get(getSeverName(event, true)).get(channel) != null;
                     channelContains = allowedCommands.get(getSeverName(event, true)).get(channel).contains("url checker");
-                }catch(NullPointerException ignored){}
+                } catch (NullPointerException ignored) {
+                    return;
+                }
                 LOGGER.trace(getSeverName(event, true) + ": containsServer: " + containsServer + " containsChannel: " + containsChannel + " channelContains: " + channelContains + " " + allowedCommands);
                 if (!channelContains) {
                     // NOTES:   1) \w includes 0-9, a-z, A-Z, _
@@ -1129,7 +1195,7 @@ public class FozruciX extends ListenerAdapter {
         message = doChatFunctions(message);
         String[] arg = splitMessage(message);
 
-        if (message.contains(prefix) || message.contains(consolePrefix) || message.contains(bot.getNick())) {
+        if (containsAny(message, prefix, consolePrefix, bot.getNick(), "/")) {
             setArrayOffset();
             BOOLS.clear(ARRAY_OFFSET_SET);
             if (checkCooldown(event) || !checkPerm(event.getUser(), 0)) {
@@ -1213,7 +1279,7 @@ public class FozruciX extends ListenerAdapter {
             }
 
 // !topic - sets topic of a channel
-            else if(commandChecker(event, arg, "topic")){
+            else if (commandChecker(event, arg, "topic")) {
                 if (checkPerm(event.getUser(), 2)) {
                     if (event instanceof DiscordMessageEvent) {
                         ((DiscordMessageEvent) event).getDiscordEvent().getTextChannel().getManager().setTopic(argJoiner(arg, 1)).update();
@@ -1223,10 +1289,122 @@ public class FozruciX extends ListenerAdapter {
                 }
             }
 
-// !admin - contains most admin based commands
+// !admin - contains most admin related commands
             else if (commandChecker(event, arg, "admin")) {
-                if(getArg(arg, 1).equalsIgnoreCase("ban")){
+                if (checkPerm(event.getUser(), 2)) {
+                    boolean discord = network == Network.discord;
+                    String[] args = formatStringArgs(splitMessage(message, 0, false));
+                    ArgumentParser parser = ArgumentParsers.newArgumentParser("admin")
+                            .description("contains most admin related commands")
+                            .defaultHelp(true);
+                    Subparsers subparsers = parser.addSubparsers()
+                            .title("Valid commands")
+                            .description("Admin commands")
+                            .dest("admin_command");
+                    Subparser ban = subparsers.addParser("ban")
+                            .help("Bans a user");
+                    ban.addArgument("users").nargs("*").type(String.class).help("User to ban");
+                    if (discord) {
+                        ban.addArgument("-r", "--remove-messages").nargs(1)
+                                .type(Integer.class).setDefault(0).help("Amount of messages, by days, to remove by the user, if any");
+                        Subparser delMsg = subparsers.addParser("delmsg")
+                                .help("Deletes a message, a span of messages, or a certain amount of messages from a certain user");
 
+                        MutuallyExclusiveGroup delMsgGroup = delMsg.addMutuallyExclusiveGroup();
+                        delMsgGroup.addArgument("-m", "--message-span").nargs(2)
+                                .help("Specify 2 message IDs and any messages between (inclusive) will be deleted");
+                        delMsgGroup.addArgument("-u", "--user").help("user to delete messages from with the metioned user infront and the amount of messages second").nargs(2);
+                    } else {
+                        ban.addArgument("-k", "--kick-ban")
+                                .type(Boolean.class).help("Specify to also kick")
+                                .action(Arguments.storeTrue());
+                        ban.addArgument("-r", "--reason")
+                                .type(String.class).help("Sets the reason for the ban")
+                                .setDefault("You were kicked by " + event.getUser().getHostmask());
+                    }
+                    //Subparser kick; // TODO: 10/3/16 Add subparser for kick
+                    //Subparser op; // TODO: 10/3/16 Add subparser for giving permissions
+                    Namespace ns;
+                    try {
+                        ns = parser.parseArgs(args);
+                        LOGGER.debug(ns.toString());
+                        switch (ns.getString("admin_command")) {
+                            case "ban":
+                                List<String> users = ns.getList("users");
+                                if (discord) {
+                                    MessageReceivedEvent discordEvent = ((DiscordMessageEvent) event).getDiscordEvent();
+                                    if (checkPerm((DiscordUser) event.getUser(), Permission.BAN_MEMBERS)) {
+                                        List<net.dv8tion.jda.entities.User> mentioned = discordEvent.getMessage().getMentionedUsers();
+                                        Guild guild = discordEvent.getGuild();
+                                        GuildManager manager = guild.getManager();
+                                        if (!mentioned.isEmpty()) {
+                                            for (net.dv8tion.jda.entities.User mentionedUser : mentioned) {
+                                                manager.ban(mentionedUser, ns.getInt("remove_messages"));
+                                            }
+                                        } else {
+                                            for (String user : users) {
+                                                net.dv8tion.jda.entities.User currentDiscordUser = null;
+                                                for (net.dv8tion.jda.entities.User discordUser : guild.getUsers()) {
+                                                    String nick = guild.getNicknameForUser(discordUser);
+                                                    if (nick == null) {
+                                                        nick = discordUser.getUsername();
+                                                    }
+                                                    if (discordUser.getUsername().equalsIgnoreCase(user) ||
+                                                            nick.equalsIgnoreCase(user) ||
+                                                            discordUser.getId().equalsIgnoreCase(user)) {
+                                                        if (currentDiscordUser == null) {
+                                                            currentDiscordUser = discordUser;
+                                                        } else {
+                                                            sendMessage(event, "Ambiguous ban, not banning user " + user);
+                                                            return;
+                                                        }
+                                                    }
+                                                }
+                                                if (currentDiscordUser != null) {
+                                                    manager.ban(currentDiscordUser, ns.getInt("remove_messages"));
+                                                }
+                                            }
+                                        }
+                                    }
+                                } else { // irc
+                                    for (User user : event.getChannel().getUsers()) {
+                                        for (String userStr : users) {
+                                            if (userStr.contains("@") && userStr.contains("!")) { // checks if given a hostmask
+                                                if (matchHostMask(user.getHostmask(), userStr)) {
+                                                    event.getChannel().send().ban(userStr);
+                                                    if (ns.getBoolean("kick_ban")) {
+                                                        event.getChannel().send().kick(user);
+                                                    }
+                                                }
+                                            } else {
+                                                if (user.getNick().equalsIgnoreCase(userStr)) {
+                                                    event.getChannel().send().ban("*!*@" + user.getHostname());
+                                                    if (ns.getBoolean("kick_ban")) {
+                                                        event.getChannel().send().kick(user);
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                break;
+                            case "delmsg": // only possible on discord so no need to check
+                                List<String> delMsgArgs;
+                                if((delMsgArgs = ns.getList("message_span")) != null){
+                                    String firstMessage = delMsgArgs.get(0), secondMessage = delMsgArgs.get(2);
+                                    net.dv8tion.jda.entities.TextChannel discordChannel = ((DiscordMessageEvent)event).getDiscordEvent().getTextChannel();
+                                    for(Message msg : discordChannel.getHistory().retrieveAll()){
+
+                                    }
+                                }
+                                break;
+                        }
+
+                    } catch (ArgumentParserException e) {
+                        sendCommandHelp(event, parser, e);
+                    } catch (Exception e) {
+                        sendError(event, e);
+                    }
                 }
             }
 
@@ -1235,12 +1413,13 @@ public class FozruciX extends ListenerAdapter {
                 if (checkPerm(event.getUser(), 2)) {
                     String[] args = formatStringArgs(splitMessage(message, 0, false));
                     ArgumentParser parser = ArgumentParsers.newArgumentParser("+m")
-                            .description("Sets a channel so only certain users can speak");
+                            .description("Sets a channel so only certain users can speak")
+                            .defaultHelp(true);
                     parser.addArgument("-s", "--state").type(Arguments.booleanType("on", "off")).setDefault((Boolean) null)
                             .help("Sets +m mode on or off. Otherwise toggle");
                     parser.addArgument("roles").nargs("*")
                             .help("Roles to white/black list");
-                    parser.addArgument("-w", "--whitelist").type(Boolean.class).action(Arguments.storeTrue()).setDefault(false)
+                    parser.addArgument("-w", "--whitelist").type(Boolean.class).action(Arguments.storeTrue())
                             .help("Sets the channel to white list mode");
                     Namespace ns;
                     try {
@@ -1253,9 +1432,9 @@ public class FozruciX extends ListenerAdapter {
                             TextChannel mChannel = ((DiscordMessageEvent) event).getDiscordEvent().getTextChannel();
                             Role publicRole = mChannel.getGuild().getPublicRole();
                             List<String> roleArgs = ns.getList("roles");
-                            net.dv8tion.jda.entities.User currentDiscordUser = ((DiscordUser)currentUser).getDiscordUser();
+                            net.dv8tion.jda.entities.User currentDiscordUser = ((DiscordUser) currentUser).getDiscordUser();
                             if (PlusM.channelRoleMap.containsKey(mChannel)) {
-                                List<Role> roles = (List<Role>)PlusM.channelRoleMap[mChannel];
+                                List<Role> roles = (List<Role>) PlusM.channelRoleMap[mChannel];
                                 if (state == null || !state) { // disabling +m mode
                                     for (Role role : roles) {
                                         PermissionOverrideManager overRide = mChannel.createPermissionOverride(role);
@@ -1265,7 +1444,7 @@ public class FozruciX extends ListenerAdapter {
                                     if (mChannel.getTopic().startsWith(topicStr)) {
                                         mChannel.getManager().setTopic(mChannel.getTopic().substring(topicStr.length())).update();
                                     }
-                                    if(currentDiscordUser != null) {
+                                    if (currentDiscordUser != null) {
                                         mChannel.createPermissionOverride(currentDiscordUser).delete();
                                     }
                                 } else { // overwriting role list?
@@ -1278,17 +1457,44 @@ public class FozruciX extends ListenerAdapter {
                                     PermissionOverrideManager overRide = mChannel.createPermissionOverride(publicRole);
                                     overRide.deny(Permission.MESSAGE_WRITE).update();
                                     List<Role> guildRoleList = mChannel.getGuild().getRoles();
-                                    if(currentDiscordUser != null) {
+                                    if (currentDiscordUser != null) {
                                         mChannel.createPermissionOverride(currentDiscordUser).grant(Permission.MESSAGE_WRITE).update();
                                     }
-                                    if(!roleArgs.isEmpty())
+                                    if (!roleArgs.isEmpty())
+                                        for (Role role : guildRoleList) {
+                                            for (String roleArg : roleArgs) {
+                                                if (roleArg.equalsIgnoreCase(role.getName())) {
+                                                    overRide = mChannel.createPermissionOverride(role);
+                                                    if (whitelistMode) {
+                                                        overRide.grant(Permission.MESSAGE_WRITE).update();
+                                                    } else {
+                                                        overRide.deny(Permission.MESSAGE_WRITE).update();
+                                                    }
+                                                    roles.add(role);
+                                                    roleArgs.remove(roleArg);
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                }
+                            } else {
+                                List<Role> guildRoleList = mChannel.getGuild().getRoles();
+                                List<Role> roles = new ArrayList<>();
+
+                                PermissionOverrideManager overRide = mChannel.createPermissionOverride(publicRole);
+                                overRide.deny(Permission.MESSAGE_WRITE).update();
+                                if (currentDiscordUser != null) {
+                                    mChannel.createPermissionOverride(currentDiscordUser).grant(Permission.MESSAGE_WRITE).update();
+                                }
+                                roles.add(publicRole);
+                                if (!roleArgs.isEmpty())
                                     for (Role role : guildRoleList) {
-                                        for(String roleArg : roleArgs){
+                                        for (String roleArg : roleArgs) {
                                             if (roleArg.equalsIgnoreCase(role.getName())) {
                                                 overRide = mChannel.createPermissionOverride(role);
-                                                if(whitelistMode){
+                                                if (whitelistMode) {
                                                     overRide.grant(Permission.MESSAGE_WRITE).update();
-                                                }else {
+                                                } else {
                                                     overRide.deny(Permission.MESSAGE_WRITE).update();
                                                 }
                                                 roles.add(role);
@@ -1297,33 +1503,6 @@ public class FozruciX extends ListenerAdapter {
                                             }
                                         }
                                     }
-                                }
-                            } else {
-                                List<Role> guildRoleList = mChannel.getGuild().getRoles();
-                                List<Role> roles = new ArrayList<>();
-
-                                PermissionOverrideManager overRide = mChannel.createPermissionOverride(publicRole);
-                                overRide.deny(Permission.MESSAGE_WRITE).update();
-                                if(currentDiscordUser != null) {
-                                    mChannel.createPermissionOverride(currentDiscordUser).grant(Permission.MESSAGE_WRITE).update();
-                                }
-                                roles.add(publicRole);
-                                if(!roleArgs.isEmpty())
-                                for (Role role : guildRoleList) {
-                                    for(String roleArg : roleArgs){
-                                        if (roleArg.equalsIgnoreCase(role.getName())) {
-                                            overRide = mChannel.createPermissionOverride(role);
-                                            if(whitelistMode){
-                                                overRide.grant(Permission.MESSAGE_WRITE).update();
-                                            }else {
-                                                overRide.deny(Permission.MESSAGE_WRITE).update();
-                                            }
-                                            roles.add(role);
-                                            roleArgs.remove(roleArg);
-                                            break;
-                                        }
-                                    }
-                                }
                                 PlusM.channelRoleMap[mChannel] = roles;
                                 mChannel.getManager().setTopic(topicStr + mChannel.getTopic()).update();
                             }
@@ -1343,10 +1522,25 @@ public class FozruciX extends ListenerAdapter {
                 }
             }
 
+// !muteServer - mutes entire server
+            else if (commandChecker(event, arg, "muteServer")) {
+                if (checkPerm(event.getUser(), 9001)) {
+                    if (getArg(arg, 1) != null) {
+                        if (getArg(arg, 1).equalsIgnoreCase("add")) {
+                            mutedServerList.add(getArg(arg, 2));
+                        } else if (getArg(arg, 1).equalsIgnoreCase("del")) {
+                            mutedServerList.remove(getArg(arg, 2));
+                        }
+                    } else {
+                        mutedServerList.add(network == Network.discord ? ((DiscordMessageEvent) event).getDiscordEvent().getGuild().getId() : event.getBot().getServerHostname());
+                    }
+                }
+            }
+
 // !command - Sets what commands can be used where
             else if (commandChecker(event, arg, "command")) {
                 if (checkPerm(event.getUser(), 9001)) {
-                    HashMap<String, ArrayList<String>> allowedCommands = (HashMap<String, ArrayList<String>>)FozruciX.allowedCommands[getSeverName(event, true)];
+                    HashMap<String, ArrayList<String>> allowedCommands = (HashMap<String, ArrayList<String>>) FozruciX.allowedCommands[getSeverName(event, true)];
                     if (allowedCommands == null) {
                         allowedCommands = new HashMap<>();
                         FozruciX.allowedCommands[getSeverName(event, true)] = allowedCommands;
@@ -1364,16 +1558,16 @@ public class FozruciX extends ListenerAdapter {
                                 command = command.substring(1, command.length());
                             }
                             if (mode == -1) {
-                                ((ArrayList<String>)allowedCommands[chan]).remove(command);
+                                ((ArrayList<String>) allowedCommands[chan]).remove(command);
                                 sendMessage(event, "Removed command ban on " + command + " For channel " + chan);
                             } else if (mode == 1) {
                                 if (!allowedCommands.containsKey(chan)) {
                                     allowedCommands.put(chan, new ArrayList<>());
                                 }
-                                ((ArrayList<String>)allowedCommands[chan]).add(command);
+                                ((ArrayList<String>) allowedCommands[chan]).add(command);
                                 sendMessage(event, "Added command ban on " + command + " for channel " + chan);
                             } else {
-                                sendMessage(event, "The command " + command + " is " + (((ArrayList<String>)allowedCommands[chan]).contains(command) ? "" : "not ") + "Banned from " + chan);
+                                sendMessage(event, "The command " + command + " is " + (((ArrayList<String>) allowedCommands[chan]).contains(command) ? "" : "not ") + "Banned from " + chan);
                             }
                         }
                     } else if (getArg(arg, 1) != null) {
@@ -1428,14 +1622,15 @@ public class FozruciX extends ListenerAdapter {
                 if (checkPerm(event.getUser(), 9001)) {
                     String[] args = formatStringArgs(arg);
                     ArgumentParser parser = ArgumentParsers.newArgumentParser("addServer")
-                            .description("Connects the bot to a server");
+                            .description("Connects the bot to a server")
+                            .defaultHelp(true);
                     parser.addArgument("address").type(String.class)
                             .help("The server to connect to");
                     parser.addArgument("-k", "--key").type(String.class).setDefault((Object) null)
                             .help("The server to connect to");
                     parser.addArgument("-p", "--port").type(Integer.class).setDefault(6667)
                             .help("Sets what port to connect to");
-                    parser.addArgument("-s", "--ssl").type(Boolean.class).action(Arguments.storeTrue()).setDefault(false)
+                    parser.addArgument("-s", "--ssl").type(Boolean.class).action(Arguments.storeTrue())
                             .help("Specifies if the server port is SSL");
                     Namespace ns;
                     try {
@@ -1551,7 +1746,7 @@ public class FozruciX extends ListenerAdapter {
             else if (commandChecker(event, arg, "RESPOND_TO_PMS")) {
                 if (checkPerm(event.getUser(), 9001)) {
                     BOOLS.flip(RESPOND_TO_PMS);
-                    sendMessage(event, "Responding to PMs: " + (boolean)(BOOLS[RESPOND_TO_PMS]), false);
+                    sendMessage(event, "Responding to PMs: " + (boolean) (BOOLS[RESPOND_TO_PMS]), false);
                 } else {
                     permErrorchn(event);
                 }
@@ -1703,7 +1898,7 @@ public class FozruciX extends ListenerAdapter {
                                     newPhrase += " ";
                                 }
                                 // Select the first word
-                                LinkedList<String> startWords = (LinkedList<String>)markovChain["_start"];
+                                LinkedList<String> startWords = (LinkedList<String>) markovChain["_start"];
 
                                 for (int i = 1 + arrayOffset; i < arg.length; i++) {
                                     if (startWords.contains(arg[i])) {
@@ -1722,7 +1917,7 @@ public class FozruciX extends ListenerAdapter {
 
                                 // Keep looping through the words until we've reached the end
                                 while (nextWord.charAt(nextWord.length() - 1) != '.') {
-                                    List<String> wordSelection = (List<String>)markovChain[nextWord];
+                                    List<String> wordSelection = (List<String>) markovChain[nextWord];
                                     nextWord = null;
 
                                     for (int i = 1; i < arg.length; i++) {
@@ -1941,7 +2136,7 @@ public class FozruciX extends ListenerAdapter {
                         int place = -1;
                         try {
                             for (int i = 0; authedUser.size() >= i; i++) {
-                                if (((String)authedUser[i]).equalsIgnoreCase(getArg(arg, 1))) {
+                                if (((String) authedUser[i]).equalsIgnoreCase(getArg(arg, 1))) {
                                     place = i;
                                 }
                             }
@@ -1951,7 +2146,7 @@ public class FozruciX extends ListenerAdapter {
                         if (place == -1) {
                             sendMessage(event, "That user wasn't found in the list of authed users", false);
                         } else {
-                            sendMessage(event, "User " + (String)authedUser[place] + " Has permission level " + authedUserLevel[place], false);
+                            sendMessage(event, "User " + (String) authedUser[place] + " Has permission level " + authedUserLevel[place], false);
                         }
 
                     }
@@ -2034,7 +2229,8 @@ public class FozruciX extends ListenerAdapter {
             else if (commandChecker(event, arg, "CalcJ")) {
                 String[] args = formatStringArgs(arg);
                 ArgumentParser parser = ArgumentParsers.newArgumentParser("CalcJ")
-                        .description("Calculates an expression");
+                        .description("Calculates an expression")
+                        .defaultHelp(true);
                 parser.addArgument("expression").nargs("*")
                         .help("The expression to evaluate");
                 parser.addArgument("-v", "--Val").type(Double.class).setDefault(-1.0)
@@ -2059,7 +2255,7 @@ public class FozruciX extends ListenerAdapter {
                         int count = 0;
                         LinkedList<Apfloat> eval = new LinkedList<>();
                         while (count <= calcAmount) {
-                            VARIABLE_SET.set((String)ns["char"], x);
+                            VARIABLE_SET.set((String) ns["char"], x);
                             //noinspection SuspiciousToArrayCall
                             eval.add(EVALUATOR.evaluate(argJoiner(ns.getList("expression").toArray(new String[]{}), 0).toLowerCase(), VARIABLE_SET));
                             x += step;
@@ -2143,12 +2339,13 @@ public class FozruciX extends ListenerAdapter {
             else if (commandChecker(event, arg, "JS")) {
                 String[] args = formatStringArgs(splitMessage(message, 0, false));
                 ArgumentParser parser = ArgumentParsers.newArgumentParser("JS")
-                        .description("Calculates an expression");
+                        .description("Calculates an expression")
+                        .defaultHelp(true);
                 parser.addArgument("expression").nargs("*")
                         .help("The expression to evaluate");
                 parser.addArgument("-b", "--base", "-r", "--radix").type(Integer.class).setDefault(10)
                         .help("Sets what radix to output to. Only applies if output is numeric");
-                parser.addArgument("-k", "--kill").type(Boolean.class).action(Arguments.storeTrue()).setDefault(false)
+                parser.addArgument("-k", "--kill").type(Boolean.class).action(Arguments.storeTrue())
                         .help("Kill the thread");
                 Namespace ns;
                 try {
@@ -2199,12 +2396,13 @@ public class FozruciX extends ListenerAdapter {
             else if (commandChecker(event, arg, "py")) {
                 String[] args = formatStringArgs(splitMessage(message, 0, false));
                 ArgumentParser parser = ArgumentParsers.newArgumentParser("py")
-                        .description("Calculates an expression");
+                        .description("Calculates an expression")
+                        .defaultHelp(true);
                 parser.addArgument("expression").nargs("*")
                         .help("The expression to evaluate");
                 parser.addArgument("-b", "--base", "-r", "--radix").type(Integer.class).setDefault(10)
                         .help("Sets what radix to output to. Only applies if output is numeric");
-                parser.addArgument("-k", "--kill").type(Boolean.class).action(Arguments.storeTrue()).setDefault(false)
+                parser.addArgument("-k", "--kill").type(Boolean.class).action(Arguments.storeTrue())
                         .help("Kill the thread");
                 Namespace ns;
                 try {
@@ -2316,7 +2514,7 @@ public class FozruciX extends ListenerAdapter {
                             }
                             if (arg.length > subCommandNum + arrayOffset && arg[subCommandNum - 1].equalsIgnoreCase("Example")) {
                                 if (sense.getExamples().size() > 0) {
-                                    lookedUpWord = ((IWikiString)sense.getExamples()[0]).getPlainText();
+                                    lookedUpWord = ((IWikiString) sense.getExamples()[0]).getPlainText();
                                 } else {
                                     sendMessage(event, "No examples found");
                                 }
@@ -2356,7 +2554,7 @@ public class FozruciX extends ListenerAdapter {
                     List<Page> pages = user.queryContent(listOfTitleStrings);
                     boolean found = false;
                     while (pages.size() > 0) {
-                        Page page = (Page)pages[0];
+                        Page page = (Page) pages[0];
                         if (page.toString().contains("#REDIRECT")) {
                             LOGGER.debug("Found redirect");
                             String link = page.toString();
@@ -2375,13 +2573,13 @@ public class FozruciX extends ListenerAdapter {
                             related = new LinkedList<>();
                             boolean category = true;
                             for (int i = 0; strings.size() > i; i++) {
-                                LOGGER.trace((String)strings[i]);
-                                if (wildCardMatch((String)strings[i], "==*==")) {
+                                LOGGER.trace((String) strings[i]);
+                                if (wildCardMatch((String) strings[i], "==*==")) {
                                     category = false;
                                 } else if (!category) {
-                                    if (!((String)strings[i]).isEmpty()) {
-                                        related.add((String)strings[i]);
-                                    } else if (((String)strings[i + 1]).isEmpty()) {
+                                    if (!((String) strings[i]).isEmpty()) {
+                                        related.add((String) strings[i]);
+                                    } else if (((String) strings[i + 1]).isEmpty()) {
                                         category = true;
                                     }
                                 }
@@ -2390,7 +2588,7 @@ public class FozruciX extends ListenerAdapter {
                         if (related != null) {
                             plainStr = page.getTitle() + " may refer to: ";
                             for (int i = 0; i < related.size() && i < 5; i++) {
-                                plainStr += ((String)related[i]).replace("* ", "").replace("*", "") + "; ";
+                                plainStr += ((String) related[i]).replace("* ", "").replace("*", "") + "; ";
                             }
                             int lastIndex = plainStr.lastIndexOf(",");
                             if (lastIndex != -1)
@@ -2688,7 +2886,7 @@ public class FozruciX extends ListenerAdapter {
                     try {
                         if (getArg(arg, 1).equalsIgnoreCase("set")) {
                             if (memes.containsKey(getArg(arg, 2).toLowerCase().replace("\u0001", ""))) {
-                                Meme meme = (Meme)memes[getArg(arg, 2).toLowerCase()];
+                                Meme meme = (Meme) memes[getArg(arg, 2).toLowerCase()];
                                 if (checkPerm(event.getUser(), 9001) || meme.getCreator().equalsIgnoreCase(event.getUser().getNick())) {
                                     if (getArg(arg, 3) == null) {
                                         memes.remove(getArg(arg, 2).toLowerCase().replace("\u0001", ""));
@@ -2709,7 +2907,7 @@ public class FozruciX extends ListenerAdapter {
                             sendMessage(event, memes.toString().replace("\u0001", ""));
                         } else {
                             if (memes.containsKey(getArg(arg, 1).toLowerCase())) {
-                                sendMessage(event, getArg(arg, 1).replace("\u0001", "") + ": " + ((Meme)memes[getArg(arg, 1).toLowerCase()]).getMeme().replace("\u0001", ""), false);
+                                sendMessage(event, getArg(arg, 1).replace("\u0001", "") + ": " + ((Meme) memes[getArg(arg, 1).toLowerCase()]).getMeme().replace("\u0001", ""), false);
                             } else {
                                 sendMessage(event, "That Meme doesn't exist!");
                             }
@@ -2783,7 +2981,7 @@ public class FozruciX extends ListenerAdapter {
                         int index = -1;
                         boolean found = false;
                         while (i < noteList.size() && !found) {
-                            if (((Note)noteList[i]).getId().toString().equals(getArg(arg, 2))) {
+                            if (((Note) noteList[i]).getId().toString().equals(getArg(arg, 2))) {
                                 found = true;
                                 index = i;
                             } else {
@@ -2819,7 +3017,6 @@ public class FozruciX extends ListenerAdapter {
                         sendMessage(event, "Left note \"" + argJoiner(arg, 2) + "\" for \"" + getArg(arg, 1) + "\".", false);
                         event.getUser().send().notice("ID is \"" + noteList.get(noteList.indexOf(note)).getId().toString() + "\"");
                     }
-                    saveData();
                     addCooldown(event.getUser());
                 } catch (StringIndexOutOfBoundsException e) {
                     sendMessage(event, Colors.RED + "You need more parameters ya dingus");
@@ -3281,7 +3478,8 @@ public class FozruciX extends ListenerAdapter {
                 }
                 String[] args = formatStringArgs(splitMessage(message, 0, false));
                 ArgumentParser parser = ArgumentParsers.newArgumentParser("68kTest")
-                        .description("Simulates a M68k environment");
+                        .description("Simulates a M68k environment")
+                        .defaultHelp(true);
                 parser.addArgument("expression").nargs("*")
                         .help("Code to execute");
                 parser.addArgument("-a", "--address").type(Long.class)
@@ -3290,7 +3488,7 @@ public class FozruciX extends ListenerAdapter {
                         .help("Sets what size of value to get");
                 parser.addArgument("-c", "--count").type(Integer.class).setDefault(1)
                         .help("sets the amount of bytes to return");
-                parser.addArgument("--clear").type(Boolean.class).action(Arguments.storeTrue()).setDefault(false)
+                parser.addArgument("--clear").type(Boolean.class).action(Arguments.storeTrue())
                         .help("clears the memory");
                 Namespace ns;
                 try {
@@ -3403,7 +3601,7 @@ public class FozruciX extends ListenerAdapter {
                     } catch (Exception e) {
                         sendError(event, e);
                     }
-                }catch(Exception e2){
+                } catch (Exception e2) {
 
                 }
 
@@ -3477,18 +3675,17 @@ public class FozruciX extends ListenerAdapter {
 // !Trans - Translate from 1 language to another
             else if (commandChecker(event, arg, "trans")) {
                 String text;
-                LOGGER.debug("Setting key");
-                YandexTranslatorAPI.setKey("trnsl.1.1.20150924T011621Z.e06050bb431b7175.e5452b78ee8d11e4b736035e5f99f2831a57d0e2");
                 String[] args = formatStringArgs(arg);
                 ArgumentParser parser = ArgumentParsers.newArgumentParser("Trans")
-                        .description("Translates from one language to another");
+                        .description("Translates from one language to another")
+                        .defaultHelp(true);
                 parser.addArgument("text").nargs("*")
                         .help("Text to translate");
                 parser.addArgument("-t", "--to").type(String.class).setDefault("English")
                         .help("Sets language to translate to");
                 parser.addArgument("-f", "--from").type(String.class).setDefault("detect")
                         .help("Sets language to translate from");
-                parser.addArgument("-d", "--detect").type(Boolean.class).action(Arguments.storeTrue()).setDefault(false)
+                parser.addArgument("-d", "--detect").type(Boolean.class).action(Arguments.storeTrue())
                         .help("Kill the thread");
                 Namespace ns;
                 try {
@@ -3522,12 +3719,9 @@ public class FozruciX extends ListenerAdapter {
 
 // !BadTrans - Translate from english to.... english... badly
             else if (commandChecker(event, arg, "BadTrans")) {
-                String text;
-                LOGGER.debug("Setting key");
-                YandexTranslatorAPI.setKey("trnsl.1.1.20150924T011621Z.e06050bb431b7175.e5452b78ee8d11e4b736035e5f99f2831a57d0e2");
                 try {
                     if (getArg(arg, 1) != null) {
-                        text = argJoiner(arg, 1);
+                        String text = argJoiner(arg, 1);
                         System.out.print("Translating: " + text + " - ");
                         text = Translate.execute(text, Language.ENGLISH, Language.JAPANESE);
                         System.out.print("Translating: " + text + " - ");
@@ -3596,7 +3790,7 @@ public class FozruciX extends ListenerAdapter {
                         terminal.interrupt();
                         terminal = new CommandLine(event, trimFrontOfArray(arg, 1));
                         terminal.start();
-                        if(!terminal.isAlive()) {
+                        if (!terminal.isAlive()) {
                             sendMessage(event, "Command line started", false);
                         }
                     } else if (arg[0].substring(consolePrefix.length()).equalsIgnoreCase(consolePrefix + "close")) {
@@ -3776,22 +3970,22 @@ public class FozruciX extends ListenerAdapter {
 // !getBat - Gets info about battery
             else if (commandChecker(event, arg, "getBat")) {
                 try {
-                    if(Platform.isWindows()){
-                    String statuses[] = {"discharging",
-                            "The system has access to AC so no battery is being discharged. However, the battery is not necessarily charging.",
-                            "fully charged",
-                            "low",
-                            "critical",
-                            "charging",
-                            "charging and high",
-                            "charging and low",
-                            "charging and critical",
-                            "UNDEFINED",
-                            "partially charged"};
-                    int batteryStatus = Integer.decode(getWMIValue("Select BatteryStatus from Win32_Battery", "BatteryStatus"));
-                    String batteryPercentRemaining = getWMIValue("Select EstimatedChargeRemaining from Win32_Battery", "EstimatedChargeRemaining");
-                    sendMessage(event, "Remaining battery: " + batteryPercentRemaining + "% Battery status: " + statuses[batteryStatus]);
-                    } else if(Platform.isLinux()){
+                    if (Platform.isWindows()) {
+                        String statuses[] = {"discharging",
+                                "The system has access to AC so no battery is being discharged. However, the battery is not necessarily charging.",
+                                "fully charged",
+                                "low",
+                                "critical",
+                                "charging",
+                                "charging and high",
+                                "charging and low",
+                                "charging and critical",
+                                "UNDEFINED",
+                                "partially charged"};
+                        int batteryStatus = Integer.decode(getWMIValue("Select BatteryStatus from Win32_Battery", "BatteryStatus"));
+                        String batteryPercentRemaining = getWMIValue("Select EstimatedChargeRemaining from Win32_Battery", "EstimatedChargeRemaining");
+                        sendMessage(event, "Remaining battery: " + batteryPercentRemaining + "% Battery status: " + statuses[batteryStatus]);
+                    } else if (Platform.isLinux()) {
 
                     }
                     addCooldown(event.getUser());
@@ -4196,8 +4390,8 @@ public class FozruciX extends ListenerAdapter {
         else if (commandChecker(PM, arg, "login")) {
             if (CryptoUtil.encrypt(getArg(arg, 1)).equals(FozConfig.PASSWORD)) {
                 currentUser = PM.getUser();
-                if(network == Network.discord){
-                    currentUser = new DiscordUser(PM.getUserHostmask(), ((DiscordPrivateMessageEvent)PM).getDiscordEvent().getAuthor(), null);
+                if (network == Network.discord) {
+                    currentUser = new DiscordUser(PM.getUserHostmask(), ((DiscordPrivateMessageEvent) PM).getDiscordEvent().getAuthor(), null);
                 }
                 sendNotice(PM, "Welcome back Lil-G");
             } else {
@@ -4443,7 +4637,7 @@ public class FozruciX extends ListenerAdapter {
     /**
      * Checks if the user attempting to use the command is allowed
      *
-     * @param user User trying to use command
+     * @param user              User trying to use command
      * @param requiredUserLevel Required permission level to access command
      * @return Boolean true if allowed, false if not
      */
@@ -4457,13 +4651,13 @@ public class FozruciX extends ListenerAdapter {
                     return true;
                 }
             }
-        }else if(user instanceof DiscordUser){
+        } else if (user instanceof DiscordUser) {
             List<Role> roles = ((DiscordUser) user).getGuild().getRolesForUser(((DiscordUser) user).getDiscordUser());
             int highestLevel = 0;
-            for(Role role : roles){
-                for(Permission perm : role.getPermissions()){
+            for (Role role : roles) {
+                for (Permission perm : role.getPermissions()) {
                     int level = DiscordAdapter.getlevelFromPerm(perm);
-                    if(level > highestLevel){
+                    if (level > highestLevel) {
                         highestLevel = level;
                     }
                 }
@@ -4491,14 +4685,16 @@ public class FozruciX extends ListenerAdapter {
      *
      * @param user User trying to use command
      * @param perm Required permission to access command
-
      * @return Boolean true if allowed, false if not
      */
     private boolean checkPerm(@NotNull DiscordUser user, Permission perm) {
+        if (user.equals(currentUser)) {
+            return true;
+        }
         Guild guild = user.getGuild();
-        if(guild != null){
-            for(Role role : guild.getRolesForUser(user.getDiscordUser())){
-                if(role.getPermissions().contains(perm)){
+        if (guild != null) {
+            for (Role role : guild.getRolesForUser(user.getDiscordUser())) {
+                if (role.getPermissions().contains(perm)) {
                     return true;
                 }
             }
@@ -4552,6 +4748,9 @@ public class FozruciX extends ListenerAdapter {
 
         if (writeOnce && checkJoinsAndQuits == null)
             checkJoinsAndQuits = save.getCheckJoinsAndQuits();
+
+        if (writeOnce && mutedServerList == null)
+            mutedServerList = save.getMutedServerList();
     }
 
     private synchronized void saveData() {
@@ -4560,7 +4759,7 @@ public class FozruciX extends ListenerAdapter {
             return;
         }*/
         try {
-            SaveDataStore save = new SaveDataStore(authedUser, authedUserLevel, DNDJoined, DNDList, noteList, avatar, memes, FCList, markovChain, allowedCommands, checkJoinsAndQuits);
+            SaveDataStore save = new SaveDataStore(authedUser, authedUserLevel, DNDJoined, DNDList, noteList, avatar, memes, FCList, markovChain, allowedCommands, checkJoinsAndQuits, mutedServerList);
             FozConfig.saveData(save, xstream);
         } catch (ConcurrentModificationException e) {
             LOGGER.debug("Data not saved", e);

@@ -18,10 +18,12 @@ import net.dv8tion.jda.events.ReadyEvent;
 import net.dv8tion.jda.events.guild.member.GuildMemberBanEvent;
 import net.dv8tion.jda.events.guild.member.GuildMemberJoinEvent;
 import net.dv8tion.jda.events.guild.member.GuildMemberLeaveEvent;
+import net.dv8tion.jda.events.guild.member.GuildMemberNickChangeEvent;
 import net.dv8tion.jda.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.hooks.ListenerAdapter;
 import net.dv8tion.jda.managers.AccountManager;
 import net.dv8tion.jda.utils.AvatarUtil;
+import org.apache.commons.httpclient.util.URIUtil;
 import org.pircbotx.Channel;
 import org.pircbotx.PircBotX;
 import org.pircbotx.User;
@@ -35,7 +37,6 @@ import javax.imageio.ImageIO;
 import javax.security.auth.login.LoginException;
 import java.io.File;
 import java.io.UnsupportedEncodingException;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -51,8 +52,8 @@ public class DiscordAdapter extends ListenerAdapter {
     public static File avatarFile;
     private static DiscordAdapter discordAdapter = null;
     private static ReadyEvent readyEvent;
-    private static FozruciX bot;
-    private static PircBotX pircBotX;
+    static FozruciX bot;
+    static PircBotX pircBotX;
     private static JDA jda;
     private static Thread game;
     private static Thread avatar;
@@ -118,7 +119,7 @@ public class DiscordAdapter extends ListenerAdapter {
         String discordUsername = join.getUser().getUsername();
         String discordHostmask = join.getUser().getId();
         DiscordUserHostmask discordUserHostmask = new DiscordUserHostmask(pircBotX, (discordNick == null ? discordUsername : discordNick) + "!" + discordUsername + "@" + discordHostmask);
-        LOGGER.info(String.format("[PM] %s: %s", discordUserHostmask.getHostmask(), "Joined"));
+        LOGGER.info(String.format("[%s] %s: %s", join.getGuild().getName(), discordUserHostmask.getHostmask(), "Joined"));
         bot.onJoin(new DiscordJoinEvent(pircBotX, new DiscordChannel(pircBotX, '#' + join.getGuild().getPublicChannel().getName()), discordUserHostmask, new DiscordUser(discordUserHostmask, join.getUser(), join.getGuild()), join));
     }
 
@@ -127,7 +128,7 @@ public class DiscordAdapter extends ListenerAdapter {
         String discordUsername = leave.getUser().getUsername();
         String discordHostmask = leave.getUser().getId();
         DiscordUserHostmask discordUserHostmask = new DiscordUserHostmask(pircBotX, (discordNick == null ? discordUsername : discordNick) + "!" + discordUsername + "@" + discordHostmask);
-        LOGGER.info(String.format("[PM] %s: %s", discordUserHostmask.getHostmask(), "Left"));
+        LOGGER.info(String.format("[%s] %s: %s", leave.getGuild().getName(), discordUserHostmask.getHostmask(), "Left"));
         bot.onQuit(new DiscordQuitEvent(pircBotX, null, discordUserHostmask, new UserSnapshot(new DiscordUser(discordUserHostmask, leave.getUser(), leave.getGuild())), "", leave));
     }
 
@@ -136,8 +137,18 @@ public class DiscordAdapter extends ListenerAdapter {
         String discordUsername = ban.getUser().getUsername();
         String discordHostmask = ban.getUser().getId();
         DiscordUserHostmask discordUserHostmask = new DiscordUserHostmask(pircBotX, (discordNick == null ? discordUsername : discordNick) + "!" + discordUsername + "@" + discordHostmask);
-        LOGGER.info(String.format("[PM] %s: %s", discordUserHostmask.getHostmask(), "Left"));
+        LOGGER.info(String.format("[%s] %s: %s", ban.getGuild().getName(), discordUserHostmask.getHostmask(), "Banned"));
         bot.onBan(ban);
+    }
+
+    @Override
+    public void onGuildMemberNickChange(GuildMemberNickChangeEvent nick){
+        String discordNick = nick.getGuild().getNicknameForUser(nick.getUser());
+        String discordUsername = nick.getUser().getUsername();
+        String discordHostmask = nick.getUser().getId();
+        DiscordUserHostmask discordUserHostmask = new DiscordUserHostmask(pircBotX, (discordNick == null ? discordUsername : discordNick) + "!" + discordUsername + "@" + discordHostmask);
+        LOGGER.info(String.format("[PM] %s: %s %s %s %s %s", nick.getGuild().getName(),discordUserHostmask.getHostmask(), "Changed nick from", nick.getPrevNick(), "to", nick.getNewNick()));
+        bot.onNickChange(new NickChangeEvent(pircBotX, nick.getPrevNick(), nick.getNewNick(), discordUserHostmask, new DiscordUser(discordUserHostmask, nick.getUser(), nick.getGuild())));
     }
 
     @Override
@@ -148,16 +159,16 @@ public class DiscordAdapter extends ListenerAdapter {
         DiscordUserHostmask discordUserHostmask = new DiscordUserHostmask(pircBotX, discordNick + "!" + discordUsername + "@" + discordHostmask);
 
         if (event.isPrivate()) {
-            LOGGER.info(String.format("[PM] %s: %s", discordUserHostmask.getHostmask(), event.getMessage().getContent()));
+            LOGGER.info(String.format("[PM] %s: %s", discordUserHostmask.getHostmask(), event.getMessage().getRawContent()));
             if (!event.getAuthor().getId().equals(jda.getSelfInfo().getId())) {
-                bot.onPrivateMessage(new DiscordPrivateMessageEvent(pircBotX, discordUserHostmask, new DiscordUser(discordUserHostmask, event.getAuthor(), null), event.getMessage().getContent(), event));
+                bot.onPrivateMessage(new DiscordPrivateMessageEvent(pircBotX, discordUserHostmask, new DiscordUser(discordUserHostmask, event.getAuthor(), null), event.getMessage().getRawContent(), event));
             }
         } else {
             LOGGER.info(String.format("[%s][%s] %s: %s", event.getGuild().getName(),
                     event.getTextChannel().getName(), discordUserHostmask.getHostmask(),
-                    event.getMessage().getContent()));
+                    event.getMessage().getRawContent()));
             if (!event.getAuthor().getId().equals(jda.getSelfInfo().getId())) {
-                bot.onMessage(new DiscordMessageEvent(pircBotX, new DiscordChannel(pircBotX, event.getTextChannel().getName()).setChannel(event.getTextChannel()), event.getTextChannel().getName(), discordUserHostmask, new DiscordUser(discordUserHostmask, event.getAuthor(), event.getGuild()), event.getMessage().getContent(), null, event));
+                bot.onMessage(new DiscordMessageEvent(pircBotX, new DiscordChannel(pircBotX, event.getTextChannel().getName()).setChannel(event.getTextChannel()), event.getTextChannel().getName(), discordUserHostmask, new DiscordUser(discordUserHostmask, event.getAuthor(), event.getGuild()), event.getMessage().getRawContent(), null, event));
             }
         }
 
@@ -357,6 +368,16 @@ class DiscordUserHostmask extends UserHostmask {
 
 }
 
+class DiscordNickChangeEvent extends NickChangeEvent {
+
+    GuildMemberNickChangeEvent nickChangeEvent;
+
+    public DiscordNickChangeEvent(PircBotX bot, @NonNull String oldNick, @NonNull String newNick, @NonNull UserHostmask userHostmask, User user, GuildMemberNickChangeEvent nickChangeEvent) {
+        super(bot, oldNick, newNick, userHostmask, user);
+        this.nickChangeEvent = nickChangeEvent;
+    }
+}
+
 class GameThread extends Thread {
     private AccountManager accountManager;
 
@@ -432,7 +453,7 @@ class AvatarThread extends Thread {
                             index++;
                         }
                         if (bot != null)
-                            bot.setAvatar("https://lilggamegenuis.tk/burgerpants/" + new URI(avatarFile.getName()).getPath());
+                            bot.setAvatar(URIUtil.encodeQuery("https://lilggamegenuis.tk/burgerpants/" + avatarFile.getName()));
                     }
 
                 }
