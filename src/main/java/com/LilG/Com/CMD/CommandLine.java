@@ -30,10 +30,13 @@ public class CommandLine extends Thread {
     private Session sshSession = null;
     private Channel sshChannel = null;
     private boolean ssh = false;
+    private byte waitNum;
 
     public CommandLine(@NotNull GenericMessageEvent event, @NotNull String... commandLine) {
         LOGGER.setLevel(Level.ALL);
         this.event = event;
+
+        waitNum = 0;
 
         String console[] = new String[]{commandLine[0], "", ""};
         if (commandLine[0].equalsIgnoreCase("cmd") || commandLine[0].equalsIgnoreCase("command")) {
@@ -117,6 +120,7 @@ public class CommandLine extends Thread {
 
     public CommandLine() {
         LOGGER.setLevel(Level.ALL);
+        waitNum = 0;
 
         ProcessBuilder builder = new ProcessBuilder(Platform.isLinux() ? "bash" : "cmd.exe");
         try {
@@ -210,6 +214,10 @@ public class CommandLine extends Thread {
                 }
             } else {
                 try {
+                    if (waitNum > 100) {
+                        continue;
+                    }
+                    waitNum++;
                     int count = 0;
                     while (p_inputStream.ready()) {
                         //noinspection ResultOfMethodCallIgnored

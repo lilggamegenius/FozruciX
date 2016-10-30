@@ -6,9 +6,9 @@ import com.LilG.Com.CMD.CMD;
 import com.LilG.Com.CMD.CommandLine;
 import com.LilG.Com.DND.DNDPlayer;
 import com.LilG.Com.DND.Dungeon;
+import com.LilG.Com.DataClasses.AdminCommandData;
 import com.LilG.Com.DataClasses.Meme;
 import com.LilG.Com.DataClasses.Note;
-import com.LilG.Com.DataClasses.PlusM;
 import com.LilG.Com.DataClasses.SaveDataStore;
 import com.LilG.Com.m68k.M68kSim;
 import com.LilG.Com.math.ArbitraryPrecisionEvaluator;
@@ -44,7 +44,10 @@ import jdk.nashorn.api.scripting.ClassFilter;
 import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
 import net.dv8tion.jda.MessageBuilder;
 import net.dv8tion.jda.Permission;
-import net.dv8tion.jda.entities.*;
+import net.dv8tion.jda.entities.Guild;
+import net.dv8tion.jda.entities.Message;
+import net.dv8tion.jda.entities.Role;
+import net.dv8tion.jda.entities.TextChannel;
 import net.dv8tion.jda.events.guild.member.GuildMemberBanEvent;
 import net.dv8tion.jda.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.managers.GuildManager;
@@ -61,8 +64,6 @@ import org.jsoup.Jsoup;
 import org.jsoup.UnsupportedMimeTypeException;
 import org.jsoup.nodes.Document;
 import org.pircbotx.*;
-import org.pircbotx.Channel;
-import org.pircbotx.User;
 import org.pircbotx.hooks.Event;
 import org.pircbotx.hooks.ListenerAdapter;
 import org.pircbotx.hooks.events.*;
@@ -100,6 +101,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static com.LilG.Com.DataClasses.AdminCommandData.loggingChan;
+import static com.LilG.Com.DataClasses.AdminCommandData.wordFilter;
 import static com.LilG.Com.utils.LilGUtil.*;
 import static com.citumpe.ctpTools.jWMI.getWMIValue;
 
@@ -161,8 +164,7 @@ public class FozruciX extends ListenerAdapter {
     private static volatile CommandLine terminal = new CommandLine();
     private static volatile String counter = "";
     private static volatile int counterCount = 0;
-    @NotNull
-    private static volatile JFrame frame = new JFrame();
+    private static volatile JFrame frame = null;
     @NotNull
     private static volatile MessageModes messageMode = MessageModes.normal;
     private static volatile int arrayOffset = 0;
@@ -186,16 +188,31 @@ public class FozruciX extends ListenerAdapter {
     private static volatile boolean updateAvatar = false;
     private static volatile int saveTime = 20;
     private static volatile M68kSim m68k = null;
+    private static Thread saveThread = new Thread(() -> {
+        Thread.currentThread().setName("save Thread");
+        while (!Thread.interrupted()) {
+            try {
+                LilGUtil.pause(LilGUtil.randInt(saveTime, saveTime + 10), false);
+                saveData();
+            } catch (Exception ignored) {
+            }
+        }
+    });
 
     static {
+        xstream.ignoreUnknownElements();
+    }
+
+    static {
+        saveThread.start();
         try {
             m68k = (M68kSim) Native.loadLibrary(JNI_PATH, M68kSim.class);
             System.out.println(m68k);
             m68k.start();
             Runtime.getRuntime().addShutdownHook(new Thread(m68k::exit, "Shutdown-thread"));
+            Runtime.getRuntime().addShutdownHook(new Thread(FozruciX::saveData, "Shutdown-Save-thread"));
         } catch (UnsatisfiedLinkError e) {
             LOGGER.error("JNA Error", e);
-
         }
     }
 
@@ -209,11 +226,11 @@ public class FozruciX extends ListenerAdapter {
     private org.pircbotx.Channel lastJsChannel;
     private PircBotX bot;
 
-    public FozruciX(MultiBotManager manager, SaveDataStore save) {
-        this(Network.normal, manager, save);
+    public FozruciX(MultiBotManager manager) {
+        this(Network.normal, manager);
     }
 
-    public FozruciX(Network network, MultiBotManager manager, SaveDataStore save) {
+    public FozruciX(Network network, MultiBotManager manager) {
         /*if (network == Network.twitch) {
             currentNick = "lilggamegenuis";
             currentUsername = currentNick;
@@ -232,9 +249,8 @@ public class FozruciX extends ListenerAdapter {
 
         FozruciX.manager = manager;
 
-        loadData(save, true);
+        loadData(true);
         LOGGER.setLevel(Level.ALL);
-        Runtime.getRuntime().addShutdownHook(new Thread(this::saveData, "Shutdown-Save-thread"));
     }
 
     static String getScramble(@NotNull String msgToSend) {
@@ -274,6 +290,8 @@ public class FozruciX extends ListenerAdapter {
                 msgToSend += message[num] + " ";
                 message.remove(num);
             }
+        } else if (messageMode == MessageModes.CAPS) {
+            msgToSend = msgToSend.toUpperCase();
         }
         return msgToSend;
     }
@@ -764,6 +782,20 @@ public class FozruciX extends ListenerAdapter {
         return args.split(",");
     }
 
+    private static synchronized void saveData() {
+        /*if (!BOOLS[DATA_LOADED]) {
+            LOGGER.debug("Data save canceled because data hasn't been loaded yet");
+            return;
+        }*/
+        try {
+            FozConfig.saveData(xstream);
+        } catch (ConcurrentModificationException e) {
+            LOGGER.debug("Data not saved", e);
+        } catch (Exception e) {
+            LOGGER.error("Couldn't save data", e);
+        }
+    }
+
     private void sendCommandHelp(GenericEvent event, ArgumentParser parser, ArgumentParserException e) {
         try {
             StringWriter stringWriter = new StringWriter();
@@ -902,16 +934,7 @@ public class FozruciX extends ListenerAdapter {
         loadData(true);
         makeDebug(event);
         makeDiscord();
-        new Thread(() -> {
-            while (!Thread.interrupted()) {
-                try {
-                    int numberOfBots = manager.getBots().size();
-                    LilGUtil.pause(saveTime * numberOfBots + LilGUtil.randInt(0, saveTime), false);
-                    saveData();
-                } catch (Exception ignored) {
-                }
-            }
-        }).start();
+
         /*boolean drawDungeon = false;
         if (drawDungeon) {
             SwingUtilities.invokeLater(() -> {
@@ -1044,6 +1067,7 @@ public class FozruciX extends ListenerAdapter {
         debug.setMessage(event.getUser().getNick() + ": " + event.getMessage());
         String server = network == Network.discord ? ((DiscordMessageEvent) event).getDiscordEvent().getGuild().getId() : event.getBot().getServerHostname();
         if (mutedServerList.contains(server) && !checkPerm(event.getUser(), 9001)) {
+            LOGGER.trace("Ignoring message from server " + server);
             return;
         }
         if (event.getMessage() != null) {
@@ -1278,18 +1302,7 @@ public class FozruciX extends ListenerAdapter {
                 }
             }
 
-// !topic - sets topic of a channel
-            else if (commandChecker(event, arg, "topic")) {
-                if (checkPerm(event.getUser(), 2)) {
-                    if (event instanceof DiscordMessageEvent) {
-                        ((DiscordMessageEvent) event).getDiscordEvent().getTextChannel().getManager().setTopic(argJoiner(arg, 1)).update();
-                    } else {
-                        event.getChannel().send().setTopic(argJoiner(arg, 1));
-                    }
-                }
-            }
-
-// !admin - contains most admin related commands
+// !admin - contains most admin related commands - A super command
             else if (commandChecker(event, arg, "admin")) {
                 if (checkPerm(event.getUser(), 2)) {
                     boolean discord = network == Network.discord;
@@ -1303,7 +1316,10 @@ public class FozruciX extends ListenerAdapter {
                             .dest("admin_command");
                     Subparser ban = subparsers.addParser("ban")
                             .help("Bans a user");
+                    Subparser kick = subparsers.addParser("kick")
+                            .help("kicks a user");
                     ban.addArgument("users").nargs("*").type(String.class).help("User to ban");
+                    kick.addArgument("users").nargs("*").type(String.class).help("User to kick");
                     if (discord) {
                         ban.addArgument("-r", "--remove-messages").nargs(1)
                                 .type(Integer.class).setDefault(0).help("Amount of messages, by days, to remove by the user, if any");
@@ -1321,25 +1337,71 @@ public class FozruciX extends ListenerAdapter {
                         ban.addArgument("-r", "--reason")
                                 .type(String.class).help("Sets the reason for the ban")
                                 .setDefault("You were kicked by " + event.getUser().getHostmask());
+                        kick.addArgument("-r", "--reason")
+                                .type(String.class).help("Sets the reason for the kick")
+                                .setDefault("You were kicked by " + event.getUser().getHostmask());
                     }
-                    //Subparser kick; // TODO: 10/3/16 Add subparser for kick
+                    Subparser modeM = subparsers.addParser("+m")
+                            .description("Sets a channel so only certain users can speak")
+                            .defaultHelp(true);
+                    modeM.addArgument("-s", "--state").type(Arguments.booleanType("on", "off")).setDefault((Boolean) null)
+                            .help("Sets +m mode on or off. Otherwise toggle");
+                    modeM.addArgument("roles").nargs("*")
+                            .help("Roles to white/black list");
+                    modeM.addArgument("-w", "--whitelist").type(Boolean.class).action(Arguments.storeTrue())
+                            .help("Sets the channel to white list mode");
+
+                    Subparser modeG = subparsers.addParser("+g")
+                            .description("makes it so messages containing a certain string cannot be sent")
+                            .defaultHelp(true);
+                    modeG.addArgument("expression").type(String.class)
+                            .help("what to check messages against");
+                    modeG.addArgument("-l", "--list").type(Boolean.class).action(Arguments.storeTrue())
+                            .help("List out all +g for the server");
+                    modeG.addArgument("-r", "--remove").type(Boolean.class).action(Arguments.storeTrue())
+                            .help("Remove expression instead of adding it");
+
+                    Subparser logging = subparsers.addParser("logging")
+                            .description("Sets the logging channel")
+                            .defaultHelp(true);
+
+                    Subparser topic = subparsers.addParser("topic")
+                            .description("Sets the topic")
+                            .defaultHelp(true);
+                    topic.addArgument("newTopic")
+                            .help("New topic");
                     //Subparser op; // TODO: 10/3/16 Add subparser for giving permissions
                     Namespace ns;
                     try {
                         ns = parser.parseArgs(args);
                         LOGGER.debug(ns.toString());
+                        boolean isBan = false;
                         switch (ns.getString("admin_command")) {
                             case "ban":
+                                isBan = true;
+                            case "kick":
                                 List<String> users = ns.getList("users");
                                 if (discord) {
                                     MessageReceivedEvent discordEvent = ((DiscordMessageEvent) event).getDiscordEvent();
-                                    if (checkPerm((DiscordUser) event.getUser(), Permission.BAN_MEMBERS)) {
+                                    Permission permNeeded;
+                                    if (isBan) {
+                                        permNeeded = Permission.BAN_MEMBERS;
+                                    } else {
+                                        permNeeded = Permission.KICK_MEMBERS;
+                                    }
+                                    if (checkPerm((DiscordUser) event.getUser(), permNeeded)) {
                                         List<net.dv8tion.jda.entities.User> mentioned = discordEvent.getMessage().getMentionedUsers();
                                         Guild guild = discordEvent.getGuild();
                                         GuildManager manager = guild.getManager();
                                         if (!mentioned.isEmpty()) {
                                             for (net.dv8tion.jda.entities.User mentionedUser : mentioned) {
-                                                manager.ban(mentionedUser, ns.getInt("remove_messages"));
+                                                if (isBan) {
+                                                    manager.ban(mentionedUser, ns.getInt("remove_messages"));
+                                                    sendMessage(event, "Banned user: " + mentionedUser.getUsername());
+                                                } else {
+                                                    manager.kick(mentionedUser);
+                                                    sendMessage(event, "Kicked user: " + mentionedUser.getUsername());
+                                                }
                                             }
                                         } else {
                                             for (String user : users) {
@@ -1355,13 +1417,23 @@ public class FozruciX extends ListenerAdapter {
                                                         if (currentDiscordUser == null) {
                                                             currentDiscordUser = discordUser;
                                                         } else {
-                                                            sendMessage(event, "Ambiguous ban, not banning user " + user);
+                                                            if (isBan) {
+                                                                sendMessage(event, "Ambiguous ban, not banning user " + user);
+                                                            } else {
+                                                                sendMessage(event, "Ambiguous kick, not kicking user " + user);
+                                                            }
                                                             return;
                                                         }
                                                     }
                                                 }
                                                 if (currentDiscordUser != null) {
-                                                    manager.ban(currentDiscordUser, ns.getInt("remove_messages"));
+                                                    if (isBan) {
+                                                        manager.ban(currentDiscordUser, ns.getInt("remove_messages"));
+                                                        sendMessage(event, "Banned user: " + currentDiscordUser.getUsername());
+                                                    } else {
+                                                        manager.kick(currentDiscordUser);
+                                                        sendMessage(event, "Kicked user: " + currentDiscordUser.getUsername());
+                                                    }
                                                 }
                                             }
                                         }
@@ -1371,16 +1443,42 @@ public class FozruciX extends ListenerAdapter {
                                         for (String userStr : users) {
                                             if (userStr.contains("@") && userStr.contains("!")) { // checks if given a hostmask
                                                 if (matchHostMask(user.getHostmask(), userStr)) {
-                                                    event.getChannel().send().ban(userStr);
-                                                    if (ns.getBoolean("kick_ban")) {
-                                                        event.getChannel().send().kick(user);
+                                                    String reason;
+                                                    if (isBan) {
+                                                        event.getChannel().send().ban(userStr);
+                                                        if (ns.getBoolean("kick_ban")) {
+                                                            if ((reason = ns.getString("reason")) != null) {
+                                                                event.getChannel().send().kick(user, reason);
+                                                            } else {
+                                                                event.getChannel().send().kick(user);
+                                                            }
+                                                        }
+                                                    } else {
+                                                        if ((reason = ns.getString("reason")) != null) {
+                                                            event.getChannel().send().kick(user, reason);
+                                                        } else {
+                                                            event.getChannel().send().kick(user);
+                                                        }
                                                     }
                                                 }
                                             } else {
                                                 if (user.getNick().equalsIgnoreCase(userStr)) {
-                                                    event.getChannel().send().ban("*!*@" + user.getHostname());
-                                                    if (ns.getBoolean("kick_ban")) {
-                                                        event.getChannel().send().kick(user);
+                                                    String reason;
+                                                    if (isBan) {
+                                                        event.getChannel().send().ban("*!*@" + user.getHostname());
+                                                        if (ns.getBoolean("kick_ban")) {
+                                                            if ((reason = ns.getString("reason")) != null) {
+                                                                event.getChannel().send().kick(user, reason);
+                                                            } else {
+                                                                event.getChannel().send().kick(user);
+                                                            }
+                                                        }
+                                                    } else {
+                                                        if ((reason = ns.getString("reason")) != null) {
+                                                            event.getChannel().send().kick(user, reason);
+                                                        } else {
+                                                            event.getChannel().send().kick(user);
+                                                        }
                                                     }
                                                 }
                                             }
@@ -1391,129 +1489,170 @@ public class FozruciX extends ListenerAdapter {
                             case "delmsg": // only possible on discord so no need to check
                                 List<String> delMsgArgs;
                                 if((delMsgArgs = ns.getList("message_span")) != null){
-                                    String firstMessage = delMsgArgs.get(0), secondMessage = delMsgArgs.get(2);
-                                    net.dv8tion.jda.entities.TextChannel discordChannel = ((DiscordMessageEvent)event).getDiscordEvent().getTextChannel();
+                                    String firstMessage = delMsgArgs.get(0), secondMessage = delMsgArgs.get(1);
+                                    net.dv8tion.jda.entities.TextChannel discordChannel =
+                                            ((DiscordMessageEvent) event).getDiscordEvent().getTextChannel();
+                                    boolean deleting = false;
+                                    List<Message> messagesToDel = new ArrayList<>();
                                     for(Message msg : discordChannel.getHistory().retrieveAll()){
+                                        if (deleting) {
+                                            messagesToDel.add(msg);
+                                            if (msg.getId().equals(secondMessage)) {
+                                                return;
+                                            }
+                                        } else {
+                                            if (msg.getId().equals(firstMessage)) {
+                                                deleting = !deleting;
+                                                messagesToDel.add(msg);
+                                            }
+                                        }
+                                    }
+                                    discordChannel.deleteMessages(messagesToDel);
+                                }
+                                break;
 
+                            case "+m":
+                                Boolean state = ns.getBoolean("state"); // True = on, False = off, null = toggle
+                                boolean whitelistMode = ns.getBoolean("whitelist");
+                                if (discord) { // ---------------------------Discord---------------------------
+                                    String topicStr = "+m | ";
+                                    TextChannel mChannel = ((DiscordMessageEvent) event).getDiscordEvent().getTextChannel();
+                                    Role publicRole = mChannel.getGuild().getPublicRole();
+                                    List<String> roleArgs = ns.getList("roles");
+                                    net.dv8tion.jda.entities.User currentDiscordUser = ((DiscordUser) currentUser).getDiscordUser();
+                                    if (AdminCommandData.channelRoleMap.containsKey(mChannel)) {
+                                        List<Role> roles = (List<Role>) AdminCommandData.channelRoleMap[mChannel];
+                                        if (state == null || !state) { // disabling +m mode
+                                            for (Role role : roles) {
+                                                PermissionOverrideManager overRide = mChannel.createPermissionOverride(role);
+                                                overRide.reset(Permission.MESSAGE_WRITE).update();
+                                            }
+                                            AdminCommandData.channelRoleMap.remove(mChannel);
+                                            if (mChannel.getTopic().startsWith(topicStr)) {
+                                                mChannel.getManager().setTopic(mChannel.getTopic().substring(topicStr.length())).update();
+                                            }
+                                            if (currentDiscordUser != null) {
+                                                mChannel.createPermissionOverride(currentDiscordUser).delete();
+                                            }
+                                        } else { // overwriting role list?
+                                            for (Role role : roles) {
+                                                PermissionOverrideManager overRide = mChannel.createPermissionOverride(role);
+                                                overRide.reset(Permission.MESSAGE_WRITE).update();
+                                            }
+                                            roles.clear();
+                                            roles.add(publicRole);
+                                            PermissionOverrideManager overRide = mChannel.createPermissionOverride(publicRole);
+                                            overRide.deny(Permission.MESSAGE_WRITE).update();
+                                            List<Role> guildRoleList = mChannel.getGuild().getRoles();
+                                            if (currentDiscordUser != null) {
+                                                mChannel.createPermissionOverride(currentDiscordUser).grant(Permission.MESSAGE_WRITE).update();
+                                            }
+                                            if (!roleArgs.isEmpty())
+                                                for (Role role : guildRoleList) {
+                                                    for (String roleArg : roleArgs) {
+                                                        if (roleArg.equalsIgnoreCase(role.getName())) {
+                                                            overRide = mChannel.createPermissionOverride(role);
+                                                            if (whitelistMode) {
+                                                                overRide.grant(Permission.MESSAGE_WRITE).update();
+                                                            } else {
+                                                                overRide.deny(Permission.MESSAGE_WRITE).update();
+                                                            }
+                                                            roles.add(role);
+                                                            roleArgs.remove(roleArg);
+                                                            break;
+                                                        }
+                                                    }
+                                                }
+                                        }
+                                    } else {
+                                        List<Role> guildRoleList = mChannel.getGuild().getRoles();
+                                        List<Role> roles = new ArrayList<>();
+
+                                        PermissionOverrideManager overRide = mChannel.createPermissionOverride(publicRole);
+                                        overRide.deny(Permission.MESSAGE_WRITE).update();
+                                        if (currentDiscordUser != null) {
+                                            mChannel.createPermissionOverride(currentDiscordUser).grant(Permission.MESSAGE_WRITE).update();
+                                        }
+                                        roles.add(publicRole);
+                                        if (!roleArgs.isEmpty())
+                                            for (Role role : guildRoleList) {
+                                                for (String roleArg : roleArgs) {
+                                                    if (roleArg.equalsIgnoreCase(role.getName())) {
+                                                        overRide = mChannel.createPermissionOverride(role);
+                                                        if (whitelistMode) {
+                                                            overRide.grant(Permission.MESSAGE_WRITE).update();
+                                                        } else {
+                                                            overRide.deny(Permission.MESSAGE_WRITE).update();
+                                                        }
+                                                        roles.add(role);
+                                                        roleArgs.remove(roleArg);
+                                                        break;
+                                                    }
+                                                }
+                                            }
+                                        AdminCommandData.channelRoleMap[mChannel] = roles;
+                                        mChannel.getManager().setTopic(topicStr + mChannel.getTopic()).update();
+                                    }
+                                } else { // ----------------------------------------------------IRC----------------------------------------------------
+                                    org.pircbotx.Channel chan = event.getChannel();
+                                    if (chan.containsMode('m')) {
+                                        chan.send().removeModerated();
+                                    } else {
+                                        chan.send().setModerated();
                                     }
                                 }
                                 break;
-                        }
-
-                    } catch (ArgumentParserException e) {
-                        sendCommandHelp(event, parser, e);
-                    } catch (Exception e) {
-                        sendError(event, e);
-                    }
-                }
-            }
-
-// !+m - Sets +m on a channel
-            else if (commandChecker(event, arg, "+m")) {
-                if (checkPerm(event.getUser(), 2)) {
-                    String[] args = formatStringArgs(splitMessage(message, 0, false));
-                    ArgumentParser parser = ArgumentParsers.newArgumentParser("+m")
-                            .description("Sets a channel so only certain users can speak")
-                            .defaultHelp(true);
-                    parser.addArgument("-s", "--state").type(Arguments.booleanType("on", "off")).setDefault((Boolean) null)
-                            .help("Sets +m mode on or off. Otherwise toggle");
-                    parser.addArgument("roles").nargs("*")
-                            .help("Roles to white/black list");
-                    parser.addArgument("-w", "--whitelist").type(Boolean.class).action(Arguments.storeTrue())
-                            .help("Sets the channel to white list mode");
-                    Namespace ns;
-                    try {
-                        ns = parser.parseArgs(args);
-                        LOGGER.debug(ns.toString());
-                        Boolean state = ns.getBoolean("state"); // True = on, False = off, null = toggle
-                        boolean whitelistMode = ns.getBoolean("whitelist");
-                        if (event instanceof DiscordMessageEvent) { // ---------------------------Discord---------------------------
-                            String topicStr = "+m | ";
-                            TextChannel mChannel = ((DiscordMessageEvent) event).getDiscordEvent().getTextChannel();
-                            Role publicRole = mChannel.getGuild().getPublicRole();
-                            List<String> roleArgs = ns.getList("roles");
-                            net.dv8tion.jda.entities.User currentDiscordUser = ((DiscordUser) currentUser).getDiscordUser();
-                            if (PlusM.channelRoleMap.containsKey(mChannel)) {
-                                List<Role> roles = (List<Role>) PlusM.channelRoleMap[mChannel];
-                                if (state == null || !state) { // disabling +m mode
-                                    for (Role role : roles) {
-                                        PermissionOverrideManager overRide = mChannel.createPermissionOverride(role);
-                                        overRide.reset(Permission.MESSAGE_WRITE).update();
-                                    }
-                                    PlusM.channelRoleMap.remove(mChannel);
-                                    if (mChannel.getTopic().startsWith(topicStr)) {
-                                        mChannel.getManager().setTopic(mChannel.getTopic().substring(topicStr.length())).update();
-                                    }
-                                    if (currentDiscordUser != null) {
-                                        mChannel.createPermissionOverride(currentDiscordUser).delete();
-                                    }
-                                } else { // overwriting role list?
-                                    for (Role role : roles) {
-                                        PermissionOverrideManager overRide = mChannel.createPermissionOverride(role);
-                                        overRide.reset(Permission.MESSAGE_WRITE).update();
-                                    }
-                                    roles.clear();
-                                    roles.add(publicRole);
-                                    PermissionOverrideManager overRide = mChannel.createPermissionOverride(publicRole);
-                                    overRide.deny(Permission.MESSAGE_WRITE).update();
-                                    List<Role> guildRoleList = mChannel.getGuild().getRoles();
-                                    if (currentDiscordUser != null) {
-                                        mChannel.createPermissionOverride(currentDiscordUser).grant(Permission.MESSAGE_WRITE).update();
-                                    }
-                                    if (!roleArgs.isEmpty())
-                                        for (Role role : guildRoleList) {
-                                            for (String roleArg : roleArgs) {
-                                                if (roleArg.equalsIgnoreCase(role.getName())) {
-                                                    overRide = mChannel.createPermissionOverride(role);
-                                                    if (whitelistMode) {
-                                                        overRide.grant(Permission.MESSAGE_WRITE).update();
-                                                    } else {
-                                                        overRide.deny(Permission.MESSAGE_WRITE).update();
-                                                    }
-                                                    roles.add(role);
-                                                    roleArgs.remove(roleArg);
-                                                    break;
-                                                }
+                            case "+g":
+                                if (discord) {
+                                    TextChannel mChannel = ((DiscordMessageEvent) event).getDiscordEvent().getTextChannel();
+                                    List<String> expressions = wordFilter[mChannel];
+                                    if (ns.getBoolean("list")) {
+                                        if (expressions == null || expressions.isEmpty()) {
+                                            sendMessage(event, "+g list is empty");
+                                        } else {
+                                            sendMessage(event, expressions.toString());
+                                        }
+                                    } else if (ns.getBoolean("remove")) {
+                                        if (expressions == null || expressions.isEmpty()) {
+                                            sendMessage(event, "+g list is empty, nothing to remove");
+                                        } else {
+                                            if (expressions.remove(ns.getString("expression"))) {
+                                                sendMessage(event, "removed \"" + ns.getString("expression") + "\" from the +g list");
+                                            } else {
+                                                sendMessage(event, "that expression wasn't in the +g list");
                                             }
                                         }
-                                }
-                            } else {
-                                List<Role> guildRoleList = mChannel.getGuild().getRoles();
-                                List<Role> roles = new ArrayList<>();
-
-                                PermissionOverrideManager overRide = mChannel.createPermissionOverride(publicRole);
-                                overRide.deny(Permission.MESSAGE_WRITE).update();
-                                if (currentDiscordUser != null) {
-                                    mChannel.createPermissionOverride(currentDiscordUser).grant(Permission.MESSAGE_WRITE).update();
-                                }
-                                roles.add(publicRole);
-                                if (!roleArgs.isEmpty())
-                                    for (Role role : guildRoleList) {
-                                        for (String roleArg : roleArgs) {
-                                            if (roleArg.equalsIgnoreCase(role.getName())) {
-                                                overRide = mChannel.createPermissionOverride(role);
-                                                if (whitelistMode) {
-                                                    overRide.grant(Permission.MESSAGE_WRITE).update();
-                                                } else {
-                                                    overRide.deny(Permission.MESSAGE_WRITE).update();
-                                                }
-                                                roles.add(role);
-                                                roleArgs.remove(roleArg);
-                                                break;
-                                            }
+                                    } else {
+                                        if (expressions == null) {
+                                            expressions = new ArrayList<>();
+                                            wordFilter[mChannel] = expressions;
                                         }
+                                        expressions.add(ns.getString("expression"));
                                     }
-                                PlusM.channelRoleMap[mChannel] = roles;
-                                mChannel.getManager().setTopic(topicStr + mChannel.getTopic()).update();
-                            }
-                        } else { // ----------------------------------------------------IRC----------------------------------------------------
-                            org.pircbotx.Channel chan = event.getChannel();
-                            if (chan.containsMode('m')) {
-                                chan.send().removeModerated();
-                            } else {
-                                chan.send().setModerated();
-                            }
+                                } else {
+                                    org.pircbotx.Channel chan = event.getChannel();
+                                    if (ns.getBoolean("remove")) {
+                                        chan.send().setMode("-g", chan.getName(), ns.getString("expression"));
+                                    } else {
+                                        chan.send().setMode("+g", chan.getName(), ns.getString("expression"));
+                                    }
+                                }
+                                break;
+
+                            case "logging":
+                                MessageReceivedEvent discordEvent = ((DiscordMessageEvent) event).getDiscordEvent();
+                                loggingChan.put(discordEvent.getGuild(), discordEvent.getTextChannel());
+                                sendMessage(event, "Set this channel as the logging channel");
+                                break;
+
+                            case "topic":
+                                if (discord) {
+                                    ((DiscordMessageEvent) event).getDiscordEvent().getTextChannel().getManager().setTopic(ns.getString("newTopic")).update();
+                                } else {
+                                    event.getChannel().send().setTopic(ns.getString("newTopic"));
+                                }
                         }
+
                     } catch (ArgumentParserException e) {
                         sendCommandHelp(event, parser, e);
                     } catch (Exception e) {
@@ -1626,6 +1765,8 @@ public class FozruciX extends ListenerAdapter {
                             .defaultHelp(true);
                     parser.addArgument("address").type(String.class)
                             .help("The server to connect to");
+                    parser.addArgument("channelList").type(String.class)
+                            .help("List of channels to autoconnect to");
                     parser.addArgument("-k", "--key").type(String.class).setDefault((Object) null)
                             .help("The server to connect to");
                     parser.addArgument("-p", "--port").type(Integer.class).setDefault(6667)
@@ -1698,7 +1839,7 @@ public class FozruciX extends ListenerAdapter {
                                     .setLogin(bot.getConfiguration().getLogin())
                                     .setRealName(bot.getConfiguration().getRealName())
                                     .setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates())
-                                    .addListener(new FozruciX(manager, FozConfig.loadData(xstream)));
+                                    .addListener(new FozruciX(manager));
                         } else {
                             normal = new Configuration.Builder()
                                     .setEncoding(Charset.forName("UTF-8"))
@@ -1708,7 +1849,7 @@ public class FozruciX extends ListenerAdapter {
                                     .setName(bot.getConfiguration().getName()) //Set the nick of the bot.
                                     .setLogin(bot.getConfiguration().getLogin())
                                     .setRealName(bot.getConfiguration().getRealName())
-                                    .addListener(new FozruciX(manager, FozConfig.loadData(xstream)));
+                                    .addListener(new FozruciX(manager));
                         }
                         assert normal != null;
                         manager.addBot(normal.buildForServer(server, port, ns.getString("key")));
@@ -1898,7 +2039,7 @@ public class FozruciX extends ListenerAdapter {
                                     newPhrase += " ";
                                 }
                                 // Select the first word
-                                LinkedList<String> startWords = (LinkedList<String>) markovChain["_start"];
+                                LinkedList<String> startWords = markovChain["_start"];
 
                                 for (int i = 1 + arrayOffset; i < arg.length; i++) {
                                     if (startWords.contains(arg[i])) {
@@ -2030,7 +2171,7 @@ public class FozruciX extends ListenerAdapter {
 
 // !setMessage - Sets different message formats
             else if (commandChecker(event, arg, "setMessage")) {
-                if (checkPerm(event.getUser(), 9001)) {
+                if (checkPerm(event.getUser(), 8)) {
                     switch (getArg(arg, 1).toLowerCase()) {
                         case "normal":
                             messageMode = MessageModes.normal;
@@ -2051,6 +2192,10 @@ public class FozruciX extends ListenerAdapter {
                         case "wordscramble":
                             messageMode = MessageModes.wordScrambled;
                             sendMessage(event, "Message words are scrambled");
+                            break;
+                        case "caps":
+                            messageMode = MessageModes.CAPS;
+                            sendMessage(event, "Messages are in all caps");
                             break;
                         default:
                             sendMessage(event, "Not a message mode");
@@ -2146,7 +2291,7 @@ public class FozruciX extends ListenerAdapter {
                         if (place == -1) {
                             sendMessage(event, "That user wasn't found in the list of authed users", false);
                         } else {
-                            sendMessage(event, "User " + (String) authedUser[place] + " Has permission level " + authedUserLevel[place], false);
+                            sendMessage(event, "User " + authedUser[place] + " Has permission level " + authedUserLevel[place], false);
                         }
 
                     }
@@ -3399,7 +3544,9 @@ public class FozruciX extends ListenerAdapter {
                                 DNDDungeon = new Dungeon();
                             }
                             sendMessage(event, "Generated new dungeon");
-                            frame.dispose();
+                            if (frame != null) {
+                                frame.dispose();
+                            }
                             frame = new JFrame();
                             frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
                             frame.setAlwaysOnTop(true);
@@ -4703,69 +4850,51 @@ public class FozruciX extends ListenerAdapter {
     }
 
     private synchronized void loadData() {
-        SaveDataStore save = FozConfig.loadData(xstream);
-        loadData(save);
-    }
-
-    private synchronized void loadData(SaveDataStore save) {
-        loadData(save, false);
+        loadData(true);
     }
 
     private synchronized void loadData(boolean writeOnce) {
-        loadData(FozConfig.loadData(xstream), writeOnce);
-    }
-
-    private synchronized void loadData(SaveDataStore save, boolean writeOnce) {
         if (writeOnce && noteList == null)
-            noteList = save.getNoteList();
+            noteList = SaveDataStore.getINSTANCE().getNoteList();
 
         if (writeOnce && authedUser == null)
-            authedUser = save.getAuthedUser();
+            authedUser = SaveDataStore.getINSTANCE().getAuthedUser();
 
         if (writeOnce && authedUserLevel == null)
-            authedUserLevel = save.getAuthedUserLevel();
+            authedUserLevel = SaveDataStore.getINSTANCE().getAuthedUserLevel();
 
         if (writeOnce && avatar == null)
-            avatar = save.getAvatarLink();
+            avatar = SaveDataStore.getINSTANCE().getAvatarLink();
 
         if (writeOnce && memes == null)
-            memes = save.getMemes();
+            memes = SaveDataStore.getINSTANCE().getMemes();
 
         if (writeOnce && FCList == null)
-            FCList = save.getFCList();
+            FCList = SaveDataStore.getINSTANCE().getFCList();
 
         if (writeOnce && DNDJoined == null)
-            DNDJoined = save.getDNDJoined();
+            DNDJoined = SaveDataStore.getINSTANCE().getDNDJoined();
 
         if (writeOnce && DNDList == null)
-            DNDList = save.getDNDList();
+            DNDList = SaveDataStore.getINSTANCE().getDNDList();
 
         if (writeOnce && markovChain == null)
-            markovChain = save.getMarkovChain();
+            markovChain = SaveDataStore.getINSTANCE().getMarkovChain();
 
         if (writeOnce && allowedCommands == null)
-            allowedCommands = save.getAllowedCommands();
+            allowedCommands = SaveDataStore.getINSTANCE().getAllowedCommands();
 
         if (writeOnce && checkJoinsAndQuits == null)
-            checkJoinsAndQuits = save.getCheckJoinsAndQuits();
+            checkJoinsAndQuits = SaveDataStore.getINSTANCE().getCheckJoinsAndQuits();
 
         if (writeOnce && mutedServerList == null)
-            mutedServerList = save.getMutedServerList();
-    }
+            mutedServerList = SaveDataStore.getINSTANCE().getMutedServerList();
 
-    private synchronized void saveData() {
-        /*if (!BOOLS[DATA_LOADED]) {
-            LOGGER.debug("Data save canceled because data hasn't been loaded yet");
-            return;
-        }*/
-        try {
-            SaveDataStore save = new SaveDataStore(authedUser, authedUserLevel, DNDJoined, DNDList, noteList, avatar, memes, FCList, markovChain, allowedCommands, checkJoinsAndQuits, mutedServerList);
-            FozConfig.saveData(save, xstream);
-        } catch (ConcurrentModificationException e) {
-            LOGGER.debug("Data not saved", e);
-        } catch (Exception e) {
-            LOGGER.error("Couldn't save data", e);
-        }
+        if (writeOnce && wordFilter == null)
+            wordFilter = SaveDataStore.getINSTANCE().getWordFilter();
+
+        if (writeOnce && loggingChan == null)
+            loggingChan = SaveDataStore.getINSTANCE().getLoggingChan();
     }
 
     private void checkNote(@NotNull Event event, @NotNull String user, @Nullable String channel) {
@@ -4779,8 +4908,6 @@ public class FozruciX extends ListenerAdapter {
                         try {
                             sendMessage((MessageEvent) event, user + ": " + noteList.get(i).displayMessage());
                         } catch (ClassCastException e) {
-                            //noinspection ConstantConditions
-                            lastEvents.add(new MessageEvent(bot, ((JoinEvent) event).getChannel(), channel, ((JoinEvent) event).getUserHostmask(), ((JoinEvent) event).getUser(), null, null));
                             //noinspection ConstantConditions
                             sendPrivateMessage(((JoinEvent) event).getUser().getNick(), user + ": " + noteList.get(i).displayMessage());
                         }
@@ -5081,7 +5208,7 @@ public class FozruciX extends ListenerAdapter {
     }
 
     private enum MessageModes {
-        normal, reversed, wordReversed, scrambled, wordScrambled
+        normal, reversed, wordReversed, scrambled, wordScrambled, CAPS
     }
 
     private class Python extends Thread {

@@ -55,12 +55,12 @@ dependencies {
     compile group: 'org.pircbotx', name: 'pircbotx', version: '2.1'
     compile group: 'org.apache.ant', name: 'ant', version: '1.7.1'
     compile group: 'org.apfloat', name: 'apfloat', version: '1.8.2'
-    compile group: 'net.dv8tion', name: 'JDA', version: '2.2.1_353'
+    compile group: 'net.dv8tion', name: 'JDA', version: '+'
     compile group: 'com.jcraft', name: 'jsch', version: '0.1.53'
     compile group: 'com.fathzer', name: 'javaluator', version: '3.0.1'
 
     compile group: 'de.dfki.mary', name: 'voice-cmu-bdl-hsmm', version: '5.2'
-    //compile files('/home/lil-g/.gradle/caches/modules-2/files-2.1/de.dfki.mary/voice-cmu-bdl-hsmm/5.2/voice-cmu-bdl-hsmm-5.2.jar')
+    compile files('lib/yandex-translator-java-api.jar')
 
     compile 'java-oo:javac8-oo-plugin:0.5'
 
@@ -69,5 +69,5 @@ dependencies {
     //compile files('/home/lil-g/Downloads/idea-IU-162.2032.8/redist/annotations-java8.jar')
     compile files('C:\\Program Files (x86)\\JetBrains\\IntelliJ IDEA 2016.2.3\\redist\\annotations-java8.jar')
 
-    //compile project('yandex-translator-java-api_main')
+
 }

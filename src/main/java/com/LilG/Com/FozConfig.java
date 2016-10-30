@@ -37,29 +37,11 @@ public class FozConfig {
     public final static String login = "SmugLeaf";
     public final static String kvircFlags = "\u00034\u000F";
     public final static String realName = kvircFlags + "* Why do i always get the freaks...";
+    public final static MultiBotManager manager = new MultiBotManager();
     private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(FozConfig.class);
     transient final static String PASSWORD = setPassword(Password.normal);
     private final static int attempts = Integer.MAX_VALUE;
     private final static int connectDelay = 5 * 1000; //5 seconds
-    //Create our bot with the configuration
-    private final static File bak = new File("Data/DataBak.xml");
-    private final static File saveFile = new File("Data/Data.xml");
-    public final static MultiBotManager manager = new MultiBotManager();
-    private final static SaveDataStore save = loadData(new XStream());
-
-    static {
-        try {
-            System.setProperty("jna.library.path", "jni");
-            System.setProperty("jna.debug_load", "true");
-            System.setProperty("jna.debug_load.jna", "true");
-            Class.forName("com.mysql.jdbc.Driver").newInstance();
-        } catch (ClassNotFoundException e) {
-            LOGGER.error("SQL Driver not found", e);
-        } catch (Exception e2) {
-            LOGGER.error("Error", e2);
-        }
-    }
-
     public final static Configuration.Builder debugConfig = new Configuration.Builder()
             .setAutoReconnectDelay(connectDelay)
             .setEncoding(Charset.forName("UTF-8"))
@@ -72,7 +54,7 @@ public class FozConfig {
             .setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates())
             .addAutoJoinChannel("#Lil-G|bot") //Join the official #Lil-G|Bot channel
             .addAutoJoinChannel("#SSB")
-            .addListener(new FozruciX(manager, save)); //Add our listener that will be called on Events
+            .addListener(new FozruciX(manager)); //Add our listener that will be called on Events
     public final static Configuration.Builder debugConfigSmwc = new Configuration.Builder()
             .setAutoReconnectDelay(connectDelay)
             .setEncoding(Charset.forName("UTF-8"))
@@ -85,7 +67,7 @@ public class FozConfig {
             .setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates())
             .addAutoJoinChannel("#sm64")
             .addAutoJoinChannel("#botTest")
-            .addListener(new FozruciX(manager, save)); //Add our listener that will be called on Events
+            .addListener(new FozruciX(manager)); //Add our listener that will be called on Events
     /*public final static Configuration.Builder twitchDebug = new Configuration.Builder()
             .setAutoReconnectDelay(connectDelay)
             .setAutoReconnect(true)
@@ -94,7 +76,7 @@ public class FozConfig {
             .setName(nick.toLowerCase()) //Set the nick of the bot.
             .setLogin(nick.toLowerCase())
             .addAutoJoinChannel("#lilggamegenuis") //Join lilggamegenuis's twitch chat
-            .addListener(new FozruciX(FozruciX.Network.twitch, manager, save)); //Add our listener that will be called on Events
+            .addListener(new FozruciX(FozruciX.Network.twitch, manager)); //Add our listener that will be called on Events
     */public final static Configuration.Builder debugConfigEsper = new Configuration.Builder()
             .setAutoReconnectDelay(connectDelay)
             .setEncoding(Charset.forName("UTF-8"))
@@ -107,7 +89,7 @@ public class FozConfig {
             .setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates())
             .addAutoJoinChannel("#savespam")
             //.setIdentServerEnabled(true)
-            .addListener(new FozruciX(manager, save)); //Add our listener that will be called on Events
+            .addListener(new FozruciX(manager)); //Add our listener that will be called on Events
     public final static Configuration.Builder debugConfigNova = new Configuration.Builder() //same as normal for now
             .setAutoReconnectDelay(connectDelay)
             .setEncoding(Charset.forName("UTF-8"))
@@ -120,7 +102,7 @@ public class FozConfig {
             .setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates())
             .addAutoJoinChannel("#bots")
             //.setIdentServerEnabled(true)
-            .addListener(new FozruciX(manager, save)); //Add our listener that will be called on Events
+            .addListener(new FozruciX(manager)); //Add our listener that will be called on Events
     public final static Configuration.Builder normal = new Configuration.Builder()
             .setAutoReconnectDelay(connectDelay)
             .setEncoding(Charset.forName("UTF-8"))
@@ -137,7 +119,7 @@ public class FozConfig {
             .addAutoJoinChannel("#retrotech")
             .addAutoJoinChannel("#SSB")
             .addAutoJoinChannel("#idkwtf")
-            .addListener(new FozruciX(manager, save)); //Add our listener that will be called on Events
+            .addListener(new FozruciX(manager)); //Add our listener that will be called on Events
     public final static Configuration.Builder normalSmwc = new Configuration.Builder()
             .setAutoReconnectDelay(connectDelay)
             .setEncoding(Charset.forName("UTF-8"))
@@ -156,7 +138,7 @@ public class FozConfig {
             .addAutoJoinChannel("#undertale")
             .addAutoJoinChannel("#homebrew")
             .addAutoJoinChannel("#radbusiness")
-            .addListener(new FozruciX(manager, save)); //Add our listener that will be called on Events
+            .addListener(new FozruciX(manager)); //Add our listener that will be called on Events
     /*public final static Configuration.Builder twitchNormal = new Configuration.Builder()
             .setAutoReconnectDelay(connectDelay)
             .setEncoding(Charset.forName("UTF-8"))
@@ -172,7 +154,7 @@ public class FozConfig {
             .setLogin(nick.toLowerCase())
             .addAutoJoinChannel("#lilggamegenuis") //Join lilggamegenuis's twitch chat
             .addAutoJoinChannel("#deltasmash")
-            .addListener(new FozruciX(FozruciX.Network.twitch, manager, save)); //Add our listener that will be called on Events
+            .addListener(new FozruciX(FozruciX.Network.twitch, manager)); //Add our listener that will be called on Events
     */public final static Configuration.Builder normalEsper = new Configuration.Builder()
             .setAutoReconnectDelay(connectDelay)
             .setEncoding(Charset.forName("UTF-8"))
@@ -186,7 +168,7 @@ public class FozConfig {
             .addAutoJoinChannel("#savespam")
             .addAutoJoinChannel("#ducks")
             //.setIdentServerEnabled(true)
-            .addListener(new FozruciX(manager, save)); //Add our listener that will be called on Events
+            .addListener(new FozruciX(manager)); //Add our listener that will be called on Events
     public final static Configuration.Builder normalNova = new Configuration.Builder()
             .setAutoReconnectDelay(connectDelay)
             .setEncoding(Charset.forName("UTF-8"))
@@ -199,8 +181,7 @@ public class FozConfig {
             .setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates())
             .addAutoJoinChannel("#bots")
             //.setIdentServerEnabled(true)
-            .addListener(new FozruciX(manager, save)); //Add our listener that will be called on Events
-
+            .addListener(new FozruciX(manager)); //Add our listener that will be called on Events
     public final static Configuration.Builder normalRizon = new Configuration.Builder()
             .setAutoReconnectDelay(connectDelay)
             .setEncoding(Charset.forName("UTF-8"))
@@ -214,8 +195,7 @@ public class FozConfig {
             .addAutoJoinChannel("#origami64")
             .addAutoJoinChannel("#FozruciX")
             //.setIdentServerEnabled(true)
-            .addListener(new FozruciX(manager, save)); //Add our listener that will be called on Events
-
+            .addListener(new FozruciX(manager)); //Add our listener that will be called on Events
     public final static Configuration.Builder debugConfigRizon = new Configuration.Builder()
             .setAutoReconnectDelay(connectDelay)
             .setEncoding(Charset.forName("UTF-8"))
@@ -228,9 +208,26 @@ public class FozConfig {
             .setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates())
             .addAutoJoinChannel("#FozruciX")
             //.setIdentServerEnabled(true)
-            .addListener(new FozruciX(manager, save)); //Add our listener that will be called on Events
+            .addListener(new FozruciX(manager)); //Add our listener that will be called on Events
+    //Create our bot with the configuration
+    private final static File bak = new File("Data/DataBak.xml");
+    private final static File saveFile = new File("Data/Data.xml");
 
-
+    static {
+        XStream xStream = new XStream();
+        xStream.ignoreUnknownElements();
+        loadData(xStream);
+        try {
+            System.setProperty("jna.library.path", "jni");
+            System.setProperty("jna.debug_load", "true");
+            System.setProperty("jna.debug_load.jna", "true");
+            Class.forName("com.mysql.jdbc.Driver").newInstance();
+        } catch (ClassNotFoundException e) {
+            LOGGER.error("SQL Driver not found", e);
+        } catch (Exception e2) {
+            LOGGER.error("Error", e2);
+        }
+    }
 
     public static void main(String[] args) throws Exception {
 
@@ -308,8 +305,9 @@ public class FozConfig {
         return ret;
     }
 
-    public static synchronized SaveDataStore loadData(XStream xstream) {
+    public static synchronized void loadData(XStream xstream) {
         LOGGER.info("Starting to loadData");
+        xstream.ignoreUnknownElements();
         if (!saveFile.exists()) {
             LOGGER.info("Save file doesn't exist. Attempting to load backup");
             try {
@@ -319,28 +317,33 @@ public class FozConfig {
                 LOGGER.info("Backup file moved");
             } catch (java.nio.file.FileSystemException e) {
                 LOGGER.error("file in use", e);
-                return null;
+                return;
             } catch (Exception e) {
                 LOGGER.error("failed renaming backup file", e);
             }
         }
         try (BufferedReader br = new BufferedReader(new FileReader(saveFile))) {
             LOGGER.info("Attempting to load data");
-            SaveDataStore save = (SaveDataStore) xstream.fromXML(br);
-            if (save == null) throw new FileNotFoundException("Couldn't find save data");
-            save = new SaveDataStore(save.getAuthedUser(), save.getAuthedUserLevel(), save.getDNDJoined(), save.getDNDList(), save.getNoteList(), save.getAvatarLink(), save.getMemes(), save.getFCList(), save.getMarkovChain(), save.getAllowedCommands(), save.getCheckJoinsAndQuits(), save.getMutedServerList());
-            LOGGER.info("Loaded data");
-            return save;
+            new SaveDataStore((SaveDataStore) xstream.fromXML(br, SaveDataStore.class));
+            if (SaveDataStore.getINSTANCE() != null) {
+                LOGGER.info("Loaded data");
+            }
         } catch (Exception e) {
-            LOGGER.error("failed loading data", e);
+            LOGGER.error("failed loading data, Attempting to save empty copy", e);
+            try (FileWriter writer = new FileWriter(new File("Data/DataEmpty.xml"))) {
+                xstream.ignoreUnknownElements();
+                xstream.toXML(SaveDataStore.getINSTANCE(), writer);
+            } catch (Exception e1) {
+                LOGGER.error("Couldn't save data", e1);
+            }
             System.exit(1);
         }
-        return null;
     }
 
-    public static synchronized void saveData(@NotNull SaveDataStore save, XStream xstream) throws IOException {
+    public static synchronized void saveData(XStream xstream) throws IOException {
         try (FileWriter writer = new FileWriter(bak)) {
-            xstream.toXML(save, writer);
+            xstream.ignoreUnknownElements();
+            xstream.toXML(SaveDataStore.getINSTANCE(), writer);
         } catch (Exception e) {
             LOGGER.error("Couldn't save data", e);
         }

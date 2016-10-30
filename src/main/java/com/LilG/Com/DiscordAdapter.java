@@ -7,7 +7,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.mashape.unirest.http.Unirest;
 import com.sun.jna.Platform;
-import com.thoughtworks.xstream.XStream;
 import lombok.NonNull;
 import net.dv8tion.jda.JDA;
 import net.dv8tion.jda.JDABuilder;
@@ -15,6 +14,7 @@ import net.dv8tion.jda.Permission;
 import net.dv8tion.jda.entities.Guild;
 import net.dv8tion.jda.entities.TextChannel;
 import net.dv8tion.jda.events.ReadyEvent;
+import net.dv8tion.jda.events.channel.text.TextChannelUpdateTopicEvent;
 import net.dv8tion.jda.events.guild.member.GuildMemberBanEvent;
 import net.dv8tion.jda.events.guild.member.GuildMemberJoinEvent;
 import net.dv8tion.jda.events.guild.member.GuildMemberLeaveEvent;
@@ -50,10 +50,10 @@ import static com.LilG.Com.utils.LilGUtil.randInt;
 public class DiscordAdapter extends ListenerAdapter {
     private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(DiscordAdapter.class);
     public static File avatarFile;
-    private static DiscordAdapter discordAdapter = null;
-    private static ReadyEvent readyEvent;
     static FozruciX bot;
     static PircBotX pircBotX;
+    private static DiscordAdapter discordAdapter = null;
+    private static ReadyEvent readyEvent;
     private static JDA jda;
     private static Thread game;
     private static Thread avatar;
@@ -67,7 +67,7 @@ public class DiscordAdapter extends ListenerAdapter {
                     .setEnableShutdownHook(true)
                     .addListener(this)
                     .buildBlocking();
-            DiscordAdapter.bot = new FozruciX(FozruciX.Network.discord, FozConfig.getManager(), FozConfig.loadData(new XStream()));
+        DiscordAdapter.bot = new FozruciX(FozruciX.Network.discord, FozConfig.getManager());
             DiscordAdapter.pircBotX = pircBotX;
             game = new GameThread(jda.getAccountManager());
         game.setName("Game Setter thread");
@@ -100,6 +100,67 @@ public class DiscordAdapter extends ListenerAdapter {
 
     public static JDA getJda() {
         return jda;
+    }
+
+    public static int getlevelFromPerm(Permission perm) {
+        switch (perm) {
+            case CREATE_INSTANT_INVITE:
+                return 0;
+            case KICK_MEMBERS:
+                return 3;
+            case BAN_MEMBERS:
+                return 3;
+            case ADMINISTRATOR:
+                return 3;
+            case MANAGE_CHANNEL:
+                return 4;
+            case MANAGE_SERVER:
+                return 5;
+
+            case MESSAGE_READ:
+                return 0;
+            case MESSAGE_WRITE:
+                return 0;
+            case MESSAGE_TTS:
+                return 0;
+            case MESSAGE_MANAGE:
+                return 3;
+            case MESSAGE_EMBED_LINKS:
+                return 0;
+            case MESSAGE_ATTACH_FILES:
+                return 0;
+            case MESSAGE_HISTORY:
+                return 0;
+            case MESSAGE_MENTION_EVERYONE:
+                return 0;
+            case MESSAGE_EXT_EMOJI:
+                return 0;
+
+            case VOICE_CONNECT:
+                return 0;
+            case VOICE_SPEAK:
+                return 0;
+            case VOICE_MUTE_OTHERS:
+                return 3;
+            case VOICE_DEAF_OTHERS:
+                return 3;
+            case VOICE_MOVE_OTHERS:
+                return 3;
+            case VOICE_USE_VAD:
+                return 0;
+
+            case NICKNAME_CHANGE:
+                return 0;
+            case NICKNAME_MANAGE:
+                return 2;
+
+            case MANAGE_ROLES:
+                return 5;
+            case MANAGE_PERMISSIONS:
+                return 5;
+        }
+
+        return 0;
     }
 
     @Override
@@ -174,40 +235,13 @@ public class DiscordAdapter extends ListenerAdapter {
 
     }
 
-    public static int getlevelFromPerm(Permission perm){
-        switch (perm){
-            case CREATE_INSTANT_INVITE: return 0;
-            case KICK_MEMBERS: return 3;
-            case BAN_MEMBERS: return 3;
-            case ADMINISTRATOR: return 3;
-            case MANAGE_CHANNEL: return 4;
-            case MANAGE_SERVER: return 5;
-
-            case MESSAGE_READ: return 0;
-            case MESSAGE_WRITE: return 0;
-            case MESSAGE_TTS: return 0;
-            case MESSAGE_MANAGE: return 3;
-            case MESSAGE_EMBED_LINKS: return 0;
-            case MESSAGE_ATTACH_FILES: return 0;
-            case MESSAGE_HISTORY: return 0;
-            case MESSAGE_MENTION_EVERYONE: return 0;
-            case MESSAGE_EXT_EMOJI: return 0;
-
-            case VOICE_CONNECT: return 0;
-            case VOICE_SPEAK: return 0;
-            case VOICE_MUTE_OTHERS: return 3;
-            case VOICE_DEAF_OTHERS: return 3;
-            case VOICE_MOVE_OTHERS: return 3;
-            case VOICE_USE_VAD: return 0;
-
-            case NICKNAME_CHANGE: return 0;
-            case NICKNAME_MANAGE: return 2;
-
-            case MANAGE_ROLES: return 5;
-            case MANAGE_PERMISSIONS: return 5;
+    @Override
+    public void onTextChannelUpdateTopic(TextChannelUpdateTopicEvent event) {
+        try {
+            bot.onTopic(new DiscordTopicEvent(pircBotX, new DiscordChannel(pircBotX, event.getChannel().getName()), event.getOldTopic(), event.getChannel().getTopic(), new DiscordUserHostmask(pircBotX, ""), System.currentTimeMillis(), true));
+        } catch (Exception e) {
+            LOGGER.error("Oh shit, something broke", e);
         }
-
-        return 0;
     }
 }
 
@@ -375,6 +409,13 @@ class DiscordNickChangeEvent extends NickChangeEvent {
     public DiscordNickChangeEvent(PircBotX bot, @NonNull String oldNick, @NonNull String newNick, @NonNull UserHostmask userHostmask, User user, GuildMemberNickChangeEvent nickChangeEvent) {
         super(bot, oldNick, newNick, userHostmask, user);
         this.nickChangeEvent = nickChangeEvent;
+    }
+}
+
+class DiscordTopicEvent extends TopicEvent {
+
+    public DiscordTopicEvent(PircBotX bot, @NonNull Channel channel, String oldTopic, @NonNull String topic, @NonNull UserHostmask user, long date, boolean changed) {
+        super(bot, channel, oldTopic, topic, user, date, changed);
     }
 }
 

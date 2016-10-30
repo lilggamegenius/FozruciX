@@ -1,6 +1,8 @@
 package com.LilG.Com.DataClasses;
 
 import com.LilG.Com.DND.DNDPlayer;
+import net.dv8tion.jda.entities.Guild;
+import net.dv8tion.jda.entities.TextChannel;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -11,6 +13,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * Simple data class
  */
 public class SaveDataStore {
+    @NotNull
+    private static SaveDataStore INSTANCE;
     @NotNull
     private LinkedList<Note> noteList = new LinkedList<>();
     @NotNull
@@ -33,37 +37,19 @@ public class SaveDataStore {
     private ConcurrentHashMap<String, String> checkJoinsAndQuits = new ConcurrentHashMap<>();
     @NotNull
     private LinkedList<String> mutedServerList = new LinkedList<>();
-
+    @NotNull
+    private Map<TextChannel, List<String>> wordFilter = new HashMap<>();
+    @NotNull
+    private Map<Guild, TextChannel> loggingChan = new HashMap<>();
     @NotNull
     private ConcurrentHashMap<String, LinkedList<String>> markovChain = new ConcurrentHashMap<>();
 
+    public SaveDataStore(@NotNull SaveDataStore instance) {
+        INSTANCE = instance;
+    }
 
-
-    public SaveDataStore(@NotNull LinkedList<String> authedUser, @NotNull LinkedList<Integer> authedUserLevel, @NotNull LinkedList<String> DNDJoined, @NotNull LinkedList<DNDPlayer> DNDList, @NotNull LinkedList<Note> noteList, @NotNull String avatarLink, @NotNull TreeMap<String, Meme> memes, @NotNull TreeMap<String, String> FCList, @NotNull ConcurrentHashMap<String, @NotNull LinkedList<String>> markovChain, @NotNull HashMap<String, HashMap<String, ArrayList<String>>> allowedCommands, @NotNull ConcurrentHashMap<String, String> checkJoinsAndQuits, @NotNull LinkedList<String> mutedServerList) {
-        if (authedUser != null)
-            this.authedUser = authedUser;
-        if (authedUserLevel != null)
-            this.authedUserLevel = authedUserLevel;
-        if (DNDJoined != null)
-            this.DNDJoined = DNDJoined;
-        if (DNDList != null)
-            this.DNDList = DNDList;
-        if (noteList != null)
-            this.noteList = noteList;
-        if (avatarLink != null)
-            this.avatarLink = avatarLink;
-        if (memes != null)
-            this.memes = memes;
-        if (FCList != null)
-            this.FCList = FCList;
-        if (markovChain != null)
-            this.markovChain = markovChain;
-        if (allowedCommands != null)
-            this.allowedCommands = allowedCommands;
-        if (checkJoinsAndQuits != null)
-            this.checkJoinsAndQuits = checkJoinsAndQuits;
-        if (mutedServerList != null)
-            this.mutedServerList = mutedServerList;
+    public static SaveDataStore getINSTANCE() {
+        return INSTANCE;
     }
 
     @NotNull
@@ -141,9 +127,6 @@ public class SaveDataStore {
     }
 
     public ConcurrentHashMap<String, String> getCheckJoinsAndQuits() {
-        if (checkJoinsAndQuits == null) {
-            checkJoinsAndQuits = new ConcurrentHashMap<>();
-        }
         if (checkJoinsAndQuits.isEmpty()) {
             checkJoinsAndQuits.put("191548246332538880", "214906329498648576");
         }
@@ -155,5 +138,15 @@ public class SaveDataStore {
             mutedServerList.add("110373943822540800");
         }
         return mutedServerList;
+    }
+
+    @NotNull
+    public Map<TextChannel, List<String>> getWordFilter() {
+        return wordFilter;
+    }
+
+    @NotNull
+    public Map<Guild, TextChannel> getLoggingChan() {
+        return loggingChan;
     }
 }
