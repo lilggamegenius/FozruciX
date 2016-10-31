@@ -44,12 +44,15 @@ public class SaveDataStore {
     @NotNull
     private ConcurrentHashMap<String, LinkedList<String>> markovChain = new ConcurrentHashMap<>();
 
-    public SaveDataStore(@NotNull SaveDataStore instance) {
-        INSTANCE = instance;
+    public SaveDataStore() {
     }
 
     public static SaveDataStore getINSTANCE() {
         return INSTANCE;
+    }
+
+    public static void setINSTANCE(SaveDataStore INSTANCE) {
+        SaveDataStore.INSTANCE = INSTANCE;
     }
 
     @NotNull

@@ -108,5 +108,12 @@
   Note: including file:         C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\include\cerrno
   Note: including file:        C:\Program Files (x86)\Windows Kits\10\Include\10.0.10240.0\ucrt\share.h
   Note: including file: C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\include\iostream
+  Note: including file: C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\include\iomanip
+  Note: including file:  C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\include\xlocmon
+  Note: including file:  C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\include\xloctime
+  Note: including file:   C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\include\ctime
+  Note: including file:    C:\Program Files (x86)\Windows Kits\10\Include\10.0.10240.0\ucrt\time.h
+  LINK : C:\Users\ggonz\workspace\FozruciX\jni\JNIThing\x64\Debug\JNIThing.dll not found or not built by the last incremental link; performing full link
+     Creating library C:\Users\ggonz\workspace\FozruciX\jni\JNIThing\x64\Debug\JNIThing.lib and object C:\Users\ggonz\workspace\FozruciX\jni\JNIThing\x64\Debug\JNIThing.exp
   JNIThing.vcxproj -> C:\Users\ggonz\workspace\FozruciX\jni\JNIThing\x64\Debug\JNIThing.dll
   JNIThing.vcxproj -> C:\Users\ggonz\workspace\FozruciX\jni\JNIThing\x64\Debug\JNIThing.pdb (Partial PDB)

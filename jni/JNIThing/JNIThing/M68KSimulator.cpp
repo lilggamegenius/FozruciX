@@ -4,14 +4,15 @@
 #include <fstream>
 #include <iostream>
 #include <iomanip>
+// ReSharper disable once CppUnusedIncludeDirective
 #include <cerrno>
 
 // Make sure to remove the underscore when compiling
-#define start_ start_
-#define and_ and_
+#define start_ start
+#define and_ and
 
 
-#ifdef  _GLIBCXX_DEBUG_ONLY
+#ifdef  _DEBUG
 
 #define log std::cout
 
@@ -48,9 +49,8 @@ extern "C" EXPORT void start_(){
 
 extern "C" EXPORT void close(){
 	free(ramStart);
-	for(int i = 0;i < 8;i++){
-		free(dataRegisters[i]);
-	}
+	free(dataRegisters);
+	free(addressRegisters);
 	log << "M68K memory freed" << std::endl;
 }
 
@@ -103,13 +103,13 @@ extern "C" EXPORT void addLongWord(uint16_t address, uint32_t num){
 
 }
 
-extern "C" EXPORT uint8_t getByte(M68kAddr address){
+extern "C" EXPORT uint8_t getByte(uint16_t address){
 	return ramStart->u8[address];
 }
-extern "C" EXPORT uint16_t getWord(M68kAddr address){
+extern "C" EXPORT uint16_t getWord(uint16_t address){
 	return ramStart->u16[address];
 }
-extern "C" EXPORT uint32_t getLongWord(M68kAddr address){
+extern "C" EXPORT uint32_t getLongWord(uint16_t address){
 	return ramStart->u32[address];
 }
 
@@ -137,8 +137,18 @@ extern "C" EXPORT void memDump(){
 		          << " Error: " << strerror(errno)
 		          << std::endl;
 	} else{
-		for(M68kAddr i = 0; i < ramSize; i++){
+		M68kAddr i;
+		for(i = 0; i < ramSize; i++){
 			f << ramStart->u8[i];
+		}
+		for(i = 0; i <= usp; i++){
+			f << addressRegisters[i];
+		}
+		for (; !(i % 16); i++){
+			f << 0;
+		}
+		for (i = 0; i <= d7; i++) {
+			f << dataRegisters[i];
 		}
 		f.close();
 		log << "INFO - Finished writing file to " << path << std::endl;
@@ -329,18 +339,9 @@ EXPORT void move(Size size, DataRegister source, DataRegister destination){
 	}
 }
 
-EXPORT void moveq(Size size, uint8_t source, M68kAddr destination){
-	log << "moveq";
-	switch(size){
-	case Byte: log << ".B " << source << " -> " << destination      << "(" << getByte(destination) << ")";
-		setByte(destination, source);
-		return;
-	case Word: log << ".W " << source << " -> " << destination      << "(" << getWord(destination) << ")";
-		setWord(destination, static_cast<uint16_t>(source));
-		return;
-	case Longword: log << ".L " << source << " -> " << destination  << "(" << getByte(destination) << ")";
-		setLongWord(destination, static_cast<uint32_t>(source));
-	}
+EXPORT void moveq(uint8_t source, M68kAddr destination){
+	log << "moveq " << source << " -> " << destination << "(" << getByte(destination) << ")";
+	setByte(destination, source);
 }
 
 /*
