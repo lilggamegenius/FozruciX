@@ -1,6 +1,5 @@
 package com.LilG.Com.DataClasses;
 
-import net.dv8tion.jda.entities.Guild;
 import net.dv8tion.jda.entities.Role;
 import net.dv8tion.jda.entities.TextChannel;
 
@@ -16,8 +15,6 @@ public class AdminCommandData {
     public static Map<TextChannel, List<Role>> channelRoleMap = new HashMap<>();
 
     public static Map<TextChannel, List<String>> wordFilter = new HashMap<>();
-
-    public static Map<Guild, TextChannel> loggingChan = new HashMap<>();
 
     private AdminCommandData() {
     }

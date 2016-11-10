@@ -204,12 +204,15 @@ public class DiscordAdapter extends ListenerAdapter {
 
     @Override
     public void onGuildMemberNickChange(GuildMemberNickChangeEvent nick){
-        String discordNick = nick.getGuild().getNicknameForUser(nick.getUser());
         String discordUsername = nick.getUser().getUsername();
+        String discordNick = nick.getNewNick();
+        discordNick = discordNick != null ? discordNick : discordUsername;
+        String discordOldNick = nick.getPrevNick();
+        discordOldNick = discordOldNick != null ? discordOldNick : discordUsername;
         String discordHostmask = nick.getUser().getId();
-        DiscordUserHostmask discordUserHostmask = new DiscordUserHostmask(pircBotX, (discordNick == null ? discordUsername : discordNick) + "!" + discordUsername + "@" + discordHostmask);
-        LOGGER.info(String.format("[PM] %s: %s %s %s %s %s", nick.getGuild().getName(),discordUserHostmask.getHostmask(), "Changed nick from", nick.getPrevNick(), "to", nick.getNewNick()));
-        bot.onNickChange(new NickChangeEvent(pircBotX, nick.getPrevNick(), nick.getNewNick(), discordUserHostmask, new DiscordUser(discordUserHostmask, nick.getUser(), nick.getGuild())));
+        DiscordUserHostmask discordUserHostmask = new DiscordUserHostmask(pircBotX, discordNick + "!" + discordUsername + "@" + discordHostmask);
+        LOGGER.info(String.format("[%s]: %s %s %s %s %s", nick.getGuild().getName(), discordUserHostmask.getHostmask(), "Changed nick from", discordOldNick, "to", discordNick));
+        bot.onNickChange(new NickChangeEvent(pircBotX, discordOldNick, discordNick, discordUserHostmask, new DiscordUser(discordUserHostmask, nick.getUser(), nick.getGuild())));
     }
 
     @Override

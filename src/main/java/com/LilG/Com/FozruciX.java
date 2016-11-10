@@ -104,7 +104,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static com.LilG.Com.DataClasses.AdminCommandData.loggingChan;
 import static com.LilG.Com.DataClasses.AdminCommandData.wordFilter;
 import static com.LilG.Com.utils.LilGUtil.*;
 import static com.citumpe.ctpTools.jWMI.getWMIValue;
@@ -114,10 +113,10 @@ import static com.citumpe.ctpTools.jWMI.getWMIValue;
  * Main bot class
  */
 public class FozruciX extends ListenerAdapter {
-    public final static float VERSION = 2.2f;
+    public final static float VERSION = 2.5f;
     public final static String[] DICTIONARY = {"i don't know what \"%s\" is, do i look like a DICTIONARY?", "Go look it up yourself.", "Why not use your computer and look \"%s\" up.", "Google it.", "Nope.", "Get someone else to do it.", "Why not get that " + Colors.RED + "Other bot" + Colors.NORMAL + " to do it?", "There appears to be a error between your " + Colors.BOLD + "seat" + Colors.NORMAL + " and the " + Colors.BOLD + "Keyboard" + Colors.NORMAL + " >_>", "Uh oh, there appears to be a User error.", "error: Fuck count too low, Cannot give Fuck.", ">_>"};
     public final static String[] LIST_OF_NOES = {" It’s not a priority for me at this time.", "I’d rather stick needles in my eyes.", "My schedule is up in the air right now. SEE IT WAFTING GENTLY DOWN THE CORRIDOR.", "I don’t love it, which means I’m not the right person for it.", "I would prefer another option.", "I would be the absolute worst person to execute, are you on crack?!", "Life is too short TO DO THINGS YOU don’t LOVE.", "I no longer do things that make me want to kill myself", "You should do this yourself, you would be awesome sauce.", "I would love to say yes to everything, but that would be stupid", "Fuck no.", "Some things have come up that need my attention.", "There is a person who totally kicks ass at this. I AM NOT THAT PERSON.", "Shoot me now...", "It would cause the slow withering death of my soul.", "I’d rather remove my own gallbladder with an oyster fork.", "I'd love to but I did my own thing and now I've got to undo it."};
-    public final static String[] COMMANDS = {"COMMANDS", " Time", " calcj", " randomNum", " StringToBytes", " Chat", " Temp", " BlockConv", " Hello", " Bot", " GetName", " recycle", " Login", " GetLogin", " GetID", " GetSate", " prefix", " SayThis", " ToSciNo", " Trans", " DebugVar", " cmd", " SayRaw", " SayCTCPCommnad", " Leave", " Respawn", " Kill", " ChangeNick", " SayAction", " NoteJ", "Memes", " jToggle", " Joke: Splatoon", "Joke: Attempt", " Joke: potato", " Joke: whatIs?", "Joke: getFinger", " Joke: GayDar"};
+    public final static String[] COMMANDS = {"COMMANDS", " Time", " calcj", " RandomInt", " StringToBytes", " Chat", " Temp", " BlockConv", " Hello", " Bot", " GetName", " recycle", " Login", " GetLogin", " GetID", " GetSate", " prefix", " SayThis", " ToSciNo", " Trans", " DebugVar", " cmd", " SayRaw", " SayCTCPCommnad", " Leave", " Respawn", " Kill", " ChangeNick", " SayAction", " NoteJ", "Memes", " jToggle", " Joke: Splatoon", "Joke: Attempt", " Joke: potato", " Joke: whatIs?", "Joke: getFinger", " Joke: GayDar"};
     private final static File WIKTIONARY_DIRECTORY = new File("Data/Wiktionary");
     private final static int JOKE_COMMANDS = 0;
     private final static int ARRAY_OFFSET_SET = 1;
@@ -190,6 +189,7 @@ public class FozruciX extends ListenerAdapter {
     private static volatile DiscordAdapter discord;
     private static volatile boolean updateAvatar = false;
     private static volatile int saveTime = 20;
+    private static volatile int defaultCoolDownTime = 4;
     private static volatile M68kSim m68k = null;
     private static Thread saveThread = new Thread(() -> {
         Thread.currentThread().setName("save Thread");
@@ -483,7 +483,7 @@ public class FozruciX extends ListenerAdapter {
     }
 
     private static void addCooldown(User user) {
-        addCooldown(user, 7);
+        addCooldown(user, defaultCoolDownTime);
     }
 
     private static void addCooldown(User user, int cooldownTime) {
@@ -1638,12 +1638,6 @@ public class FozruciX extends ListenerAdapter {
                                         chan.send().setMode("+g", chan.getName(), ns.getString("expression"));
                                     }
                                 }
-                                break;
-
-                            case "logging":
-                                MessageReceivedEvent discordEvent = ((DiscordMessageEvent) event).getDiscordEvent();
-                                loggingChan.put(discordEvent.getGuild(), discordEvent.getTextChannel());
-                                sendMessage(event, "Set this channel as the logging channel");
                                 break;
 
                             case "topic":
@@ -3228,23 +3222,24 @@ public class FozruciX extends ListenerAdapter {
 
             }
 
-// !RandomNum - Gives the user a random Number
-            else if (commandChecker(event, arg, "RandomNum")) {
-                long num1, num2;
-                if (getArg(arg, 1).contains("0x")) {
-                    String num = getArg(arg, 1).substring(2);
-                    num1 = Long.parseLong(num, 16);
-                } else {
-                    num1 = Long.parseLong(getArg(arg, 1), 10);
+// !RandomInt - Gives the user a random Number
+            else if (commandChecker(event, arg, "RandomInt")) {
+                int num1, num2;
+                if (getArg(arg, 1) != null && getArg(arg, 2) != null) {
+                    num1 = Integer.decode(getArg(arg, 1));
+                    num2 = Integer.decode(getArg(arg, 2));
+                    sendMessage(event, "" + randInt(num1, num2));
                 }
-                if (getArg(arg, 2).contains("0x")) {
-                    String num = getArg(arg, 2).substring(2);
-                    num2 = Long.parseLong(num, 16);
-                } else {
-                    num2 = Long.parseLong(getArg(arg, 2), 10);
-                }
-                sendMessage(event, " " + randInt((int) num1, (int) num2));
+            }
 
+// !RandomDec - Gives the user a random Number
+            else if (commandChecker(event, arg, "RandomDec")) {
+                double num1, num2;
+                if (getArg(arg, 1) != null && getArg(arg, 2) != null) {
+                    num1 = Double.parseDouble(getArg(arg, 1));
+                    num2 = Double.parseDouble(getArg(arg, 2));
+                    sendMessage(event, "" + randDec(num1, num2));
+                }
             }
 
 // !getState - Displays what version the bot is on
@@ -4888,9 +4883,6 @@ public class FozruciX extends ListenerAdapter {
 
         if (writeOnce && wordFilter == null)
             wordFilter = SaveDataStore.getINSTANCE().getWordFilter();
-
-        if (writeOnce && loggingChan == null)
-            loggingChan = SaveDataStore.getINSTANCE().getLoggingChan();
     }
 
     private void checkNote(@NotNull Event event, @NotNull String user, @Nullable String channel) {
@@ -5012,7 +5004,7 @@ public class FozruciX extends ListenerAdapter {
             case "hello":
                 sendNotice(event, event.getUser().getNick(), "Just your average \"hello world!\" program");
                 break;
-            case "randomnum":
+            case "RandomInt":
                 sendNotice(event, event.getUser().getNick(), "Creates a random number between the 2 integers");
                 sendNotice(event, event.getUser().getNick(), "Usage: first number sets the minimum number, second sets the maximum");
                 break;

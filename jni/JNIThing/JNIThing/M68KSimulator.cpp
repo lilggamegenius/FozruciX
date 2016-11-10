@@ -5,11 +5,12 @@
 #include <iostream>
 #include <iomanip>
 // ReSharper disable once CppUnusedIncludeDirective
+// Clion disable once UnusedIncludeDirective
 #include <cerrno>
 
 // Make sure to remove the underscore when compiling
-#define start_ start
-#define and_ and
+#define start_ start_
+#define and_ and_
 
 
 #ifdef  _DEBUG

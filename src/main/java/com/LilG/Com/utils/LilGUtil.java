@@ -20,7 +20,7 @@ import java.util.regex.Pattern;
  */
 
 public class LilGUtil {
-    private final static transient Random rand = new Random();
+    private final static Random rand = new Random();
     private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(LilGUtil.class);
 
     /**
@@ -35,12 +35,17 @@ public class LilGUtil {
      */
 
     public static int randInt(int min, int max) {
-
-
         // nextInt is normally exclusive of the top value,
         // so add 1 to make it inclusive
 
         return rand.nextInt((max - min) + 1) + min;
+    }
+
+    public static double randDec(double min, double max) {
+        // nextInt is normally exclusive of the top value,
+        // so add 1 to make it inclusive
+
+        return rand.nextFloat() * (max - min) + min;
     }
 
     public static String getBytes(@NotNull String bytes) {

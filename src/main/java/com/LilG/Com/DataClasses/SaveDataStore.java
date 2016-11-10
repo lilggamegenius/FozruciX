@@ -1,7 +1,6 @@
 package com.LilG.Com.DataClasses;
 
 import com.LilG.Com.DND.DNDPlayer;
-import net.dv8tion.jda.entities.Guild;
 import net.dv8tion.jda.entities.TextChannel;
 import org.jetbrains.annotations.NotNull;
 
@@ -39,8 +38,6 @@ public class SaveDataStore {
     private LinkedList<String> mutedServerList = new LinkedList<>();
     @NotNull
     private Map<TextChannel, List<String>> wordFilter = new HashMap<>();
-    @NotNull
-    private Map<Guild, TextChannel> loggingChan = new HashMap<>();
     @NotNull
     private ConcurrentHashMap<String, LinkedList<String>> markovChain = new ConcurrentHashMap<>();
 
@@ -146,10 +143,5 @@ public class SaveDataStore {
     @NotNull
     public Map<TextChannel, List<String>> getWordFilter() {
         return wordFilter;
-    }
-
-    @NotNull
-    public Map<Guild, TextChannel> getLoggingChan() {
-        return loggingChan;
     }
 }

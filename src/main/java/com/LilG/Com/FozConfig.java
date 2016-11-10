@@ -267,9 +267,6 @@ public class FozConfig {
             LOGGER.error("Error", e2);
         }
         location = locationTemp;
-    }
-
-    static {
         switch (location) {
             case self:
                 Lil_G_Net = "localhost";
