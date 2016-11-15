@@ -8,21 +8,22 @@ import com.google.common.collect.ImmutableSortedSet;
 import com.mashape.unirest.http.Unirest;
 import com.sun.jna.Platform;
 import lombok.NonNull;
-import net.dv8tion.jda.JDA;
-import net.dv8tion.jda.JDABuilder;
-import net.dv8tion.jda.Permission;
-import net.dv8tion.jda.entities.Guild;
-import net.dv8tion.jda.entities.TextChannel;
-import net.dv8tion.jda.events.ReadyEvent;
-import net.dv8tion.jda.events.channel.text.TextChannelUpdateTopicEvent;
-import net.dv8tion.jda.events.guild.member.GuildMemberBanEvent;
-import net.dv8tion.jda.events.guild.member.GuildMemberJoinEvent;
-import net.dv8tion.jda.events.guild.member.GuildMemberLeaveEvent;
-import net.dv8tion.jda.events.guild.member.GuildMemberNickChangeEvent;
-import net.dv8tion.jda.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.hooks.ListenerAdapter;
-import net.dv8tion.jda.managers.AccountManager;
-import net.dv8tion.jda.utils.AvatarUtil;
+import net.dv8tion.jda.core.AccountType;
+import net.dv8tion.jda.core.JDA;
+import net.dv8tion.jda.core.JDABuilder;
+import net.dv8tion.jda.core.Permission;
+import net.dv8tion.jda.core.entities.*;
+import net.dv8tion.jda.core.events.ReadyEvent;
+import net.dv8tion.jda.core.events.channel.text.update.TextChannelUpdateTopicEvent;
+import net.dv8tion.jda.core.events.guild.GuildBanEvent;
+import net.dv8tion.jda.core.events.guild.member.GuildMemberJoinEvent;
+import net.dv8tion.jda.core.events.guild.member.GuildMemberLeaveEvent;
+import net.dv8tion.jda.core.events.guild.member.GuildMemberNickChangeEvent;
+import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.core.exceptions.RateLimitedException;
+import net.dv8tion.jda.core.hooks.ListenerAdapter;
+import net.dv8tion.jda.core.managers.AccountManagerUpdatable;
+import net.dv8tion.jda.core.managers.Presence;
 import org.apache.commons.httpclient.util.URIUtil;
 import org.pircbotx.Channel;
 import org.pircbotx.PircBotX;
@@ -58,10 +59,10 @@ public class DiscordAdapter extends ListenerAdapter {
     private static Thread game;
     private static Thread avatar;
 
-    private DiscordAdapter(PircBotX pircBotX) throws LoginException, InterruptedException {
+    private DiscordAdapter(PircBotX pircBotX) throws LoginException, InterruptedException, RateLimitedException {
             LOGGER.trace("Calling JDA Builder");
-            jda = new JDABuilder()
-                    .setBotToken(CryptoUtil.decrypt(FozConfig.setPassword(FozConfig.Password.discord)))
+        jda = new JDABuilder(AccountType.BOT)
+                .setToken(CryptoUtil.decrypt(FozConfig.setPassword(FozConfig.Password.discord)))
                     .setAutoReconnect(true)
                     .setAudioEnabled(true)
                     .setEnableShutdownHook(true)
@@ -69,11 +70,11 @@ public class DiscordAdapter extends ListenerAdapter {
                     .buildBlocking();
         DiscordAdapter.bot = new FozruciX(FozruciX.Network.discord, FozConfig.getManager());
             DiscordAdapter.pircBotX = pircBotX;
-            game = new GameThread(jda.getAccountManager());
+        game = new GameThread(jda.getPresence());
         game.setName("Game Setter thread");
             game.start();
 
-            avatar = new AvatarThread(jda.getAccountManager(), bot);
+        avatar = new AvatarThread(jda.getSelfUser().getManagerUpdatable(), bot);
         avatar.setName("Avatar Setter thread");
             avatar.start();
             LOGGER.trace("DiscordAdapter created");
@@ -176,26 +177,26 @@ public class DiscordAdapter extends ListenerAdapter {
     }
 
     public void onGuildMemberJoin(GuildMemberJoinEvent join) {
-        String discordNick = join.getGuild().getNicknameForUser(join.getUser());
-        String discordUsername = join.getUser().getUsername();
-        String discordHostmask = join.getUser().getId();
+        String discordNick = join.getMember().getEffectiveName();
+        String discordUsername = join.getMember().getUser().getName();
+        String discordHostmask = join.getMember().getUser().getId();
         DiscordUserHostmask discordUserHostmask = new DiscordUserHostmask(pircBotX, (discordNick == null ? discordUsername : discordNick) + "!" + discordUsername + "@" + discordHostmask);
         LOGGER.info(String.format("[%s] %s: %s", join.getGuild().getName(), discordUserHostmask.getHostmask(), "Joined"));
-        bot.onJoin(new DiscordJoinEvent(pircBotX, new DiscordChannel(pircBotX, '#' + join.getGuild().getPublicChannel().getName()), discordUserHostmask, new DiscordUser(discordUserHostmask, join.getUser(), join.getGuild()), join));
+        bot.onJoin(new DiscordJoinEvent(pircBotX, new DiscordChannel(pircBotX, '#' + join.getGuild().getPublicChannel().getName()), discordUserHostmask, new DiscordUser(discordUserHostmask, join.getMember().getUser(), join.getGuild()), join));
     }
 
     public void onGuildMemberLeave(GuildMemberLeaveEvent leave) {
-        String discordNick = leave.getGuild().getNicknameForUser(leave.getUser());
-        String discordUsername = leave.getUser().getUsername();
-        String discordHostmask = leave.getUser().getId();
+        String discordNick = leave.getMember().getEffectiveName();
+        String discordUsername = leave.getMember().getUser().getName();
+        String discordHostmask = leave.getMember().getUser().getId();
         DiscordUserHostmask discordUserHostmask = new DiscordUserHostmask(pircBotX, (discordNick == null ? discordUsername : discordNick) + "!" + discordUsername + "@" + discordHostmask);
         LOGGER.info(String.format("[%s] %s: %s", leave.getGuild().getName(), discordUserHostmask.getHostmask(), "Left"));
-        bot.onQuit(new DiscordQuitEvent(pircBotX, null, discordUserHostmask, new UserSnapshot(new DiscordUser(discordUserHostmask, leave.getUser(), leave.getGuild())), "", leave));
+        bot.onQuit(new DiscordQuitEvent(pircBotX, null, discordUserHostmask, new UserSnapshot(new DiscordUser(discordUserHostmask, leave.getMember().getUser(), leave.getGuild())), "", leave));
     }
 
-    public void onGuildMemberBan(GuildMemberBanEvent ban) {
-        String discordNick = ban.getGuild().getNicknameForUser(ban.getUser());
-        String discordUsername = ban.getUser().getUsername();
+    public void onGuildBan(GuildBanEvent ban) {
+        String discordNick = ban.getUser().getName();
+        String discordUsername = discordNick;
         String discordHostmask = ban.getUser().getId();
         DiscordUserHostmask discordUserHostmask = new DiscordUserHostmask(pircBotX, (discordNick == null ? discordUsername : discordNick) + "!" + discordUsername + "@" + discordHostmask);
         LOGGER.info(String.format("[%s] %s: %s", ban.getGuild().getName(), discordUserHostmask.getHostmask(), "Banned"));
@@ -204,36 +205,37 @@ public class DiscordAdapter extends ListenerAdapter {
 
     @Override
     public void onGuildMemberNickChange(GuildMemberNickChangeEvent nick){
-        String discordUsername = nick.getUser().getUsername();
-        String discordNick = nick.getNewNick();
-        discordNick = discordNick != null ? discordNick : discordUsername;
+        String discordNick = nick.getMember().getEffectiveName();
+        String discordUsername = nick.getMember().getUser().getName();
         String discordOldNick = nick.getPrevNick();
         discordOldNick = discordOldNick != null ? discordOldNick : discordUsername;
-        String discordHostmask = nick.getUser().getId();
+        String discordHostmask = nick.getMember().getUser().getId();
         DiscordUserHostmask discordUserHostmask = new DiscordUserHostmask(pircBotX, discordNick + "!" + discordUsername + "@" + discordHostmask);
         LOGGER.info(String.format("[%s]: %s %s %s %s %s", nick.getGuild().getName(), discordUserHostmask.getHostmask(), "Changed nick from", discordOldNick, "to", discordNick));
-        bot.onNickChange(new NickChangeEvent(pircBotX, discordOldNick, discordNick, discordUserHostmask, new DiscordUser(discordUserHostmask, nick.getUser(), nick.getGuild())));
+        bot.onNickChange(new NickChangeEvent(pircBotX, discordOldNick, discordNick, discordUserHostmask, new DiscordUser(discordUserHostmask, nick.getMember().getUser(), nick.getGuild())));
     }
 
     @Override
     public void onMessageReceived(MessageReceivedEvent event) {
-        String discordNick = event.getAuthorName();
-        String discordUsername = event.getAuthor().getUsername();
-        String discordHostmask = event.getAuthor().getId(); //misnomer but it acts as the same thing
+        String discordNick = event.getMember().getEffectiveName();
+        String discordUsername = event.getMember().getUser().getName();
+        String discordHostmask = event.getMember().getUser().getId(); //misnomer but it acts as the same thing
         DiscordUserHostmask discordUserHostmask = new DiscordUserHostmask(pircBotX, discordNick + "!" + discordUsername + "@" + discordHostmask);
 
-        if (event.isPrivate()) {
+        if (event.isFromType(ChannelType.PRIVATE)) {
             LOGGER.info(String.format("[PM] %s: %s", discordUserHostmask.getHostmask(), event.getMessage().getRawContent()));
-            if (!event.getAuthor().getId().equals(jda.getSelfInfo().getId())) {
+            if (!event.getAuthor().getId().equals(jda.getSelfUser().getId())) {
                 bot.onPrivateMessage(new DiscordPrivateMessageEvent(pircBotX, discordUserHostmask, new DiscordUser(discordUserHostmask, event.getAuthor(), null), event.getMessage().getRawContent(), event));
             }
-        } else {
+        } else if (event.isFromType(ChannelType.TEXT)) {
             LOGGER.info(String.format("[%s][%s] %s: %s", event.getGuild().getName(),
                     event.getTextChannel().getName(), discordUserHostmask.getHostmask(),
                     event.getMessage().getRawContent()));
-            if (!event.getAuthor().getId().equals(jda.getSelfInfo().getId())) {
+            if (!event.getAuthor().getId().equals(jda.getSelfUser().getId())) {
                 bot.onMessage(new DiscordMessageEvent(pircBotX, new DiscordChannel(pircBotX, event.getTextChannel().getName()).setChannel(event.getTextChannel()), event.getTextChannel().getName(), discordUserHostmask, new DiscordUser(discordUserHostmask, event.getAuthor(), event.getGuild()), event.getMessage().getRawContent(), null, event));
             }
+        } else {
+            //// TODO: 11/13/2016 add settings for group message
         }
 
     }
@@ -263,7 +265,7 @@ class DiscordMessageEvent extends MessageEvent {
 
     @Override
     public void respond(String response) {
-        discordEvent.getChannel().sendMessage(discordEvent.getAuthorName() + ": " + response);
+        discordEvent.getChannel().sendMessage(discordEvent.getAuthor().getAsMention() + ": " + response);
     }
 
     @Override
@@ -287,7 +289,7 @@ class DiscordPrivateMessageEvent extends PrivateMessageEvent {
 
     @Override
     public void respond(String response) {
-        discordEvent.getAuthor().getPrivateChannel().sendMessage(discordEvent.getAuthorName() + ": " + response);
+        discordEvent.getAuthor().getPrivateChannel().sendMessage(discordEvent.getAuthor().getAsMention() + ": " + response);
     }
 
     @Override
@@ -309,13 +311,13 @@ class DiscordChannel extends Channel {
     }
 
     public ImmutableSortedSet<User> getUsers() {
-        List<net.dv8tion.jda.entities.User> discordUsers = channel.getUsers();
+        List<net.dv8tion.jda.core.entities.Member> discordMembers = channel.getMembers();
         List<User> users = new ArrayList<>();
-        for (net.dv8tion.jda.entities.User user : discordUsers) {
-            String discordNick = user.getUsername();
-            String discordUsername = user.getUsername();
-            String discordHostmask = user.getId(); //misnomer but it acts as the same thing
-            users.add(new DiscordUser(new DiscordUserHostmask(this.bot, discordNick + "!" + discordUsername + "@" + discordHostmask), user, channel.getGuild()));
+        for (net.dv8tion.jda.core.entities.Member member : discordMembers) {
+            String discordNick = member.getEffectiveName();
+            String discordUsername = member.getUser().getName();
+            String discordHostmask = member.getUser().getId(); //misnomer but it acts as the same thing
+            users.add(new DiscordUser(new DiscordUserHostmask(this.bot, discordNick + "!" + discordUsername + "@" + discordHostmask), member.getUser(), channel.getGuild()));
         }
         return ImmutableSortedSet.copyOf(users);
     }
@@ -346,16 +348,16 @@ class DiscordConnectEvent extends ConnectEvent {
 }
 
 class DiscordUser extends User {
-    private net.dv8tion.jda.entities.User discordUser;
+    private net.dv8tion.jda.core.entities.User discordUser;
     private Guild guild = null; //null if PM
 
-    DiscordUser(UserHostmask hostmask, net.dv8tion.jda.entities.User user, Guild guild) {
+    DiscordUser(UserHostmask hostmask, net.dv8tion.jda.core.entities.User user, Guild guild) {
         super(hostmask);
         discordUser = user;
         this.guild = guild;
     }
 
-    public net.dv8tion.jda.entities.User getDiscordUser() {
+    public net.dv8tion.jda.core.entities.User getDiscordUser() {
         return discordUser;
     }
 
@@ -393,13 +395,13 @@ class DiscordJoinEvent extends JoinEvent {
 }
 
 class DiscordUserHostmask extends UserHostmask {
-    private net.dv8tion.jda.entities.User discordUser;
+    private net.dv8tion.jda.core.entities.User discordUser;
 
     DiscordUserHostmask(PircBotX bot, String rawHostmask) {
         super(bot, rawHostmask);
     }
 
-    public net.dv8tion.jda.entities.User getDiscordUser() {
+    public net.dv8tion.jda.core.entities.User getDiscordUser() {
         return discordUser;
     }
 
@@ -423,13 +425,13 @@ class DiscordTopicEvent extends TopicEvent {
 }
 
 class GameThread extends Thread {
-    private AccountManager accountManager;
+    private Presence presence;
 
     private GameThread() {
     }
 
-    GameThread(AccountManager accountManager) {
-        this.accountManager = accountManager;
+    GameThread(Presence presence) {
+        this.presence = presence;
     }
 
     @Override
@@ -437,7 +439,7 @@ class GameThread extends Thread {
         String[] listOfGames = {"With bleach", "With fire", "With matches", "The Bleach Drinking Game", "The smallest violin", "In the blood of my enemies", "On top of the corpses of my enemies", "In the trash can where i belong", "The waiting game", "The game of life", "baseball with the head of my enemies", "basketball with the head of my enemies", "football with the head of my enemies"};
         while (!Thread.currentThread().isInterrupted()) {
             try {
-                accountManager.setGame(listOfGames[randInt(0, listOfGames.length - 1)]);
+                presence.setGame(Game.of((listOfGames[randInt(0, listOfGames.length - 1)])));
                 pause(randInt(10, 30));
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
@@ -450,10 +452,10 @@ class GameThread extends Thread {
 
 class AvatarThread extends Thread {
     private final static Logger LOGGER = (Logger) LoggerFactory.getLogger(AvatarThread.class);
-    private AccountManager accountManager;
+    private AccountManagerUpdatable accountManager;
     private FozruciX bot;
 
-    public AvatarThread(AccountManager accountManager, FozruciX bot) {
+    public AvatarThread(AccountManagerUpdatable accountManager, FozruciX bot) {
         this.accountManager = accountManager;
         this.bot = bot;
     }
@@ -475,11 +477,11 @@ class AvatarThread extends Thread {
                     avatarFile = avatarList[randInt(0, avatarList.length - 1)];
                     LOGGER.info("Picked file: " + avatarFile);
                     try {
-                        accountManager.setAvatar(AvatarUtil.getAvatar(avatarFile));
+                        accountManager.getAvatarField().setValue(Icon.from(avatarFile));
                     } catch (UnsupportedEncodingException e) {
                         try {
                             ImageIO.write(ImageIO.read(avatarFile), "png", tempImage);
-                            accountManager.setAvatar(AvatarUtil.getAvatar(tempImage));
+                            accountManager.getAvatarField().setValue(Icon.from(tempImage));
                         } catch (ArrayIndexOutOfBoundsException arrayE) {
                             arrayE.printStackTrace();
                             LOGGER.error(avatarFile.getAbsolutePath());
@@ -501,7 +503,7 @@ class AvatarThread extends Thread {
                     }
 
                 }
-                accountManager.update();
+                accountManager.update(null);
                 LOGGER.debug("Set Avatar");
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();

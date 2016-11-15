@@ -4,8 +4,6 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import com.LilG.Com.CMD.CMD;
 import com.LilG.Com.CMD.CommandLine;
-import com.LilG.Com.DND.DNDPlayer;
-import com.LilG.Com.DND.Dungeon;
 import com.LilG.Com.DataClasses.AdminCommandData;
 import com.LilG.Com.DataClasses.Meme;
 import com.LilG.Com.DataClasses.Note;
@@ -36,25 +34,18 @@ import com.sun.jna.Platform;
 import com.thoughtworks.xstream.XStream;
 import com.wolfram.alpha.*;
 import de.tudarmstadt.ukp.jwktl.JWKTL;
-import de.tudarmstadt.ukp.jwktl.api.IWiktionaryEdition;
-import de.tudarmstadt.ukp.jwktl.api.IWiktionaryEntry;
-import de.tudarmstadt.ukp.jwktl.api.IWiktionaryPage;
-import de.tudarmstadt.ukp.jwktl.api.IWiktionarySense;
+import de.tudarmstadt.ukp.jwktl.api.*;
 import info.bliki.api.Page;
 import info.bliki.wiki.filter.PlainTextConverter;
 import info.bliki.wiki.model.WikiModel;
 import jdk.nashorn.api.scripting.ClassFilter;
 import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
-import net.dv8tion.jda.MessageBuilder;
-import net.dv8tion.jda.Permission;
-import net.dv8tion.jda.entities.Guild;
-import net.dv8tion.jda.entities.Message;
-import net.dv8tion.jda.entities.Role;
-import net.dv8tion.jda.entities.TextChannel;
-import net.dv8tion.jda.events.guild.member.GuildMemberBanEvent;
-import net.dv8tion.jda.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.managers.GuildManager;
-import net.dv8tion.jda.managers.PermissionOverrideManager;
+import net.dv8tion.jda.core.MessageBuilder;
+import net.dv8tion.jda.core.Permission;
+import net.dv8tion.jda.core.entities.*;
+import net.dv8tion.jda.core.events.guild.GuildBanEvent;
+import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.core.managers.GuildController;
 import net.sourceforge.argparse4j.ArgumentParsers;
 import net.sourceforge.argparse4j.impl.Arguments;
 import net.sourceforge.argparse4j.inf.*;
@@ -66,7 +57,9 @@ import org.jetbrains.annotations.Nullable;
 import org.jsoup.Jsoup;
 import org.jsoup.UnsupportedMimeTypeException;
 import org.jsoup.nodes.Document;
+import org.pircbotx.Channel;
 import org.pircbotx.*;
+import org.pircbotx.User;
 import org.pircbotx.hooks.Event;
 import org.pircbotx.hooks.ListenerAdapter;
 import org.pircbotx.hooks.events.*;
@@ -83,7 +76,6 @@ import javax.script.ScriptEngineManager;
 import javax.swing.*;
 import javax.xml.bind.DatatypeConverter;
 import java.awt.*;
-import java.awt.image.BufferedImage;
 import java.io.*;
 import java.lang.management.ManagementFactory;
 import java.net.MalformedURLException;
@@ -113,7 +105,7 @@ import static com.citumpe.ctpTools.jWMI.getWMIValue;
  * Main bot class
  */
 public class FozruciX extends ListenerAdapter {
-    public final static float VERSION = 2.5f;
+    public final static float VERSION = 2.7f;
     public final static String[] DICTIONARY = {"i don't know what \"%s\" is, do i look like a DICTIONARY?", "Go look it up yourself.", "Why not use your computer and look \"%s\" up.", "Google it.", "Nope.", "Get someone else to do it.", "Why not get that " + Colors.RED + "Other bot" + Colors.NORMAL + " to do it?", "There appears to be a error between your " + Colors.BOLD + "seat" + Colors.NORMAL + " and the " + Colors.BOLD + "Keyboard" + Colors.NORMAL + " >_>", "Uh oh, there appears to be a User error.", "error: Fuck count too low, Cannot give Fuck.", ">_>"};
     public final static String[] LIST_OF_NOES = {" It’s not a priority for me at this time.", "I’d rather stick needles in my eyes.", "My schedule is up in the air right now. SEE IT WAFTING GENTLY DOWN THE CORRIDOR.", "I don’t love it, which means I’m not the right person for it.", "I would prefer another option.", "I would be the absolute worst person to execute, are you on crack?!", "Life is too short TO DO THINGS YOU don’t LOVE.", "I no longer do things that make me want to kill myself", "You should do this yourself, you would be awesome sauce.", "I would love to say yes to everything, but that would be stupid", "Fuck no.", "Some things have come up that need my attention.", "There is a person who totally kicks ass at this. I AM NOT THAT PERSON.", "Shoot me now...", "It would cause the slow withering death of my soul.", "I’d rather remove my own gallbladder with an oyster fork.", "I'd love to but I did my own thing and now I've got to undo it."};
     public final static String[] COMMANDS = {"COMMANDS", " Time", " calcj", " RandomInt", " StringToBytes", " Chat", " Temp", " BlockConv", " Hello", " Bot", " GetName", " recycle", " Login", " GetLogin", " GetID", " GetSate", " prefix", " SayThis", " ToSciNo", " Trans", " DebugVar", " cmd", " SayRaw", " SayCTCPCommnad", " Leave", " Respawn", " Kill", " ChangeNick", " SayAction", " NoteJ", "Memes", " jToggle", " Joke: Splatoon", "Joke: Attempt", " Joke: potato", " Joke: whatIs?", "Joke: getFinger", " Joke: GayDar"};
@@ -151,16 +143,10 @@ public class FozruciX extends ListenerAdapter {
     private static volatile LinkedList<Note> noteList = null;
     private static volatile LinkedList<String> authedUser = null;
     private static volatile LinkedList<Integer> authedUserLevel = null;
-    private static volatile LinkedList<String> DNDJoined = null;
-    private static volatile LinkedList<DNDPlayer> DNDList = null;
     private static volatile HashMap<String, HashMap<String, ArrayList<String>>> allowedCommands = null;
     private static volatile ConcurrentHashMap<String, String> checkJoinsAndQuits = null;
     private static volatile LinkedList<String> mutedServerList = null;
     //-----------------------------------------------------------
-    @NotNull
-    private static volatile Dungeon DNDDungeon = new Dungeon();
-    @NotNull
-    private static volatile String DNDDungeonMaster = "Null";
     private static volatile int jokeCommandDebugVar = 30;
     @NotNull
     private static volatile CommandLine terminal = new CommandLine();
@@ -336,7 +322,11 @@ public class FozruciX extends ListenerAdapter {
 
     private synchronized static void sendFile(MessageEvent event, File file, String message, boolean discordUpload) {
         if (event instanceof DiscordMessageEvent && discordUpload) {
-            ((DiscordMessageEvent) event).getDiscordEvent().getTextChannel().sendFile(file, message != null ? new MessageBuilder().appendString(message).build() : null);
+            try {
+                ((DiscordMessageEvent) event).getDiscordEvent().getTextChannel().sendFile(file, message != null ? new MessageBuilder().appendString(message).build() : null);
+            } catch (IOException e) {
+                sendError(event, e);
+            }
         } else {
             uploadFile(event, file, null, message);
         }
@@ -582,7 +572,7 @@ public class FozruciX extends ListenerAdapter {
         if (event instanceof QuitEvent) {
             if (event instanceof DiscordQuitEvent) {
                 channel.addAll(((DiscordQuitEvent) event).getLeaveEvent().getGuild().getTextChannels().stream().map(TextChannel::getName).collect(Collectors.toList()));
-                user = ((DiscordQuitEvent) event).getLeaveEvent().getUser().getUsername();
+                user = ((DiscordQuitEvent) event).getLeaveEvent().getMember().getUser().getName();
                 message = "Quit " + ((DiscordQuitEvent) event).getLeaveEvent().getGuild().getName();
             } else {
                 channel.addAll(((QuitEvent) event).getUser().getChannels().stream().map(Channel::getName).collect(Collectors.toList())); //get all channels user was in
@@ -624,13 +614,10 @@ public class FozruciX extends ListenerAdapter {
             } else {
                 if (event.getBot() == DiscordAdapter.pircBotX) {
                     for (Guild guild : DiscordAdapter.getJda().getGuilds()) {
-                        for (net.dv8tion.jda.entities.User discordUser : guild.getUsers()) {
-                            String nick = guild.getNicknameForUser(discordUser);
-                            if (nick == null) {
-                                nick = discordUser.getUsername();
-                            }
+                        for (net.dv8tion.jda.core.entities.Member discordUser : guild.getMembers()) {
+                            String nick = discordUser.getEffectiveName();
                             if (nick.equals(lines.get(1))) {
-                                channel.add(nick + "!" + discordUser.getUsername() + "@" + discordUser.getId());
+                                channel.add(nick + "!" + discordUser.getUser().getName() + "@" + discordUser.getUser().getId());
                             }
                         }
                     }
@@ -822,7 +809,7 @@ public class FozruciX extends ListenerAdapter {
 
     private boolean checkCooldown(MessageEvent event) {
         if (event.getUser() != null && commandCooldown.containsKey(event.getUser())) {
-            sendNotice(event, event.getUser().getNick(), "Sorry, you have to wait " + (commandCooldown[event.getUser()] - System.currentTimeMillis()) + " Milliseconds for the cool down");
+            sendNotice(event, event.getUser().getNick(), "Sorry, you have to wait " + ((long) commandCooldown[event.getUser()] - System.currentTimeMillis()) + " Milliseconds for the cool down");
             return true;
         }
         return false;
@@ -881,13 +868,11 @@ public class FozruciX extends ListenerAdapter {
     private synchronized void sendPrivateMessage(@NotNull GenericEvent event, @NotNull String userToSendTo, @NotNull String msgToSend, boolean removeNewLines) {
         msgToSend = getScramble(msgToSend, removeNewLines);
         if (event instanceof DiscordPrivateMessageEvent || event instanceof DiscordMessageEvent) {
-            for (Guild guild : DiscordAdapter.getJda().getGuilds()) {
-                for (net.dv8tion.jda.entities.User name : guild.getUsers()) {
-                    if (name.getUsername().equalsIgnoreCase(userToSendTo) ||
-                            guild.getNicknameForUser(name).equalsIgnoreCase(userToSendTo)) {
-                        name.getPrivateChannel().sendMessage(msgToSend);
-                        return;
-                    }
+            List<net.dv8tion.jda.core.entities.User> users = DiscordAdapter.getJda().getUsersByName(userToSendTo, true);
+            for (net.dv8tion.jda.core.entities.User name : users) {
+                if (name.getName().equalsIgnoreCase(userToSendTo)) {
+                    name.getPrivateChannel().sendMessage(msgToSend);
+                    return;
                 }
             }
             LOGGER.warn("Couldn't find user with the name of " + userToSendTo);
@@ -926,7 +911,7 @@ public class FozruciX extends ListenerAdapter {
         bot = event.getBot();
         bot.sendIRC().mode(bot.getNick(), "+BI");
         if (event instanceof DiscordConnectEvent) {
-            currentUser = new DiscordUser(new DiscordUserHostmask(bot, event.getBot().getUserBot().getHostmask()), DiscordAdapter.getJda().getSelfInfo(), null);
+            currentUser = new DiscordUser(new DiscordUserHostmask(bot, event.getBot().getUserBot().getHostmask()), DiscordAdapter.getJda().getSelfUser(), null);
         } else {
             currentUser = event.getBot().getUserBot();
         }
@@ -935,17 +920,6 @@ public class FozruciX extends ListenerAdapter {
         loadData(true);
         makeDebug(event);
         makeDiscord();
-
-        /*boolean drawDungeon = false;
-        if (drawDungeon) {
-            SwingUtilities.invokeLater(() -> {
-                frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-                frame.setSize(frameWidth, frameHeight);
-                frame.setVisible(true);
-                frame.getContentPane().add(new DrawWindow(DNDDungeon.getMap(), DNDDungeon.getMap_size(), DNDDungeon.getLocation()));
-                frame.paintAll(frame.getGraphics());
-            });
-        }*/
     }
 
     private synchronized void sendPage(@NotNull MessageEvent event, @NotNull String[] arg, @NotNull LinkedList<String> messagesToSend) {
@@ -1064,7 +1038,6 @@ public class FozruciX extends ListenerAdapter {
             e.printStackTrace();
         }
         debug.setCurrentNick(currentUser.getHostmask());
-        debug.setCurrDM(DNDDungeonMaster);
         debug.setMessage(event.getUser().getNick() + ": " + event.getMessage());
         String server = network == Network.discord ? ((DiscordMessageEvent) event).getDiscordEvent().getGuild().getId() : event.getBot().getServerHostname();
         if (mutedServerList.contains(server) && !checkPerm(event.getUser(), 9001)) {
@@ -1242,7 +1215,7 @@ public class FozruciX extends ListenerAdapter {
             else if (commandChecker(event, arg, "checkLinks")) {
                 if (checkPerm(event.getUser(), 4)) {
                     BOOLS.flip(CHECK_LINKS);
-                    if (BOOLS[CHECK_LINKS]) {
+                    if ((boolean) BOOLS[CHECK_LINKS]) {
                         sendMessage(event, "Link checking is on");
                     } else {
                         sendMessage(event, "Link checking is off");
@@ -1255,7 +1228,7 @@ public class FozruciX extends ListenerAdapter {
             else if (commandChecker(event, arg, "formatting")) {
                 if (checkPerm(event.getUser(), 9001)) {
                     BOOLS.flip(COLOR);
-                    if (BOOLS[COLOR]) {
+                    if ((boolean) BOOLS[COLOR]) {
                         sendMessage(event, "Color formatting is now On");
                     } else {
                         sendMessage(event, "Color formatting is now Off");
@@ -1391,30 +1364,28 @@ public class FozruciX extends ListenerAdapter {
                                         permNeeded = Permission.KICK_MEMBERS;
                                     }
                                     if (checkPerm((DiscordUser) event.getUser(), permNeeded)) {
-                                        List<net.dv8tion.jda.entities.User> mentioned = discordEvent.getMessage().getMentionedUsers();
+                                        List<net.dv8tion.jda.core.entities.User> mentioned = discordEvent.getMessage().getMentionedUsers();
                                         Guild guild = discordEvent.getGuild();
-                                        GuildManager manager = guild.getManager();
+                                        GuildController controller = guild.getController();
                                         if (!mentioned.isEmpty()) {
-                                            for (net.dv8tion.jda.entities.User mentionedUser : mentioned) {
+                                            for (net.dv8tion.jda.core.entities.User mentionedUser : mentioned) {
                                                 if (isBan) {
-                                                    manager.ban(mentionedUser, ns.getInt("remove_messages"));
-                                                    sendMessage(event, "Banned user: " + mentionedUser.getUsername());
+                                                    controller.ban(mentionedUser, ns.getInt("remove_messages"));
+                                                    sendMessage(event, "Banned user: " + mentionedUser.getName());
                                                 } else {
-                                                    manager.kick(mentionedUser);
-                                                    sendMessage(event, "Kicked user: " + mentionedUser.getUsername());
+                                                    controller.kick(guild.getMember(mentionedUser));
+                                                    sendMessage(event, "Kicked user: " + mentionedUser.getName());
                                                 }
                                             }
                                         } else {
                                             for (String user : users) {
-                                                net.dv8tion.jda.entities.User currentDiscordUser = null;
-                                                for (net.dv8tion.jda.entities.User discordUser : guild.getUsers()) {
-                                                    String nick = guild.getNicknameForUser(discordUser);
-                                                    if (nick == null) {
-                                                        nick = discordUser.getUsername();
-                                                    }
-                                                    if (discordUser.getUsername().equalsIgnoreCase(user) ||
+                                                net.dv8tion.jda.core.entities.Member currentDiscordUser = null;
+                                                String nick = "Error getting name";
+                                                for (net.dv8tion.jda.core.entities.Member discordUser : guild.getMembers()) {
+                                                    nick = discordUser.getEffectiveName();
+                                                    if (discordUser.getUser().getName().equalsIgnoreCase(user) ||
                                                             nick.equalsIgnoreCase(user) ||
-                                                            discordUser.getId().equalsIgnoreCase(user)) {
+                                                            discordUser.getUser().getId().equalsIgnoreCase(user)) {
                                                         if (currentDiscordUser == null) {
                                                             currentDiscordUser = discordUser;
                                                         } else {
@@ -1429,11 +1400,11 @@ public class FozruciX extends ListenerAdapter {
                                                 }
                                                 if (currentDiscordUser != null) {
                                                     if (isBan) {
-                                                        manager.ban(currentDiscordUser, ns.getInt("remove_messages"));
-                                                        sendMessage(event, "Banned user: " + currentDiscordUser.getUsername());
+                                                        controller.ban(currentDiscordUser, ns.getInt("remove_messages"));
+                                                        sendMessage(event, "Banned user: " + nick);
                                                     } else {
-                                                        manager.kick(currentDiscordUser);
-                                                        sendMessage(event, "Kicked user: " + currentDiscordUser.getUsername());
+                                                        controller.kick(currentDiscordUser);
+                                                        sendMessage(event, "Kicked user: " + nick);
                                                     }
                                                 }
                                             }
@@ -1491,11 +1462,11 @@ public class FozruciX extends ListenerAdapter {
                                 List<String> delMsgArgs;
                                 if((delMsgArgs = ns.getList("message_span")) != null){
                                     String firstMessage = delMsgArgs.get(0), secondMessage = delMsgArgs.get(1);
-                                    net.dv8tion.jda.entities.TextChannel discordChannel =
+                                    TextChannel discordChannel =
                                             ((DiscordMessageEvent) event).getDiscordEvent().getTextChannel();
                                     boolean deleting = false;
                                     List<Message> messagesToDel = new ArrayList<>();
-                                    for(Message msg : discordChannel.getHistory().retrieveAll()){
+                                    for (Message msg : discordChannel.getHistory().getCachedHistory()) {
                                         if (deleting) {
                                             messagesToDel.add(msg);
                                             if (msg.getId().equals(secondMessage)) {
@@ -1520,43 +1491,61 @@ public class FozruciX extends ListenerAdapter {
                                     TextChannel mChannel = ((DiscordMessageEvent) event).getDiscordEvent().getTextChannel();
                                     Role publicRole = mChannel.getGuild().getPublicRole();
                                     List<String> roleArgs = ns.getList("roles");
-                                    net.dv8tion.jda.entities.User currentDiscordUser = ((DiscordUser) currentUser).getDiscordUser();
+                                    net.dv8tion.jda.core.entities.User currentDiscordUser = ((DiscordUser) currentUser).getDiscordUser();
                                     if (AdminCommandData.channelRoleMap.containsKey(mChannel)) {
-                                        List<Role> roles = AdminCommandData.channelRoleMap[mChannel];
+                                        List<Role> roles = (List<Role>) AdminCommandData.channelRoleMap[mChannel];
                                         if (state == null || !state) { // disabling +m mode
                                             for (Role role : roles) {
-                                                PermissionOverrideManager overRide = mChannel.createPermissionOverride(role);
-                                                overRide.reset(Permission.MESSAGE_WRITE).update();
+                                                PermissionOverride overRide = mChannel.getPermissionOverride(role);
+                                                if (overRide != null) {
+                                                    overRide.getManager().clear(Permission.MESSAGE_WRITE).queue();
+                                                }
                                             }
                                             AdminCommandData.channelRoleMap.remove(mChannel);
                                             if (mChannel.getTopic().startsWith(topicStr)) {
-                                                mChannel.getManager().setTopic(mChannel.getTopic().substring(topicStr.length())).update();
+                                                mChannel.getManager().setTopic(mChannel.getTopic().substring(topicStr.length())).queue();
                                             }
-                                            if (currentDiscordUser != null) {
-                                                mChannel.createPermissionOverride(currentDiscordUser).delete();
-                                            }
+                                            /*if (currentDiscordUser != null) { // commented out due to lib dev forgetting to re-add the delete function lol
+                                                PermissionOverride overRide = mChannel.getPermissionOverride(mChannel.getGuild().getMember(currentDiscordUser));
+                                                if(overRide != null){
+                                                    overRide.delete();
+                                                }
+                                            }*/
                                         } else { // overwriting role list?
                                             for (Role role : roles) {
-                                                PermissionOverrideManager overRide = mChannel.createPermissionOverride(role);
-                                                overRide.reset(Permission.MESSAGE_WRITE).update();
+                                                PermissionOverride overRide = mChannel.getPermissionOverride(role);
+                                                if (overRide != null) {
+                                                    overRide.getManager().clear(Permission.MESSAGE_WRITE).queue();
+                                                }
                                             }
                                             roles.clear();
                                             roles.add(publicRole);
-                                            PermissionOverrideManager overRide = mChannel.createPermissionOverride(publicRole);
-                                            overRide.deny(Permission.MESSAGE_WRITE).update();
+                                            PermissionOverride overRide = mChannel.getPermissionOverride(publicRole);
+                                            if (overRide != null) {
+                                                overRide.getManager().clear(Permission.MESSAGE_WRITE).queue();
+                                            }
                                             List<Role> guildRoleList = mChannel.getGuild().getRoles();
                                             if (currentDiscordUser != null) {
-                                                mChannel.createPermissionOverride(currentDiscordUser).grant(Permission.MESSAGE_WRITE).update();
+                                                Member currentDiscordMember = mChannel.getGuild().getMember(currentDiscordUser);
+                                                overRide = mChannel.getPermissionOverride(currentDiscordMember);
+                                                if (overRide == null) {
+                                                    overRide = mChannel.createPermissionOverride(currentDiscordMember).block();
+                                                }
+                                                overRide.getManager().grant(Permission.MESSAGE_WRITE).queue();
+
                                             }
                                             if (!roleArgs.isEmpty())
                                                 for (Role role : guildRoleList) {
                                                     for (String roleArg : roleArgs) {
                                                         if (roleArg.equalsIgnoreCase(role.getName())) {
-                                                            overRide = mChannel.createPermissionOverride(role);
+                                                            overRide = mChannel.getPermissionOverride(role);
+                                                            if (overRide == null) {
+                                                                overRide = mChannel.createPermissionOverride(role).block();
+                                                            }
                                                             if (whitelistMode) {
-                                                                overRide.grant(Permission.MESSAGE_WRITE).update();
+                                                                overRide.getManager().grant(Permission.MESSAGE_WRITE).queue();
                                                             } else {
-                                                                overRide.deny(Permission.MESSAGE_WRITE).update();
+                                                                overRide.getManager().deny(Permission.MESSAGE_WRITE).queue();
                                                             }
                                                             roles.add(role);
                                                             roleArgs.remove(roleArg);
@@ -1569,21 +1558,32 @@ public class FozruciX extends ListenerAdapter {
                                         List<Role> guildRoleList = mChannel.getGuild().getRoles();
                                         List<Role> roles = new ArrayList<>();
 
-                                        PermissionOverrideManager overRide = mChannel.createPermissionOverride(publicRole);
-                                        overRide.deny(Permission.MESSAGE_WRITE).update();
+                                        PermissionOverride overRide = mChannel.getPermissionOverride(publicRole);
+                                        if (overRide != null) {
+                                            overRide.getManager().deny(Permission.MESSAGE_WRITE).queue();
+                                        }
                                         if (currentDiscordUser != null) {
-                                            mChannel.createPermissionOverride(currentDiscordUser).grant(Permission.MESSAGE_WRITE).update();
+                                            Member currentDiscordMember = mChannel.getGuild().getMember(currentDiscordUser);
+                                            overRide = mChannel.getPermissionOverride(currentDiscordMember);
+                                            if (overRide == null) {
+                                                overRide = mChannel.createPermissionOverride(currentDiscordMember).block();
+                                            }
+                                            overRide.getManager().grant(Permission.MESSAGE_WRITE).queue();
+
                                         }
                                         roles.add(publicRole);
                                         if (!roleArgs.isEmpty())
                                             for (Role role : guildRoleList) {
                                                 for (String roleArg : roleArgs) {
                                                     if (roleArg.equalsIgnoreCase(role.getName())) {
-                                                        overRide = mChannel.createPermissionOverride(role);
+                                                        overRide = mChannel.getPermissionOverride(role);
+                                                        if (overRide == null) {
+                                                            overRide = mChannel.createPermissionOverride(role).block();
+                                                        }
                                                         if (whitelistMode) {
-                                                            overRide.grant(Permission.MESSAGE_WRITE).update();
+                                                            overRide.getManager().grant(Permission.MESSAGE_WRITE).queue();
                                                         } else {
-                                                            overRide.deny(Permission.MESSAGE_WRITE).update();
+                                                            overRide.getManager().deny(Permission.MESSAGE_WRITE).queue();
                                                         }
                                                         roles.add(role);
                                                         roleArgs.remove(roleArg);
@@ -1592,7 +1592,7 @@ public class FozruciX extends ListenerAdapter {
                                                 }
                                             }
                                         AdminCommandData.channelRoleMap[mChannel] = roles;
-                                        mChannel.getManager().setTopic(topicStr + mChannel.getTopic()).update();
+                                        mChannel.getManager().setTopic(topicStr + mChannel.getTopic()).queue();
                                     }
                                 } else { // ----------------------------------------------------IRC----------------------------------------------------
                                     org.pircbotx.Channel chan = event.getChannel();
@@ -1606,7 +1606,7 @@ public class FozruciX extends ListenerAdapter {
                             case "+g":
                                 if (discord) {
                                     TextChannel mChannel = ((DiscordMessageEvent) event).getDiscordEvent().getTextChannel();
-                                    List<String> expressions = wordFilter[mChannel];
+                                    List<String> expressions = (List<String>) wordFilter[mChannel];
                                     if (ns.getBoolean("list")) {
                                         if (expressions == null || expressions.isEmpty()) {
                                             sendMessage(event, "+g list is empty");
@@ -1642,7 +1642,7 @@ public class FozruciX extends ListenerAdapter {
 
                             case "topic":
                                 if (discord) {
-                                    ((DiscordMessageEvent) event).getDiscordEvent().getTextChannel().getManager().setTopic(ns.getString("newTopic")).update();
+                                    ((DiscordMessageEvent) event).getDiscordEvent().getTextChannel().getManager().setTopic(ns.getString("newTopic")).queue();
                                 } else {
                                     event.getChannel().send().setTopic(ns.getString("newTopic"));
                                 }
@@ -1674,7 +1674,7 @@ public class FozruciX extends ListenerAdapter {
 // !command - Sets what commands can be used where
             else if (commandChecker(event, arg, "command")) {
                 if (checkPerm(event.getUser(), 9001)) {
-                    HashMap<String, ArrayList<String>> allowedCommands = FozruciX.allowedCommands[getSeverName(event, true)];
+                    HashMap<String, ArrayList<String>> allowedCommands = (HashMap<String, ArrayList<String>>) FozruciX.allowedCommands[getSeverName(event, true)];
                     if (allowedCommands == null) {
                         allowedCommands = new HashMap<>();
                         FozruciX.allowedCommands[getSeverName(event, true)] = allowedCommands;
@@ -1692,16 +1692,16 @@ public class FozruciX extends ListenerAdapter {
                                 command = command.substring(1, command.length());
                             }
                             if (mode == -1) {
-                                allowedCommands[chan].remove(command);
+                                ((ArrayList<String>) allowedCommands[chan]).remove(command);
                                 sendMessage(event, "Removed command ban on " + command + " For channel " + chan);
                             } else if (mode == 1) {
                                 if (!allowedCommands.containsKey(chan)) {
                                     allowedCommands.put(chan, new ArrayList<>());
                                 }
-                                allowedCommands[chan].add(command);
+                                ((ArrayList<String>) allowedCommands[chan]).add(command);
                                 sendMessage(event, "Added command ban on " + command + " for channel " + chan);
                             } else {
-                                sendMessage(event, "The command " + command + " is " + (allowedCommands[chan].contains(command) ? "" : "not ") + "Banned from " + chan);
+                                sendMessage(event, "The command " + command + " is " + (((ArrayList<String>) allowedCommands[chan]).contains(command) ? "" : "not ") + "Banned from " + chan);
                             }
                         }
                     } else if (getArg(arg, 1) != null) {
@@ -1882,7 +1882,7 @@ public class FozruciX extends ListenerAdapter {
             else if (commandChecker(event, arg, "RESPOND_TO_PMS")) {
                 if (checkPerm(event.getUser(), 9001)) {
                     BOOLS.flip(RESPOND_TO_PMS);
-                    sendMessage(event, "Responding to PMs: " + BOOLS[RESPOND_TO_PMS], false);
+                    sendMessage(event, "Responding to PMs: " + (boolean) BOOLS[RESPOND_TO_PMS], false);
                 } else {
                     permErrorchn(event);
                 }
@@ -2034,7 +2034,7 @@ public class FozruciX extends ListenerAdapter {
                                     newPhrase += " ";
                                 }
                                 // Select the first word
-                                LinkedList<String> startWords = markovChain["_start"];
+                                LinkedList<String> startWords = (LinkedList<String>) markovChain["_start"];
 
                                 for (int i = 1 + arrayOffset; i < arg.length; i++) {
                                     if (startWords.contains(arg[i])) {
@@ -2053,7 +2053,7 @@ public class FozruciX extends ListenerAdapter {
 
                                 // Keep looping through the words until we've reached the end
                                 while (nextWord.charAt(nextWord.length() - 1) != '.') {
-                                    List<String> wordSelection = markovChain[nextWord];
+                                    List<String> wordSelection = (List<String>) markovChain[nextWord];
                                     nextWord = null;
 
                                     for (int i = 1; i < arg.length; i++) {
@@ -2276,7 +2276,7 @@ public class FozruciX extends ListenerAdapter {
                         int place = -1;
                         try {
                             for (int i = 0; authedUser.size() >= i; i++) {
-                                if (authedUser[i].equalsIgnoreCase(getArg(arg, 1))) {
+                                if (((String) authedUser[i]).equalsIgnoreCase(getArg(arg, 1))) {
                                     place = i;
                                 }
                             }
@@ -2286,7 +2286,7 @@ public class FozruciX extends ListenerAdapter {
                         if (place == -1) {
                             sendMessage(event, "That user wasn't found in the list of authed users", false);
                         } else {
-                            sendMessage(event, "User " + authedUser[place] + " Has permission level " + authedUserLevel[place], false);
+                            sendMessage(event, "User " + (String) authedUser[place] + " Has permission level " + (int) authedUserLevel[place], false);
                         }
 
                     }
@@ -2654,7 +2654,7 @@ public class FozruciX extends ListenerAdapter {
                             }
                             if (arg.length > subCommandNum + arrayOffset && arg[subCommandNum - 1].equalsIgnoreCase("Example")) {
                                 if (sense.getExamples().size() > 0) {
-                                    lookedUpWord = sense.getExamples()[0].getPlainText();
+                                    lookedUpWord = ((IWikiString) sense.getExamples()[0]).getPlainText();
                                 } else {
                                     sendMessage(event, "No examples found");
                                 }
@@ -2694,7 +2694,7 @@ public class FozruciX extends ListenerAdapter {
                     List<Page> pages = user.queryContent(listOfTitleStrings);
                     boolean found = false;
                     while (pages.size() > 0) {
-                        Page page = pages[0];
+                        Page page = (Page) pages[0];
                         if (page.toString().contains("#REDIRECT")) {
                             LOGGER.debug("Found redirect");
                             String link = page.toString();
@@ -2713,13 +2713,13 @@ public class FozruciX extends ListenerAdapter {
                             related = new LinkedList<>();
                             boolean category = true;
                             for (int i = 0; strings.size() > i; i++) {
-                                LOGGER.trace(strings[i]);
-                                if (wildCardMatch(strings[i], "==*==")) {
+                                LOGGER.trace((String) strings[i]);
+                                if (wildCardMatch((String) strings[i], "==*==")) {
                                     category = false;
                                 } else if (!category) {
-                                    if (!strings[i].isEmpty()) {
-                                        related.add(strings[i]);
-                                    } else if (strings[i + 1].isEmpty()) {
+                                    if (!((String) strings[i]).isEmpty()) {
+                                        related.add((String) strings[i]);
+                                    } else if (((String) strings[i + 1]).isEmpty()) {
                                         category = true;
                                     }
                                 }
@@ -2728,7 +2728,7 @@ public class FozruciX extends ListenerAdapter {
                         if (related != null) {
                             plainStr = page.getTitle() + " may refer to: ";
                             for (int i = 0; i < related.size() && i < 5; i++) {
-                                plainStr += related[i].replace("* ", "").replace("*", "") + "; ";
+                                plainStr += ((String) related[i]).replace("* ", "").replace("*", "") + "; ";
                             }
                             int lastIndex = plainStr.lastIndexOf(",");
                             if (lastIndex != -1)
@@ -3026,7 +3026,7 @@ public class FozruciX extends ListenerAdapter {
                     try {
                         if (getArg(arg, 1).equalsIgnoreCase("set")) {
                             if (memes.containsKey(getArg(arg, 2).toLowerCase().replace("\u0001", ""))) {
-                                Meme meme = memes[getArg(arg, 2).toLowerCase()];
+                                Meme meme = (Meme) memes[getArg(arg, 2).toLowerCase()];
                                 if (checkPerm(event.getUser(), 9001) || meme.getCreator().equalsIgnoreCase(event.getUser().getNick())) {
                                     if (getArg(arg, 3) == null) {
                                         memes.remove(getArg(arg, 2).toLowerCase().replace("\u0001", ""));
@@ -3047,7 +3047,7 @@ public class FozruciX extends ListenerAdapter {
                             sendMessage(event, memes.toString().replace("\u0001", ""));
                         } else {
                             if (memes.containsKey(getArg(arg, 1).toLowerCase())) {
-                                sendMessage(event, getArg(arg, 1).replace("\u0001", "") + ": " + memes[getArg(arg, 1).toLowerCase()].getMeme().replace("\u0001", ""), false);
+                                sendMessage(event, getArg(arg, 1).replace("\u0001", "") + ": " + ((Meme) memes[getArg(arg, 1).toLowerCase()]).getMeme().replace("\u0001", ""), false);
                             } else {
                                 sendMessage(event, "That Meme doesn't exist!");
                             }
@@ -3121,7 +3121,7 @@ public class FozruciX extends ListenerAdapter {
                         int index = -1;
                         boolean found = false;
                         while (i < noteList.size() && !found) {
-                            if (noteList[i].getId().toString().equals(getArg(arg, 2))) {
+                            if (((Note) noteList[i]).getId().toString().equals(getArg(arg, 2))) {
                                 found = true;
                                 index = i;
                             } else {
@@ -3363,229 +3363,6 @@ public class FozruciX extends ListenerAdapter {
                     sendError(event, e);
                     //log(e.toString());
                 }
-                addCooldown(event.getUser());
-
-            }
-
-// !DND - Dungeons and dragons. RNG the Game
-            else if (commandChecker(event, arg, "DND")) {
-                if (commandChecker(event, arg, "DND join")) {
-                    sendMessage(event, "Syntax: " + prefix + "DND join <Character name> <Race (can be anything right now)> <Class> {<Familiar name> <Familiar Species>}");
-                } else {
-                    if (getArg(arg, 1).equalsIgnoreCase("join")) {
-                        if (DNDJoined.contains(event.getUser().getNick())) {
-                            sendMessage(event, "You are already in the list!");
-                        } else {
-                            if (getArg(arg, 6) != null) {
-                                if (DNDPlayer.ifClassExists(getArg(arg, 4))) {
-                                    if (DNDPlayer.ifSpeciesExists(getArg(arg, 6))) {
-                                        DNDList.add(new DNDPlayer(getArg(arg, 2),
-                                                getArg(arg, 3),
-                                                getArg(arg, 4),
-                                                event.getUser(),
-                                                getArg(arg, 5),
-                                                getArg(arg, 6)));
-                                        DNDJoined.add(event.getUser().getNick());
-                                        sendMessage(event, "Added \"" + getArg(arg, 2) + "\" the " + getArg(arg, 4) + " with " + getArg(arg, 5) + " The " + getArg(arg, 6) + " to the game");
-
-                                        if (event.getUser().equals(currentUser)) {
-                                            debug.setPlayerName(DNDList.get(DNDJoined.indexOf(currentUser.getNick())).getName());
-                                            debug.setFamiliar(DNDList.get(DNDJoined.indexOf(currentUser.getNick())).getFamiliar().getName());
-                                        }
-                                    } else {
-                                        sendMessage(event, "Class doesn't exist");
-                                    }
-                                } else {
-                                    sendMessage(event, "Class doesn't exist");
-                                }
-                            } else if (getArg(arg, 5) != null) {
-                                if (DNDPlayer.ifClassExists(getArg(arg, 4))) {
-                                    DNDList.add(new DNDPlayer(getArg(arg, 2),
-                                            getArg(arg, 3),
-                                            getArg(arg, 4),
-                                            event.getUser()));
-                                    DNDJoined.add(event.getUser().getNick());
-                                    sendMessage(event, "Added \"" + getArg(arg, 2) + "\" the " + getArg(arg, 4) + " to the game");
-                                    if (event.getUser().equals(currentUser)) {
-                                        debug.setPlayerName(DNDList.get(DNDJoined.indexOf(currentUser.getNick())).getName());
-                                    }
-                                } else {
-                                    sendMessage(event, "That class doesn't exist!");
-                                }
-                            } else {
-                                sendMessage(event, "Syntax: " + prefix + "DND join <Character name> <Race (can be anything right now)> <Class> {<Familiar name> <Familiar Species>}");
-                            }
-                        }
-                    }
-                }
-                if (getArg(arg, 1).equalsIgnoreCase("info")) {
-                    try {
-                        int index = DNDJoined.indexOf(event.getUser().getNick());
-                        if (index > -1) {
-                            setDebugInfo(event);
-                            sendMessage(event, DNDList.get(index).toString());
-                        } else {
-                            sendMessage(event, "You have to join first!");
-                        }
-                    } catch (Exception e) {
-                        sendError(event, e);
-                    }
-                }
-                if (getArg(arg, 1).equalsIgnoreCase("List")) {
-                    try {
-                        sendMessage(event, DNDList.toString());
-                    } catch (Exception e) {
-                        sendError(event, e);
-                    }
-
-                    setDebugInfo(event);
-                }
-                if (getArg(arg, 1).equalsIgnoreCase("ListClass")) {
-                    sendMessage(event, "List of classes: " + Arrays.toString(DNDPlayer.DNDClasses.values()));
-                }
-                if (getArg(arg, 1).equalsIgnoreCase("ListSpecies")) {
-                    sendMessage(event, "List of classes: " + Arrays.toString(DNDPlayer.DNDFamiliars.values()));
-                }
-                //noinspection StatementWithEmptyBody
-                if (getArg(arg, 1).equalsIgnoreCase("DM") && checkPerm(event.getUser(), 5)) {
-                    DNDDungeonMaster = argJoiner(arg, 2);
-                }
-                if (getArg(arg, 1).equalsIgnoreCase("Test")) { //testing COMMANDS.
-                    //checkPerm(event.getUser())
-                    try {
-                        int index = DNDJoined.indexOf(event.getUser().getNick());
-                        if (getArg(arg, 2).equalsIgnoreCase("addItem")) {
-                            DNDList.get(index).addInventory(getArg(arg, 3));
-                            sendMessage(event, "Added " + getArg(arg, 3) + " to your inventory");
-                        }
-                        if (getArg(arg, 2).equalsIgnoreCase("getItems")) {
-                            sendMessage(event, DNDList.get(index).getInventory());
-                        }
-                        if (getArg(arg, 2).equalsIgnoreCase("delItem")) {
-                            DNDList.get(index).removeFromInventory(getArg(arg, 3));
-                            sendMessage(event, "removed " + getArg(arg, 3) + " to your inventory");
-                        }
-                        if (getArg(arg, 2).equalsIgnoreCase("addXP")) {
-                            DNDList.get(index).addXP(Integer.decode(getArg(arg, 3)));
-                            sendMessage(event, "Added " + getArg(arg, 3) + " to your XP");
-                        }
-                        if (getArg(arg, 2).equalsIgnoreCase("addHP")) {
-                            DNDList.get(index).addHP(Integer.decode(getArg(arg, 3)));
-                            sendMessage(event, "Added " + getArg(arg, 3) + " to your HP");
-                        }
-                        if (getArg(arg, 2).equalsIgnoreCase("subHP")) {
-                            DNDList.get(index).hit(Integer.decode(getArg(arg, 3)));
-                            sendMessage(event, "Subbed " + getArg(arg, 3) + " from your HP");
-                        }
-                        if (getArg(arg, 2).equalsIgnoreCase("addXPFam")) {
-                            DNDList.get(index).getFamiliar().addXP(Integer.decode(getArg(arg, 3)));
-                            sendMessage(event, "Added " + getArg(arg, 3) + " to your familiar's XP");
-                        }
-                        if (getArg(arg, 2).equalsIgnoreCase("addHPFam")) {
-                            DNDList.get(index).getFamiliar().addHP(Integer.decode(getArg(arg, 3)));
-                            sendMessage(event, "Added " + getArg(arg, 3) + " to your familiar's HP");
-                        }
-                        if (getArg(arg, 2).equalsIgnoreCase("subHPFam")) {
-                            DNDList.get(index).getFamiliar().hit(Integer.decode(getArg(arg, 3)));
-                            sendMessage(event, "Subbed " + getArg(arg, 3) + " from your familiar's HP");
-                        }
-                        if (getArg(arg, 2).equalsIgnoreCase("getFamiliar")) {
-                            sendMessage(event, DNDList.get(index).getFamiliar().toString());
-                        }
-                        if (getArg(arg, 2).equalsIgnoreCase("clearList")) {
-                            if (checkPerm(event.getUser(), 9001)) {
-                                DNDJoined.clear();
-                                DNDList.clear();
-                                sendMessage(event, "DND Player lists cleared", false);
-                            }
-                        }
-                        if (getArg(arg, 2).equalsIgnoreCase("DelChar")) {
-                            if (checkPerm(event.getUser(), 9001)) {
-                                if (DNDJoined.contains(getArg(arg, 3))) {
-                                    DNDJoined.remove(index);
-                                }
-                            }
-                        }
-
-                        if (getArg(arg, 2).equalsIgnoreCase("setPos")) {
-                            DNDDungeon.setLocation(Integer.decode(getArg(arg, 3)), Integer.decode(getArg(arg, 4)));
-                            sendMessage(event, "Pos is now: " + DNDDungeon.toString());
-
-                        }
-
-                        if (getArg(arg, 2).equalsIgnoreCase("getPos")) {
-                            Point temp = DNDDungeon.getLocation();
-                            sendMessage(event, "Current location: (" + temp.x + "," + temp.y + ")");
-                        }
-
-                        if (getArg(arg, 2).equalsIgnoreCase("movePos")) {
-                            DNDDungeon.move(Integer.decode(getArg(arg, 3)), Integer.decode(getArg(arg, 4)));
-                            Point temp = DNDDungeon.getLocation();
-                            sendMessage(event, "New location: (" + temp.x + "," + temp.y + ")");
-                        }
-
-                        if (getArg(arg, 2).equalsIgnoreCase("getSurroundings")) {
-                            int[] tiles = DNDDungeon.getSurrounding();
-                            sendMessage(event, " | " + tiles[7] + " | " + tiles[0] + " | " + tiles[1] + " | ");
-                            sendMessage(event, " | " + tiles[6] + " | " + tiles[8] + " | " + tiles[2] + " | ");
-                            sendMessage(event, " | " + tiles[5] + " | " + tiles[4] + " | " + tiles[3] + " | ");
-                        }
-
-                        int frameWidth = 300;
-                        int frameHeight = 300;
-                        if (getArg(arg, 2).equalsIgnoreCase("genDungeon")) {
-                            if (getArg(arg, 3) != null) {
-                                DNDDungeon = new Dungeon(Integer.decode(getArg(arg, 3)));
-                            } else {
-                                DNDDungeon = new Dungeon();
-                            }
-                            sendMessage(event, "Generated new dungeon");
-                            if (frame != null) {
-                                frame.dispose();
-                            }
-                            frame = new JFrame();
-                            frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-                            frame.setAlwaysOnTop(true);
-                            frame.setSize(frameWidth, frameHeight);
-                            frame.setVisible(true);
-                            frame.getContentPane().add(new DrawWindow(DNDDungeon.getMap(), DNDDungeon.getMap_size(), DNDDungeon.getLocation()));
-                            frame.paintAll(frame.getGraphics());
-                        }
-
-                        if (getArg(arg, 2).equalsIgnoreCase("draw")) {
-                            frame.dispose();
-                            frame = new JFrame();
-                            frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-                            frame.setAlwaysOnTop(true);
-                            frame.setSize(frameWidth, frameHeight);
-                            frame.setVisible(true);
-                            frame.getContentPane().add(new DrawWindow(DNDDungeon.getMap(), DNDDungeon.getMap_size(), DNDDungeon.getLocation()));
-                            frame.paintAll(frame.getGraphics());
-                        }
-
-                        if (getArg(arg, 2).equalsIgnoreCase("upload")) {
-                            if (event instanceof DiscordMessageEvent) {
-                                BufferedImage bi = new BufferedImage(frame.getWidth(), frame.getHeight(), BufferedImage.TYPE_INT_ARGB);
-                                Graphics2D ig2 = bi.createGraphics();
-                                new DrawWindow(DNDDungeon.getMap(), DNDDungeon.getMap_size(), DNDDungeon.getLocation()).paint(ig2);
-                                File output = new File("Data/output_image.png");
-                                if (ImageIO.write(bi, "PNG", output)) {
-                                    ((DiscordMessageEvent) event).getDiscordEvent().getTextChannel().sendFile(output, null);
-                                } else {
-                                    sendMessage(event, "Looks like something broke...");
-                                }
-                            } else {
-                                sendMessage(event, "Sorry, this command only works on discord");
-                            }
-
-                        }
-                    } catch (NullPointerException e) {
-                        sendMessage(event, "You have to join first! (Null pointer)");
-                    } catch (Exception e) {
-                        sendError(event, e);
-                    }
-                }
-                setDebugInfo(event);
                 addCooldown(event.getUser());
 
             }
@@ -4162,7 +3939,8 @@ public class FozruciX extends ListenerAdapter {
             else if (commandChecker(event, arg, "changeNick")) {
                 if (checkPerm(event.getUser(), 9001)) {
                     if (event instanceof DiscordMessageEvent) {
-                        DiscordAdapter.getJda().getAccountManager().setNickname(((DiscordMessageEvent) event).getDiscordEvent().getGuild(), getArg(arg, 1));
+                        Guild guild = ((DiscordMessageEvent) event).getDiscordEvent().getGuild();
+                        guild.getController().setNickname(guild.getMember(DiscordAdapter.getJda().getSelfUser()), getArg(arg, 1)).queue();
                     } else {
                         bot.sendIRC().changeNick(getArg(arg, 1));
                         debug.setNick(getArg(arg, 1));
@@ -4665,7 +4443,7 @@ public class FozruciX extends ListenerAdapter {
                 List<TextChannel> channels = ((DiscordJoinEvent) join).getJoinEvent().getGuild().getTextChannels();
                 for (TextChannel channel : channels) {
                     if (channel.getId().equals(channelToMessage)) {
-                        channel.sendMessage(((DiscordJoinEvent) join).getJoinEvent().getUser().getAsMention() + ": Welcome to " + ((DiscordJoinEvent) join).getJoinEvent().getGuild().getName() + ". Please make sure you check out the #help and #information channel");
+                        channel.sendMessage(((DiscordJoinEvent) join).getJoinEvent().getMember().getAsMention() + ": Welcome to " + ((DiscordJoinEvent) join).getJoinEvent().getGuild().getName() + ". Please make sure you check out the #help and #information channel");
                     }
                 }
             }
@@ -4725,7 +4503,7 @@ public class FozruciX extends ListenerAdapter {
                 List<TextChannel> channels = ((DiscordQuitEvent) quit).getLeaveEvent().getGuild().getTextChannels();
                 for (TextChannel channel : channels) {
                     if (channel.getId().equals(channelToMessage)) {
-                        channel.sendMessage("User " + ((DiscordQuitEvent) quit).getLeaveEvent().getUser().getAsMention() + " Has left the server");
+                        channel.sendMessage("User " + ((DiscordQuitEvent) quit).getLeaveEvent().getMember().getAsMention() + " Has left the server");
                     }
                 }
             }
@@ -4733,7 +4511,7 @@ public class FozruciX extends ListenerAdapter {
         log(quit);
     }
 
-    public synchronized void onBan(GuildMemberBanEvent ban) {
+    public synchronized void onBan(GuildBanEvent ban) {
         String channelToMessage = checkJoinsAndQuits.get(ban.getGuild().getId());
         if (channelToMessage != null) {
             List<TextChannel> channels = ban.getGuild().getTextChannels();
@@ -4790,7 +4568,7 @@ public class FozruciX extends ListenerAdapter {
                 }
             }
         } else if (user instanceof DiscordUser) {
-            List<Role> roles = ((DiscordUser) user).getGuild().getRolesForUser(((DiscordUser) user).getDiscordUser());
+            List<Role> roles = ((DiscordUser) user).getGuild().getMember(((DiscordUser) user).getDiscordUser()).getRoles();
             int highestLevel = 0;
             for (Role role : roles) {
                 for (Permission perm : role.getPermissions()) {
@@ -4831,7 +4609,7 @@ public class FozruciX extends ListenerAdapter {
         }
         Guild guild = user.getGuild();
         if (guild != null) {
-            for (Role role : guild.getRolesForUser(user.getDiscordUser())) {
+            for (Role role : guild.getMember(user.getDiscordUser()).getRoles()) {
                 if (role.getPermissions().contains(perm)) {
                     return true;
                 }
@@ -4862,12 +4640,6 @@ public class FozruciX extends ListenerAdapter {
 
         if (writeOnce && FCList == null)
             FCList = SaveDataStore.getINSTANCE().getFCList();
-
-        if (writeOnce && DNDJoined == null)
-            DNDJoined = SaveDataStore.getINSTANCE().getDNDJoined();
-
-        if (writeOnce && DNDList == null)
-            DNDList = SaveDataStore.getINSTANCE().getDNDList();
 
         if (writeOnce && markovChain == null)
             markovChain = SaveDataStore.getINSTANCE().getMarkovChain();
@@ -4917,20 +4689,6 @@ public class FozruciX extends ListenerAdapter {
     }
 
     private synchronized void setDebugInfo(@NotNull MessageEvent event) {
-        int index = DNDJoined.indexOf(currentUser.getNick());
-
-        //noinspection ConstantConditions
-        if (event.getUser().equals(currentUser)) {
-            debug.setPlayerName(DNDList.get(index).getName());
-            debug.setPlayerHP(DNDList.get(index).getHPAmounts());
-            debug.setPlayerXP(DNDList.get(index).getXPAmounts());
-
-            debug.setFamiliar(DNDList.get(index).getFamiliar().getName());
-            debug.setFamiliarHP(DNDList.get(index).getFamiliar().getHPAmounts());
-            debug.setFamiliarXP(DNDList.get(index).getFamiliar().getXPAmounts());
-        }
-
-
         debug.updateBot(bot);
         debug.setCurrentNick(currentUser.getHostmask());
     }

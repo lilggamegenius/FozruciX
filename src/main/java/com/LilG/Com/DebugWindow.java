@@ -4,13 +4,10 @@ import ch.qos.logback.classic.Logger;
 import com.google.common.collect.ImmutableSortedSet;
 import marytts.LocalMaryInterface;
 import marytts.MaryInterface;
-import net.dv8tion.jda.JDA;
-import net.dv8tion.jda.audio.AudioSendHandler;
-import net.dv8tion.jda.audio.player.FilePlayer;
-import net.dv8tion.jda.entities.Guild;
-import net.dv8tion.jda.entities.TextChannel;
-import net.dv8tion.jda.entities.VoiceChannel;
-import net.dv8tion.jda.managers.AudioManager;
+import net.dv8tion.jda.core.JDA;
+import net.dv8tion.jda.core.entities.Guild;
+import net.dv8tion.jda.core.entities.TextChannel;
+import net.dv8tion.jda.core.entities.VoiceChannel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.pircbotx.Channel;
@@ -20,18 +17,13 @@ import org.pircbotx.hooks.events.ConnectEvent;
 import org.pircbotx.hooks.events.OutputEvent;
 import org.slf4j.LoggerFactory;
 
-import javax.sound.sampled.AudioFileFormat;
-import javax.sound.sampled.AudioInputStream;
-import javax.sound.sampled.AudioSystem;
 import javax.swing.*;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.io.File;
 import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
-import java.util.Locale;
 import java.util.stream.Collectors;
 
 import static com.LilG.Com.utils.LilGUtil.formatFileSize;
@@ -44,27 +36,19 @@ class DebugWindow extends JFrame {
     // Define constants, variables, and labels
     private static final int WIDTH = 800;
     private static final int HEIGHT = 220;
+    private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(DebugWindow.class);
     @NotNull
-    private final JTextField currentNickTF;
+    private JTextField currentNick;
     @NotNull
-    private final JTextField lastMessageTF;
+    private JTextField lastMessage;
     @NotNull
-    private final JTextField currDMTF;
+    private JTextField memoryUsage;
     @NotNull
-    private final JTextField myPlayerNameTF;
+    private JTextField message;
     @NotNull
-    private final JTextField myPlayerHPTF;
+    private JComboBox channelList;
     @NotNull
-    private final JTextField myPlayerXPTF;
-    @NotNull
-    private final JTextField myFamiliarTF;
-    @NotNull
-    private final JTextField myFamiliarHPTF;
-    @NotNull
-    private final JTextField myFamiliarXPTF;
-    private final JTextField memoryUsageTF = new JTextField(10);
-    @NotNull
-    private final JTextField messageTF;
+    private String[] channels = {"#null"};
     @NotNull
     private PircBotX bot;
     @NotNull
@@ -76,28 +60,24 @@ class DebugWindow extends JFrame {
     @Nullable
     private ConnectEvent connectEvent;
     @NotNull
-    private String[] channels = {"#null"};
-    @NotNull
     private String selectedChannel = "#null";
     private DefaultComboBoxModel<String> comboBox;
+    private GridLayout gridLayout = new GridLayout(4, 2);
     private Runtime runtime = Runtime.getRuntime();
-
+    //private FilePlayer player = new FilePlayer();
     private MaryInterface marytts;
-    private FilePlayer player = new FilePlayer();
 
-    private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(DebugWindow.class);
-
-    DebugWindow(@NotNull ConnectEvent event, @NotNull FozruciX.Network network, @NotNull FozruciX fozruciX) {
+    public DebugWindow(@NotNull ConnectEvent event, @NotNull FozruciX.Network network, @NotNull FozruciX fozruciX) {
         this.fozruciX = fozruciX;
         this.bot = event.getBot();
         this.network = network;
-        JLabel currentNickL, lastMessageL, currDML, myPlayerNameL, myPlayerHPL, myPlayerXPL, myFamiliarL, myFamiliarHPL, myFamiliarXPL, memoryUsageL;
+        JLabel currentNickL, lastMessageL, memoryUsageL;
         String networkName = bot.getServerInfo().getNetwork();
         String nick = bot.getNick();
         if (network == FozruciX.Network.discord) {
             jda = DiscordAdapter.getJda();
             networkName = "Discord";
-            nick = jda.getSelfInfo().getUsername();
+            nick = jda.getSelfUser().getName();
             try {
                 marytts = new LocalMaryInterface();
                 marytts.setVoice("cmu-bdl-hsmm");
@@ -114,25 +94,7 @@ class DebugWindow extends JFrame {
 
         currentNickL = new JLabel("Currently Registered User", SwingConstants.LEFT);
         lastMessageL = new JLabel("Last message", SwingConstants.LEFT);
-        currDML = new JLabel("Current Dungeon master", SwingConstants.LEFT);
-        myPlayerNameL = new JLabel("My username", SwingConstants.LEFT);
-        myPlayerHPL = new JLabel("HP", SwingConstants.LEFT);
-        myPlayerXPL = new JLabel("XP", SwingConstants.LEFT);
-        myFamiliarL = new JLabel("Familiar", SwingConstants.LEFT);
-        myFamiliarHPL = new JLabel("Familiar HP", SwingConstants.LEFT);
-        myFamiliarXPL = new JLabel("Familiar XP", SwingConstants.LEFT);
         memoryUsageL = new JLabel("Memory Usage", SwingConstants.LEFT);
-
-        currentNickTF = new JTextField(10);
-        lastMessageTF = new JTextField(10);
-        currDMTF = new JTextField(10);
-        myPlayerNameTF = new JTextField(10);
-        myPlayerHPTF = new JTextField(10);
-        myPlayerXPTF = new JTextField(10);
-        myFamiliarTF = new JTextField(10);
-        myFamiliarHPTF = new JTextField(10);
-        myFamiliarXPTF = new JTextField(10);
-        messageTF = new JTextField(512);
         Action action = new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -142,44 +104,23 @@ class DebugWindow extends JFrame {
                 }
             }
         };
-        messageTF.addActionListener(action);
+        message.addActionListener(action);
 
         //Create Grid layout for window
         Container pane = getContentPane();
-        pane.setLayout(new GridLayout(11, 2));
+        pane.setLayout(gridLayout);
 
 
         super.setAlwaysOnTop(true);
 
         pane.add(currentNickL);
-        pane.add(currentNickTF);
+        pane.add(currentNick);
 
         pane.add(lastMessageL);
-        pane.add(lastMessageTF);
-
-        pane.add(currDML);
-        pane.add(currDMTF);
-
-        pane.add(myPlayerNameL);
-        pane.add(myPlayerNameTF);
-
-        pane.add(myPlayerHPL);
-        pane.add(myPlayerHPTF);
-
-        pane.add(myPlayerXPL);
-        pane.add(myPlayerXPTF);
-
-        pane.add(myFamiliarL);
-        pane.add(myFamiliarTF);
-
-        pane.add(myFamiliarHPL);
-        pane.add(myFamiliarHPTF);
-
-        pane.add(myFamiliarXPL);
-        pane.add(myFamiliarXPTF);
+        pane.add(lastMessage);
 
         pane.add(memoryUsageL);
-        pane.add(memoryUsageTF);
+        pane.add(memoryUsage);
 
         comboBox = new DefaultComboBoxModel<>(channels);
         comboBox.addListDataListener(new ListDataListener() {
@@ -199,7 +140,7 @@ class DebugWindow extends JFrame {
             }
         });
         pane.add(new JComboBox<>(comboBox));
-        pane.add(messageTF);
+        pane.add(message);
 
         setSize(WIDTH, HEIGHT);
 
@@ -209,7 +150,7 @@ class DebugWindow extends JFrame {
 
         selectedChannel = (String) comboBox.getSelectedItem();
 
-        Timer timer = new Timer(1000, e -> memoryUsageTF.setText("Current memory usage: " + formatFileSize(runtime.totalMemory() - runtime.freeMemory()) + "/" + formatFileSize(runtime.totalMemory()) + ". Total memory that can be used: " + formatFileSize(runtime.maxMemory()) + ".  Active Threads: " + Thread.activeCount() + "/" + ManagementFactory.getThreadMXBean().getThreadCount() + ".  Available Processors: " + runtime.availableProcessors()));
+        Timer timer = new Timer(2000, e -> memoryUsage.setText("Current memory usage: " + formatFileSize(runtime.totalMemory() - runtime.freeMemory()) + "/" + formatFileSize(runtime.totalMemory()) + ". Total memory that can be used: " + formatFileSize(runtime.maxMemory()) + ".  Active Threads: " + Thread.activeCount() + "/" + ManagementFactory.getThreadMXBean().getThreadCount() + ".  Available Processors: " + runtime.availableProcessors()));
         timer.start();
     }
 
@@ -242,11 +183,11 @@ class DebugWindow extends JFrame {
             String guildName = selectedChannel.substring(0, selectedChannel.indexOf(':'));
             String channel = selectedChannel.substring(selectedChannel.indexOf('#') + 1);
             exitLoop:
-            for (Guild guild : jda.getGuildsByName(guildName)) {
+            for (Guild guild : jda.getGuildsByName(guildName, false)) {
                 if (guild.getName().equalsIgnoreCase(guildName)) {
                     for (TextChannel textChannel : guild.getTextChannels()) {
                         if (textChannel.getName().equalsIgnoreCase(channel) && !selectedChannel.contains(": v#")) {
-                            String messageToSend = FozruciX.getScramble(messageTF.getText());
+                            String messageToSend = FozruciX.getScramble(message.getText());
                             textChannel.sendMessage(messageToSend);
                             try {
                                 messageToSend = "PRIVMSG #" + textChannel.getName() + " :" + messageToSend;
@@ -257,7 +198,7 @@ class DebugWindow extends JFrame {
                             break exitLoop;
                         }
                     }
-                    for (VoiceChannel voiceChannel : guild.getVoiceChannels()) {
+                    /*for (VoiceChannel voiceChannel : guild.getVoiceChannels()) {
                         if (voiceChannel.getName().equalsIgnoreCase(channel) && selectedChannel.contains(": v#")) {
                             AudioManager audioManager = jda.getAudioManager(guild);
                             VoiceChannel currentVoiceChannel = audioManager.getConnectedChannel();
@@ -272,7 +213,7 @@ class DebugWindow extends JFrame {
                                     audioManager.setSendingHandler(player);
 
                                 }
-                                AudioInputStream audio = marytts.generateAudio(FozruciX.getScramble(messageTF.getText()));
+                                AudioInputStream audio = marytts.generateAudio(FozruciX.getScramble(message.getText()));
                                 AudioSystem.write(AudioSystem.getAudioInputStream(AudioSendHandler.INPUT_FORMAT, audio), AudioFileFormat.Type.WAVE, outputFile);
                                 player.setAudioFile(outputFile);
                                 player.play();
@@ -281,13 +222,13 @@ class DebugWindow extends JFrame {
                             }
                             break exitLoop;
                         }
-                    }
+                    }*/
                 }
             }
         } else {
-            bot.send().message(selectedChannel, FozruciX.getScramble(messageTF.getText()));
+            bot.send().message(selectedChannel, FozruciX.getScramble(message.getText()));
         }
-        messageTF.setText("");
+        message.setText("");
     }
 
     public void updateBot(@NotNull PircBotX bot) {
@@ -307,82 +248,15 @@ class DebugWindow extends JFrame {
     }
 
     public void setCurrentNick(String nick) {
-        currentNickTF.setText(nick);
+        currentNick.setText(nick);
     }
 
     public void setMessage(String message) {
-        lastMessageTF.setText(message);
-    }
-
-    public void setCurrDM(String DM) {
-        currDMTF.setText(DM);
-    }
-
-    public void setPlayerName(String DNDName) {
-        myPlayerNameTF.setText(DNDName);
-    }
-
-    public void setPlayerHP(String HP) {
-        myPlayerHPTF.setText(HP);
-    }
-
-    public void setPlayerXP(String XP) {
-        myPlayerXPTF.setText(XP);
-    }
-
-    public void setFamiliar(String Familiar) {
-        myFamiliarTF.setText(Familiar);
-    }
-
-    public void setFamiliarHP(String HP) {
-        myFamiliarHPTF.setText(HP);
-    }
-
-    public void setFamiliarXP(String XP) {
-        myFamiliarXPTF.setText(XP);
+        lastMessage.setText(message);
     }
 
     public void setNick(String botNick) {
         setTitle(botNick);
     }
 
-}
-
-class DrawWindow extends Component {
-    private final int map_size;
-    private final int[][] map;
-    private final Point currentPoint;
-
-    public DrawWindow(int[][] map, int map_size, Point currentPoint) {
-        this.map_size = map_size;
-        this.map = map;
-        this.currentPoint = currentPoint;
-    }
-
-    public void paint(Graphics g) {
-        Graphics2D g2d = (Graphics2D) g;
-        int scale = 5;
-        g2d.scale(scale, scale);
-        try {
-            for (int dy = 0; dy < map_size; dy++) {
-                for (int dx = 0; dx < map_size; dx++) {
-                    if (dx == currentPoint.x && dy == currentPoint.y) {
-                        g2d.setColor(Color.RED);
-                    } else if (map[dx][dy] == 0) {
-                        g2d.setColor(Color.CYAN);
-                    } else if (map[dx][dy] == 1) {
-                        g2d.setColor(Color.BLUE);
-                    } else {
-                        g2d.setColor(Color.MAGENTA);
-                    }
-                    g2d.drawLine(dx, dy, dx, dy);
-                    //Thread.sleep(5);                 //1000 milliseconds is one second.
-                }
-
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-    }
 }

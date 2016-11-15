@@ -1,7 +1,6 @@
 package com.LilG.Com.DataClasses;
 
-import com.LilG.Com.DND.DNDPlayer;
-import net.dv8tion.jda.entities.TextChannel;
+import net.dv8tion.jda.core.entities.TextChannel;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -28,8 +27,6 @@ public class SaveDataStore {
     private TreeMap<String, String> FCList = new TreeMap<>();
     @NotNull
     private LinkedList<String> DNDJoined = new LinkedList<>();
-    @NotNull
-    private LinkedList<DNDPlayer> DNDList = new LinkedList<>();
     @NotNull
     private HashMap<String, HashMap<String, ArrayList<String>>> allowedCommands = new HashMap<>();
     @NotNull
@@ -80,11 +77,6 @@ public class SaveDataStore {
     @NotNull
     public LinkedList<String> getDNDJoined() {
         return DNDJoined;
-    }
-
-    @NotNull
-    public LinkedList<DNDPlayer> getDNDList() {
-        return DNDList;
     }
 
     @NotNull
