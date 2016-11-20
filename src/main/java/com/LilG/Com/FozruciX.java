@@ -809,8 +809,14 @@ public class FozruciX extends ListenerAdapter {
 
     private boolean checkCooldown(MessageEvent event) {
         if (event.getUser() != null && commandCooldown.containsKey(event.getUser())) {
-            sendNotice(event, event.getUser().getNick(), "Sorry, you have to wait " + ((long) commandCooldown[event.getUser()] - System.currentTimeMillis()) + " Milliseconds for the cool down");
-            return true;
+            long timeToWait = (long) commandCooldown[event.getUser()] - System.currentTimeMillis();
+            if (timeToWait < 0) { //wtf? this shouldn't happen
+                removeFromCooldown();
+                return false;
+            } else {
+                sendNotice(event, event.getUser().getNick(), "Sorry, you have to wait " + timeToWait + " Milliseconds for the cool down");
+                return true;
+            }
         }
         return false;
     }
@@ -4382,7 +4388,7 @@ public class FozruciX extends ListenerAdapter {
             }
         }
         if (PM.getMessage().startsWith(prefix) || PM.getMessage().startsWith(consolePrefix) || PM.getMessage().startsWith(PM.getBot().getNick())) {
-            doCommand(new MessageEvent(bot, null, PM.getUser().getNick(), PM.getUserHostmask(), PM.getUser(), PM.getMessage(), null));
+            doCommand(new MessageEvent(bot, new DiscordChannel(bot, PM.getUser().getNick()), PM.getUser().getNick(), PM.getUserHostmask(), PM.getUser(), PM.getMessage(), null));
         } else {
             try {
                 PM.respondWith(botTalk("clever", PM.getMessage()));

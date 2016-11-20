@@ -24,7 +24,7 @@ public enum Move {
     AquaTail(Type.Water, MoveCategory.Physical, "The user attacks by swinging its tail as if it were a vicious wave in a raging storm."),
     ArmThrust(Type.Fighting, MoveCategory.Physical, "The user looses a flurry of open-palmed arm thrusts that hit two to five times in a row."),
     Aromatherapy(Type.Grass, MoveCategory.Other, "The user releases a soothing scent that heals all status conditions affecting the user's party."),
-    Assist(Type.Normal, MoveCategory.Other, "The user hurriedly and randomly uses a move among those known by other Pokémon in the party."),
+    Assist(Type.Normal, MoveCategory.Other, "The user hurriedly and randomly uses a move among those known by immune Pokémon in the party."),
     Assurance(Type.Dark, MoveCategory.Physical, "If the target has already taken some damage in the same turn, this attack's power is doubled."),
     Astonish(Type.Ghost, MoveCategory.Physical, "The user attacks the target while shouting in a startling fashion. This may also make the target flinch."),
     AttackOrder(Type.Bug, MoveCategory.Physical, "The user calls out its underlings to pummel the target. Critical hits land more easily."),

@@ -16,9 +16,11 @@ import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.net.Inet4Address;
+import java.net.NetworkInterface;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.util.Collections;
 
 /**
  * Created by ggonz on 10/12/2015.
@@ -26,7 +28,7 @@ import java.nio.file.StandardCopyOption;
  */
 
 public class FozConfig {
-    public final static boolean debug = true;
+    public final static boolean debug = false;
     public final static String badnik = "irc.badnik.zone";
     public final static String twitch = "irc.twitch.tv";
     public final static String caffie = "irc.caffie.net";
@@ -47,6 +49,31 @@ public class FozConfig {
     private final static LocationRelativeToServer location;
     private final static int attempts = Integer.MAX_VALUE;
     private final static int connectDelay = 5 * 1000; //5 seconds
+    public final static Configuration.Builder debugLil_G_NetConfig = new Configuration.Builder()
+            .setAutoReconnectDelay(connectDelay)
+            .setEncoding(Charset.forName("UTF-8"))
+            .setAutoReconnect(true)
+            .setAutoReconnectAttempts(attempts)
+            .setNickservPassword(CryptoUtil.decrypt(PASSWORD))
+            .setName(nick) //Set the nick of the bot.
+            .setLogin(login)
+            .setRealName(realName)
+            //.setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates())
+            .addAutoJoinChannel("#FozruciX")
+            .addListener(new FozruciX(manager)); //Add our listener that will be called on Events
+    public final static Configuration.Builder normalLil_G_NetConfig = new Configuration.Builder()
+            .setAutoReconnectDelay(connectDelay)
+            .setEncoding(Charset.forName("UTF-8"))
+            .setAutoReconnect(true)
+            .setAutoReconnectAttempts(attempts)
+            .setNickservPassword(CryptoUtil.decrypt(PASSWORD))
+            .setName(nick) //Set the nick of the bot.
+            .setLogin(login)
+            .setRealName(realName)
+            //.setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates())
+            .addAutoJoinChannel("#FozruciX")
+            .addAutoJoinChannel("#chat")
+            .addListener(new FozruciX(manager)); //Add our listener that will be called on Events
     public final static Configuration.Builder debugConfig = new Configuration.Builder()
             .setAutoReconnectDelay(connectDelay)
             .setEncoding(Charset.forName("UTF-8"))
@@ -107,18 +134,6 @@ public class FozConfig {
             .setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates())
             .addAutoJoinChannel("#bots")
             //.setIdentServerEnabled(true)
-            .addListener(new FozruciX(manager)); //Add our listener that will be called on Events
-    public final static Configuration.Builder debugLil_G_NetConfig = new Configuration.Builder()
-            .setAutoReconnectDelay(connectDelay)
-            .setEncoding(Charset.forName("UTF-8"))
-            .setAutoReconnect(true)
-            .setAutoReconnectAttempts(attempts)
-            .setNickservPassword(CryptoUtil.decrypt(PASSWORD))
-            .setName(nick) //Set the nick of the bot.
-            .setLogin(login)
-            .setRealName(realName)
-            //.setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates())
-            .addAutoJoinChannel("#FozruciX")
             .addListener(new FozruciX(manager)); //Add our listener that will be called on Events
     public final static Configuration.Builder normal = new Configuration.Builder()
             .setAutoReconnectDelay(connectDelay)
@@ -213,19 +228,6 @@ public class FozConfig {
             .addAutoJoinChannel("#FozruciX")
             //.setIdentServerEnabled(true)
             .addListener(new FozruciX(manager)); //Add our listener that will be called on Events
-    public final static Configuration.Builder normalLil_G_NetConfig = new Configuration.Builder()
-            .setAutoReconnectDelay(connectDelay)
-            .setEncoding(Charset.forName("UTF-8"))
-            .setAutoReconnect(true)
-            .setAutoReconnectAttempts(attempts)
-            .setNickservPassword(CryptoUtil.decrypt(PASSWORD))
-            .setName(nick) //Set the nick of the bot.
-            .setLogin(login)
-            .setRealName(realName)
-            //.setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates())
-            .addAutoJoinChannel("#FozruciX")
-            .addAutoJoinChannel("#chat")
-            .addListener(new FozruciX(manager)); //Add our listener that will be called on Events
     public final static Configuration.Builder debugConfigRizon = new Configuration.Builder()
             .setAutoReconnectDelay(connectDelay)
             .setEncoding(Charset.forName("UTF-8"))
@@ -250,7 +252,11 @@ public class FozConfig {
             System.setProperty("jna.debug_load", "true");
             System.setProperty("jna.debug_load.jna", "true");
             Class.forName("com.mysql.jdbc.Driver").newInstance();
-            String address = Inet4Address.getLocalHost().getHostAddress();
+            String address = Collections.list(NetworkInterface.getNetworkInterfaces()).stream()
+                    .flatMap(i -> Collections.list(i.getInetAddresses()).stream())
+                    .filter(ip -> ip instanceof Inet4Address && ip.isSiteLocalAddress())
+                    .findFirst().orElseThrow(RuntimeException::new)
+                    .getHostAddress();
             LOGGER.debug("Address is " + address);
             if (address.startsWith("10.0.0.")) {
                 if (address.equalsIgnoreCase("10.0.0.63")) {

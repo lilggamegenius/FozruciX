@@ -23,5 +23,9 @@ public interface pokemon {
 
     boolean getStatus(StatusEffect status);
 
-    int attack(int attackAmount, Type type);
+    int doDamage(int damageToDeal, Type type);
+
+    int takeDamage(int damageTaken, Type type);
+
+    Ability getAbility();
 }

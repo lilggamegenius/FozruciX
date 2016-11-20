@@ -217,9 +217,20 @@ public class DiscordAdapter extends ListenerAdapter {
 
     @Override
     public void onMessageReceived(MessageReceivedEvent event) {
-        String discordNick = event.getMember().getEffectiveName();
-        String discordUsername = event.getMember().getUser().getName();
-        String discordHostmask = event.getMember().getUser().getId(); //misnomer but it acts as the same thing
+        String discordNick = "Error nick";
+        String discordUsername = "Error UserName";
+        String discordHostmask = "Error Hostmask";
+        try {
+            discordNick = event.getMember().getEffectiveName();
+            discordUsername = event.getMember().getUser().getName();
+            discordHostmask = event.getMember().getUser().getId();
+        } catch (NullPointerException e) {
+            discordNick = event.getAuthor().getName();
+            discordUsername = discordNick;
+            discordHostmask = event.getAuthor().getId();
+        } catch (Exception e) {
+            LOGGER.error("Error recieving message", e);
+        }
         DiscordUserHostmask discordUserHostmask = new DiscordUserHostmask(pircBotX, discordNick + "!" + discordUsername + "@" + discordHostmask);
 
         if (event.isFromType(ChannelType.PRIVATE)) {
