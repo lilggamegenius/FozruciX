@@ -45,4 +45,20 @@ enum Type {//    Strong                  Weak to                Immune to      N
             this.notEffective[i] = Type.values()[notEffective[i]];
         }
     }
+
+    public Type[] getStrong() {
+        return strong;
+    }
+
+    public Type[] getWeak() {
+        return weak;
+    }
+
+    public Type[] getImmune() {
+        return immune;
+    }
+
+    public Type[] getNotEffective() {
+        return notEffective;
+    }
 }

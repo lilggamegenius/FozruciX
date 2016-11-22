@@ -60,9 +60,10 @@ public class DiscordAdapter extends ListenerAdapter {
     private static Thread avatar;
 
     private DiscordAdapter(PircBotX pircBotX) throws LoginException, InterruptedException, RateLimitedException {
-            LOGGER.trace("Calling JDA Builder");
+        String token = CryptoUtil.decrypt(FozConfig.setPassword(FozConfig.Password.discord));
+        LOGGER.trace("Calling JDA Builder with token: " + token);
         jda = new JDABuilder(AccountType.BOT)
-                .setToken(CryptoUtil.decrypt(FozConfig.setPassword(FozConfig.Password.discord)))
+                .setToken(token)
                     .setAutoReconnect(true)
                     .setAudioEnabled(true)
                     .setEnableShutdownHook(true)
@@ -229,7 +230,7 @@ public class DiscordAdapter extends ListenerAdapter {
             discordUsername = discordNick;
             discordHostmask = event.getAuthor().getId();
         } catch (Exception e) {
-            LOGGER.error("Error recieving message", e);
+            LOGGER.error("Error receiving message", e);
         }
         DiscordUserHostmask discordUserHostmask = new DiscordUserHostmask(pircBotX, discordNick + "!" + discordUsername + "@" + discordHostmask);
 
@@ -276,12 +277,12 @@ class DiscordMessageEvent extends MessageEvent {
 
     @Override
     public void respond(String response) {
-        discordEvent.getChannel().sendMessage(discordEvent.getAuthor().getAsMention() + ": " + response);
+        discordEvent.getChannel().sendMessage(discordEvent.getAuthor().getAsMention() + ": " + response).queue();
     }
 
     @Override
     public void respondWith(String fullLine) {
-        discordEvent.getChannel().sendMessage(fullLine);
+        discordEvent.getChannel().sendMessage(fullLine).queue();
     }
 }
 
@@ -482,7 +483,9 @@ class AvatarThread extends Thread {
                 StringBuilder pathArray = new StringBuilder();
                 if (avatarList != null) {
                     for (File anAvatarList : avatarList) {
-                        pathArray.append(anAvatarList);
+                        if (!(anAvatarList.isDirectory() || anAvatarList.canRead())) {
+                            pathArray.append(anAvatarList);
+                        }
                     }
                     LOGGER.info("File list: " + pathArray);
                     avatarFile = avatarList[randInt(0, avatarList.length - 1)];
@@ -498,6 +501,7 @@ class AvatarThread extends Thread {
                             LOGGER.error(avatarFile.getAbsolutePath());
                         }
                     }
+                    accountManager.update(null);
                     for (Object pircBotObj : FozConfig.getManager().getBots().toArray()) {
                         Object[] temp = ((PircBotX) pircBotObj).getConfiguration().getListenerManager().getListeners().toArray();
                         FozruciX bot = null;

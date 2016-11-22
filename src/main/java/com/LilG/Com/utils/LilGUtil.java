@@ -270,4 +270,8 @@ public class LilGUtil {
         }
         list.addAll(ar);
     }
+
+    public static <T, S> S cast(T type, Class<S> cast) throws ClassCastException {
+        return cast.cast(type);
+    }
 }

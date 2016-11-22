@@ -37,15 +37,10 @@ class DebugWindow extends JFrame {
     private static final int WIDTH = 800;
     private static final int HEIGHT = 220;
     private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(DebugWindow.class);
-    @NotNull
     private JTextField currentNick;
-    @NotNull
     private JTextField lastMessage;
-    @NotNull
     private JTextField memoryUsage;
-    @NotNull
     private JTextField message;
-    @NotNull
     private JComboBox channelList;
     @NotNull
     private String[] channels = {"#null"};
@@ -200,14 +195,13 @@ class DebugWindow extends JFrame {
                     }
                     /*for (VoiceChannel voiceChannel : guild.getVoiceChannels()) {
                         if (voiceChannel.getName().equalsIgnoreCase(channel) && selectedChannel.contains(": v#")) {
-                            AudioManager audioManager = jda.getAudioManager(guild);
-                            VoiceChannel currentVoiceChannel = audioManager.getConnectedChannel();
+                            AudioManager audioManager = voiceChannel;
                             File outputFile = new File("Data/messageSent.wav");
                             LOGGER.info("I currently have " + marytts.getAvailableVoices() + " voices in "
                                     + marytts.getAvailableLocales() + " languages available.");
                             LOGGER.info("Out of these, " + marytts.getAvailableVoices(Locale.US) + " are for US English.");
                             try {
-                                if (!voiceChannel.equals(currentVoiceChannel)) {
+                                if (!voiceChannel.equals(voiceChannel)) {
                                     audioManager.closeAudioConnection();
                                     audioManager.openAudioConnection(voiceChannel);
                                     audioManager.setSendingHandler(player);

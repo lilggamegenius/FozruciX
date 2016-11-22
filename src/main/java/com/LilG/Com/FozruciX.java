@@ -137,6 +137,7 @@ public class FozruciX extends ListenerAdapter {
     private static volatile ChatterBotSession jabberBotSession;
     private static volatile @NotNull SizedArray<MessageEvent> lastEvents = new SizedArray<>(30);
     private static volatile String lastLinkTitle = "";
+    private static volatile long lastLinkTime = System.currentTimeMillis();
     @Nullable
     private static volatile CMD singleCMD = null;
     //------------- save data -----------------------------------
@@ -877,7 +878,7 @@ public class FozruciX extends ListenerAdapter {
             List<net.dv8tion.jda.core.entities.User> users = DiscordAdapter.getJda().getUsersByName(userToSendTo, true);
             for (net.dv8tion.jda.core.entities.User name : users) {
                 if (name.getName().equalsIgnoreCase(userToSendTo)) {
-                    name.getPrivateChannel().sendMessage(msgToSend);
+                    name.getPrivateChannel().sendMessage(msgToSend).queue();
                     return;
                 }
             }
@@ -932,7 +933,9 @@ public class FozruciX extends ListenerAdapter {
         try {
             LOGGER.debug("Generating page...");
             UUID name = UUID.randomUUID();
-            File f = new File("Data/site/temp/" + name + ".htm");
+            File dir = new File("Data/site/temp/");
+            File f = new File(dir, name + ".htm");
+            LOGGER.debug("Result of making dirs: " + dir.mkdirs() + ". Result of create new file: " + f.createNewFile());
             BufferedWriter bw = new BufferedWriter(new FileWriter(f));
             bw.write("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">");
             bw.write("<html>");
@@ -1058,16 +1061,18 @@ public class FozruciX extends ListenerAdapter {
         try {
             String channel = event.getChannel().getName();
             String[] arg = splitMessage(event.getMessage());
-            if (!commandChecker(event, arg, "checkLink", false) && BOOLS[CHECK_LINKS] && !((event.getUser().getNick().equalsIgnoreCase("aqua-sama") && event.getMessage().contains("taglink: https://is.gd/")))) {
+            boolean checklink = !commandChecker(event, arg, "checkLink", false);
+            boolean isAqua = !event.getUser().getNick().equalsIgnoreCase("aqua-sama");
+            boolean isLinkShorterner = !event.getMessage().contains("taglink: https://is.gd/");
+            if (checklink && BOOLS[CHECK_LINKS] && isAqua && isLinkShorterner) {
                 boolean channelContains = false;
                 boolean containsServer = false;
                 boolean containsChannel = false;
                 try {
-                    containsServer = allowedCommands.get(getSeverName(event, true)) != null;
-                    containsChannel = allowedCommands.get(getSeverName(event, true)).get(channel) != null;
-                    channelContains = allowedCommands.get(getSeverName(event, true)).get(channel).contains("url checker");
+                    containsServer = allowedCommands[getSeverName(event, true)] != null;
+                    containsChannel = allowedCommands[getSeverName(event, true)][channel] != null;
+                    channelContains = allowedCommands[getSeverName(event, true)][channel].contains("url checker");
                 } catch (NullPointerException ignored) {
-                    return;
                 }
                 LOGGER.trace(getSeverName(event, true) + ": containsServer: " + containsServer + " containsChannel: " + containsChannel + " channelContains: " + channelContains + " " + allowedCommands);
                 if (!channelContains) {
@@ -1154,11 +1159,15 @@ public class FozruciX extends ListenerAdapter {
                         LOGGER.debug("Found URL - " + currentURL);
                         try {
                             String title = Jsoup.connect(currentURL).userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2783.4 Safari/537.36").timeout(5000).get().title();
+                            if (System.currentTimeMillis() > lastLinkTime) {
+                                lastLinkTitle = "";
+                            }
                             if (title.isEmpty()) {
                                 sendMessage(event, "Title was empty", false);
                             } else if (!title.equals(lastLinkTitle)) {
                                 sendMessage(event, "Title: " + title, false);
                                 lastLinkTitle = title;
+                                lastLinkTime = System.currentTimeMillis() + 30000;
                             }
                         } catch (UnsupportedMimeTypeException e) {
                             try {
@@ -1680,16 +1689,20 @@ public class FozruciX extends ListenerAdapter {
 // !command - Sets what commands can be used where
             else if (commandChecker(event, arg, "command")) {
                 if (checkPerm(event.getUser(), 9001)) {
+                    String[] commandArg = arg;
+                    if (event instanceof DiscordMessageEvent) {
+                        commandArg = splitMessage(((DiscordMessageEvent) event).getDiscordEvent().getMessage().getStrippedContent());
+                    }
                     HashMap<String, ArrayList<String>> allowedCommands = (HashMap<String, ArrayList<String>>) FozruciX.allowedCommands[getSeverName(event, true)];
                     if (allowedCommands == null) {
                         allowedCommands = new HashMap<>();
                         FozruciX.allowedCommands[getSeverName(event, true)] = allowedCommands;
                     }
-                    if (getArg(arg, 2) != null) {
+                    if (getArg(commandArg, 2) != null) {
                         byte mode = 0;
-                        String chan = getArg(arg, 1);
-                        for (byte i = 2; getArg(arg, i) != null; i++) {
-                            String command = getArg(arg, i);
+                        String chan = getArg(commandArg, 1);
+                        for (byte i = 2; getArg(commandArg, i) != null; i++) {
+                            String command = getArg(commandArg, i);
                             if (command.startsWith("-")) {
                                 mode = -1;
                                 command = command.substring(1, command.length());
@@ -1710,8 +1723,8 @@ public class FozruciX extends ListenerAdapter {
                                 sendMessage(event, "The command " + command + " is " + (((ArrayList<String>) allowedCommands[chan]).contains(command) ? "" : "not ") + "Banned from " + chan);
                             }
                         }
-                    } else if (getArg(arg, 1) != null) {
-                        sendMessage(event, allowedCommands.get(getArg(arg, 1)).toString());
+                    } else if (getArg(commandArg, 1) != null) {
+                        sendMessage(event, allowedCommands.get(getArg(commandArg, 1)).toString());
                     } else {
                         sendMessage(event, allowedCommands.toString());
                     }
@@ -2345,20 +2358,25 @@ public class FozruciX extends ListenerAdapter {
                             LOGGER.warn("Query was not understood; no results available.");
                         } else {
                             // Got a result.
-                            LOGGER.debug("Successful query. Pods follow:\n");
+                            //LOGGER.debug("Successful query. Pods follow:\n");
                             for (WAPod pod : queryResult.getPods()) {
                                 if (!pod.isError()) {
-                                    LOGGER.debug(pod.getTitle());
-                                    LOGGER.debug("------------");
+                                    //LOGGER.debug("pod start: " + pod.getTitle());
                                     for (WASubpod subPod : pod.getSubpods()) {
                                         for (Object element : subPod.getContents()) {
                                             if (element instanceof WAPlainText) {
-                                                LOGGER.debug(((WAPlainText) element).getText());
-                                                LOGGER.debug("");
+                                                //LOGGER.debug("subpod start");
+                                                String elementResult = ((WAPlainText) element).getText();
+                                                if (pod.getTitle().equalsIgnoreCase("Result")) {
+                                                    sendMessage(event, elementResult);
+                                                } /*else {
+                                                    //LOGGER.debug(elementResult);
+                                                }*/
+                                                //LOGGER.debug("end of sub pod");
                                             }
                                         }
                                     }
-                                    LOGGER.debug("");
+                                    //LOGGER.debug("End of pod");
                                 }
                             }
                             // We ignored many other types of Wolfram|Alpha output, such as warnings, assumptions, etc.
@@ -4387,6 +4405,9 @@ public class FozruciX extends ListenerAdapter {
                 System.exit(0);
             }
         }
+        if (!PM.getMessage().contains(CryptoUtil.decrypt(FozConfig.PASSWORD))) {
+            log(PM);
+        }
         if (PM.getMessage().startsWith(prefix) || PM.getMessage().startsWith(consolePrefix) || PM.getMessage().startsWith(PM.getBot().getNick())) {
             doCommand(new MessageEvent(bot, new DiscordChannel(bot, PM.getUser().getNick()), PM.getUser().getNick(), PM.getUserHostmask(), PM.getUser(), PM.getMessage(), null));
         } else {
@@ -4400,9 +4421,6 @@ public class FozruciX extends ListenerAdapter {
         debug.updateBot(bot);
         checkNote(PM, PM.getUser().getNick(), null);
         debug.setCurrentNick(currentUser.getHostmask());
-        if (!PM.getMessage().contains(CryptoUtil.decrypt(FozConfig.PASSWORD))) {
-            log(PM);
-        }
     }
 
     public void onNotice(@NotNull NoticeEvent event) {
@@ -4574,6 +4592,9 @@ public class FozruciX extends ListenerAdapter {
                 }
             }
         } else if (user instanceof DiscordUser) {
+            if (user.getHostname().equals(currentUser.getHostname())) {
+                return true;
+            }
             List<Role> roles = ((DiscordUser) user).getGuild().getMember(((DiscordUser) user).getDiscordUser()).getRoles();
             int highestLevel = 0;
             for (Role role : roles) {
@@ -5073,8 +5094,38 @@ public class FozruciX extends ListenerAdapter {
                     context.removeAttribute(unsafeAttribute, globalScope);
                 }
                 botOPEngine = new NashornScriptEngineFactory().getScriptEngine();
+                updateVariables();
             } catch (Exception e) {
                 sendError(event, e);
+            }
+        }
+
+        private void updateVariables() {
+            botOPEngine["event"] = event;
+            botOPEngine["message"] = event.getMessage();
+            botOPEngine["channel"] = event.getChannel();
+            botOPEngine["user"] = event.getUser();
+            botOPEngine["bot"] = event.getBot();
+            botOPEngine["hostmask"] = event.getUserHostmask();
+            botOPEngine["server"] = event.getBot().getServerInfo();
+            botOPEngine["jda"] = DiscordAdapter.getJda();
+            if (event instanceof DiscordMessageEvent) {
+                botOPEngine["discordEvent"] = ((DiscordMessageEvent) event).getDiscordEvent();
+                botOPEngine["discordChannel"] = ((DiscordMessageEvent) event).getDiscordEvent().getChannel();
+                botOPEngine["discordType"] = ((DiscordMessageEvent) event).getDiscordEvent().getChannelType();
+                botOPEngine["discordGuild"] = ((DiscordMessageEvent) event).getDiscordEvent().getGuild();
+                botOPEngine["discordAuthor"] = ((DiscordMessageEvent) event).getDiscordEvent().getAuthor();
+                botOPEngine["discordMember"] = ((DiscordMessageEvent) event).getDiscordEvent().getMember();
+                botOPEngine["discordGroup"] = ((DiscordMessageEvent) event).getDiscordEvent().getGroup();
+            } else {
+                botOPEngine["discordEvent"] = null;
+                botOPEngine["discordChannel"] = null;
+                botOPEngine["discordType"] = null;
+                botOPEngine["discordGuild"] = null;
+                botOPEngine["jda"] = null;
+                botOPEngine["discordAuthor"] = null;
+                botOPEngine["discordMember"] = null;
+                botOPEngine["discordGroup"] = null;
             }
         }
 
@@ -5082,6 +5133,7 @@ public class FozruciX extends ListenerAdapter {
             this.event = event;
             this.arg = arg;
             this.radix = radix;
+            updateVariables();
             run();
         }
 

@@ -49,6 +49,52 @@ public class FozConfig {
     private final static LocationRelativeToServer location;
     private final static int attempts = Integer.MAX_VALUE;
     private final static int connectDelay = 5 * 1000; //5 seconds
+
+    static {
+        XStream xStream = new XStream();
+        xStream.ignoreUnknownElements();
+        loadData(xStream);
+        LocationRelativeToServer locationTemp = null;
+        try {
+            System.setProperty("jna.library.path", "jni");
+            System.setProperty("jna.debug_load", "true");
+            System.setProperty("jna.debug_load.jna", "true");
+            Class.forName("com.mysql.jdbc.Driver").newInstance();
+            String address = Collections.list(NetworkInterface.getNetworkInterfaces()).stream()
+                    .flatMap(i -> Collections.list(i.getInetAddresses()).stream())
+                    .filter(ip -> ip instanceof Inet4Address && ip.isSiteLocalAddress())
+                    .findFirst().orElseThrow(RuntimeException::new)
+                    .getHostAddress();
+            LOGGER.debug("Address is " + address);
+            if (address.startsWith("10.0.0.")) {
+                if (address.equalsIgnoreCase("10.0.0.63")) {
+                    locationTemp = LocationRelativeToServer.self;
+                } else {
+                    locationTemp = LocationRelativeToServer.local;
+                }
+            } else {
+                locationTemp = LocationRelativeToServer.global;
+            }
+        } catch (ClassNotFoundException e) {
+            LOGGER.error("SQL Driver not found", e);
+        } catch (Exception e2) {
+            LOGGER.error("Error", e2);
+        }
+        location = locationTemp;
+        switch (location) {
+            case self:
+                Lil_G_Net = "localhost";
+                break;
+            case local:
+                Lil_G_Net = "10.0.0.63";
+                break;
+            case global:
+                Lil_G_Net = "irc.lilggamegenuis.tk";
+                break;
+            default:
+                Lil_G_Net = "you fucking broke it";
+        }
+    }
     public final static Configuration.Builder debugLil_G_NetConfig = new Configuration.Builder()
             .setAutoReconnectDelay(connectDelay)
             .setEncoding(Charset.forName("UTF-8"))
@@ -151,6 +197,7 @@ public class FozConfig {
             .addAutoJoinChannel("#retrotech")
             .addAutoJoinChannel("#SSB")
             .addAutoJoinChannel("#idkwtf")
+            .addAutoJoinChannel("#ducks")
             .addListener(new FozruciX(manager)); //Add our listener that will be called on Events
     public final static Configuration.Builder normalSmwc = new Configuration.Builder()
             .setAutoReconnectDelay(connectDelay)
@@ -242,51 +289,7 @@ public class FozConfig {
             //.setIdentServerEnabled(true)
             .addListener(new FozruciX(manager)); //Add our listener that will be called on Events
 
-    static {
-        XStream xStream = new XStream();
-        xStream.ignoreUnknownElements();
-        loadData(xStream);
-        LocationRelativeToServer locationTemp = null;
-        try {
-            System.setProperty("jna.library.path", "jni");
-            System.setProperty("jna.debug_load", "true");
-            System.setProperty("jna.debug_load.jna", "true");
-            Class.forName("com.mysql.jdbc.Driver").newInstance();
-            String address = Collections.list(NetworkInterface.getNetworkInterfaces()).stream()
-                    .flatMap(i -> Collections.list(i.getInetAddresses()).stream())
-                    .filter(ip -> ip instanceof Inet4Address && ip.isSiteLocalAddress())
-                    .findFirst().orElseThrow(RuntimeException::new)
-                    .getHostAddress();
-            LOGGER.debug("Address is " + address);
-            if (address.startsWith("10.0.0.")) {
-                if (address.equalsIgnoreCase("10.0.0.63")) {
-                    locationTemp = LocationRelativeToServer.self;
-                } else {
-                    locationTemp = LocationRelativeToServer.local;
-                }
-            } else {
-                locationTemp = LocationRelativeToServer.global;
-            }
-        } catch (ClassNotFoundException e) {
-            LOGGER.error("SQL Driver not found", e);
-        } catch (Exception e2) {
-            LOGGER.error("Error", e2);
-        }
-        location = locationTemp;
-        switch (location) {
-            case self:
-                Lil_G_Net = "localhost";
-                break;
-            case local:
-                Lil_G_Net = "10.0.0.63";
-                break;
-            case global:
-                Lil_G_Net = "irc.lilggamegenuis.tk";
-                break;
-            default:
-                Lil_G_Net = "you fucking broke it";
-        }
-    }
+
     //Create our bot with the configuration
 
     public static void main(String[] args) throws Exception {

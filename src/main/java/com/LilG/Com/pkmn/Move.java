@@ -43,6 +43,18 @@ public enum Move {
         this.description = description;
     }
 
+    public Type getType() {
+        return type;
+    }
+
+    public MoveCategory getCategory() {
+        return category;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
     enum MoveCategory {
         Physical, Special, Other
     }
