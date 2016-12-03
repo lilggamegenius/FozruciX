@@ -8,6 +8,7 @@ import com.rmtheis.yandtran.YandexTranslatorAPI;
 import com.rmtheis.yandtran.detect.Detect;
 import com.rmtheis.yandtran.translate.Translate;
 import com.thoughtworks.xstream.XStream;
+import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
 import org.jetbrains.annotations.NotNull;
 import org.pircbotx.Configuration;
 import org.pircbotx.MultiBotManager;
@@ -28,7 +29,7 @@ import java.util.Collections;
  */
 
 public class FozConfig {
-    public final static boolean debug = false;
+    public final static boolean debug = true;
     public final static String badnik = "irc.badnik.zone";
     public final static String twitch = "irc.twitch.tv";
     public final static String caffie = "irc.caffie.net";
@@ -47,8 +48,8 @@ public class FozConfig {
     private final static File bak = new File("Data/DataBak.xml");
     private final static File saveFile = new File("Data/Data.xml");
     private final static LocationRelativeToServer location;
-    private final static int attempts = Integer.MAX_VALUE;
-    private final static int connectDelay = 5 * 1000; //5 seconds
+    private final static int attempts = 10;
+    private final static int connectDelay = 15 * 1000;
 
     static {
         XStream xStream = new XStream();
@@ -302,12 +303,12 @@ public class FozConfig {
         Detect.setKey(ApiKeys.YANDEX_API_KEY);
 
         if (debug) {
-            manager.addBot(debugConfig.buildForServer(badnik, 6697));
+            /*manager.addBot(debugConfig.buildForServer(badnik, 6697));
             manager.addBot(debugConfigSmwc.buildForServer(caffie, 6697));
             manager.addBot(debugConfigEsper.buildForServer(esper, 6697));
             //manager.addBot(twitchDebug.buildForServer(twitch, 6667, CryptoUtil.decrypt(setPassword(Password.twitch))));
             manager.addBot(debugConfigNova.buildForServer(nova, 6697));
-            manager.addBot(debugConfigRizon.buildForServer(rizon, 9999));
+            manager.addBot(debugConfigRizon.buildForServer(rizon, 9999));*/
             manager.addBot(debugLil_G_NetConfig.buildForServer(Lil_G_Net, 6667));
         } else {
             manager.addBot(normal.buildForServer(badnik, 6697));
@@ -409,6 +410,8 @@ public class FozConfig {
         try (FileWriter writer = new FileWriter(bak)) {
             xstream.ignoreUnknownElements();
             xstream.toXML(SaveDataStore.getINSTANCE(), writer);
+            XStream xjson = new XStream(new JettisonMappedXmlDriver());
+            xjson.toXML(SaveDataStore.getINSTANCE(), new FileWriter(new File("Data/Data.json")));
         } catch (Exception e) {
             LOGGER.error("Couldn't save data", e);
         }

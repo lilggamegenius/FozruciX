@@ -239,6 +239,7 @@ public class FozruciX extends ListenerAdapter {
 
         loadData(true);
         LOGGER.setLevel(Level.ALL);
+        Thread.currentThread().setName("FozruciX: " + network.name());
     }
 
     static String getScramble(@NotNull String msgToSend) {
@@ -285,29 +286,13 @@ public class FozruciX extends ListenerAdapter {
     }
 
     private static int getUserLevel(@NotNull ArrayList<UserLevel> levels) {
-        int ret;
+        int ret = 0;
         if (levels.size() == 0) {
             ret = 0;
         } else {
-            UserLevel level = levels[levels.size() - 1];
-            switch (level) {
-                case VOICE:
-                    ret = 1;
-                    break;
-                case HALFOP:
-                    ret = 2;
-                    break;
-                case OP:
-                    ret = 3;
-                    break;
-                case SUPEROP:
-                    ret = 4;
-                    break;
-                case OWNER:
-                    ret = 5;
-                    break;
-                default:
-                    ret = 0; // how it can not be these, i don't know
+            for (UserLevel level : levels) {
+                int levelNum = level.ordinal();
+                ret = ret < levelNum ? levelNum : ret;
             }
         }
         return ret;
@@ -791,7 +776,7 @@ public class FozruciX extends ListenerAdapter {
             PrintWriter writer = new PrintWriter(stringWriter);
             parser.printHelp(writer);
             String content = stringWriter.toString();
-            LOGGER.debug(content);
+            LOGGER.debug("Command help: " + content);
             sendNotice(event, "```" + content + "```", false);
         } catch (Exception ex) {
             LOGGER.error("Error sending command help", ex);
@@ -878,6 +863,10 @@ public class FozruciX extends ListenerAdapter {
             List<net.dv8tion.jda.core.entities.User> users = DiscordAdapter.getJda().getUsersByName(userToSendTo, true);
             for (net.dv8tion.jda.core.entities.User name : users) {
                 if (name.getName().equalsIgnoreCase(userToSendTo)) {
+                    if (!name.hasPrivateChannel()) {
+                        String str = msgToSend;
+                        name.openPrivateChannel().queue(privateChannel -> name.getPrivateChannel().sendMessage(str).queue());
+                    }
                     name.getPrivateChannel().sendMessage(msgToSend).queue();
                     return;
                 }
@@ -923,7 +912,7 @@ public class FozruciX extends ListenerAdapter {
             currentUser = event.getBot().getUserBot();
         }
 
-
+        Thread.currentThread().setName("FozruciX: " + getSeverName(event));
         loadData(true);
         makeDebug(event);
         makeDiscord();
@@ -1023,6 +1012,7 @@ public class FozruciX extends ListenerAdapter {
             if (!bot.getNick().equalsIgnoreCase(bot.getConfiguration().getName())) {
                 sendNotice(event, currentUser.getNick(), "Ghost detected, recovering in 10 seconds");
                 new Thread(() -> {
+
                     try {
                         pause(10);
                     } catch (Exception e) {
@@ -1301,7 +1291,7 @@ public class FozruciX extends ListenerAdapter {
                             .defaultHelp(true);
                     Subparsers subparsers = parser.addSubparsers()
                             .title("Valid commands")
-                            .description("Admin commands")
+                            .description("This is the list of valid admin commands you can use.")
                             .dest("admin_command");
                     Subparser ban = subparsers.addParser("ban")
                             .help("Bans a user");
@@ -1309,8 +1299,14 @@ public class FozruciX extends ListenerAdapter {
                             .help("kicks a user");
                     ban.addArgument("users").nargs("*").type(String.class).help("User to ban");
                     kick.addArgument("users").nargs("*").type(String.class).help("User to kick");
+                    ban.addArgument("-r", "--reason")
+                            .type(String.class).help("Sets the reason for the ban")
+                            .setDefault("No reason given");
+                    kick.addArgument("-r", "--reason")
+                            .type(String.class).help("Sets the reason for the kick")
+                            .setDefault("No reason given");
                     if (discord) {
-                        ban.addArgument("-r", "--remove-messages").nargs(1)
+                        ban.addArgument("--remove-messages").nargs(1)
                                 .type(Integer.class).setDefault(0).help("Amount of messages, by days, to remove by the user, if any");
                         Subparser delMsg = subparsers.addParser("delmsg")
                                 .help("Deletes a message, a span of messages, or a certain amount of messages from a certain user");
@@ -1323,15 +1319,9 @@ public class FozruciX extends ListenerAdapter {
                         ban.addArgument("-k", "--kick-ban")
                                 .type(Boolean.class).help("Specify to also kick")
                                 .action(Arguments.storeTrue());
-                        ban.addArgument("-r", "--reason")
-                                .type(String.class).help("Sets the reason for the ban")
-                                .setDefault("You were kicked by " + event.getUser().getHostmask());
-                        kick.addArgument("-r", "--reason")
-                                .type(String.class).help("Sets the reason for the kick")
-                                .setDefault("You were kicked by " + event.getUser().getHostmask());
                     }
                     Subparser modeM = subparsers.addParser("+m")
-                            .description("Sets a channel so only certain users can speak")
+                            .help("Sets a channel so only certain users can speak")
                             .defaultHelp(true);
                     modeM.addArgument("-s", "--state").type(Arguments.booleanType("on", "off")).setDefault((Boolean) null)
                             .help("Sets +m mode on or off. Otherwise toggle");
@@ -1341,7 +1331,7 @@ public class FozruciX extends ListenerAdapter {
                             .help("Sets the channel to white list mode");
 
                     Subparser modeG = subparsers.addParser("+g")
-                            .description("makes it so messages containing a certain string cannot be sent")
+                            .help("makes it so messages containing a certain string cannot be sent")
                             .defaultHelp(true);
                     modeG.addArgument("expression").type(String.class)
                             .help("what to check messages against");
@@ -1351,13 +1341,14 @@ public class FozruciX extends ListenerAdapter {
                             .help("Remove expression instead of adding it");
 
                     Subparser logging = subparsers.addParser("logging")
-                            .description("Sets the logging channel")
+                            .help("Sets the logging channel")
                             .defaultHelp(true);
 
                     Subparser topic = subparsers.addParser("topic")
-                            .description("Sets the topic")
+                            .help("Sets the topic")
                             .defaultHelp(true);
                     topic.addArgument("newTopic")
+                            .nargs("*")
                             .help("New topic");
                     //Subparser op; // TODO: 10/3/16 Add subparser for giving permissions
                     Namespace ns;
@@ -1384,25 +1375,45 @@ public class FozruciX extends ListenerAdapter {
                                         GuildController controller = guild.getController();
                                         if (!mentioned.isEmpty()) {
                                             for (net.dv8tion.jda.core.entities.User mentionedUser : mentioned) {
+                                                final String reason = ns.getString("reason");
+                                                final boolean finalBan = isBan;
+                                                Runnable sendMsg = () -> {
+                                                    if (reason != null) {
+                                                        String action;
+                                                        if (finalBan) {
+                                                            action = "Banned";
+                                                        } else {
+                                                            action = "Kicked";
+                                                        }
+                                                        sendPrivateMessage(event, mentionedUser.getName(), action + " by " +
+                                                                ((DiscordMessageEvent) event).getDiscordEvent().getMember().getEffectiveName() +
+                                                                ". Reason: " + reason);
+                                                    }
+                                                };
+                                                if (!mentionedUser.hasPrivateChannel()) {
+                                                    mentionedUser.openPrivateChannel().queue(privateChannel -> sendMsg.run());
+                                                } else {
+                                                    sendMsg.run();
+                                                }
                                                 if (isBan) {
-                                                    controller.ban(mentionedUser, ns.getInt("remove_messages"));
+                                                    controller.ban(mentionedUser, ns.getInt("remove_messages")).queue();
                                                     sendMessage(event, "Banned user: " + mentionedUser.getName());
                                                 } else {
-                                                    controller.kick(guild.getMember(mentionedUser));
+                                                    controller.kick(guild.getMember(mentionedUser)).queue();
                                                     sendMessage(event, "Kicked user: " + mentionedUser.getName());
                                                 }
                                             }
                                         } else {
                                             for (String user : users) {
-                                                net.dv8tion.jda.core.entities.Member currentDiscordUser = null;
+                                                net.dv8tion.jda.core.entities.Member currentDiscordMember = null;
                                                 String nick = "Error getting name";
                                                 for (net.dv8tion.jda.core.entities.Member discordUser : guild.getMembers()) {
                                                     nick = discordUser.getEffectiveName();
                                                     if (discordUser.getUser().getName().equalsIgnoreCase(user) ||
                                                             nick.equalsIgnoreCase(user) ||
                                                             discordUser.getUser().getId().equalsIgnoreCase(user)) {
-                                                        if (currentDiscordUser == null) {
-                                                            currentDiscordUser = discordUser;
+                                                        if (currentDiscordMember == null) {
+                                                            currentDiscordMember = discordUser;
                                                         } else {
                                                             if (isBan) {
                                                                 sendMessage(event, "Ambiguous ban, not banning user " + user);
@@ -1413,12 +1424,33 @@ public class FozruciX extends ListenerAdapter {
                                                         }
                                                     }
                                                 }
-                                                if (currentDiscordUser != null) {
+                                                if (currentDiscordMember != null) {
+                                                    final String reason = ns.getString("reason");
+                                                    final net.dv8tion.jda.core.entities.User currentDiscordUser = currentDiscordMember.getUser();
+                                                    final boolean finalBan = isBan;
+                                                    Runnable sendMsg = () -> {
+                                                        if (reason != null) {
+                                                            String action;
+                                                            if (finalBan) {
+                                                                action = "Banned";
+                                                            } else {
+                                                                action = "Kicked";
+                                                            }
+                                                            sendPrivateMessage(event, currentDiscordUser.getName(), action + " by " +
+                                                                    ((DiscordMessageEvent) event).getDiscordEvent().getMember().getEffectiveName() +
+                                                                    ". Reason: " + reason);
+                                                        }
+                                                    };
+                                                    if (!currentDiscordUser.hasPrivateChannel()) {
+                                                        currentDiscordUser.openPrivateChannel().queue(privateChannel -> sendMsg.run());
+                                                    } else {
+                                                        sendMsg.run();
+                                                    }
                                                     if (isBan) {
-                                                        controller.ban(currentDiscordUser, ns.getInt("remove_messages"));
+                                                        controller.ban(currentDiscordMember, ns.getInt("remove_messages")).queue();
                                                         sendMessage(event, "Banned user: " + nick);
                                                     } else {
-                                                        controller.kick(currentDiscordUser);
+                                                        controller.kick(currentDiscordMember);
                                                         sendMessage(event, "Kicked user: " + nick);
                                                     }
                                                 }
@@ -1656,10 +1688,11 @@ public class FozruciX extends ListenerAdapter {
                                 break;
 
                             case "topic":
+                                String topicStr = argJoiner(ns.getList("newTopic").toArray(new String[]{}), 0);
                                 if (discord) {
-                                    ((DiscordMessageEvent) event).getDiscordEvent().getTextChannel().getManager().setTopic(ns.getString("newTopic")).queue();
+                                    ((DiscordMessageEvent) event).getDiscordEvent().getTextChannel().getManager().setTopic(topicStr).queue();
                                 } else {
-                                    event.getChannel().send().setTopic(ns.getString("newTopic"));
+                                    event.getChannel().send().setTopic(topicStr);
                                 }
                         }
 
@@ -2358,26 +2391,32 @@ public class FozruciX extends ListenerAdapter {
                             LOGGER.warn("Query was not understood; no results available.");
                         } else {
                             // Got a result.
-                            //LOGGER.debug("Successful query. Pods follow:\n");
+                            LOGGER.debug("Successful query. Pods follow:\n");
+                            byte results = 0;
                             for (WAPod pod : queryResult.getPods()) {
                                 if (!pod.isError()) {
-                                    //LOGGER.debug("pod start: " + pod.getTitle());
+                                    LOGGER.debug("pod start: " + pod.getTitle());
                                     for (WASubpod subPod : pod.getSubpods()) {
                                         for (Object element : subPod.getContents()) {
                                             if (element instanceof WAPlainText) {
-                                                //LOGGER.debug("subpod start");
+                                                LOGGER.debug("subpod start");
                                                 String elementResult = ((WAPlainText) element).getText();
-                                                if (pod.getTitle().equalsIgnoreCase("Result")) {
-                                                    sendMessage(event, elementResult);
-                                                } /*else {
-                                                    //LOGGER.debug(elementResult);
-                                                }*/
-                                                //LOGGER.debug("end of sub pod");
+                                                if ((pod.getTitle().equalsIgnoreCase("Result") || pod.getTitle().equalsIgnoreCase("Alternate forms"))
+                                                        && results < 2) {
+                                                    sendMessage(event, pod.getTitle() + ": " + elementResult);
+                                                    results++;
+                                                } else {
+                                                    LOGGER.debug(pod.getTitle() + ": " + elementResult);
+                                                }
+                                                LOGGER.debug("end of sub pod");
                                             }
                                         }
                                     }
-                                    //LOGGER.debug("End of pod");
+                                    LOGGER.debug("End of pod");
                                 }
+                            }
+                            if (results == 0) {
+                                sendMessage(event, "Sorry, no result was found");
                             }
                             // We ignored many other types of Wolfram|Alpha output, such as warnings, assumptions, etc.
                             // These can be obtained by methods of WAQueryResult or objects deeper in the hierarchy.
@@ -3519,7 +3558,13 @@ public class FozruciX extends ListenerAdapter {
 // !acc/68kcyc/asmcyclecounter - counts asm cycles
             else if (commandChecker(event, arg, "acc") || commandChecker(event, arg, "68kcyc") || commandChecker(event, arg, "asmcyclecounter")) {
                 try {
-                    Process process = new ProcessBuilder("asmcyclecount/asmCycleCount.exe", "t", "t", "\t" + argJoiner(arg, 1).replace("||", "\r\n\t").replace("//", "\r\n\t")).start();
+                    String asm = argJoiner(arg, 1).replace("||", "\r\n\t").replace("//", "\r\n\t");
+                    Process process;
+                    if (Platform.isWindows()) {
+                        process = new ProcessBuilder("asmcyclecount/asmCycleCount.exe", "t", "t", "\t" + asm).start();
+                    } else {
+                        process = new ProcessBuilder("mono", "asmcyclecount/asmCycleCount.exe", "t", "t", "\t" + asm).start();
+                    }
                     process.waitFor();
                     try (Scanner s = new Scanner(process.getInputStream())) {
 
@@ -4467,7 +4512,7 @@ public class FozruciX extends ListenerAdapter {
                 List<TextChannel> channels = ((DiscordJoinEvent) join).getJoinEvent().getGuild().getTextChannels();
                 for (TextChannel channel : channels) {
                     if (channel.getId().equals(channelToMessage)) {
-                        channel.sendMessage(((DiscordJoinEvent) join).getJoinEvent().getMember().getAsMention() + ": Welcome to " + ((DiscordJoinEvent) join).getJoinEvent().getGuild().getName() + ". Please make sure you check out the #help and #information channel");
+                        channel.sendMessage(((DiscordJoinEvent) join).getJoinEvent().getMember().getAsMention() + ": Welcome to " + ((DiscordJoinEvent) join).getJoinEvent().getGuild().getName() + ". Please make sure you check out the #help and #information channel").queue();
                     }
                 }
             }
@@ -4527,7 +4572,7 @@ public class FozruciX extends ListenerAdapter {
                 List<TextChannel> channels = ((DiscordQuitEvent) quit).getLeaveEvent().getGuild().getTextChannels();
                 for (TextChannel channel : channels) {
                     if (channel.getId().equals(channelToMessage)) {
-                        channel.sendMessage("User " + ((DiscordQuitEvent) quit).getLeaveEvent().getMember().getAsMention() + " Has left the server");
+                        channel.sendMessage("User " + ((DiscordQuitEvent) quit).getLeaveEvent().getMember().getAsMention() + " Has left the server").queue();
                     }
                 }
             }
@@ -4541,7 +4586,7 @@ public class FozruciX extends ListenerAdapter {
             List<TextChannel> channels = ban.getGuild().getTextChannels();
             for (TextChannel channel : channels) {
                 if (channel.getId().equals(channelToMessage)) {
-                    channel.sendMessage(ban.getUser().getAsMention() + " Has been b&, ripperoni in pepperoni http://gerbilsoft.soniccenter.org/lol/BAN.jpg");
+                    channel.sendMessage(ban.getUser().getAsMention() + " Has been b&, ripperoni in pepperoni http://gerbilsoft.soniccenter.org/lol/BAN.jpg").queue();
                 }
             }
         }
@@ -4991,6 +5036,7 @@ public class FozruciX extends ListenerAdapter {
         private ScriptEngine engine;
 
         public Python() {
+            this.setName("Python thread");
             engine = new ScriptEngineManager().getEngineByName("python");
         }
 
@@ -5085,15 +5131,16 @@ public class FozruciX extends ListenerAdapter {
             this.arg = arg;
             this.radix = radix;
             normalUserEngine = new NashornScriptEngineFactory().getScriptEngine(new JSClassFilter());
-            try {
+            botOPEngine = new NashornScriptEngineFactory().getScriptEngine();
+            try (InputStreamReader algebra = new InputStreamReader(new FileInputStream("algebra.min.js"))) {
                 normalUserEngine.eval(factorialFunct);
-                normalUserEngine.eval(new InputStreamReader(new FileInputStream("algebra.min.js")));
+                normalUserEngine.eval(algebra);
                 ScriptContext context = normalUserEngine.getContext();
                 int globalScope = context.getScopes().get(0);
                 for (String unsafeAttribute : unsafeAttributes) {
                     context.removeAttribute(unsafeAttribute, globalScope);
                 }
-                botOPEngine = new NashornScriptEngineFactory().getScriptEngine();
+                botOPEngine.eval(factorialFunct);
                 updateVariables();
             } catch (Exception e) {
                 sendError(event, e);

@@ -22,7 +22,7 @@ public class CommandLine extends Thread {
     private static final ch.qos.logback.classic.Logger LOGGER = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(CommandLine.class);
     private volatile GenericMessageEvent event;
     private volatile String command;
-    private boolean newCommand = false;
+    private volatile boolean newCommand = false;
     private Process p;
     private BufferedWriter p_stdin;
     private BufferedReader p_inputStream;
@@ -30,14 +30,12 @@ public class CommandLine extends Thread {
     private Session sshSession = null;
     private Channel sshChannel = null;
     private boolean ssh = false;
-    private byte waitNum;
+    private byte waitNum = 0;
 
     public CommandLine(@NotNull GenericMessageEvent event, @NotNull String... commandLine) {
         LOGGER.setLevel(Level.ALL);
+        this.setName("Commandline: " + commandLine[0]);
         this.event = event;
-
-        waitNum = 0;
-
         String console[] = new String[]{commandLine[0], "", ""};
         if (commandLine[0].equalsIgnoreCase("cmd") || commandLine[0].equalsIgnoreCase("command")) {
             console[0] = "cmd.exe";
@@ -120,9 +118,9 @@ public class CommandLine extends Thread {
 
     public CommandLine() {
         LOGGER.setLevel(Level.ALL);
-        waitNum = 0;
-
-        ProcessBuilder builder = new ProcessBuilder(Platform.isLinux() ? "bash" : "cmd.exe");
+        String platform = Platform.isLinux() ? "bash" : "cmd.exe";
+        this.setName("Commandline: " + platform);
+        ProcessBuilder builder = new ProcessBuilder();
         try {
             p = builder.start();
             p_stdin = new BufferedWriter(new OutputStreamWriter(p.getOutputStream()));
@@ -214,6 +212,7 @@ public class CommandLine extends Thread {
                 }
             } else {
                 try {
+                    LilGUtil.pause(2, false);
                     if (waitNum > 100) {
                         continue;
                     }

@@ -8,10 +8,7 @@ import com.google.common.collect.ImmutableSortedSet;
 import com.mashape.unirest.http.Unirest;
 import com.sun.jna.Platform;
 import lombok.NonNull;
-import net.dv8tion.jda.core.AccountType;
-import net.dv8tion.jda.core.JDA;
-import net.dv8tion.jda.core.JDABuilder;
-import net.dv8tion.jda.core.Permission;
+import net.dv8tion.jda.core.*;
 import net.dv8tion.jda.core.entities.*;
 import net.dv8tion.jda.core.events.ReadyEvent;
 import net.dv8tion.jda.core.events.channel.text.update.TextChannelUpdateTopicEvent;
@@ -24,6 +21,7 @@ import net.dv8tion.jda.core.exceptions.RateLimitedException;
 import net.dv8tion.jda.core.hooks.ListenerAdapter;
 import net.dv8tion.jda.core.managers.AccountManagerUpdatable;
 import net.dv8tion.jda.core.managers.Presence;
+import net.dv8tion.jda.core.managers.fields.AccountField;
 import org.apache.commons.httpclient.util.URIUtil;
 import org.pircbotx.Channel;
 import org.pircbotx.PircBotX;
@@ -301,12 +299,23 @@ class DiscordPrivateMessageEvent extends PrivateMessageEvent {
 
     @Override
     public void respond(String response) {
-        discordEvent.getAuthor().getPrivateChannel().sendMessage(discordEvent.getAuthor().getAsMention() + ": " + response);
+        net.dv8tion.jda.core.entities.User user = discordEvent.getAuthor();
+        String messageToSend = discordEvent.getAuthor().getAsMention() + ": " + response;
+        if (user.hasPrivateChannel()) {
+            user.getPrivateChannel().sendMessage(messageToSend).queue();
+        } else {
+            user.openPrivateChannel().queue(privateChannel -> user.getPrivateChannel().sendMessage(messageToSend).queue());
+        }
     }
 
     @Override
     public void respondWith(String fullLine) {
-        discordEvent.getAuthor().getPrivateChannel().sendMessage(fullLine);
+        net.dv8tion.jda.core.entities.User user = discordEvent.getAuthor();
+        if (user.hasPrivateChannel()) {
+            user.getPrivateChannel().sendMessage(fullLine).queue();
+        } else {
+            user.openPrivateChannel().queue(privateChannel -> user.getPrivateChannel().sendMessage(fullLine).queue());
+        }
     }
 }
 
@@ -375,6 +384,11 @@ class DiscordUser extends User {
 
     public Guild getGuild() {
         return guild;
+    }
+
+    @Override
+    public boolean isAway() {
+        return guild != null && guild.getMember(discordUser).getOnlineStatus() != OnlineStatus.ONLINE;
     }
 }
 
@@ -490,18 +504,19 @@ class AvatarThread extends Thread {
                     LOGGER.info("File list: " + pathArray);
                     avatarFile = avatarList[randInt(0, avatarList.length - 1)];
                     LOGGER.info("Picked file: " + avatarFile);
+                    AccountField<Icon> field = accountManager.getAvatarField();
                     try {
-                        accountManager.getAvatarField().setValue(Icon.from(avatarFile));
+                        field.shouldUpdate();
+                        field.setValue(Icon.from(avatarFile));
                     } catch (UnsupportedEncodingException e) {
                         try {
                             ImageIO.write(ImageIO.read(avatarFile), "png", tempImage);
-                            accountManager.getAvatarField().setValue(Icon.from(tempImage));
+                            field.setValue(Icon.from(tempImage));
                         } catch (ArrayIndexOutOfBoundsException arrayE) {
                             arrayE.printStackTrace();
                             LOGGER.error(avatarFile.getAbsolutePath());
                         }
                     }
-                    accountManager.update(null);
                     for (Object pircBotObj : FozConfig.getManager().getBots().toArray()) {
                         Object[] temp = ((PircBotX) pircBotObj).getConfiguration().getListenerManager().getListeners().toArray();
                         FozruciX bot = null;
@@ -518,7 +533,7 @@ class AvatarThread extends Thread {
                     }
 
                 }
-                accountManager.update(null);
+                accountManager.update(null).queue();
                 LOGGER.debug("Set Avatar");
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();

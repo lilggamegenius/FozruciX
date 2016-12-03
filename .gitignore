@@ -1,0 +1,70 @@
+# Created by .ignore support plugin (hsz.mobi)
+### Java template
+*.class
+
+# BlueJ files
+*.ctxt
+
+# Mobile Tools for Java (J2ME)
+.mtj.tmp/
+
+# Package Files #
+*.jar
+*.war
+*.ear
+
+# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+hs_err_pid*
+
+.gitignore
+.gradle/
+.idea/dataSources.local.xml
+.idea/dataSources/
+.idea/libraries/Gradle__com_mashape_unirest_unirest_java_1_4_9.xml
+.idea/libraries/Gradle__com_neovisionaries_nv_websocket_client_1_30.xml
+.idea/libraries/Gradle__org_apache_commons_commons_collections4_4_1.xml
+.idea/libraries/Gradle__org_apache_commons_commons_lang3_3_5.xml
+.idea/libraries/Gradle__org_apache_httpcomponents_httpasyncclient_4_1_1.xml
+.idea/libraries/Gradle__org_apache_httpcomponents_httpcore_nio_4_4_4.xml
+.idea/libraries/Gradle__org_apache_httpcomponents_httpmime_4_5_2.xml
+.idea/libraries/Gradle__org_json_json_20160810.xml
+.idea/modules/FozruciX_main.iml
+.idea/modules/FozruciX_test.iml
+.idea/workspace.xml
+Data/
+Tests/
+algebra.min.js
+asmcyclecount/
+build/
+discord.bin
+ffmpeg
+ffprobe
+jni/JNIThing.dll
+jni/JNIThing/.idea/JNIThing.iml
+jni/JNIThing/.idea/codeStyleSettings.xml
+jni/JNIThing/.idea/dictionaries/
+jni/JNIThing/.idea/encodings.xml
+jni/JNIThing/.idea/misc.xml
+jni/JNIThing/.idea/modules.xml
+jni/JNIThing/.idea/workspace.xml
+jni/JNIThing/Debug/
+jni/JNIThing/JNIThing.VC.db
+jni/JNIThing/JNIThing/x64/Debug/M68KSimulator.cod
+jni/JNIThing/JNIThing/x64/Debug/NativeCodeAnalysis.read.1.tlog
+jni/JNIThing/JNIThing/x64/Debug/m68ksimulator.nativecodeanalysis.xml
+jni/JNIThing/JNIThing/x64/Debug/vc.nativecodeanalysis.all.xml
+jni/JNIThing/cmake-build-debug/
+jni/JNIThing/x64/Debug/JNIThing.dll.lastcodeanalysissucceeded
+jni/libJNIThing.so
+key.bin
+lib/
+logs/
+out/
+pass.bin
+salt.bin
+src/main/java/com/LilG/Com/com/
+src/main/java/com/citumpe/
+src/test/resources/
+ssh.bin
+twitch.bin
+youtube-dl
