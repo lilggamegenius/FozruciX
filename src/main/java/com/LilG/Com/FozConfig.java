@@ -3,12 +3,12 @@ package com.LilG.Com;
 import ch.qos.logback.classic.Logger;
 import com.LilG.Com.DataClasses.SaveDataStore;
 import com.LilG.Com.utils.CryptoUtil;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.rmtheis.yandtran.ApiKeys;
 import com.rmtheis.yandtran.YandexTranslatorAPI;
 import com.rmtheis.yandtran.detect.Detect;
 import com.rmtheis.yandtran.translate.Translate;
-import com.thoughtworks.xstream.XStream;
-import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
 import org.jetbrains.annotations.NotNull;
 import org.pircbotx.Configuration;
 import org.pircbotx.MultiBotManager;
@@ -45,16 +45,15 @@ public class FozConfig {
     public final static MultiBotManager manager = new MultiBotManager();
     private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(FozConfig.class);
     transient final static String PASSWORD = setPassword(Password.normal);
-    private final static File bak = new File("Data/DataBak.xml");
-    private final static File saveFile = new File("Data/Data.xml");
+    private final static File bak = new File("Data/DataBak.json");
+    private final static File saveFile = new File("Data/Data.json");
     private final static LocationRelativeToServer location;
     private final static int attempts = 10;
     private final static int connectDelay = 15 * 1000;
+    private final static Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
     static {
-        XStream xStream = new XStream();
-        xStream.ignoreUnknownElements();
-        loadData(xStream);
+        loadData();
         LocationRelativeToServer locationTemp = null;
         try {
             System.setProperty("jna.library.path", "jni");
@@ -371,9 +370,8 @@ public class FozConfig {
         return ret;
     }
 
-    public static synchronized void loadData(XStream xstream) {
+    public static synchronized void loadData() {
         LOGGER.info("Starting to loadData");
-        xstream.ignoreUnknownElements();
         if (!saveFile.exists()) {
             LOGGER.info("Save file doesn't exist. Attempting to load backup");
             try {
@@ -390,15 +388,14 @@ public class FozConfig {
         }
         try (BufferedReader br = new BufferedReader(new FileReader(saveFile))) {
             LOGGER.info("Attempting to load data");
-            SaveDataStore.setINSTANCE((SaveDataStore) xstream.fromXML(br));
+            SaveDataStore.setINSTANCE(gson.fromJson(br, SaveDataStore.class));
             if (SaveDataStore.getINSTANCE() != null) {
                 LOGGER.info("Loaded data");
             }
         } catch (Exception e) {
             LOGGER.error("failed loading data, Attempting to save empty copy", e);
-            try (FileWriter writer = new FileWriter(new File("Data/DataEmpty.xml"))) {
-                xstream.ignoreUnknownElements();
-                xstream.toXML(new SaveDataStore(), writer);
+            try (FileWriter writer = new FileWriter(new File("Data/DataEmpty.json"))) {
+                writer.write(gson.toJson(new SaveDataStore()));
             } catch (Exception e1) {
                 LOGGER.error("Couldn't save data", e1);
             }
@@ -406,12 +403,9 @@ public class FozConfig {
         }
     }
 
-    public static synchronized void saveData(XStream xstream) throws IOException {
+    public static synchronized void saveData() throws IOException {
         try (FileWriter writer = new FileWriter(bak)) {
-            xstream.ignoreUnknownElements();
-            xstream.toXML(SaveDataStore.getINSTANCE(), writer);
-            XStream xjson = new XStream(new JettisonMappedXmlDriver());
-            xjson.toXML(SaveDataStore.getINSTANCE(), new FileWriter(new File("Data/Data.json")));
+            writer.write(gson.toJson(SaveDataStore.getINSTANCE()));
         } catch (Exception e) {
             LOGGER.error("Couldn't save data", e);
         }

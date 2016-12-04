@@ -120,7 +120,7 @@ public class CommandLine extends Thread {
         LOGGER.setLevel(Level.ALL);
         String platform = Platform.isLinux() ? "bash" : "cmd.exe";
         this.setName("Commandline: " + platform);
-        ProcessBuilder builder = new ProcessBuilder();
+        ProcessBuilder builder = new ProcessBuilder(platform);
         try {
             p = builder.start();
             p_stdin = new BufferedWriter(new OutputStreamWriter(p.getOutputStream()));
@@ -204,11 +204,15 @@ public class CommandLine extends Thread {
                         echoOff = true;
                     }
                 } catch (IOException e) {
-                    sendError(event, e);
+                    if (event != null) {
+                        sendError(event, e);
+                    }
                     interrupt();
                     break;
                 } catch (Exception e) {
-                    sendError(event, e);
+                    if (event != null) {
+                        sendError(event, e);
+                    }
                 }
             } else {
                 try {

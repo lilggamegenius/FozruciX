@@ -31,7 +31,6 @@ import com.rmtheis.yandtran.translate.Translate;
 import com.sun.jna.Native;
 import com.sun.jna.NativeLibrary;
 import com.sun.jna.Platform;
-import com.thoughtworks.xstream.XStream;
 import com.wolfram.alpha.*;
 import de.tudarmstadt.ukp.jwktl.JWKTL;
 import de.tudarmstadt.ukp.jwktl.api.*;
@@ -126,7 +125,6 @@ public class FozruciX extends ListenerAdapter {
     private final static String APP_ID = "RGHHEP-HQU7HL67W9";
     private final static LinkedList<RPSGame> RPS_GAMES = new LinkedList<>();
     private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(FozruciX.class);
-    private final static XStream xstream = new XStream();
     private final static BitSet BOOLS = new BitSet(10); // true, false, null, null, null, false, true, true, false, false
     private static final String JNI_PATH = "JNIThing";
     public static volatile ConcurrentHashMap<String, LinkedList<String>> markovChain = null;
@@ -190,7 +188,6 @@ public class FozruciX extends ListenerAdapter {
     });
 
     static {
-        xstream.ignoreUnknownElements();
         saveThread.start();
         try {
             m68k = (M68kSim) Native.loadLibrary(JNI_PATH, M68kSim.class);
@@ -762,7 +759,7 @@ public class FozruciX extends ListenerAdapter {
             return;
         }*/
         try {
-            FozConfig.saveData(xstream);
+            FozConfig.saveData();
         } catch (ConcurrentModificationException e) {
             LOGGER.debug("Data not saved", e);
         } catch (Exception e) {
