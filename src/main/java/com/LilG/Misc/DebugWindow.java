@@ -184,7 +184,7 @@ public class DebugWindow extends JFrame {
                     for (TextChannel textChannel : guild.getTextChannels()) {
                         if (textChannel.getName().equalsIgnoreCase(channel) && !selectedChannel.contains(": v#")) {
                             String messageToSend = FozruciX.getScramble(message.getText());
-                            textChannel.sendMessage(messageToSend);
+                            textChannel.sendMessage(messageToSend).queue();
                             try {
                                 messageToSend = "PRIVMSG #" + textChannel.getName() + " :" + messageToSend;
                                 fozruciX.onOutput(new OutputEvent(bot, messageToSend, Utils.tokenizeLine(messageToSend)));

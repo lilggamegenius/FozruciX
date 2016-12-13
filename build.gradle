@@ -54,7 +54,6 @@ dependencies {
     compile group: 'commons-codec', name: 'commons-codec', version: '1.9'
     compile group: 'org.apache.ant', name: 'ant', version: '1.7.1'
     compile group: 'org.apfloat', name: 'apfloat', version: '1.8.2'
-    compile group: 'net.dv8tion', name: 'JDA', version: '+'
     compile group: 'com.jcraft', name: 'jsch', version: '0.1.53'
     compile group: 'com.fathzer', name: 'javaluator', version: '3.0.1'
 

@@ -1,16 +1,12 @@
 #include "M68KSimulator.h"
-#include <cstdlib>
-#include <cstring>
-#include <fstream>
 #include <iostream>
 #include <iomanip>
-// ReSharper disable once CppUnusedIncludeDirective
-// Clion disable once UnusedIncludeDirective
-#include <cerrno>
 
 // Make sure to remove the underscore when compiling
-#define start_ start__
-#define and_ and__
+#define start__ start_
+#define and__ and_
+
+#define getFile(file) "./Data/file"
 
 
 #ifdef  _DEBUG
@@ -26,13 +22,13 @@ std::ofstream logFile;
 
 #endif
 
-#if start_ == start__ || and_ == and__
+#if start__ == start_ || and__ == and_
 #warning "Forgot to replace function names"
 #endif
 
-extern "C" EXPORT void start_(){
+extern "C" EXPORT void start__(){
 #ifdef useLogFile
-	const char path[] = "./Data/M68kLogFile.txt";
+	const char path[] = getFile(M68kLogFile.txt);
 	logFile.open(path, std::ios::out | std::ios::binary);
 	if(!logFile){
 		std::cout << "ERROR - Problem writing to file \"" << path
@@ -74,20 +70,28 @@ extern "C" EXPORT void close(){
 	return true;
 }*/
 
+extern "C" EXPORT void readCode(){
+		rom = *new Rom(getFile(code.bin));
+}
+
+extern "C" EXPORT void handleOpcode(){
+
+}
+
 extern "C" EXPORT void setByte(uint16_t address, uint8_t num){
 	ramStart->u8[address] = num;
 	log << "DEBUG - Setting " << address << " as " << num << ". Now is " << ramStart->u8[address] << std::endl;
 }
 
 extern "C" EXPORT void setWord(uint16_t address, uint16_t num){
-	ramStart->u16[address] = num;
-	log << "DEBUG - Setting " << address << " as " << num << ". Now is " << ramStart->u16[address] << std::endl;
+	ramStart->u16[address/2] = num;
+	log << "DEBUG - Setting " << address << " as " << num << ". Now is " << ramStart->u16[address/2] << std::endl;
 
 }
 
 extern "C" EXPORT void setLongWord(uint16_t address, uint32_t num){
-	ramStart->u32[address] = num;
-	log << "DEBUG - Setting " << address << " as " << num << ". Now is " << ramStart->u32[address] << std::endl;
+	ramStart->u32[address/4] = num;
+	log << "DEBUG - Setting " << address << " as " << num << ". Now is " << ramStart->u32[address/4] << std::endl;
 }
 
 extern "C" EXPORT void addByte(uint16_t address, uint8_t num){
@@ -97,14 +101,14 @@ extern "C" EXPORT void addByte(uint16_t address, uint8_t num){
 }
 
 extern "C" EXPORT void addWord(uint16_t address, uint16_t num){
-	ramStart->u16[address] = +num;
-	log << "DEBUG - Adding " << address << " to " << num << ". Now is " << ramStart->u16[address] << std::endl;
+	ramStart->u16[address/2] = +num;
+	log << "DEBUG - Adding " << address << " to " << num << ". Now is " << ramStart->u16[address/2] << std::endl;
 
 }
 
 extern "C" EXPORT void addLongWord(uint16_t address, uint32_t num){
-	ramStart->u32[address] = +num;
-	log << "DEBUG - Adding " << address << " to " << num << ". Now is " << ramStart->u32[address] << std::endl;
+	ramStart->u32[address/4] = +num;
+	log << "DEBUG - Adding " << address << " to " << num << ". Now is " << ramStart->u32[address/4] << std::endl;
 
 }
 
@@ -112,10 +116,10 @@ extern "C" EXPORT uint8_t getByte(uint16_t address){
 	return ramStart->u8[address];
 }
 extern "C" EXPORT uint16_t getWord(uint16_t address){
-	return ramStart->u16[address];
+	return ramStart->u16[address/2];
 }
 extern "C" EXPORT uint32_t getLongWord(uint16_t address){
-	return ramStart->u32[address];
+	return ramStart->u32[address/4];
 }
 
 extern "C" EXPORT void clearMem(){
@@ -254,7 +258,7 @@ EXPORT void addi(Size size, uint32_t data, M68kAddr ea){
 	}
 }
 
-EXPORT void and_(Size size, DataRegister dn, M68kAddr ea) {
+EXPORT void and__(Size size, DataRegister dn, M68kAddr ea) {
 	log << "and";
 	switch (size) {
 	case Byte: log << ".B " << dataRegisters[dn]->u8[0] << " & " << getByte(ea);

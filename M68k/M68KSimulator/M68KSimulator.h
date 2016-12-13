@@ -1,6 +1,7 @@
 #pragma once
-#include <cstdint>
-#include <stdint.h>
+#include <vector>
+#include <fstream>
+#include "Rom.hpp"
 
 #if defined(_MSC_VER)
 //  Microsoft
@@ -49,6 +50,7 @@ typedef union{
 mem_union* ramStart;
 registers* dataRegisters[8]; // d0 - d7
 registers* addressRegisters[9]; // a0-a7, sp, usp
+Rom rom = nullptr;
 uint32_t programCounter;
 
 enum Size{
@@ -64,3 +66,16 @@ enum AddressRegister {
 };
 
 #define ptr(address) (void*)(ramStart+address)
+
+static std::vector<char> ReadAllBytes(std::string filename)
+{
+	std::ifstream ifs(filename, std::ios::binary|std::ios::ate);
+	std::ifstream::pos_type pos = ifs.tellg();
+
+	std::vector<char>  result(pos);
+
+	ifs.seekg(0, std::ios::beg);
+	ifs.read(&result[0], pos);
+
+	return result;
+}

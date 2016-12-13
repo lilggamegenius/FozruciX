@@ -467,15 +467,6 @@ public class FozruciX extends ListenerAdapter {
         commandCooldown[user] = System.currentTimeMillis() + cooldownTime;
     }
 
-    private static int hash(@NotNull String string, int maxNum) {
-        int hash = 0;
-        for (int i = 0; i < string.length(); i++) {
-            int charCode = string.charAt(i);
-            hash += charCode;
-        }
-        return hash % maxNum;
-    }
-
     @NotNull
     private static String fullNameToString(@NotNull Language language) {
         return language.toString();
@@ -1195,7 +1186,7 @@ public class FozruciX extends ListenerAdapter {
         message = doChatFunctions(message);
         String[] arg = LilGUtil.splitMessage(message);
 
-        if (LilGUtil.containsAny(message, prefix, consolePrefix, bot.getNick(), "/")) {
+        if (LilGUtil.containsAny(message, prefix, consolePrefix, bot.getNick(), "s/")) {
             setArrayOffset();
             BOOLS.clear(ARRAY_OFFSET_SET);
             if (checkCooldown(event) || !checkPerm(event.getUser(), 0)) {
@@ -1529,7 +1520,7 @@ public class FozruciX extends ListenerAdapter {
 
                             case "+m":
                                 Boolean state = ns.getBoolean("state"); // True = on, False = off, null = toggle
-                                boolean whitelistMode = ns.getBoolean("whitelist");
+                                boolean whiteListMode = ns.getBoolean("whitelist");
                                 if (discord) { // ---------------------------Discord---------------------------
                                     String topicStr = "+m | ";
                                     TextChannel mChannel = ((DiscordMessageEvent) event).getDiscordEvent().getTextChannel();
@@ -1555,6 +1546,8 @@ public class FozruciX extends ListenerAdapter {
                                                     overRide.delete();
                                                 }
                                             }*/
+                                            sendMessage(event, ((DiscordMessageEvent) event).getDiscordEvent().getMember().getAsMention() +
+                                                    " has set mode -m");
                                         } else { // overwriting role list?
                                             for (Role role : roles) {
                                                 PermissionOverride overRide = mChannel.getPermissionOverride(role);
@@ -1586,7 +1579,7 @@ public class FozruciX extends ListenerAdapter {
                                                             if (overRide == null) {
                                                                 overRide = mChannel.createPermissionOverride(role).block();
                                                             }
-                                                            if (whitelistMode) {
+                                                            if (whiteListMode) {
                                                                 overRide.getManager().grant(Permission.MESSAGE_WRITE).queue();
                                                             } else {
                                                                 overRide.getManager().deny(Permission.MESSAGE_WRITE).queue();
@@ -1597,6 +1590,8 @@ public class FozruciX extends ListenerAdapter {
                                                         }
                                                     }
                                                 }
+                                            sendMessage(event, ((DiscordMessageEvent) event).getDiscordEvent().getMember().getAsMention() +
+                                                    " has updated the role list");
                                         }
                                     } else {
                                         List<Role> guildRoleList = mChannel.getGuild().getRoles();
@@ -1624,7 +1619,7 @@ public class FozruciX extends ListenerAdapter {
                                                         if (overRide == null) {
                                                             overRide = mChannel.createPermissionOverride(role).block();
                                                         }
-                                                        if (whitelistMode) {
+                                                        if (whiteListMode) {
                                                             overRide.getManager().grant(Permission.MESSAGE_WRITE).queue();
                                                         } else {
                                                             overRide.getManager().deny(Permission.MESSAGE_WRITE).queue();
@@ -1637,6 +1632,8 @@ public class FozruciX extends ListenerAdapter {
                                             }
                                         AdminCommandData.channelRoleMap[mChannel] = roles;
                                         mChannel.getManager().setTopic(topicStr + mChannel.getTopic()).queue();
+                                        sendMessage(event, ((DiscordMessageEvent) event).getDiscordEvent().getMember().getAsMention() +
+                                                " has set mode +m");
                                     }
                                 } else { // ----------------------------------------------------IRC----------------------------------------------------
                                     org.pircbotx.Channel chan = event.getChannel();
@@ -2347,7 +2344,7 @@ public class FozruciX extends ListenerAdapter {
 
 // !CalcA - Calculates with Wolfram Alpha
             else if (commandChecker(event, arg, "CalcA")) {
-                if (checkPerm(event.getUser(), 9001)) {
+                if (checkPerm(event.getUser(), 0)) {
                     // The WAEngine is a BOT_FACTORY for creating WAQuery objects,
                     // and it also used to perform those queries. You can set properties of
                     // the WAEngine (such as the desired API output format types) that will
@@ -2398,7 +2395,7 @@ public class FozruciX extends ListenerAdapter {
                                             if (element instanceof WAPlainText) {
                                                 LOGGER.debug("subpod start");
                                                 String elementResult = ((WAPlainText) element).getText();
-                                                if ((pod.getTitle().equalsIgnoreCase("Result") || pod.getTitle().equalsIgnoreCase("Alternate forms"))
+                                                if (LilGUtil.containsAny(pod.getTitle(), "Result", "Alternate form", "Exact result", "Alternate form assuming ")
                                                         && results < 2) {
                                                     sendMessage(event, pod.getTitle() + ": " + elementResult);
                                                     results++;
@@ -3327,7 +3324,7 @@ public class FozruciX extends ListenerAdapter {
             else if (commandChecker(event, arg, "prefix")) {
                 if (checkPerm(event.getUser(), 9001)) {
                     prefix = getArg(arg, 1);
-                    if (prefix.length() > 1 && !prefix.endsWith(".")) {
+                    if (prefix.length() > 1 && !LilGUtil.endsWithAny(prefix, ".", "!", "`", "~", "@", "-", "/", "*", "&", "^", "%", "$", "#", "+", "_", "?", "\\", ";", ":", "|")) {
                         arrayOffset = 1;
                     } else {
                         arrayOffset = 0;
@@ -4158,7 +4155,7 @@ public class FozruciX extends ListenerAdapter {
                     } else if (getArg(arg, 1).equalsIgnoreCase("bullshit")) {
                         String[] listOfBullshit = {"Not bullshit", "A little bullshit", "Almost not bullshit", "Normal bullshit", "Put on your boots", "High bullshit", "Get the shovel", "Total bullshit", "Get a vest", "Holy shit", "Super bullshit", "Fucking bullshit", "GET IN THE LIFE BOATS"};
                         if (getArg(arg, 2) != null) {
-                            sendMessage(event, "Bullshit reading: " + listOfBullshit[hash(argJoiner(arg, 2), listOfBullshit.length)]);
+                            sendMessage(event, "Bullshit reading: " + listOfBullshit[LilGUtil.hash(argJoiner(arg, 2), listOfBullshit.length)]);
                         } else {
                             sendMessage(event, "Bullshit reading: " + listOfBullshit[LilGUtil.randInt(0, listOfBullshit.length - 1)]);
                         }

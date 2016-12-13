@@ -29,7 +29,7 @@ import java.util.Collections;
  */
 
 public class FozConfig {
-    public final static boolean debug = true;
+    public final static boolean debug = false;
     public final static String badnik = "irc.badnik.zone";
     public final static String twitch = "irc.twitch.tv";
     public final static String caffie = "irc.caffie.net";
@@ -193,7 +193,7 @@ public class FozConfig {
             .setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates())
             .addAutoJoinChannel("#Lil-G|bot") //Join the official #Lil-G|Bot channel
             .addAutoJoinChannel("#retro")
-            .addAutoJoinChannel("#pkmn")
+            .addAutoJoinChannel("#pokemon")
             .addAutoJoinChannel("#retrotech")
             .addAutoJoinChannel("#SSB")
             .addAutoJoinChannel("#idkwtf")

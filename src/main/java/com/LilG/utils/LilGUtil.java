@@ -186,7 +186,43 @@ public class LilGUtil {
 
     public static boolean equalsAny(@NotNull String check, @NotNull String... equal) {
         for (String aEqual : equal) {
-            if (check.contains(aEqual)) {
+            if (check.equals(aEqual)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static boolean equalsAnyIgnoreCase(@NotNull String check, @NotNull String... equal) {
+        for (String aEqual : equal) {
+            if (check.equalsIgnoreCase(aEqual)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static boolean containsAnyIgnoreCase(@NotNull String check, @NotNull String... equal) {
+        for (String aEqual : equal) {
+            if (check.toLowerCase().contains(aEqual.toLowerCase())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static boolean startsWithAny(@NotNull String check, @NotNull String... equal) {
+        for (String aEqual : equal) {
+            if (check.startsWith(aEqual)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static boolean endsWithAny(@NotNull String check, @NotNull String... equal) {
+        for (String aEqual : equal) {
+            if (check.endsWith(aEqual)) {
                 return true;
             }
         }
@@ -273,5 +309,14 @@ public class LilGUtil {
 
     public static <T, S> S cast(T type, Class<S> cast) throws ClassCastException {
         return cast.cast(type);
+    }
+
+    public static int hash(@NotNull String string, int maxNum) {
+        int hash = 0;
+        for (int i = 0; i < string.length(); i++) {
+            int charCode = string.charAt(i);
+            hash += charCode;
+        }
+        return hash % maxNum;
     }
 }

@@ -5,7 +5,7 @@ set(CMAKE_CXX_FLAGS
 
 set(SOURCE_FILES
     M68KSimulator/M68KSimulator.cpp
-    M68KSimulator/M68KSimulator.h)
+    M68KSimulator/M68KSimulator.h M68KSimulator/Rom.cpp M68KSimulator/Rom.hpp)
 
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ../)
 
