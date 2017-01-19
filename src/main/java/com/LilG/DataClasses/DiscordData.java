@@ -10,13 +10,13 @@ import java.util.Map;
 
 /**
  * Created by ggonz on 9/7/2016.
- * Storage class for Admin commands
+ * Storage class for Discord Stuff
  */
-public class AdminCommandData {
+public class DiscordData {
     public static Map<TextChannel, List<Role>> channelRoleMap = new HashMap<>();
 
     public static Map<TextChannel, List<String>> wordFilter = new HashMap<>();
 
-    private AdminCommandData() {
+    private DiscordData() {
     }
 }

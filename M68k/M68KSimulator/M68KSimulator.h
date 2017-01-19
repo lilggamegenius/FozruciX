@@ -34,7 +34,7 @@ typedef union{
 	int8_t s8[ramSize];
 	int16_t s16[ramSize / 2];
 	int32_t s32[ramSize / 4];
-} mem_union;
+} Ram;
 #pragma warning( pop )
 
 typedef union{
@@ -47,10 +47,10 @@ typedef union{
 	int32_t s32;
 } registers;
 
-mem_union* ramStart;
+
 registers* dataRegisters[8]; // d0 - d7
 registers* addressRegisters[9]; // a0-a7, sp, usp
-Rom rom = nullptr;
+
 uint32_t programCounter;
 
 enum Size{

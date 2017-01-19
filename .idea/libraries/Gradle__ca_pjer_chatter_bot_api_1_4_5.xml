@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="Gradle: ca.pjer:chatter-bot-api:1.4.5">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/ca.pjer/chatter-bot-api/1.4.5/ee18f64c32e79c9b49c34d42c086efd457312c4b/chatter-bot-api-1.4.5.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/ca.pjer/chatter-bot-api/1.4.5/302a72b4b66a7956df4eba6b6592096feb08339d/chatter-bot-api-1.4.5-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

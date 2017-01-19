@@ -18,7 +18,7 @@ dependencies {
     compile group: 'net.java.dev.jna', name: 'jna', version: '4.2.2'
     compile group: 'jetty', name: 'javax.servlet', version: '5.1.12'
     compile group: 'org.python', name: 'jython-standalone', version: '2.7-rc3'
-    compile group: 'ca.pjer', name: 'chatter-bot-api', version: '1.4.2'
+    compile group: 'ca.pjer', name: 'chatter-bot-api', version: '1.4.5'
     compile group: 'commons-logging', name: 'commons-logging', version: '1.2'
     compile group: 'mysql', name: 'mysql-connector-java', version: '5.1.21'
     compile group: 'commons-lang', name: 'commons-lang', version: '2.6'
@@ -64,7 +64,7 @@ dependencies {
 
     compile files('lib/WolframAlphaJavaLibrary/WolframAlpha-1.1.jar')
 
-    compile files('/home/lil-g/Downloads/idea-IU-162.2032.8/redist/annotations-java8.jar')
+    compile files('/home/lil-g/Downloads/idea-IU-163.7743.44/redist/annotations-java8.jar')
     //compile files('C:\\Program Files (x86)\\JetBrains\\IntelliJ IDEA 2016.2.3\\redist\\annotations-java8.jar')
 
     compile group: 'net.dv8tion', name: 'JDA', version: '+'

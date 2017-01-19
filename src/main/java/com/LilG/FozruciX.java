@@ -4,7 +4,7 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import com.LilG.CMD.CMD;
 import com.LilG.CMD.CommandLine;
-import com.LilG.DataClasses.AdminCommandData;
+import com.LilG.DataClasses.DiscordData;
 import com.LilG.DataClasses.Meme;
 import com.LilG.DataClasses.Note;
 import com.LilG.DataClasses.SaveDataStore;
@@ -45,6 +45,7 @@ import net.dv8tion.jda.core.MessageBuilder;
 import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.*;
 import net.dv8tion.jda.core.events.guild.GuildBanEvent;
+import net.dv8tion.jda.core.events.guild.member.GuildMemberJoinEvent;
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.core.managers.GuildController;
 import net.sourceforge.argparse4j.ArgumentParsers;
@@ -75,7 +76,6 @@ import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.swing.*;
-import javax.xml.bind.DatatypeConverter;
 import java.awt.*;
 import java.io.*;
 import java.lang.management.ManagementFactory;
@@ -97,6 +97,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static com.LilG.utils.LilGUtil.endsWithAny;
+import static com.LilG.utils.LilGUtil.equalsAnyIgnoreCase;
 import static com.citumpe.ctpTools.jWMI.getWMIValue;
 
 /**
@@ -175,6 +177,7 @@ public class FozruciX extends ListenerAdapter {
     private static volatile boolean updateAvatar = false;
     private static volatile int saveTime = 20;
     private static volatile int defaultCoolDownTime = 4;
+    private static volatile SizedArray<Exception> lastExceptions = new SizedArray<>(30);
     private static volatile M68kSim m68k = null;
     private static Thread saveThread = new Thread(() -> {
         Thread.currentThread().setName("save Thread");
@@ -306,7 +309,7 @@ public class FozruciX extends ListenerAdapter {
     private synchronized static void sendFile(MessageEvent event, File file, String message, boolean discordUpload) {
         if (event instanceof DiscordMessageEvent && discordUpload) {
             try {
-                ((DiscordMessageEvent) event).getDiscordEvent().getTextChannel().sendFile(file, message != null ? new MessageBuilder().appendString(message).build() : null);
+                ((DiscordMessageEvent) event).getDiscordEvent().getTextChannel().sendFile(file, message != null ? new MessageBuilder().append(message).build() : null);
             } catch (IOException e) {
                 sendError(event, e);
             }
@@ -415,12 +418,13 @@ public class FozruciX extends ListenerAdapter {
     }
 
     private synchronized static String botTalk(@NotNull String bot, String message) throws Exception {
-        if (bot.equalsIgnoreCase("clever")) {
+        /*if (bot.equalsIgnoreCase("clever")) {
             if (chatterBotSession == null) {
                 chatterBotSession = BOT_FACTORY.create(ChatterBotType.CLEVERBOT).createSession();
             }
             return chatterBotSession.think(message);
-        } else if (bot.equalsIgnoreCase("pandora")) {
+        } else */
+        if (bot.equalsIgnoreCase("pandora") || bot.equalsIgnoreCase("clever")) {
             if (pandoraBotSession == null) {
                 pandoraBotSession = BOT_FACTORY.create(ChatterBotType.PANDORABOTS, "b0dafd24ee35a477").createSession();
             }
@@ -1015,7 +1019,7 @@ public class FozruciX extends ListenerAdapter {
         BOOLS.clear(NICK_IN_USE);
         try {
             if (!(event.getMessage().startsWith(prefix) && event.getMessage().startsWith("."))) {
-                if (event.getMessage().endsWith(".")) {
+                if (endsWithAny(event.getMessage(), ".", "?", "!")) {
                     addWords(event.getMessage());
                 } else {
                     addWords(event.getMessage() + ".");
@@ -1189,7 +1193,7 @@ public class FozruciX extends ListenerAdapter {
         if (LilGUtil.containsAny(message, prefix, consolePrefix, bot.getNick(), "s/")) {
             setArrayOffset();
             BOOLS.clear(ARRAY_OFFSET_SET);
-            if (checkCooldown(event) || !checkPerm(event.getUser(), 0)) {
+            if (checkCooldown(event) || !checkPerm(event.getUser(), 0) || isBot(event)) {
                 return;
             }
 
@@ -1359,6 +1363,7 @@ public class FozruciX extends ListenerAdapter {
                                     }
                                     if (checkPerm((DiscordUser) event.getUser(), permNeeded)) {
                                         List<net.dv8tion.jda.core.entities.User> mentioned = discordEvent.getMessage().getMentionedUsers();
+                                        LOGGER.trace("Mentioned users: %s", mentioned);
                                         Guild guild = discordEvent.getGuild();
                                         GuildController controller = guild.getController();
                                         if (!mentioned.isEmpty()) {
@@ -1495,7 +1500,7 @@ public class FozruciX extends ListenerAdapter {
                                 break;
                             case "delmsg": // only possible on discord so no need to check
                                 List<String> delMsgArgs;
-                                if((delMsgArgs = ns.getList("message_span")) != null){
+                                if ((delMsgArgs = ns.getList("message_span")) != null) {
                                     String firstMessage = delMsgArgs.get(0), secondMessage = delMsgArgs.get(1);
                                     TextChannel discordChannel =
                                             ((DiscordMessageEvent) event).getDiscordEvent().getTextChannel();
@@ -1527,8 +1532,8 @@ public class FozruciX extends ListenerAdapter {
                                     Role publicRole = mChannel.getGuild().getPublicRole();
                                     List<String> roleArgs = ns.getList("roles");
                                     net.dv8tion.jda.core.entities.User currentDiscordUser = ((DiscordUser) currentUser).getDiscordUser();
-                                    if (AdminCommandData.channelRoleMap.containsKey(mChannel)) {
-                                        List<Role> roles = (List<Role>) AdminCommandData.channelRoleMap[mChannel];
+                                    if (DiscordData.channelRoleMap.containsKey(mChannel)) {
+                                        List<Role> roles = (List<Role>) DiscordData.channelRoleMap[mChannel];
                                         if (state == null || !state) { // disabling +m mode
                                             for (Role role : roles) {
                                                 PermissionOverride overRide = mChannel.getPermissionOverride(role);
@@ -1536,7 +1541,7 @@ public class FozruciX extends ListenerAdapter {
                                                     overRide.getManager().clear(Permission.MESSAGE_WRITE).queue();
                                                 }
                                             }
-                                            AdminCommandData.channelRoleMap.remove(mChannel);
+                                            DiscordData.channelRoleMap.remove(mChannel);
                                             if (mChannel.getTopic().startsWith(topicStr)) {
                                                 mChannel.getManager().setTopic(mChannel.getTopic().substring(topicStr.length())).queue();
                                             }
@@ -1630,7 +1635,7 @@ public class FozruciX extends ListenerAdapter {
                                                     }
                                                 }
                                             }
-                                        AdminCommandData.channelRoleMap[mChannel] = roles;
+                                        DiscordData.channelRoleMap[mChannel] = roles;
                                         mChannel.getManager().setTopic(topicStr + mChannel.getTopic()).queue();
                                         sendMessage(event, ((DiscordMessageEvent) event).getDiscordEvent().getMember().getAsMention() +
                                                 " has set mode +m");
@@ -1647,7 +1652,7 @@ public class FozruciX extends ListenerAdapter {
                             case "+g":
                                 if (discord) {
                                     TextChannel mChannel = ((DiscordMessageEvent) event).getDiscordEvent().getTextChannel();
-                                    List<String> expressions = (List<String>) AdminCommandData.wordFilter[mChannel];
+                                    List<String> expressions = (List<String>) DiscordData.wordFilter[mChannel];
                                     if (ns.getBoolean("list")) {
                                         if (expressions == null || expressions.isEmpty()) {
                                             sendMessage(event, "+g list is empty");
@@ -1667,7 +1672,7 @@ public class FozruciX extends ListenerAdapter {
                                     } else {
                                         if (expressions == null) {
                                             expressions = new ArrayList<>();
-                                            AdminCommandData.wordFilter[mChannel] = expressions;
+                                            DiscordData.wordFilter[mChannel] = expressions;
                                         }
                                         expressions.add(ns.getString("expression"));
                                     }
@@ -2382,23 +2387,34 @@ public class FozruciX extends ListenerAdapter {
                             LOGGER.error("  error code: " + queryResult.getErrorCode());
                             LOGGER.error("  error message: " + queryResult.getErrorMessage());
                         } else if (!queryResult.isSuccess()) {
+                            sendMessage(event, "Query was not understood; no results available.");
                             LOGGER.warn("Query was not understood; no results available.");
                         } else {
                             // Got a result.
                             LOGGER.debug("Successful query. Pods follow:\n");
                             byte results = 0;
+                            ArrayList<String> backupResults = new ArrayList<>();
                             for (WAPod pod : queryResult.getPods()) {
                                 if (!pod.isError()) {
                                     LOGGER.debug("pod start: " + pod.getTitle());
+                                    String solutions = "";
                                     for (WASubpod subPod : pod.getSubpods()) {
                                         for (Object element : subPod.getContents()) {
                                             if (element instanceof WAPlainText) {
                                                 LOGGER.debug("subpod start");
-                                                String elementResult = ((WAPlainText) element).getText();
-                                                if (LilGUtil.containsAny(pod.getTitle(), "Result", "Alternate form", "Exact result", "Alternate form assuming ")
+                                                String elementResult = ((WAPlainText) element).getText().replace('\uF7D9', '=').replace("\uF74E", "\u001Di\u001D");
+                                                if (LilGUtil.containsAny(pod.getTitle(), "Result", "Exact result")
                                                         && results < 2) {
                                                     sendMessage(event, pod.getTitle() + ": " + elementResult);
                                                     results++;
+                                                } else if (LilGUtil.equalsAny(pod.getTitle(), "Solution", "Complex solution", "Roots", "Complex roots")) {
+                                                    if (solutions.isEmpty()) {
+                                                        solutions = pod.getTitle() + ": " + elementResult;
+                                                    } else {
+                                                        solutions += " or " + elementResult;
+                                                    }
+                                                } else if (LilGUtil.containsAny(pod.getTitle(), "Alternate form assuming ", "Alternate form")) {
+                                                    backupResults.add(pod.getTitle() + ": " + elementResult);
                                                 } else {
                                                     LOGGER.debug(pod.getTitle() + ": " + elementResult);
                                                 }
@@ -2406,11 +2422,24 @@ public class FozruciX extends ListenerAdapter {
                                             }
                                         }
                                     }
+                                    if (!solutions.isEmpty()) {
+                                        sendMessage(event, solutions);
+                                        results++;
+                                    }
                                     LOGGER.debug("End of pod");
                                 }
                             }
-                            if (results == 0) {
-                                sendMessage(event, "Sorry, no result was found");
+                            if (results < 2) {
+                                if (results == 0 && backupResults.size() == 0) {
+                                    sendMessage(event, "Sorry, no result was found");
+                                } else {
+                                    for (String backupResult : backupResults) {
+                                        if (results < 2) {
+                                            sendMessage(event, backupResult);
+                                            results++;
+                                        } else break;
+                                    }
+                                }
                             }
                             // We ignored many other types of Wolfram|Alpha output, such as warnings, assumptions, etc.
                             // These can be obtained by methods of WAQueryResult or objects deeper in the hierarchy.
@@ -2477,8 +2506,8 @@ public class FozruciX extends ListenerAdapter {
 
 // !pix - shows everyone the real face
             else if (commandChecker(event, arg, "pix")) {
-                if (getArg(arg, 1) != null) {
-                    if (checkPerm(event.getUser(), Integer.MAX_VALUE)) {
+                if (checkPerm(event.getUser(), Integer.MAX_VALUE)) {
+                    if (getArg(arg, 1) != null) {
                         char toggle = getArg(arg, 1).toLowerCase().charAt(0);
                         if (toggle == '0' || toggle == 'n') {
                             updateAvatar = false;
@@ -3324,7 +3353,7 @@ public class FozruciX extends ListenerAdapter {
             else if (commandChecker(event, arg, "prefix")) {
                 if (checkPerm(event.getUser(), 9001)) {
                     prefix = getArg(arg, 1);
-                    if (prefix.length() > 1 && !LilGUtil.endsWithAny(prefix, ".", "!", "`", "~", "@", "-", "/", "*", "&", "^", "%", "$", "#", "+", "_", "?", "\\", ";", ":", "|")) {
+                    if (prefix.length() > 1 && !endsWithAny(prefix, ".", "!", "`", "~", "@", "-", "/", "*", "&", "^", "%", "$", "#", "+", "_", "?", "\\", ";", ":", "|")) {
                         arrayOffset = 1;
                     } else {
                         arrayOffset = 0;
@@ -3588,50 +3617,28 @@ public class FozruciX extends ListenerAdapter {
 // !disasm - disassembles machine code for the specified CPU
             else if (commandChecker(event, arg, "disasm")) {
                 String byteStr = argJoiner(arg, 2).replace(" ", "");
-                byte[] bytes = DatatypeConverter.parseHexBinary(byteStr);
-                try (FileOutputStream fos = new FileOutputStream("Data/temp.68k")) {
-                    BufferedWriter delFile = new BufferedWriter(new FileWriter("Data/temp.asm", false));
-                    delFile.close();
-                    fos.write(bytes);
-                    String processor = getArg(arg, 1);
-                    if (processor.equalsIgnoreCase("M68K")) {
-                        processor = "68000";
-                    } else if (processor.equalsIgnoreCase("x86")) {
-                        processor = "8086";
-                    }
-                    // todo move to radare2
-                    Process process = new ProcessBuilder("C:/Program Files (x86)/IDA 6.8/idaq", "-B", "-p" + processor, "data/temp.68k").start();
+                try {
+                    String processor = getArg(arg, 1).toLowerCase();
+                    ProcessBuilder pb = new ProcessBuilder("rasm2", "-a", processor, "-d", byteStr);
+                    pb.redirectErrorStream(true);
+                    Process process = pb.start();
+                    BufferedReader disasm = new BufferedReader(new InputStreamReader(process.getInputStream()));
                     //noinspection StatementWithEmptyBody
                     process.waitFor();
-                    BufferedReader disasm = new BufferedReader(new FileReader("Data/temp.asm"));
                     String disasmTemp;
-                    boolean fileIsEmpty = true;
+                    boolean stdoutWasEmpty = true;
                     LinkedList<String> messagesToSend = new LinkedList<>();
                     while ((disasmTemp = disasm.readLine()) != null) {
-                        if (!disasmTemp.startsWith(";") &&          // Check for comments
-                                !disasmTemp.startsWith(" #") &&
-                                !disasmTemp.startsWith("#") &&
-                                !disasmTemp.toLowerCase().contains("end") &&     //Check for various metadata instructions
-                                !disasmTemp.toLowerCase().contains("seg000") &&
-                                !disasmTemp.contains(".text") &&
-                                !disasmTemp.contains(".set") &&
-                                !disasmTemp.contains(".model") &&
-                                !disasmTemp.contains(".8086") &&
-                                !disasmTemp.contains("segment") &&
-                                !disasmTemp.contains(".686p") &&
-                                !disasmTemp.contains(".mmx") &&
-                                !disasmTemp.contains("assume") &&
-                                !disasmTemp.contains(".section") &&
-                                !disasmTemp.isEmpty()) {
-                            messagesToSend.add(disasmTemp.replace("\t", " "));
-                            if (fileIsEmpty) {
-                                fileIsEmpty = false;
-                            }
+                        LOGGER.debug("disasm: %s", disasmTemp);
+                        messagesToSend.add(disasmTemp);
+                        if (stdoutWasEmpty) {
+                            stdoutWasEmpty = false;
                         }
+
                     }
                     disasm.close();
-                    if (fileIsEmpty) {
-                        sendMessage(event, "Processor is either not supported or some other error has occurred: Empty File");
+                    if (stdoutWasEmpty) {
+                        sendMessage(event, "Processor is either not supported or some other error has occurred: No Data in stdout");
                     } else {
                         if (messagesToSend.size() > 3) {
                             sendPage(event, arg, messagesToSend);
@@ -3936,7 +3943,7 @@ public class FozruciX extends ListenerAdapter {
 // !getCpu - Gets info about CPU
             else if (commandChecker(event, arg, "getCpu")) {
                 try {
-                    String processorTime = getWMIValue("Select PercentProcessorTime from Win32_PerfFormattedData_PerfOS_Processor ", "Name");
+                    String processorTime = String.format("%03f", LilGUtil.getProcessCpuLoad());
                     sendMessage(event, "Processor time: " + processorTime);
                     addCooldown(event.getUser());
                 } catch (Exception e) {
@@ -4243,7 +4250,7 @@ public class FozruciX extends ListenerAdapter {
             }
 
 // s/*/*[/g] - sed
-            if (arg[0].toLowerCase().startsWith("s/")) {
+            else if (arg[0].toLowerCase().startsWith("s/")) {
                 if (channel == null) {
                     sendMessage(event, "This is for channels");
                     return;
@@ -4286,8 +4293,30 @@ public class FozruciX extends ListenerAdapter {
                         }
                     }
                 }
+            } else if (message.startsWith(bot.getNick()) ||
+                    (event instanceof DiscordMessageEvent &&
+                            ((DiscordMessageEvent) event).getDiscordEvent().getMessage()
+                                    .isMentioned(DiscordAdapter.getJda().getSelfUser()
+                                    )
+                    )) {
+                try {
+                    sendMessage(event, botTalk("clever", message));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         }
+    }
+
+    private boolean isBot(MessageEvent event) {
+        if (network == Network.discord && ((DiscordMessageEvent) event).getDiscordEvent().getAuthor().isBot()) {
+            return true;
+        } else if (equalsAnyIgnoreCase(event.getUser().getNick(),
+                "aqua-sama", "regume-chan", "Sylphy", "Dick-Cord", "Rakka"
+        )) {
+            return true;
+        }
+        return false;
     }
 
     private String doChatFunctions(String message) {
@@ -4501,12 +4530,24 @@ public class FozruciX extends ListenerAdapter {
         String hostmask = join.getUser().getHostmask();
         LOGGER.debug("User Joined: " + (hostmask == null ? join.getUser().getNick() : hostmask));
         if (join instanceof DiscordJoinEvent) {
-            String channelToMessage = checkJoinsAndQuits.get(((DiscordJoinEvent) join).getJoinEvent().getGuild().getId());
+            GuildMemberJoinEvent discordJoin = ((DiscordJoinEvent) join).getJoinEvent();
+            String channelToMessage = checkJoinsAndQuits.get(discordJoin.getGuild().getId());
             if (channelToMessage != null) {
-                List<TextChannel> channels = ((DiscordJoinEvent) join).getJoinEvent().getGuild().getTextChannels();
+                List<TextChannel> channels = discordJoin.getGuild().getTextChannels();
                 for (TextChannel channel : channels) {
                     if (channel.getId().equals(channelToMessage)) {
-                        channel.sendMessage(((DiscordJoinEvent) join).getJoinEvent().getMember().getAsMention() + ": Welcome to " + ((DiscordJoinEvent) join).getJoinEvent().getGuild().getName() + ". Please make sure you check out the #help and #information channel").queue();
+                        if (discordJoin.getMember().getUser().isBot()) {
+                            channel.sendMessage(
+                                    "aw hell, we got another bot here"
+                            ).queue();
+                        } else {
+                            channel.sendMessage(
+                                    discordJoin.getMember().getAsMention() +
+                                            ": Welcome to " +
+                                            discordJoin.getGuild().getName() +
+                                            ". Please make sure you check out the #help and #information channel"
+                            ).queue();
+                        }
                     }
                 }
             }
@@ -4719,8 +4760,8 @@ public class FozruciX extends ListenerAdapter {
         if (writeOnce && mutedServerList == null)
             mutedServerList = SaveDataStore.getINSTANCE().getMutedServerList();
 
-        if (writeOnce && AdminCommandData.wordFilter == null)
-            AdminCommandData.wordFilter = SaveDataStore.getINSTANCE().getWordFilter();
+        if (writeOnce && DiscordData.wordFilter == null)
+            DiscordData.wordFilter = SaveDataStore.getINSTANCE().getWordFilter();
     }
 
     private void checkNote(@NotNull Event event, @NotNull String user, @Nullable String channel) {
@@ -4944,8 +4985,8 @@ public class FozruciX extends ListenerAdapter {
     }
 
     private synchronized void addWords(@NotNull String phrase) {
-        if (phrase.contains(prefix) ||
-                phrase.contains(consolePrefix)) {
+        if (phrase.startsWith(prefix) ||
+                phrase.startsWith(consolePrefix)) {
             return;
         }
         // put each word into an array

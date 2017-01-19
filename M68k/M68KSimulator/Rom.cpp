@@ -9,7 +9,7 @@ Rom::~Rom(){
 
 }
 
-Rom::Rom(std::string filename){
+Rom::Rom(char* filename){
 
 }
 

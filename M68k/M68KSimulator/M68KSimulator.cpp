@@ -1,10 +1,11 @@
 #include "M68KSimulator.h"
+#include "AddressSpace.hpp"
 #include <iostream>
 #include <iomanip>
 
 // Make sure to remove the underscore when compiling
-#define start__ start_
-#define and__ and_
+#define start__ start
+#define and__ and
 
 #define getFile(file) "./Data/file"
 
@@ -40,16 +41,16 @@ extern "C" EXPORT void start__(){
 	}
 #endif
 	log << std::hex << std::uppercase << "DEBUG - DLL Loaded" << std::endl;
-	ramStart = reinterpret_cast<mem_union *>(malloc(ramSize));
+	AddressSpace::ram = reinterpret_cast<Ram *>(malloc(ramSize));
 	for(int i = 0;i < 8;i++){
 		dataRegisters[i] = reinterpret_cast<registers *>(malloc(sizeof(uint32_t)));
 	}
 	programCounter = 0;
-	log << "DEBUG - M68K ram created. Starting offset: " << &ramStart << std::endl;
+	log << "DEBUG - M68K ram created. Starting offset: " << &AddressSpace::ram << std::endl;
 }
 
 extern "C" EXPORT void close(){
-	free(ramStart);
+	free(AddressSpace::ram);
 	free(dataRegisters);
 	free(addressRegisters);
 	log << "M68K memory freed" << std::endl;
@@ -79,57 +80,57 @@ extern "C" EXPORT void handleOpcode(){
 }
 
 extern "C" EXPORT void setByte(uint16_t address, uint8_t num){
-	ramStart->u8[address] = num;
-	log << "DEBUG - Setting " << address << " as " << num << ". Now is " << ramStart->u8[address] << std::endl;
+	AddressSpace::ram->u8[address] = num;
+	log << "DEBUG - Setting " << address << " as " << num << ". Now is " << AddressSpace::ram->u8[address] << std::endl;
 }
 
 extern "C" EXPORT void setWord(uint16_t address, uint16_t num){
-	ramStart->u16[address/2] = num;
-	log << "DEBUG - Setting " << address << " as " << num << ". Now is " << ramStart->u16[address/2] << std::endl;
+	AddressSpace::ram->u16[address/2] = num;
+	log << "DEBUG - Setting " << address << " as " << num << ". Now is " << AddressSpace::ram->u16[address/2] << std::endl;
 
 }
 
 extern "C" EXPORT void setLongWord(uint16_t address, uint32_t num){
-	ramStart->u32[address/4] = num;
-	log << "DEBUG - Setting " << address << " as " << num << ". Now is " << ramStart->u32[address/4] << std::endl;
+	AddressSpace::ram->u32[address/4] = num;
+	log << "DEBUG - Setting " << address << " as " << num << ". Now is " << AddressSpace::ram->u32[address/4] << std::endl;
 }
 
 extern "C" EXPORT void addByte(uint16_t address, uint8_t num){
-	ramStart->u8[address] = +num;
-	log << "DEBUG - Adding " << address << " to " << num << ". Now is " << ramStart->u8[address] << std::endl;
+	AddressSpace::ram->u8[address] = +num;
+	log << "DEBUG - Adding " << address << " to " << num << ". Now is " << AddressSpace::ram->u8[address] << std::endl;
 
 }
 
 extern "C" EXPORT void addWord(uint16_t address, uint16_t num){
-	ramStart->u16[address/2] = +num;
-	log << "DEBUG - Adding " << address << " to " << num << ". Now is " << ramStart->u16[address/2] << std::endl;
+	AddressSpace::ram->u16[address/2] = +num;
+	log << "DEBUG - Adding " << address << " to " << num << ". Now is " << AddressSpace::ram->u16[address/2] << std::endl;
 
 }
 
 extern "C" EXPORT void addLongWord(uint16_t address, uint32_t num){
-	ramStart->u32[address/4] = +num;
-	log << "DEBUG - Adding " << address << " to " << num << ". Now is " << ramStart->u32[address/4] << std::endl;
+	AddressSpace::ram->u32[address/4] = +num;
+	log << "DEBUG - Adding " << address << " to " << num << ". Now is " << AddressSpace::ram->u32[address/4] << std::endl;
 
 }
 
 extern "C" EXPORT uint8_t getByte(uint16_t address){
-	return ramStart->u8[address];
+	return AddressSpace::ram->u8[address];
 }
 extern "C" EXPORT uint16_t getWord(uint16_t address){
-	return ramStart->u16[address/2];
+	return AddressSpace::ram->u16[address/2];
 }
 extern "C" EXPORT uint32_t getLongWord(uint16_t address){
-	return ramStart->u32[address/4];
+	return AddressSpace::ram->u32[address/4];
 }
 
 extern "C" EXPORT void clearMem(){
-	memset(ramStart, 0, ramSize);
+	memset(AddressSpace::ram, 0, ramSize);
 }
 
-extern "C" EXPORT uint64_t getRamStart(){
-	uint64_t ramStartAddr = reinterpret_cast<uint64_t>(&ramStart);
-	log << "DEBUG - Ram Start Address is " << ramStartAddr << std::endl;
-	return ramStartAddr;
+extern "C" EXPORT uint64_t getAddressSpace::ram(){
+	uint64_t AddressSpace::ramAddr = reinterpret_cast<uint64_t>(&AddressSpace::ram);
+	log << "DEBUG - Ram Start Address is " << AddressSpace::ramAddr << std::endl;
+	return AddressSpace::ramAddr;
 }
 
 extern "C" EXPORT M68kAddr getRamSize(){
@@ -148,7 +149,7 @@ extern "C" EXPORT void memDump(){
 	} else{
 		M68kAddr i;
 		for(i = 0; i < ramSize; i++){
-			f << ramStart->u8[i];
+			f << AddressSpace::ram->u8[i];
 		}
 		for(i = 0; i <= usp; i++){
 			f << addressRegisters[i];
@@ -169,7 +170,7 @@ EXPORT void lea(M68kAddr address, AddressRegister An){
 	if(An > usp){
 		throw new std::exception();
 	}
-	registers* ptr = reinterpret_cast<registers *>(ramStart->u8[address]);
+	registers* ptr = reinterpret_cast<registers *>(AddressSpace::ram->u8[address]);
 	addressRegisters[An] = ptr;
 	log << "DEBUG - Setting Address register a" << (int)An << " to " << address << std::endl;
 }
@@ -178,7 +179,7 @@ EXPORT void lea(uint32_t ea, AddressRegister An){
 	if(An > usp){
 		throw new std::exception();
 	}
-	registers* ptr = reinterpret_cast<registers *>(ramStart->u8);
+	registers* ptr = reinterpret_cast<registers *>(AddressSpace::ram->u8);
 	ptr += ea;
 	addressRegisters[An] = ptr;
 	log << "DEBUG - Setting Address register a" << (int)An << " to " << ea << std::endl;

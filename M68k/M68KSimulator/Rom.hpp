@@ -11,6 +11,9 @@
 
 
 class Rom{
+
+	uint8_t romSpace;
+
 public:
 	Rom(short size);
 
