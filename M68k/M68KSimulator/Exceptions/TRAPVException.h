@@ -1,0 +1,14 @@
+//
+// Created by ggonz on 3/10/2017.
+//
+
+#ifndef M68KSIMULATOR_TRAPVEXCEPTION_H
+#define M68KSIMULATOR_TRAPVEXCEPTION_H
+
+
+class TRAPVException {
+
+};
+
+
+#endif //M68KSIMULATOR_TRAPVEXCEPTION_H

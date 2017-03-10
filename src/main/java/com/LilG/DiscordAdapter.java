@@ -528,7 +528,7 @@ class AvatarThread extends Thread {
                             index++;
                         }
                         if (bot != null)
-                            bot.setAvatar(URIUtil.encodeQuery("https://lilggamegenuis.tk/burgerpants/" + avatarFile.getName()));
+                            bot.setAvatar(URIUtil.encodeQuery("https://lilggamegenius.ml/burgerpants/" + avatarFile.getName()));
                     }
 
                 }

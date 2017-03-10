@@ -89,7 +89,7 @@ public class FozConfig {
                 Lil_G_Net = "10.0.0.63";
                 break;
             case global:
-                Lil_G_Net = "irc.lilggamegenuis.tk";
+                Lil_G_Net = "irc.lilggamegenius.ml";
                 break;
             default:
                 Lil_G_Net = "you fucking broke it";

@@ -2,6 +2,9 @@
 <project version="4">
   <component name="CMakeWorkspace" PROJECT_DIR="$PROJECT_DIR$" />
   <component name="CidrRootsConfiguration">
+    <sourceRoots>
+      <file path="$PROJECT_DIR$/M68KSimulator" />
+    </sourceRoots>
     <excludeRoots>
       <file path="$PROJECT_DIR$/cmake-build-debug" />
       <file path="$PROJECT_DIR$/cmake-build-debug/CMakeFiles" />
@@ -29,7 +32,7 @@
   <component name="GradleLocalSettings">
     <option name="modificationStamps">
       <map>
-        <entry key="C:/Users/FozruciX/Workspace/FozruciX" value="1471332307433" />
+        <entry key="$PROJECT_DIR$/../../../../FozruciX/Workspace/FozruciX" value="1471332307433" />
         <entry key="$PROJECT_DIR$/../../JDA" value="2942499309051" />
       </map>
     </option>

@@ -200,7 +200,7 @@ public class FozruciX extends ListenerAdapter {
             Runtime.getRuntime().addShutdownHook(new Thread(FozruciX::saveData, "Shutdown-Save-thread"));
         } catch (UnsatisfiedLinkError e) {
             LOGGER.error("JNA Error", e);
-            System.exit(1);
+            //System.exit(1);
         }
     }
 
@@ -326,7 +326,7 @@ public class FozruciX extends ListenerAdapter {
             JSch ssh = new JSch();
             ssh.setKnownHosts(Platform.isLinux() ? "~/.ssh/known_hosts" : "C:/Users/ggonz/AppData/Local/lxss/home/lil-g/.ssh/known_hosts");
             session = ssh.getSession("lil-g",
-                    //"ssh.lilggamegenuis.tk"
+                    //"ssh.lilggamegenius.ml"
                     "10.0.0.63"
                     , 22);
             session.setPassword(CryptoUtil.decrypt(FozConfig.setPassword(FozConfig.Password.ssh)));
@@ -342,7 +342,7 @@ public class FozruciX extends ListenerAdapter {
             ChannelSftp sftp = (ChannelSftp) channel;
             folder = folder != null ? folder + "/" : "";
             sftp.put(file.getAbsolutePath(), "/var/www/html/upload/" + folder);
-            sendMessage(event, "http://lilggamegenuis.tk/upload/" + folder + file.getName() + (suffix == null ? "" : " " + suffix));
+            sendMessage(event, "http://lilggamegenius.ml/upload/" + folder + file.getName() + (suffix == null ? "" : " " + suffix));
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
@@ -1445,6 +1445,18 @@ public class FozruciX extends ListenerAdapter {
                                                     } else {
                                                         controller.kick(currentDiscordMember);
                                                         sendMessage(event, "Kicked user: " + nick);
+                                                    }
+                                                } else {
+                                                    if(user.matches("\\d+") && user.length() == 18){
+                                                        LOGGER.info("Treating %s as id to be hackbanned", user);
+                                                        if(isBan){
+                                                            controller.ban(user, ns.getInt("remove_messages")).queue();
+                                                            LOGGER.info("Banned user %s", user);
+                                                        } else {
+                                                            sendMessage(event, "you cannot \"hackkick\" a user (user: " + user + ")");
+                                                        }
+                                                    } else {
+                                                        sendMessage(event, "user " + user + " could not be found");
                                                     }
                                                 }
                                             }

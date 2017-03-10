@@ -1,18 +1,6 @@
 //
-// Created by lil-g on 12/8/16.
+// Created by ggonz on 3/9/2017.
 //
 
-#include "Rom.hpp"
+#include "Rom.h"
 
-
-Rom::~Rom(){
-
-}
-
-Rom::Rom(char* filename){
-
-}
-
-Rom::Rom(short size){
-
-}
