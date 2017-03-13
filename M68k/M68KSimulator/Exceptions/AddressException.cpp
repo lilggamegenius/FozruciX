@@ -3,3 +3,7 @@
 //
 
 #include "AddressException.h"
+
+AddressException::AddressException(const std::string &__arg) : runtime_error(__arg) {
+
+}

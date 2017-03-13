@@ -6,7 +6,11 @@
 #define M68KSIMULATOR_LINE1111EMULATOREXCEPTION_H
 
 
-class Line1111EmulatorException {
+#include <stdexcept>
+
+class Line1111EmulatorException : std::runtime_error {
+public:
+    Line1111EmulatorException(const std::string &__arg);
 
 };
 

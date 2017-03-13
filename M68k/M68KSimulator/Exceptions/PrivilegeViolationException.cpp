@@ -3,3 +3,5 @@
 //
 
 #include "PrivilegeViolationException.h"
+
+PrivilegeViolationException::PrivilegeViolationException(const std::string &__arg) : runtime_error(__arg) {}

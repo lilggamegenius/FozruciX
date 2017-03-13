@@ -3,3 +3,5 @@
 //
 
 #include "Line1111EmulatorException.h"
+
+Line1111EmulatorException::Line1111EmulatorException(const std::string &__arg) : runtime_error(__arg) {}

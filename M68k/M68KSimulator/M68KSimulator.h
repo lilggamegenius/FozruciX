@@ -20,6 +20,8 @@
 #pragma warning Unknown dynamic link import/export semantics.
 #endif
 
+#define CEXPORT extern "C" EXPORT
+
 class M68KSimulator {
 public:
     void init();

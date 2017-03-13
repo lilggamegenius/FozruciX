@@ -63,11 +63,11 @@ Address &Address::operator=(DataRegister dRegister) {
 
 Address &Address::operator=(AddressRegister aRegister) {
     if(size == Size::Byte){
-        this->=addressRegisters[aRegister]->u8[0];
+        (*this) = addressRegisters[aRegister]->u8[0];
     } else if(size == Size::Word){
-        this->=addressRegisters[aRegister]->u16[0];
+        (*this) = addressRegisters[aRegister]->u16[0];
     } else if(size == Size::Longword){
-        this->=addressRegisters[aRegister]->u32;
+        (*this) = addressRegisters[aRegister]->u32;
     }
     return *this;
 }

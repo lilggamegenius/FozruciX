@@ -3,3 +3,5 @@
 //
 
 #include "BusException.h"
+
+BusException::BusException(const std::string &__arg) : runtime_error(__arg) {}

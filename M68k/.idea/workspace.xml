@@ -11,52 +11,33 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7c7f003a-de67-4438-a998-9f1a7f15728e" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../.idea/gradle_extensions.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../.idea/kotlinc.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/vcs.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/M68KSimulator/AddressSpace.cpp" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/M68KSimulator/AddressSpace.h" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/M68KSimulator/Exceptions/AddressException.cpp" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/M68KSimulator/Exceptions/AddressException.h" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/M68KSimulator/Exceptions/BusException.cpp" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/M68KSimulator/Exceptions/BusException.h" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/M68KSimulator/Exceptions/CHKInstructionException.cpp" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/M68KSimulator/Exceptions/CHKInstructionException.h" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/M68KSimulator/Exceptions/ErrorException.cpp" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/M68KSimulator/Exceptions/ErrorException.h" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/M68KSimulator/Exceptions/IllegalInstructionException.cpp" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/M68KSimulator/Exceptions/IllegalInstructionException.h" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/M68KSimulator/Exceptions/Line1010EmulatorException.cpp" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/M68KSimulator/Exceptions/Line1010EmulatorException.h" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/M68KSimulator/Exceptions/Line1111EmulatorException.cpp" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/M68KSimulator/Exceptions/Line1111EmulatorException.h" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/M68KSimulator/Exceptions/PrivilegeViolationException.cpp" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/M68KSimulator/Exceptions/PrivilegeViolationException.h" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/M68KSimulator/Exceptions/TRAPVException.cpp" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/M68KSimulator/Exceptions/TRAPVException.h" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/M68KSimulator/Exceptions/TraceException.cpp" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/M68KSimulator/Exceptions/TraceException.h" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/M68KSimulator/Exceptions/ZeroDivideException.cpp" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/M68KSimulator/Exceptions/ZeroDivideException.h" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/M68KSimulator/Ram.cpp" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/M68KSimulator/Ram.h" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/M68KSimulator/Rom.h" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/M68KSimulator/Rom.hpp" afterPath="" />
+    <list default="true" id="7c7f003a-de67-4438-a998-9f1a7f15728e" name="Default" comment="Starting rewrite">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../.idea/artifacts/FozruciX_jar.xml" afterPath="$PROJECT_DIR$/../.idea/artifacts/FozruciX_jar.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../.idea/compiler.xml" afterPath="$PROJECT_DIR$/../.idea/compiler.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../.idea/uiDesigner.xml" afterPath="$PROJECT_DIR$/../.idea/uiDesigner.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../.idea/vcs.xml" afterPath="$PROJECT_DIR$/../.idea/vcs.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/misc.xml" afterPath="$PROJECT_DIR$/.idea/misc.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/CMakeLists.txt" afterPath="$PROJECT_DIR$/CMakeLists.txt" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/M68KSimulator/M68KSimulator.cpp" afterPath="$PROJECT_DIR$/M68KSimulator/M68KSimulator.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/M68KSimulator/AddressSpace.cpp" afterPath="$PROJECT_DIR$/M68KSimulator/AddressSpace.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/M68KSimulator/Exceptions/AddressException.cpp" afterPath="$PROJECT_DIR$/M68KSimulator/Exceptions/AddressException.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/M68KSimulator/Exceptions/AddressException.h" afterPath="$PROJECT_DIR$/M68KSimulator/Exceptions/AddressException.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/M68KSimulator/Exceptions/BusException.cpp" afterPath="$PROJECT_DIR$/M68KSimulator/Exceptions/BusException.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/M68KSimulator/Exceptions/BusException.h" afterPath="$PROJECT_DIR$/M68KSimulator/Exceptions/BusException.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/M68KSimulator/Exceptions/CHKInstructionException.cpp" afterPath="$PROJECT_DIR$/M68KSimulator/Exceptions/CHKInstructionException.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/M68KSimulator/Exceptions/CHKInstructionException.h" afterPath="$PROJECT_DIR$/M68KSimulator/Exceptions/CHKInstructionException.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/M68KSimulator/Exceptions/ErrorException.cpp" afterPath="$PROJECT_DIR$/M68KSimulator/Exceptions/ErrorException.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/M68KSimulator/Exceptions/ErrorException.h" afterPath="$PROJECT_DIR$/M68KSimulator/Exceptions/ErrorException.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/M68KSimulator/Exceptions/IllegalInstructionException.cpp" afterPath="$PROJECT_DIR$/M68KSimulator/Exceptions/IllegalInstructionException.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/M68KSimulator/Exceptions/IllegalInstructionException.h" afterPath="$PROJECT_DIR$/M68KSimulator/Exceptions/IllegalInstructionException.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/M68KSimulator/Exceptions/Line1010EmulatorException.cpp" afterPath="$PROJECT_DIR$/M68KSimulator/Exceptions/Line1010EmulatorException.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/M68KSimulator/Exceptions/Line1010EmulatorException.h" afterPath="$PROJECT_DIR$/M68KSimulator/Exceptions/Line1010EmulatorException.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/M68KSimulator/Exceptions/Line1111EmulatorException.cpp" afterPath="$PROJECT_DIR$/M68KSimulator/Exceptions/Line1111EmulatorException.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/M68KSimulator/Exceptions/Line1111EmulatorException.h" afterPath="$PROJECT_DIR$/M68KSimulator/Exceptions/Line1111EmulatorException.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/M68KSimulator/Exceptions/PrivilegeViolationException.cpp" afterPath="$PROJECT_DIR$/M68KSimulator/Exceptions/PrivilegeViolationException.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/M68KSimulator/Exceptions/PrivilegeViolationException.h" afterPath="$PROJECT_DIR$/M68KSimulator/Exceptions/PrivilegeViolationException.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/M68KSimulator/Exceptions/TRAPVException.cpp" afterPath="$PROJECT_DIR$/M68KSimulator/Exceptions/TRAPVException.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/M68KSimulator/Exceptions/TRAPVException.h" afterPath="$PROJECT_DIR$/M68KSimulator/Exceptions/TRAPVException.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/M68KSimulator/Exceptions/TraceException.cpp" afterPath="$PROJECT_DIR$/M68KSimulator/Exceptions/TraceException.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/M68KSimulator/Exceptions/TraceException.h" afterPath="$PROJECT_DIR$/M68KSimulator/Exceptions/TraceException.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/M68KSimulator/Exceptions/ZeroDivideException.cpp" afterPath="$PROJECT_DIR$/M68KSimulator/Exceptions/ZeroDivideException.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/M68KSimulator/Exceptions/ZeroDivideException.h" afterPath="$PROJECT_DIR$/M68KSimulator/Exceptions/ZeroDivideException.h" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/M68KSimulator/M68KSimulator.h" afterPath="$PROJECT_DIR$/M68KSimulator/M68KSimulator.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/M68KSimulator/Rom.cpp" afterPath="$PROJECT_DIR$/M68KSimulator/Rom.cpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../src/main/java/com/LilG/DiscordAdapter.java" afterPath="$PROJECT_DIR$/../src/main/java/com/LilG/DiscordAdapter.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../src/main/java/com/LilG/FozConfig.java" afterPath="$PROJECT_DIR$/../src/main/java/com/LilG/FozConfig.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../src/main/java/com/LilG/FozruciX.java" afterPath="$PROJECT_DIR$/../src/main/java/com/LilG/FozruciX.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../src/main/java/com/LilG/Misc/DebugWindow.java" afterPath="$PROJECT_DIR$/../src/main/java/com/LilG/Misc/DebugWindow.java" />
     </list>
     <ignored path="$PROJECT_DIR$/cmake-build-debug/" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -75,54 +56,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="M68KSimulator.cpp" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/M68KSimulator/M68KSimulator.cpp">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="85">
-              <caret line="5" column="0" lean-forward="false" selection-start-line="5" selection-start-column="0" selection-end-line="5" selection-end-column="0" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="M68KSimulator.h" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/M68KSimulator/M68KSimulator.h">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="59">
-              <caret line="4" column="10" lean-forward="false" selection-start-line="4" selection-start-column="10" selection-end-line="4" selection-end-column="10" />
-              <folding>
-                <element signature="e#139#226#0" expanded="true" />
-                <element signature="e#343#472#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="ErrorException.cpp" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/M68KSimulator/Exceptions/ErrorException.cpp">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="0">
-              <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="ErrorException.h" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/M68KSimulator/Exceptions/ErrorException.h">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="0">
-              <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="AddressSpace.cpp" pinned="false" current-in-tab="false">
+      <file leaf-file-name="AddressSpace.cpp" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/M68KSimulator/AddressSpace.cpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="221">
-              <caret line="13" column="17" lean-forward="false" selection-start-line="13" selection-start-column="17" selection-end-line="13" selection-end-column="17" />
+            <state relative-caret-position="-680">
+              <caret line="11" column="26" lean-forward="false" selection-start-line="11" selection-start-column="26" selection-end-line="11" selection-end-column="26" />
               <folding />
             </state>
           </provider>
@@ -131,8 +69,8 @@
       <file leaf-file-name="AddressSpace.h" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/M68KSimulator/AddressSpace.h">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-1182">
-              <caret line="17" column="64" lean-forward="false" selection-start-line="17" selection-start-column="64" selection-end-line="17" selection-end-column="70" />
+            <state relative-caret-position="195">
+              <caret line="70" column="11" lean-forward="false" selection-start-line="70" selection-start-column="11" selection-end-line="70" selection-end-column="11" />
               <folding>
                 <element signature="e#116#134#0" expanded="true" />
               </folding>
@@ -143,8 +81,8 @@
       <file leaf-file-name="Ram.cpp" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/M68KSimulator/Ram.cpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="170">
-              <caret line="10" column="18" lean-forward="false" selection-start-line="10" selection-start-column="18" selection-end-line="10" selection-end-column="18" />
+            <state relative-caret-position="102">
+              <caret line="6" column="0" lean-forward="true" selection-start-line="6" selection-start-column="0" selection-end-line="6" selection-end-column="0" />
               <folding>
                 <element signature="e#40#57#0" expanded="true" />
               </folding>
@@ -157,28 +95,6 @@
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="178">
               <caret line="14" column="14" lean-forward="false" selection-start-line="14" selection-start-column="14" selection-end-line="14" selection-end-column="14" />
-              <folding>
-                <element signature="e#97#115#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="Rom.cpp" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/M68KSimulator/Rom.cpp">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="102">
-              <caret line="6" column="0" lean-forward="false" selection-start-line="6" selection-start-column="0" selection-end-line="6" selection-end-column="0" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="Rom.h" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/M68KSimulator/Rom.h">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="374">
-              <caret line="23" column="7" lean-forward="false" selection-start-line="23" selection-start-column="7" selection-end-line="23" selection-end-column="7" />
               <folding>
                 <element signature="e#97#115#0" expanded="true" />
               </folding>
@@ -213,16 +129,36 @@
         <option value="$PROJECT_DIR$/M68KSimulator/AddressSpace.hpp" />
         <option value="$PROJECT_DIR$/M68KSimulator/Rom.hpp" />
         <option value="$PROJECT_DIR$/M68KSimulator/M68KSimulator.cpp" />
-        <option value="$PROJECT_DIR$/M68KSimulator/M68KSimulator.h" />
         <option value="$PROJECT_DIR$/M68KSimulator/Ram.cpp" />
         <option value="$PROJECT_DIR$/M68KSimulator/AddressSpace.h" />
-        <option value="$PROJECT_DIR$/M68KSimulator/AddressSpace.cpp" />
         <option value="$PROJECT_DIR$/CMakeLists.txt" />
         <option value="$PROJECT_DIR$/M68KSimulator/Ram.h" />
         <option value="$PROJECT_DIR$/M68KSimulator/Rom.cpp" />
-        <option value="$PROJECT_DIR$/M68KSimulator/Exceptions/BusException.h" />
         <option value="$PROJECT_DIR$/M68KSimulator/Rom.h" />
         <option value="$PROJECT_DIR$/M68KSimulator/Exceptions/AddressException.h" />
+        <option value="$PROJECT_DIR$/M68KSimulator/Exceptions/AddressException.cpp" />
+        <option value="$PROJECT_DIR$/M68KSimulator/Exceptions/BusException.h" />
+        <option value="$PROJECT_DIR$/M68KSimulator/Exceptions/BusException.cpp" />
+        <option value="$PROJECT_DIR$/M68KSimulator/Exceptions/CHKInstructionException.h" />
+        <option value="$PROJECT_DIR$/M68KSimulator/Exceptions/CHKInstructionException.cpp" />
+        <option value="$PROJECT_DIR$/M68KSimulator/Exceptions/ErrorException.h" />
+        <option value="$PROJECT_DIR$/M68KSimulator/Exceptions/ErrorException.cpp" />
+        <option value="$PROJECT_DIR$/M68KSimulator/Exceptions/IllegalInstructionException.h" />
+        <option value="$PROJECT_DIR$/M68KSimulator/Exceptions/IllegalInstructionException.cpp" />
+        <option value="$PROJECT_DIR$/M68KSimulator/Exceptions/Line1010EmulatorException.h" />
+        <option value="$PROJECT_DIR$/M68KSimulator/Exceptions/Line1010EmulatorException.cpp" />
+        <option value="$PROJECT_DIR$/M68KSimulator/Exceptions/Line1111EmulatorException.h" />
+        <option value="$PROJECT_DIR$/M68KSimulator/Exceptions/Line1111EmulatorException.cpp" />
+        <option value="$PROJECT_DIR$/M68KSimulator/Exceptions/PrivilegeViolationException.h" />
+        <option value="$PROJECT_DIR$/M68KSimulator/Exceptions/PrivilegeViolationException.cpp" />
+        <option value="$PROJECT_DIR$/M68KSimulator/Exceptions/TraceException.h" />
+        <option value="$PROJECT_DIR$/M68KSimulator/Exceptions/TraceException.cpp" />
+        <option value="$PROJECT_DIR$/M68KSimulator/Exceptions/TRAPVException.h" />
+        <option value="$PROJECT_DIR$/M68KSimulator/Exceptions/TRAPVException.cpp" />
+        <option value="$PROJECT_DIR$/M68KSimulator/Exceptions/ZeroDivideException.h" />
+        <option value="$PROJECT_DIR$/M68KSimulator/Exceptions/ZeroDivideException.cpp" />
+        <option value="$PROJECT_DIR$/M68KSimulator/M68KSimulator.h" />
+        <option value="$PROJECT_DIR$/M68KSimulator/AddressSpace.cpp" />
       </list>
     </option>
   </component>
@@ -280,24 +216,6 @@
             </PATH_ELEMENT>
             <PATH_ELEMENT>
               <option name="myItemId" value="M68KSimulator" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="M68KSimulator" />
-              <option name="myItemType" value="com.jetbrains.cidr.projectView.CidrFilesViewHelper$MyProjectTreeStructure$1" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="M68k" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="M68KSimulator" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="Exceptions" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
@@ -574,12 +492,20 @@
       <workItem from="1486669504863" duration="1609000" />
       <workItem from="1486874814442" duration="823000" />
       <workItem from="1489075325772" duration="5185000" />
-      <workItem from="1489082490961" duration="22549000" />
+      <workItem from="1489082490961" duration="27395000" />
     </task>
+    <task id="LOCAL-00001" summary="Starting rewrite">
+      <created>1489179510637</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1489179510637</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="49882000" />
+    <option name="totallyTimeSpent" value="54728000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1382" height="744" extended-state="6" />
@@ -639,19 +565,15 @@
   <component name="VcsContentAnnotationSettings">
     <option name="myLimit" value="2678400000" />
   </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Starting rewrite" />
+    <option name="LAST_COMMIT_MESSAGE" value="Starting rewrite" />
+  </component>
   <component name="XDebuggerManager">
     <breakpoint-manager />
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/CMakeLists.txt">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="51">
-          <caret line="3" column="50" lean-forward="false" selection-start-line="3" selection-start-column="50" selection-end-line="3" selection-end-column="50" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/M68KSimulator/M68KSimulator.cpp" />
     <entry file="file://$PROJECT_DIR$/M68KSimulator/M68KSimulator.h" />
     <entry file="file://$PROJECT_DIR$/M68KSimulator/Rom.cpp">
@@ -728,10 +650,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/M68KSimulator/Ram.h">
+    <entry file="file://$PROJECT_DIR$/M68KSimulator/Rom.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="178">
-          <caret line="14" column="14" lean-forward="false" selection-start-line="14" selection-start-column="14" selection-end-line="14" selection-end-column="14" />
+        <state relative-caret-position="374">
+          <caret line="23" column="7" lean-forward="false" selection-start-line="23" selection-start-column="7" selection-end-line="23" selection-end-column="7" />
           <folding>
             <element signature="e#97#115#0" expanded="true" />
           </folding>
@@ -746,48 +668,38 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/M68KSimulator/Exceptions/AddressException.cpp">
+    <entry file="file://$PROJECT_DIR$/M68KSimulator/Ram.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
+        <state relative-caret-position="102">
+          <caret line="6" column="0" lean-forward="true" selection-start-line="6" selection-start-column="0" selection-end-line="6" selection-end-column="0" />
+          <folding>
+            <element signature="e#40#57#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/M68KSimulator/Exceptions/AddressException.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="136">
-          <caret line="8" column="3" lean-forward="true" selection-start-line="8" selection-start-column="3" selection-end-line="8" selection-end-column="3" />
+        <state relative-caret-position="272">
+          <caret line="16" column="22" lean-forward="false" selection-start-line="16" selection-start-column="22" selection-end-line="16" selection-end-column="43" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/M68KSimulator/Rom.h">
+    <entry file="file://$PROJECT_DIR$/M68KSimulator/Exceptions/AddressException.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="374">
-          <caret line="23" column="7" lean-forward="false" selection-start-line="23" selection-start-column="7" selection-end-line="23" selection-end-column="7" />
+        <state relative-caret-position="119">
+          <caret line="7" column="4" lean-forward="false" selection-start-line="7" selection-start-column="4" selection-end-line="7" selection-end-column="4" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/M68KSimulator/Ram.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="178">
+          <caret line="14" column="14" lean-forward="false" selection-start-line="14" selection-start-column="14" selection-end-line="14" selection-end-column="14" />
           <folding>
             <element signature="e#97#115#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/M68KSimulator/AddressSpace.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-1182">
-          <caret line="17" column="64" lean-forward="false" selection-start-line="17" selection-start-column="64" selection-end-line="17" selection-end-column="70" />
-          <folding>
-            <element signature="e#116#134#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/M68KSimulator/Ram.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="170">
-          <caret line="10" column="18" lean-forward="false" selection-start-line="10" selection-start-column="18" selection-end-line="10" selection-end-column="18" />
-          <folding>
-            <element signature="e#40#57#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -802,166 +714,176 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/M68KSimulator/Exceptions/BusException.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="85">
-          <caret line="5" column="0" lean-forward="false" selection-start-line="5" selection-start-column="0" selection-end-line="5" selection-end-column="0" />
+        <state relative-caret-position="102">
+          <caret line="6" column="77" lean-forward="false" selection-start-line="6" selection-start-column="77" selection-end-line="6" selection-end-column="77" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/M68KSimulator/Exceptions/BusException.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="187">
-          <caret line="11" column="3" lean-forward="true" selection-start-line="11" selection-start-column="3" selection-end-line="11" selection-end-column="3" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/M68KSimulator/Exceptions/IllegalInstructionException.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/M68KSimulator/Exceptions/IllegalInstructionException.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/M68KSimulator/Exceptions/ZeroDivideException.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/M68KSimulator/Exceptions/ZeroDivideException.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        <state relative-caret-position="255">
+          <caret line="15" column="39" lean-forward="true" selection-start-line="15" selection-start-column="19" selection-end-line="15" selection-end-column="39" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/M68KSimulator/Exceptions/CHKInstructionException.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        <state relative-caret-position="119">
+          <caret line="7" column="4" lean-forward="false" selection-start-line="7" selection-start-column="4" selection-end-line="7" selection-end-column="4" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/M68KSimulator/Exceptions/CHKInstructionException.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        <state relative-caret-position="170">
+          <caret line="10" column="23" lean-forward="false" selection-start-line="10" selection-start-column="23" selection-end-line="10" selection-end-column="23" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/M68KSimulator/AddressSpace.cpp">
+    <entry file="file://$PROJECT_DIR$/M68KSimulator/Exceptions/ErrorException.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="221">
-          <caret line="13" column="17" lean-forward="false" selection-start-line="13" selection-start-column="17" selection-end-line="13" selection-end-column="17" />
+        <state relative-caret-position="102">
+          <caret line="6" column="81" lean-forward="false" selection-start-line="6" selection-start-column="81" selection-end-line="6" selection-end-column="81" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/M68KSimulator/Exceptions/TRAPVException.cpp">
+    <entry file="file://$PROJECT_DIR$/M68KSimulator/Exceptions/ErrorException.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        <state relative-caret-position="170">
+          <caret line="10" column="32" lean-forward="true" selection-start-line="10" selection-start-column="32" selection-end-line="10" selection-end-column="32" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/M68KSimulator/Exceptions/TRAPVException.h">
+    <entry file="file://$PROJECT_DIR$/M68KSimulator/Exceptions/IllegalInstructionException.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding>
-            <marker date="1489179284209" expanded="true" signature="142:146" ph="{...}" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/M68KSimulator/Exceptions/PrivilegeViolationException.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        <state relative-caret-position="102">
+          <caret line="6" column="107" lean-forward="false" selection-start-line="6" selection-start-column="107" selection-end-line="6" selection-end-column="107" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/M68KSimulator/Exceptions/PrivilegeViolationException.cpp">
+    <entry file="file://$PROJECT_DIR$/M68KSimulator/Exceptions/IllegalInstructionException.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/M68KSimulator/Exceptions/TraceException.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/M68KSimulator/Exceptions/TraceException.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        <state relative-caret-position="170">
+          <caret line="10" column="54" lean-forward="false" selection-start-line="10" selection-start-column="54" selection-end-line="10" selection-end-column="54" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/M68KSimulator/Exceptions/Line1010EmulatorException.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding>
-            <marker date="1489179434102" expanded="true" signature="175:179" ph="{...}" />
-          </folding>
+        <state relative-caret-position="170">
+          <caret line="10" column="52" lean-forward="false" selection-start-line="10" selection-start-column="52" selection-end-line="10" selection-end-column="52" />
+          <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/M68KSimulator/Exceptions/Line1010EmulatorException.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/M68KSimulator/Exceptions/Line1111EmulatorException.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        <state relative-caret-position="102">
+          <caret line="6" column="103" lean-forward="false" selection-start-line="6" selection-start-column="103" selection-end-line="6" selection-end-column="103" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/M68KSimulator/Exceptions/Line1111EmulatorException.h">
       <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="170">
+          <caret line="10" column="52" lean-forward="false" selection-start-line="10" selection-start-column="52" selection-end-line="10" selection-end-column="52" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/M68KSimulator/Exceptions/Line1111EmulatorException.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="102">
+          <caret line="6" column="103" lean-forward="false" selection-start-line="6" selection-start-column="103" selection-end-line="6" selection-end-column="103" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/M68KSimulator/Exceptions/PrivilegeViolationException.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="170">
+          <caret line="10" column="54" lean-forward="false" selection-start-line="10" selection-start-column="54" selection-end-line="10" selection-end-column="54" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/M68KSimulator/Exceptions/PrivilegeViolationException.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="102">
+          <caret line="6" column="107" lean-forward="false" selection-start-line="6" selection-start-column="107" selection-end-line="6" selection-end-column="107" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/M68KSimulator/Exceptions/TraceException.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="170">
+          <caret line="10" column="29" lean-forward="true" selection-start-line="10" selection-start-column="29" selection-end-line="10" selection-end-column="29" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/M68KSimulator/Exceptions/TraceException.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="102">
+          <caret line="6" column="81" lean-forward="false" selection-start-line="6" selection-start-column="81" selection-end-line="6" selection-end-column="81" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/M68KSimulator/Exceptions/TRAPVException.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="170">
+          <caret line="10" column="14" lean-forward="false" selection-start-line="10" selection-start-column="14" selection-end-line="10" selection-end-column="14" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/M68KSimulator/Exceptions/TRAPVException.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="102">
+          <caret line="6" column="81" lean-forward="false" selection-start-line="6" selection-start-column="81" selection-end-line="6" selection-end-column="81" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/M68KSimulator/Exceptions/ZeroDivideException.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="102">
+          <caret line="6" column="91" lean-forward="false" selection-start-line="6" selection-start-column="91" selection-end-line="6" selection-end-column="91" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/M68KSimulator/Exceptions/ZeroDivideException.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="170">
+          <caret line="10" column="3" lean-forward="true" selection-start-line="10" selection-start-column="3" selection-end-line="10" selection-end-column="3" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/M68KSimulator.h">
+      <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding>
-            <marker date="1489179451545" expanded="true" signature="175:179" ph="{...}" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/M68KSimulator/M68KSimulator.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="59">
-          <caret line="4" column="10" lean-forward="false" selection-start-line="4" selection-start-column="10" selection-end-line="4" selection-end-column="10" />
+        <state relative-caret-position="76">
+          <caret line="7" column="21" lean-forward="true" selection-start-line="7" selection-start-column="21" selection-end-line="7" selection-end-column="21" />
           <folding>
             <element signature="e#139#226#0" expanded="true" />
             <element signature="e#343#472#0" expanded="true" />
@@ -969,18 +891,20 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/M68KSimulator/Exceptions/ErrorException.cpp">
+    <entry file="file://$PROJECT_DIR$/M68KSimulator/AddressSpace.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
+        <state relative-caret-position="195">
+          <caret line="70" column="11" lean-forward="false" selection-start-line="70" selection-start-column="11" selection-end-line="70" selection-end-column="11" />
+          <folding>
+            <element signature="e#116#134#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/M68KSimulator/Exceptions/ErrorException.h">
+    <entry file="file://$PROJECT_DIR$/M68KSimulator/AddressSpace.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        <state relative-caret-position="-680">
+          <caret line="11" column="26" lean-forward="false" selection-start-line="11" selection-start-column="26" selection-end-line="11" selection-end-column="26" />
           <folding />
         </state>
       </provider>

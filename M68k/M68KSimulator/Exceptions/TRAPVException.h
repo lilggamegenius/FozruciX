@@ -6,7 +6,11 @@
 #define M68KSIMULATOR_TRAPVEXCEPTION_H
 
 
-class TRAPVException {
+#include <stdexcept>
+
+class TRAPVException : std::runtime_error {
+public:
+    TRAPVException(const std::string &__arg);
 
 };
 

@@ -3,3 +3,5 @@
 //
 
 #include "TRAPVException.h"
+
+TRAPVException::TRAPVException(const std::string &__arg) : runtime_error(__arg) {}

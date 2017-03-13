@@ -3,3 +3,5 @@
 //
 
 #include "ErrorException.h"
+
+ErrorException::ErrorException(const std::string &__arg) : runtime_error(__arg) {}

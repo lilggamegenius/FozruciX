@@ -6,7 +6,11 @@
 #define M68KSIMULATOR_PRIVILEGEVIOLATIONEXCEPTION_H
 
 
-class PrivilegeViolationException {
+#include <stdexcept>
+
+class PrivilegeViolationException : std::runtime_error {
+public:
+    PrivilegeViolationException(const std::string &__arg);
 
 };
 

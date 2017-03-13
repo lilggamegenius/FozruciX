@@ -6,7 +6,11 @@
 #define M68KSIMULATOR_TRACEEXCEPTION_H
 
 
-class TraceException {
+#include <stdexcept>
+
+class TraceException : std::runtime_error {
+public:
+    TraceException(const std::string &__arg);
 
 };
 

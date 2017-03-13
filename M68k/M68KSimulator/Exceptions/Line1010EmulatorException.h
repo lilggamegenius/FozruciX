@@ -6,7 +6,11 @@
 #define M68KSIMULATOR_LINE1010EMULATOREXCEPTION_H
 
 
-class Line1010EmulatorException {
+#include <stdexcept>
+
+class Line1010EmulatorException : std::runtime_error {
+public:
+    Line1010EmulatorException(const std::string &__arg);
 
 };
 

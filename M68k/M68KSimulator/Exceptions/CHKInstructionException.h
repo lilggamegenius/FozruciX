@@ -6,7 +6,11 @@
 #define M68KSIMULATOR_CHKINSTRUCTIONEXCEPTION_H
 
 
-class CHKInstructionException {
+#include <stdexcept>
+
+class CHKInstructionException : std::runtime_error {
+public:
+    CHKInstructionException(const std::string &__arg);
 
 };
 

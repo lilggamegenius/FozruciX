@@ -6,7 +6,11 @@
 #define M68KSIMULATOR_ERROREXCEPTION_H
 
 
-class ErrorException {
+#include <stdexcept>
+
+class ErrorException : std::runtime_error {
+public:
+    ErrorException(const std::string &__arg);
 
 };
 

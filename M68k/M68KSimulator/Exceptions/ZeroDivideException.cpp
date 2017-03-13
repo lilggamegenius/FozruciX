@@ -3,3 +3,5 @@
 //
 
 #include "ZeroDivideException.h"
+
+ZeroDivideException::ZeroDivideException(const std::string &__arg) : runtime_error(__arg) {}

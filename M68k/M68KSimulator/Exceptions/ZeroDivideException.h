@@ -6,7 +6,11 @@
 #define M68KSIMULATOR_ZERODIVIDEEXCEPTION_H
 
 
-class ZeroDivideException {
+#include <stdexcept>
+
+class ZeroDivideException : std::runtime_error {
+public:
+    ZeroDivideException(const std::string &__arg);
 
 };
 

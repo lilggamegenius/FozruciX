@@ -6,7 +6,11 @@
 #define M68KSIMULATOR_ILLEGALINSTRUCTIONEXCEPTION_H
 
 
-class IllegalInstructionException {
+#include <stdexcept>
+
+class IllegalInstructionException : std::runtime_error {
+public:
+    IllegalInstructionException(const std::string &__arg);
 
 };
 

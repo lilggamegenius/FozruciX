@@ -3,3 +3,7 @@
 //
 
 #include "CHKInstructionException.h"
+
+CHKInstructionException::CHKInstructionException(const std::string &__arg) : runtime_error(__arg) {
+
+}

@@ -3,3 +3,5 @@
 //
 
 #include "TraceException.h"
+
+TraceException::TraceException(const std::string &__arg) : runtime_error(__arg) {}
