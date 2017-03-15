@@ -7,7 +7,7 @@
 
 #include <cstdint>
 #include <malloc.h>
-#include "AddressSpace.h"
+#include "Address.h"
 
 
 #define ramSize 0xFFFF

@@ -4832,6 +4832,7 @@ public class FozruciX extends ListenerAdapter {
                 chanName = ((MessageEvent) event).getChannel().getName();
             }
             boolean isCommand = false;
+            if(args.length < 1) return false;
             if (args[0].startsWith(prefix)) {
                 if (prefix.length() > 1 && !prefix.endsWith(".")) {
                     isCommand = getArg(args, 0).equalsIgnoreCase(command);

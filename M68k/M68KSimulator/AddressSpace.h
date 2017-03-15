@@ -84,32 +84,4 @@ enum AddressRegister {
 };
 
 
-
-class Address {
-    M68kAddr addr;
-    Size size = Size::Byte;
-public:
-    Address(M68kAddr address, Size size=Size::Byte);
-    Address& operator=(uint8_t value);
-    Address& operator=(uint16_t value);
-    Address& operator=(uint32_t value);
-    Address& operator=(int8_t value);
-    Address& operator=(int16_t value);
-    Address& operator=(int32_t value);
-    Address& operator=(Address address);
-    Address& operator=(DataRegister dRegister);
-    Address& operator=(AddressRegister aRegister);
-    bool operator bool();
-    uint8_t operator uint8_t();
-    uint16_t operator uint16_t();
-    uint32_t operator uint32_t();
-    int8_t operator int8_t();
-    int16_t operator int16_t();
-    int32_t operator int32_t();
-    M68kAddr operator&();
-    Address operator*();
-
-};
-
-
 #endif //M68KSIMULATOR_ADDRESSSPACE_H
