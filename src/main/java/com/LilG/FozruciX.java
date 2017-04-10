@@ -123,7 +123,7 @@ public class FozruciX extends ListenerAdapter {
     private final static int CHECK_LINKS = 9;
     private final static ChatterBotFactory BOT_FACTORY = new ChatterBotFactory();
     private final static ArbitraryPrecisionEvaluator EVALUATOR = new ArbitraryPrecisionEvaluator();
-    private final static StaticVariableSet<Double> VARIABLE_SET = new StaticVariableSet<>();
+    private final static StaticVariableSet<Apfloat> VARIABLE_SET = new StaticVariableSet<>();
     private final static String APP_ID = "RGHHEP-HQU7HL67W9";
     private final static LinkedList<RPSGame> RPS_GAMES = new LinkedList<>();
     private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(FozruciX.class);
@@ -326,8 +326,7 @@ public class FozruciX extends ListenerAdapter {
             JSch ssh = new JSch();
             ssh.setKnownHosts(Platform.isLinux() ? "~/.ssh/known_hosts" : "C:/Users/ggonz/AppData/Local/lxss/home/lil-g/.ssh/known_hosts");
             session = ssh.getSession("lil-g",
-                    //"ssh.lilggamegenius.ml"
-                    "10.0.0.63"
+                    FozConfig.Lil_G_Net
                     , 22);
             session.setPassword(CryptoUtil.decrypt(FozConfig.setPassword(FozConfig.Password.ssh)));
             UserInfo ui = new CommandLine.MyUserInfo() {
@@ -342,7 +341,7 @@ public class FozruciX extends ListenerAdapter {
             ChannelSftp sftp = (ChannelSftp) channel;
             folder = folder != null ? folder + "/" : "";
             sftp.put(file.getAbsolutePath(), "/var/www/html/upload/" + folder);
-            sendMessage(event, "http://lilggamegenius.ml/upload/" + folder + file.getName() + (suffix == null ? "" : " " + suffix));
+            sendMessage(event, new URL("http://" + FozConfig.location + "/upload/" + folder + file.getName() + (suffix == null ? "" : " " + suffix)).toExternalForm());
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
@@ -357,6 +356,7 @@ public class FozruciX extends ListenerAdapter {
 
     private synchronized static void sendMessage(@NotNull GenericMessageEvent event, @NotNull String msgToSend) {
         sendMessage(event, msgToSend, true);
+
     }
 
     private synchronized static void sendMessage(@NotNull GenericMessageEvent event, @NotNull String msgToSend, boolean addNick) {
@@ -371,7 +371,7 @@ public class FozruciX extends ListenerAdapter {
         if (msgToSend.equals("\u0002\u0002")) {
             return;
         }
-        msgToSend = msgToSend.replace("(Player)", event.getUser().getNick()).replace("(items)", COMMANDS[LilGUtil.randInt(0, COMMANDS.length - 1)]).replace("(Pokémon)", event.getBot().getNick()).replace("{random}", rnd.nextInt() + "");
+        //msgToSend = msgToSend.replace("(Player)", event.getUser().getNick()).replace("(items)", COMMANDS[LilGUtil.randInt(0, COMMANDS.length - 1)]).replace("(Pokémon)", event.getBot().getNick()).replace("{random}", rnd.nextInt() + "");
         msgToSend = getScramble(msgToSend);
 
         if (!splitMessage && msgToSend.length() > textSizeLimit) {
@@ -737,6 +737,7 @@ public class FozruciX extends ListenerAdapter {
             sendMessage(event, color + cause + from, false);
         }
         e.printStackTrace();
+        lastExceptions.add(e);
     }
 
     private static boolean checkChatFunction(String args, String function) {
@@ -769,7 +770,11 @@ public class FozruciX extends ListenerAdapter {
             parser.printHelp(writer);
             String content = stringWriter.toString();
             LOGGER.debug("Command help: " + content);
-            sendNotice(event, "```" + content + "```", false);
+            if (event instanceof DiscordMessageEvent || event instanceof DiscordPrivateMessageEvent) {
+                sendNotice(event, "```" + content + "```", false);
+            } else {
+                sendNotice(event, content, false);
+            }
         } catch (Exception ex) {
             LOGGER.error("Error sending command help", ex);
         }
@@ -993,7 +998,6 @@ public class FozruciX extends ListenerAdapter {
                 bot = event.getBot();
             }
             makeDebug();
-
         }
         lastEvents.add(event);
         if (!BOOLS[DATA_LOADED]) {
@@ -1518,7 +1522,7 @@ public class FozruciX extends ListenerAdapter {
                                             ((DiscordMessageEvent) event).getDiscordEvent().getTextChannel();
                                     boolean deleting = false;
                                     List<Message> messagesToDel = new ArrayList<>();
-                                    for (Message msg : discordChannel.getHistory().getCachedHistory()) {
+                                    for (Message msg : discordChannel.getHistory().getRetrievedHistory()) {
                                         if (deleting) {
                                             messagesToDel.add(msg);
                                             if (msg.getId().equals(secondMessage)) {
@@ -1583,7 +1587,7 @@ public class FozruciX extends ListenerAdapter {
                                                 Member currentDiscordMember = mChannel.getGuild().getMember(currentDiscordUser);
                                                 overRide = mChannel.getPermissionOverride(currentDiscordMember);
                                                 if (overRide == null) {
-                                                    overRide = mChannel.createPermissionOverride(currentDiscordMember).block();
+                                                    overRide = mChannel.createPermissionOverride(currentDiscordMember).complete(false);
                                                 }
                                                 overRide.getManager().grant(Permission.MESSAGE_WRITE).queue();
 
@@ -1594,7 +1598,7 @@ public class FozruciX extends ListenerAdapter {
                                                         if (roleArg.equalsIgnoreCase(role.getName())) {
                                                             overRide = mChannel.getPermissionOverride(role);
                                                             if (overRide == null) {
-                                                                overRide = mChannel.createPermissionOverride(role).block();
+                                                                overRide = mChannel.createPermissionOverride(role).complete(false);
                                                             }
                                                             if (whiteListMode) {
                                                                 overRide.getManager().grant(Permission.MESSAGE_WRITE).queue();
@@ -1622,7 +1626,7 @@ public class FozruciX extends ListenerAdapter {
                                             Member currentDiscordMember = mChannel.getGuild().getMember(currentDiscordUser);
                                             overRide = mChannel.getPermissionOverride(currentDiscordMember);
                                             if (overRide == null) {
-                                                overRide = mChannel.createPermissionOverride(currentDiscordMember).block();
+                                                overRide = mChannel.createPermissionOverride(currentDiscordMember).complete(false);
                                             }
                                             overRide.getManager().grant(Permission.MESSAGE_WRITE).queue();
 
@@ -1634,7 +1638,7 @@ public class FozruciX extends ListenerAdapter {
                                                     if (roleArg.equalsIgnoreCase(role.getName())) {
                                                         overRide = mChannel.getPermissionOverride(role);
                                                         if (overRide == null) {
-                                                            overRide = mChannel.createPermissionOverride(role).block();
+                                                            overRide = mChannel.createPermissionOverride(role).complete(false);
                                                         }
                                                         if (whiteListMode) {
                                                             overRide.getManager().grant(Permission.MESSAGE_WRITE).queue();
@@ -1699,7 +1703,7 @@ public class FozruciX extends ListenerAdapter {
                                 break;
 
                             case "topic":
-                                String topicStr = argJoiner(ns.getList("newTopic").toArray(new String[]{}), 0);
+                                @SuppressWarnings("SuspiciousToArrayCall") String topicStr = argJoiner(ns.getList("newTopic").toArray(new String[]{}), 0);
                                 if (discord) {
                                     ((DiscordMessageEvent) event).getDiscordEvent().getTextChannel().getManager().setTopic(topicStr).queue();
                                 } else {
@@ -2415,7 +2419,7 @@ public class FozruciX extends ListenerAdapter {
                                             if (element instanceof WAPlainText) {
                                                 LOGGER.debug("subpod start");
                                                 String elementResult = ((WAPlainText) element).getText().replace('\uF7D9', '=').replace("\uF74E", "\u001Di\u001D");
-                                                if (LilGUtil.containsAny(pod.getTitle(), "Result", "Exact result")
+                                                if (LilGUtil.containsAny(pod.getTitle(), "Result", "Exact result", "Decimal approximation")
                                                         && results < 2) {
                                                     sendMessage(event, pod.getTitle() + ": " + elementResult);
                                                     results++;
@@ -2425,7 +2429,7 @@ public class FozruciX extends ListenerAdapter {
                                                     } else {
                                                         solutions += " or " + elementResult;
                                                     }
-                                                } else if (LilGUtil.containsAny(pod.getTitle(), "Alternate form assuming ", "Alternate form")) {
+                                                } else if (LilGUtil.containsAny(pod.getTitle(), "Alternate form assuming ", "Alternate form", "Alternative representations", "Input interpretation")) {
                                                     backupResults.add(pod.getTitle() + ": " + elementResult);
                                                 } else {
                                                     LOGGER.debug(pod.getTitle() + ": " + elementResult);
@@ -2479,10 +2483,13 @@ public class FozruciX extends ListenerAdapter {
                         .help("Sets How much to increase x at");
                 parser.addArgument("-a", "--amount").type(Byte.class).setDefault(3)
                         .help("Sets How many times to increase");
+                parser.addArgument("-p", "--precision").type(Long.class).setDefault(64L)
+                        .help("Sets what precision to calculate to");
                 Namespace ns;
                 try {
                     ns = parser.parseArgs(args);
                     LOGGER.debug(ns.toString());
+                    EVALUATOR.setPrecision(ns.getLong("precision"));
                     if (LilGUtil.containsAny(message, "-v", "-c", "-s", "-a", "--Val", "--char", "--step", "--amount")) {
                         double x = ns.getDouble("Val");
                         double step = ns.getDouble("step");
@@ -2493,7 +2500,7 @@ public class FozruciX extends ListenerAdapter {
                         int count = 0;
                         LinkedList<Apfloat> eval = new LinkedList<>();
                         while (count <= calcAmount) {
-                            VARIABLE_SET.set((String) ns["char"], x);
+                            VARIABLE_SET.set((String) ns["char"], new Apfloat(x));
                             //noinspection SuspiciousToArrayCall
                             eval.add(EVALUATOR.evaluate(argJoiner(ns.getList("expression").toArray(new String[]{}), 0).toLowerCase(), VARIABLE_SET));
                             x += step;
@@ -2506,6 +2513,7 @@ public class FozruciX extends ListenerAdapter {
                         Apfloat eval = EVALUATOR.evaluate(argJoiner(expression, 0, 0));
                         DecimalFormat df = new DecimalFormat("0", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
                         df.setMaximumFractionDigits(340); //340 = DecimalFormat.DOUBLE_FRACTION_DIGITS
+                        df.setMaximumIntegerDigits(340);
                         sendMessage(event, df.format(eval));
                     }
                 } catch (ArgumentParserException e) {
@@ -3709,6 +3717,9 @@ public class FozruciX extends ListenerAdapter {
                     sendError(event, new Exception("That Language doesn't exist!"));
                 } catch (ArgumentParserException e) {
                     sendCommandHelp(event, parser, e);
+                } catch (IOException e) {
+                    sendError(event, new Exception("IOException! try again"));
+                    LOGGER.error("Trans error", e);
                 } catch (Exception e) {
                     sendError(event, e);
                 }
@@ -3735,6 +3746,9 @@ public class FozruciX extends ListenerAdapter {
                     addCooldown(event.getUser());
                 } catch (IllegalArgumentException e) {
                     sendError(event, new Exception("That class doesn't exist!"));
+                } catch (IOException e) {
+                    sendError(event, new Exception("IOException! try again"));
+                    LOGGER.error("Trans error", e);
                 } catch (Exception e) {
                     sendError(event, e);
                 }
@@ -5217,7 +5231,6 @@ public class FozruciX extends ListenerAdapter {
                 botOPEngine["discordChannel"] = null;
                 botOPEngine["discordType"] = null;
                 botOPEngine["discordGuild"] = null;
-                botOPEngine["jda"] = null;
                 botOPEngine["discordAuthor"] = null;
                 botOPEngine["discordMember"] = null;
                 botOPEngine["discordGroup"] = null;

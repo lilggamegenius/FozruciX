@@ -64,9 +64,9 @@ public class DiscordAdapter extends ListenerAdapter {
                     .setAutoReconnect(true)
                     .setAudioEnabled(true)
                     .setEnableShutdownHook(true)
-                    .addListener(this)
-                    .buildBlocking();
-        DiscordAdapter.bot = new FozruciX(FozruciX.Network.discord, FozConfig.getManager());
+		        .addEventListener(this)
+		        .buildBlocking();
+	    DiscordAdapter.bot = new FozruciX(FozruciX.Network.discord, FozConfig.getManager());
             DiscordAdapter.pircBotX = pircBotX;
         game = new GameThread(jda.getPresence());
         game.setName("Game Setter thread");

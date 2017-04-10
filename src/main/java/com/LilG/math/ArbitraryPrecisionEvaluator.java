@@ -196,13 +196,10 @@ public class ArbitraryPrecisionEvaluator extends AbstractEvaluator<Apfloat> {
      * The whole set of predefined constants
      */
     private static final Constant[] CONSTANTS = new Constant[]{PI, E};
-    private static final ThreadLocal<NumberFormat> FORMATTER = new ThreadLocal<NumberFormat>() {
-        @Override
-        protected NumberFormat initialValue() {
-            return NumberFormat.getNumberInstance(Locale.US);
-        }
-    };
-    private static Parameters DEFAULT_PARAMETERS;
+	private static final ThreadLocal<NumberFormat> FORMATTER = ThreadLocal.withInitial(() -> NumberFormat.getNumberInstance(Locale.US));
+	private static Parameters DEFAULT_PARAMETERS;
+
+	private static long precision = 64;
 
     /**
      * Constructor.
@@ -261,7 +258,7 @@ public class ArbitraryPrecisionEvaluator extends AbstractEvaluator<Apfloat> {
 
     @Override
     protected Apfloat toValue(String literal, Object evaluationContext) {
-        return new Apfloat(literal);
+	    return new Apfloat(literal, precision);
     }
 
     /* (non-Javadoc)
@@ -270,9 +267,9 @@ public class ArbitraryPrecisionEvaluator extends AbstractEvaluator<Apfloat> {
     @Override
     protected Apfloat evaluate(Constant constant, Object evaluationContext) {
         if (PI.equals(constant)) {
-            return new Apfloat(Math.PI);
+	        return ApfloatMath.pi(precision);
         } else if (E.equals(constant)) {
-            return new Apfloat(Math.E);
+	        return new Apfloat(Math.E, precision);
         } else {
             return super.evaluate(constant, evaluationContext);
         }
@@ -362,13 +359,13 @@ public class ArbitraryPrecisionEvaluator extends AbstractEvaluator<Apfloat> {
                 result = result.add(arguments.next());
                 nb++;
             }
-            result = result.divide(new Apfloat(nb));
+	        result = result.divide(new Apfloat(nb, precision));
         } else if (LN.equals(function)) {
             result = ApfloatMath.log(arguments.next());
         } else if (LOG.equals(function)) {
-            result = ApfloatMath.log(arguments.next(), new Apfloat(10));
+	        result = ApfloatMath.log(arguments.next(), new Apfloat(10, precision));
         } else if (RANDOM.equals(function)) {
-            result = new Apfloat(Math.random());
+	        result = new Apfloat(Math.random(), precision);
         } else {
             result = super.evaluate(function, arguments, evaluationContext);
         }
@@ -381,4 +378,10 @@ public class ArbitraryPrecisionEvaluator extends AbstractEvaluator<Apfloat> {
             throw new IllegalArgumentException("Invalid argument passed to " + function.getName());
         }
     }
+
+	public void setPrecision(long precision) {
+		if (precision > 0) {
+			ArbitraryPrecisionEvaluator.precision = precision;
+		}
+	}
 }
