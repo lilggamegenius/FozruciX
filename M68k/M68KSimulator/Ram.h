@@ -5,6 +5,8 @@
 #ifndef M68KSIMULATOR_RAM_H
 #define M68KSIMULATOR_RAM_H
 
+class Address;
+
 #include <cstdint>
 #include <malloc.h>
 #include "Address.h"
@@ -25,7 +27,7 @@ typedef union{
 class Ram {
 public:
     static RamMap* memory;
-    static Address operator[](M68kAddr address);
+    Address operator[](M68kAddr address);
 };
 
 

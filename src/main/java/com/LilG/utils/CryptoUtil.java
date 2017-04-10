@@ -30,14 +30,23 @@ public class CryptoUtil {
     }
 
     public static void main(String[] args) throws Exception {
-        String plain = FozConfig.setPassword(Password.discord);
-        String enc = CryptoUtil.encrypt(plain);
-        System.out.println("Original text: " + plain);
-        System.out.println("Encrypted text: " + enc);
-        String plainAfter = CryptoUtil.decrypt(enc);
-        System.out.println("Original text after decryption: " + plainAfter);
-        String decrypted = CryptoUtil.decrypt(plain);
-        System.out.println("Original text decrypted: " + decrypted);
+	    salt = FozConfig.setPassword(Password.salt).getBytes();
+	    String plain, enc, plainAfter, decrypted;
+	    for (Password pass : Password.values()) {
+		    try {
+			    System.out.println(pass);
+			    plain = FozConfig.setPassword(pass);
+			    enc = CryptoUtil.encrypt(plain);
+			    System.out.println("Original text: " + plain);
+			    System.out.println("Encrypted text: " + enc);
+			    plainAfter = CryptoUtil.decrypt(enc);
+			    System.out.println("Original text after decryption: " + plainAfter);
+			    decrypted = CryptoUtil.decrypt(plain);
+			    System.out.println("Original text decrypted: " + decrypted);
+			    System.out.println();
+		    } catch (Exception ignored) {
+		    }
+	    }
     }
 
     public static String encrypt(String plainText) {

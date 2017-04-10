@@ -13,15 +13,16 @@ import org.jetbrains.annotations.NotNull;
 import org.pircbotx.Configuration;
 import org.pircbotx.MultiBotManager;
 import org.pircbotx.UtilSSLSocketFactory;
+import org.pircbotx.cap.EnableCapHandler;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
-import java.net.Inet4Address;
+import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
-import java.util.Collections;
+import java.util.Enumeration;
 
 /**
  * Created by ggonz on 10/12/2015.
@@ -43,37 +44,45 @@ public class FozConfig {
     public final static String kvircFlags = "\u00034\u000F";
     public final static String realName = kvircFlags + "* Why do i always get the freaks...";
     public final static MultiBotManager manager = new MultiBotManager();
+    public final static LocationRelativeToServer location;
     private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(FozConfig.class);
     transient final static String PASSWORD = setPassword(Password.normal);
     private final static File bak = new File("Data/DataBak.json");
     private final static File saveFile = new File("Data/Data.json");
-    private final static LocationRelativeToServer location;
     private final static int attempts = 10;
     private final static int connectDelay = 15 * 1000;
     private final static Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
     static {
         loadData();
-        LocationRelativeToServer locationTemp = null;
+        LocationRelativeToServer locationTemp = LocationRelativeToServer.local;
         try {
             System.setProperty("jna.library.path", "M68k");
             System.setProperty("jna.debug_load", "true");
             System.setProperty("jna.debug_load.jna", "true");
             Class.forName("com.mysql.jdbc.Driver").newInstance();
-            String address = Collections.list(NetworkInterface.getNetworkInterfaces()).stream()
-                    .flatMap(i -> Collections.list(i.getInetAddresses()).stream())
-                    .filter(ip -> ip instanceof Inet4Address && ip.isSiteLocalAddress())
-                    .findFirst().orElseThrow(RuntimeException::new)
-                    .getHostAddress();
-            LOGGER.debug("Address is " + address);
-            if (address.startsWith("10.0.0.")) {
-                if (address.equalsIgnoreCase("10.0.0.63")) {
-                    locationTemp = LocationRelativeToServer.self;
-                } else {
-                    locationTemp = LocationRelativeToServer.local;
+            Enumeration<NetworkInterface> n = NetworkInterface.getNetworkInterfaces();
+getAddress:
+            for (; n.hasMoreElements(); ) {
+                Enumeration<InetAddress> inetAddresses = n.nextElement().getInetAddresses();
+                for (; inetAddresses.hasMoreElements(); ) {
+                    InetAddress inetAddress = inetAddresses.nextElement();
+                    if (inetAddress.isLoopbackAddress() || inetAddress.isLinkLocalAddress() || inetAddress.isMulticastAddress())
+                        continue;
+                    String address = inetAddress.getHostAddress();
+                    LOGGER.debug("Address is " + address);
+                    if (address.startsWith("10.0.0.")) {
+                        if (address.equalsIgnoreCase("10.0.0.63")) {
+                            locationTemp = LocationRelativeToServer.self;
+                            break getAddress;
+                        } else {
+                            locationTemp = LocationRelativeToServer.local;
+                            break getAddress;
+                        }
+                    } else {
+                        locationTemp = LocationRelativeToServer.global;
+                    }
                 }
-            } else {
-                locationTemp = LocationRelativeToServer.global;
             }
         } catch (ClassNotFoundException e) {
             LOGGER.error("SQL Driver not found", e);
@@ -81,18 +90,10 @@ public class FozConfig {
             LOGGER.error("Error", e2);
         }
         location = locationTemp;
-        switch (location) {
-            case self:
-                Lil_G_Net = "localhost";
-                break;
-            case local:
-                Lil_G_Net = "10.0.0.63";
-                break;
-            case global:
-                Lil_G_Net = "irc.lilggamegenius.ml";
-                break;
-            default:
-                Lil_G_Net = "you fucking broke it";
+        if (location == LocationRelativeToServer.global) {
+            Lil_G_Net = "irc." + location.address;
+        } else {
+            Lil_G_Net = location.address;
         }
     }
     public final static Configuration.Builder debugLil_G_NetConfig = new Configuration.Builder()
@@ -146,7 +147,7 @@ public class FozConfig {
             .addAutoJoinChannel("#sm64")
             .addAutoJoinChannel("#botTest")
             .addListener(new FozruciX(manager)); //Add our listener that will be called on Events
-    /*public final static Configuration.Builder twitchDebug = new Configuration.Builder()
+    public final static Configuration.Builder twitchDebug = new Configuration.Builder()
             .setAutoReconnectDelay(connectDelay)
             .setAutoReconnect(true)
             .setAutoReconnectAttempts(attempts)
@@ -155,7 +156,7 @@ public class FozConfig {
             .setLogin(nick.toLowerCase())
             .addAutoJoinChannel("#lilggamegenuis") //Join lilggamegenuis's twitch chat
             .addListener(new FozruciX(FozruciX.Network.twitch, manager)); //Add our listener that will be called on Events
-    */public final static Configuration.Builder debugConfigEsper = new Configuration.Builder()
+    public final static Configuration.Builder debugConfigEsper = new Configuration.Builder()
             .setAutoReconnectDelay(connectDelay)
             .setEncoding(Charset.forName("UTF-8"))
             .setAutoReconnect(true)
@@ -218,7 +219,7 @@ public class FozConfig {
             .addAutoJoinChannel("#homebrew")
             .addAutoJoinChannel("#radbusiness")
             .addListener(new FozruciX(manager)); //Add our listener that will be called on Events
-    /*public final static Configuration.Builder twitchNormal = new Configuration.Builder()
+    public final static Configuration.Builder twitchNormal = new Configuration.Builder()
             .setAutoReconnectDelay(connectDelay)
             .setEncoding(Charset.forName("UTF-8"))
             .setAutoReconnect(true)
@@ -234,7 +235,7 @@ public class FozConfig {
             .addAutoJoinChannel("#lilggamegenuis") //Join lilggamegenuis's twitch chat
             .addAutoJoinChannel("#deltasmash")
             .addListener(new FozruciX(FozruciX.Network.twitch, manager)); //Add our listener that will be called on Events
-    */public final static Configuration.Builder normalEsper = new Configuration.Builder()
+    public final static Configuration.Builder normalEsper = new Configuration.Builder()
             .setAutoReconnectDelay(connectDelay)
             .setEncoding(Charset.forName("UTF-8"))
             .setAutoReconnect(true)
@@ -305,7 +306,7 @@ public class FozConfig {
             manager.addBot(debugConfig.buildForServer(badnik, 6697));
             manager.addBot(debugConfigSmwc.buildForServer(caffie, 6697));
             manager.addBot(debugConfigEsper.buildForServer(esper, 6697));
-            //manager.addBot(twitchDebug.buildForServer(twitch, 6667, CryptoUtil.decrypt(setPassword(Password.twitch))));
+            manager.addBot(twitchDebug.buildForServer(twitch, 6667, CryptoUtil.decrypt(setPassword(Password.twitch))));
             manager.addBot(debugConfigNova.buildForServer(nova, 6697));
             manager.addBot(debugConfigRizon.buildForServer(rizon, 9999));
             manager.addBot(debugLil_G_NetConfig.buildForServer(Lil_G_Net, 6667));
@@ -313,7 +314,7 @@ public class FozConfig {
             manager.addBot(normal.buildForServer(badnik, 6697));
             manager.addBot(normalSmwc.buildForServer(caffie, 6697));
             manager.addBot(normalEsper.buildForServer(esper, 6697));
-            //manager.addBot(twitchNormal.buildForServer(twitch, 6667, CryptoUtil.decrypt(setPassword(Password.twitch))));
+            manager.addBot(twitchNormal.buildForServer(twitch, 6667, CryptoUtil.decrypt(setPassword(Password.twitch))));
             manager.addBot(normalNova.buildForServer(nova, 6697));
             manager.addBot(normalRizon.buildForServer(rizon, 9999));
             manager.addBot(normalLil_G_NetConfig.buildForServer(Lil_G_Net, 6667));
@@ -340,12 +341,8 @@ public class FozConfig {
         } else {
             throw new RuntimeException("Can't find file specified");
         }
-        FileInputStream fin = null;
         String ret = " ";
-        try {
-            // create FileInputStream object
-            fin = new FileInputStream(file);
-
+        try (FileInputStream fin = new FileInputStream(file)) {
             byte fileContent[] = new byte[(int) file.length()];
 
             // Reads up to certain bytes of data from this input stream into an array of bytes.
@@ -357,15 +354,6 @@ public class FozConfig {
             LOGGER.error("File not found", e);
         } catch (IOException ioe) {
             LOGGER.error("Exception while reading file", ioe);
-        } finally {
-            // close the streams using close method
-            try {
-                if (fin != null) {
-                    fin.close();
-                }
-            } catch (IOException ioe) {
-                LOGGER.error("Error while closing stream", ioe);
-            }
         }
         return ret;
     }
@@ -422,7 +410,15 @@ public class FozConfig {
     }
 
     private enum LocationRelativeToServer {
-        self, local, global
+        self("localhost"),
+        local("10.0.0.63"),
+        global("lilggamegenius.ml");
+
+        public final String address;
+
+        LocationRelativeToServer(String address) {
+            this.address = address;
+        }
     }
 
 }

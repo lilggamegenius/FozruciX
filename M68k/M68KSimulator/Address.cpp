@@ -4,7 +4,7 @@
 
 #include "Address.h"
 
-Address::Address(M68kAddr address, Size size = Size::Byte) {
+Address::Address(M68kAddr address, Size size) {
     addr = address;
     this->size = size;
 }

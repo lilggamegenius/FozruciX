@@ -64,7 +64,7 @@ public class CommandLine extends Thread {
                     throw new IllegalStateException("Process exited");
                 }
             } else {
-                String host = JOptionPane.showInputDialog("Enter username@hostname", "lil-g@ssh.lilggamegenuis.tk");
+                String host = JOptionPane.showInputDialog("Enter username@hostname", "lil-g@ssh.lilggamegenius.ml");
                 String user = host.substring(0, host.indexOf('@'));
                 host = host.substring(host.indexOf('@') + 1);
                 try {

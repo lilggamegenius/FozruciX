@@ -5,8 +5,6 @@
       <profile default="true" name="Default" enabled="true" />
     </annotationProcessing>
     <bytecodeTargetLevel target="1.8">
-      <module name="dIRCord_Updater_main" target="1.5" />
-      <module name="dIRCord_Updater_test" target="1.5" />
       <module name="FozruciX_main" target="1.8" />
       <module name="FozruciX_test" target="1.8" />
       <module name="yandex-translator-java-api_main" target="1.8" />

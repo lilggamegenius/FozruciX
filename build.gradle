@@ -5,9 +5,9 @@ apply plugin: 'idea'
 group 'com.LilG'
 version '2.2'
 
+
 repositories {
     jcenter()
-    maven { url 'http://amelentev.github.io/mvnrepo/' }
     maven { url "https://jitpack.io" }
 }
 
@@ -24,7 +24,7 @@ dependencies {
     compile group: 'commons-lang', name: 'commons-lang', version: '2.6'
     compile group: 'org.jsoup', name: 'jsoup', version: '1.8.3'
     compile group: 'org.apache', name: 'apache', version: '15'
-    compile group: 'com.google.guava', name: 'guava', version: '19.0'
+    compile group: 'com.google.guava', name: 'guava', version: '+'
     compile group: 'org.apache.httpcomponents', name: 'httpcomponents-core', version: '4.3.3'
     compile group: 'org.apache.httpcomponents', name: 'httpcomponents-asyncclient', version: '4.0.2'
     compile group: 'org.apache.httpcomponents', name: 'httpasyncclient', version: '4.0.2'
@@ -41,7 +41,6 @@ dependencies {
     compile group: 'ch.qos.logback', name: 'logback-classic', version: '1.0.13'
     compile group: 'ch.qos.logback', name: 'logback-core', version: '1.0.13'
     compile group: 'org.projectlombok', name: 'lombok', version: '1.12.2'
-    compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.13'
     compile group: 'commons-io', name: 'commons-io', version: '1.4'
     compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.4'
     compile group: 'org.apache.commons', name: 'commons-parent', version: '9'
@@ -56,7 +55,6 @@ dependencies {
     compile group: 'org.apfloat', name: 'apfloat', version: '1.8.2'
     compile group: 'com.jcraft', name: 'jsch', version: '0.1.53'
     compile group: 'com.fathzer', name: 'javaluator', version: '3.0.1'
-
     compile group: 'de.dfki.mary', name: 'voice-cmu-bdl-hsmm', version: '5.2'
     compile files('lib/yandex-translator-java-api.jar')
 
@@ -64,11 +62,13 @@ dependencies {
 
     compile files('lib/WolframAlphaJavaLibrary/WolframAlpha-1.1.jar')
 
-    compile files('/home/lil-g/Downloads/idea-IU-163.7743.44/redist/annotations-java8.jar')
-    //compile files('C:\\Program Files (x86)\\JetBrains\\IntelliJ IDEA 2016.2.3\\redist\\annotations-java8.jar')
+    compile files('/home/lil-g/.local/share/JetBrains/Toolbox/apps/IDEA-U/ch-0/171.4249.4/redist/annotations-java8.jar')
+    //compile files('C:\\Users\\ggonz\\AppData\\Local\\JetBrains\\Toolbox\\apps\\IDEA-U\\ch-1\\163.13906.18\\redist\\annotations-java8.jar')
 
     compile group: 'net.dv8tion', name: 'JDA', version: '+'
     //compile group: 'org.pircbotx', name: 'pircbotx', version: '2.1'
-    compile group: 'com.github.TheLQ', name: 'pircbotx', version: 'master-SNAPSHOT'
+    compile(group: 'com.github.TheLQ', name: 'pircbotx', version: 'master-SNAPSHOT'){
+        exclude group: 'org.slf4j', module: 'slf4j-log4j12'
+    }
 
 }

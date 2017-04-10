@@ -5,6 +5,10 @@
 #ifndef M68KSIMULATOR_M68KSIMULATOR_H
 #define M68KSIMULATOR_M68KSIMULATOR_H
 
+class AddressSpace;
+class Rom;
+class Address;
+
 #if defined(_MSC_VER)
 //  Microsoft
 #define EXPORT __declspec(dllexport)
@@ -21,6 +25,8 @@
 #endif
 
 #define CEXPORT extern "C" EXPORT
+
+#include "AddressSpace.h"
 
 class M68KSimulator {
 public:
