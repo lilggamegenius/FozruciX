@@ -97,7 +97,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static com.LilG.utils.LilGUtil.endsWithAny;
+import static com.LilG.utils.LilGUtil.INSTANCE.endsWithAny;
 import static com.LilG.utils.LilGUtil.equalsAnyIgnoreCase;
 import static com.citumpe.ctpTools.jWMI.getWMIValue;
 

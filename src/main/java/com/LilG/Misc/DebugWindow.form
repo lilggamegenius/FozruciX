@@ -3,7 +3,7 @@
   <grid id="e4afe" layout-manager="GridLayoutManager" row-count="4" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
     <margin top="0" left="0" bottom="0" right="0"/>
     <constraints>
-      <xy x="10" y="10" width="170" height="120"/>
+      <xy x="10" y="10" width="442" height="120"/>
     </constraints>
     <properties>
       <name value="null.contentPane"/>
@@ -13,11 +13,12 @@
       <component id="3b1e8" class="javax.swing.JLabel">
         <constraints>
           <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false">
-            <preferred-size width="180" height="19"/>
+            <preferred-size width="538" height="19"/>
           </grid>
         </constraints>
         <properties>
           <horizontalAlignment value="2"/>
+          <labelFor value="e62a7"/>
           <text value="Currently Registered User"/>
           <toolTipText value="Current logged in user. uses bots user when not logged in"/>
         </properties>
@@ -35,11 +36,12 @@
       <component id="316d1" class="javax.swing.JLabel">
         <constraints>
           <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false">
-            <preferred-size width="180" height="19"/>
+            <preferred-size width="538" height="19"/>
           </grid>
         </constraints>
         <properties>
           <horizontalAlignment value="2"/>
+          <labelFor value="ae88"/>
           <text value="Last message"/>
           <toolTipText value="Last sent message"/>
         </properties>
@@ -52,18 +54,6 @@
           <columns value="10"/>
           <text value=""/>
           <toolTipText value="Last sent message"/>
-        </properties>
-      </component>
-      <component id="81745" class="javax.swing.JLabel">
-        <constraints>
-          <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false">
-            <preferred-size width="180" height="19"/>
-          </grid>
-        </constraints>
-        <properties>
-          <horizontalAlignment value="2"/>
-          <text value="Memory Usage"/>
-          <toolTipText value="Current resource usage"/>
         </properties>
       </component>
       <component id="f3aa" class="javax.swing.JTextField" binding="memoryUsage">
@@ -82,11 +72,12 @@
       <component id="fe78c" class="javax.swing.JComboBox" binding="channelList">
         <constraints>
           <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false">
-            <preferred-size width="180" height="29"/>
+            <preferred-size width="538" height="29"/>
           </grid>
         </constraints>
         <properties>
           <actionCommand value="comboBoxChanged"/>
+          <editable value="false"/>
           <model/>
           <toolTipText value="Channel list"/>
         </properties>
@@ -99,6 +90,19 @@
           <columns value="512"/>
           <text value=""/>
           <toolTipText value="Message to send"/>
+        </properties>
+      </component>
+      <component id="81745" class="javax.swing.JLabel">
+        <constraints>
+          <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false">
+            <preferred-size width="538" height="19"/>
+          </grid>
+        </constraints>
+        <properties>
+          <horizontalAlignment value="2"/>
+          <labelFor value="f3aa"/>
+          <text value="Memory Usage"/>
+          <toolTipText value="Current resource usage"/>
         </properties>
       </component>
     </children>

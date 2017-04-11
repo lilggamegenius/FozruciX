@@ -1,9 +1,9 @@
-package com.LilG.pkmn;
+package com.LilG.pkmn
 
 /**
  * Created by lil-g on 11/14/16.
  */
-public enum Move {
+enum class Move private constructor(type: Type, category: Move.MoveCategory, description: String) {
     Absorb(Type.Grass, MoveCategory.Special, "A nutrient-draining attack. The user's HP is restored by half the damage taken by the target."),
     Acid(Type.Poison, MoveCategory.Special, "The opposing Pokémon are attacked with a spray of harsh acid. This may also lower their Sp. Def stats."),
     AcidArmor(Type.Poison, MoveCategory.Other, "The user alters its cellular structure to liquefy itself, sharply raising its Defense stat."),
@@ -32,30 +32,22 @@ public enum Move {
     AuraSphere(Type.Fighting, MoveCategory.Special, "The user looses a blast of aura power from deep within its body at the target. This attack never misses."),
     AuroraBeam(Type.Ice, MoveCategory.Special, "The target is hit with a rainbow-colored beam. This may also lower the target's Attack stat."),
     Autotomize(Type.Steel, MoveCategory.Other, "The user sheds part of its body to make itself lighter and sharply raise its Speed stat."),
-    Avalanche(Type.Ice, MoveCategory.Physical, "An attack move that inflicts double the damage if the user has been hurt by the target in the same turn."),;
-    Type type;
-    MoveCategory category;
-    String description;
+    Avalanche(Type.Ice, MoveCategory.Physical, "An attack move that inflicts double the damage if the user has been hurt by the target in the same turn.");
 
-    Move(Type type, MoveCategory category, String description) {
-        this.type = type;
-        this.category = category;
-        this.description = description;
+    var type: Type
+        internal set
+    var category: MoveCategory
+        internal set
+    var description: String
+        internal set
+
+    init {
+        this.type = type
+        this.category = category
+        this.description = description
     }
 
-    public Type getType() {
-        return type;
-    }
-
-    public MoveCategory getCategory() {
-        return category;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    enum MoveCategory {
+    enum class MoveCategory {
         Physical, Special, Other
     }
 }

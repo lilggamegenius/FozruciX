@@ -71,7 +71,7 @@ public class DebugWindow extends JFrame {
 		String networkName = bot.getServerInfo().getNetwork();
 		String nick = bot.getNick();
 		if (network == FozruciX.Network.discord) {
-			jda = DiscordAdapter.getJda();
+			jda = DiscordAdapter.Companion.getJda();
 			networkName = "Discord";
 			nick = jda.getSelfUser().getName();
 			try {
@@ -146,7 +146,7 @@ public class DebugWindow extends JFrame {
 
 		selectedChannel = (String) comboBox.getSelectedItem();
 
-		Timer timer = new Timer(2000, e -> memoryUsage.setText("Current memory usage: " + LilGUtil.formatFileSize(runtime.totalMemory() - runtime.freeMemory()) + "/" + LilGUtil.formatFileSize(runtime.totalMemory()) + ". Total memory that can be used: " + LilGUtil.formatFileSize(runtime.maxMemory()) + ".  Active Threads: " + Thread.activeCount() + "/" + ManagementFactory.getThreadMXBean().getThreadCount() + ".  Available Processors: " + runtime.availableProcessors()));
+		Timer timer = new Timer(2000, e -> memoryUsage.setText("Current memory usage: " + LilGUtil.INSTANCE.formatFileSize(runtime.totalMemory() - runtime.freeMemory()) + "/" + LilGUtil.formatFileSize(runtime.totalMemory()) + ". Total memory that can be used: " + LilGUtil.formatFileSize(runtime.maxMemory()) + ".  Active Threads: " + Thread.activeCount() + "/" + ManagementFactory.getThreadMXBean().getThreadCount() + ".  Available Processors: " + runtime.availableProcessors()));
 		timer.start();
 	}
 
@@ -178,7 +178,7 @@ public class DebugWindow extends JFrame {
 		if (network == FozruciX.Network.discord) {
 			String guildName = selectedChannel.substring(0, selectedChannel.indexOf(':'));
 			String channel = selectedChannel.substring(selectedChannel.indexOf('#') + 1);
-exitLoop:
+			exitLoop:
 			for (Guild guild : jda.getGuildsByName(guildName, false)) {
 				if (guild.getName().equalsIgnoreCase(guildName)) {
 					for (TextChannel textChannel : guild.getTextChannels()) {
@@ -194,7 +194,7 @@ exitLoop:
 							break exitLoop;
 						}
 					}
-				    /*for (VoiceChannel voiceChannel : guild.getVoiceChannels()) {
+					/*for (VoiceChannel voiceChannel : guild.getVoiceChannels()) {
                         if (voiceChannel.getName().equalsIgnoreCase(channel) && selectedChannel.contains(": v#")) {
                             AudioManager audioManager = voiceChannel;
                             File outputFile = new File("Data/messageSent.wav");
@@ -276,7 +276,7 @@ exitLoop:
 		label1.setHorizontalAlignment(2);
 		label1.setText("Currently Registered User");
 		label1.setToolTipText("Current logged in user. uses bots user when not logged in");
-		panel1.add(label1, new com.intellij.uiDesigner.core.GridConstraints(0, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_BOTH, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, null, new Dimension(180, 19), null, 0, false));
+		panel1.add(label1, new com.intellij.uiDesigner.core.GridConstraints(0, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_BOTH, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, null, new Dimension(538, 19), null, 0, false));
 		currentNick = new JTextField();
 		currentNick.setColumns(10);
 		currentNick.setText("");
@@ -286,17 +286,12 @@ exitLoop:
 		label2.setHorizontalAlignment(2);
 		label2.setText("Last message");
 		label2.setToolTipText("Last sent message");
-		panel1.add(label2, new com.intellij.uiDesigner.core.GridConstraints(1, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_BOTH, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, null, new Dimension(180, 19), null, 0, false));
+		panel1.add(label2, new com.intellij.uiDesigner.core.GridConstraints(1, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_BOTH, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, null, new Dimension(538, 19), null, 0, false));
 		lastMessage = new JTextField();
 		lastMessage.setColumns(10);
 		lastMessage.setText("");
 		lastMessage.setToolTipText("Last sent message");
 		panel1.add(lastMessage, new com.intellij.uiDesigner.core.GridConstraints(1, 1, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_BOTH, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
-		final JLabel label3 = new JLabel();
-		label3.setHorizontalAlignment(2);
-		label3.setText("Memory Usage");
-		label3.setToolTipText("Current resource usage");
-		panel1.add(label3, new com.intellij.uiDesigner.core.GridConstraints(2, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_BOTH, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, null, new Dimension(180, 19), null, 0, false));
 		memoryUsage = new JTextField();
 		memoryUsage.setColumns(10);
 		memoryUsage.setScrollOffset(0);
@@ -307,14 +302,23 @@ exitLoop:
 		panel1.add(memoryUsage, new com.intellij.uiDesigner.core.GridConstraints(2, 1, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_BOTH, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
 		channelList = new JComboBox();
 		channelList.setActionCommand("comboBoxChanged");
+		channelList.setEditable(false);
 		final DefaultComboBoxModel defaultComboBoxModel1 = new DefaultComboBoxModel();
 		channelList.setModel(defaultComboBoxModel1);
 		channelList.setToolTipText("Channel list");
-		panel1.add(channelList, new com.intellij.uiDesigner.core.GridConstraints(3, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_BOTH, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, null, new Dimension(180, 29), null, 0, false));
+		panel1.add(channelList, new com.intellij.uiDesigner.core.GridConstraints(3, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_BOTH, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, null, new Dimension(538, 29), null, 0, false));
 		message = new JTextField();
 		message.setColumns(512);
 		message.setText("");
 		message.setToolTipText("Message to send");
 		panel1.add(message, new com.intellij.uiDesigner.core.GridConstraints(3, 1, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_BOTH, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
+		final JLabel label3 = new JLabel();
+		label3.setHorizontalAlignment(2);
+		label3.setText("Memory Usage");
+		label3.setToolTipText("Current resource usage");
+		panel1.add(label3, new com.intellij.uiDesigner.core.GridConstraints(2, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_BOTH, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, null, new Dimension(538, 19), null, 0, false));
+		label1.setLabelFor(currentNick);
+		label2.setLabelFor(lastMessage);
+		label3.setLabelFor(memoryUsage);
 	}
 }

@@ -1,8 +1,8 @@
-package com.LilG.pkmn;
+package com.LilG.pkmn
 
 /**
  * Created by lil-g on 11/14/16.
  */
-public enum StatusEffect {
+enum class StatusEffect {
     Paralyzed, Poisoned, BadlyPoisoned, Burned, Frozen, Flinch, Confused, Infatuation, LeechSeed
 }
