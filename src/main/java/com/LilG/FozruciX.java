@@ -637,7 +637,7 @@ public class FozruciX extends ListenerAdapter {
                     minute = "0" + minute;
                 }
                 PrintWriter out;
-                String logFile = String.format("%02d", (int) today[Calendar.HOUR]) + ":" + minute + ":" + String.format("%02d", (int) today[Calendar.SECOND]) + String.format("%1$" + 12 + "s", String.format(eventType.getVal(), user) + message);
+                String logFile = String.format("%02d", (int) today[Calendar.HOUR]) + ":" + minute + ":" + String.format("%02d", (int) today[Calendar.SECOND]) + String.format("%1$12s", String.format(eventType.getVal(), user) + message);
                 if (file.exists() && !file.isDirectory()) {
                     out = new PrintWriter(new FileOutputStream(file, true));
                     out.append(logFile).append(System.lineSeparator());
@@ -703,19 +703,19 @@ public class FozruciX extends ListenerAdapter {
     public synchronized static void sendError(@NotNull MessageEvent event, @NotNull Exception e) {
         LOGGER.error("Error: ", e);
         String color = "";
-        String discordFormating = event instanceof DiscordMessageEvent ? "`" : "";
+        String discordFormatting = event instanceof DiscordMessageEvent ? "`" : "";
         String cause = "";
         String from;
-        if (BOOLS[COLOR] && discordFormating.isEmpty()) {
+        if (BOOLS[COLOR] && discordFormatting.isEmpty()) {
             color = Colors.RED;
         }
         if (e.getCause() != null) {
-            cause = "Error: " + discordFormating + e.getCause() + discordFormating;
+            cause = "Error: " + discordFormatting + e.getCause() + discordFormatting;
         }
         if (cause.isEmpty()) {
-            from = "Error: " + discordFormating + e + discordFormating;
+            from = "Error: " + discordFormatting + e + discordFormatting;
         } else {
-            from = ". From " + discordFormating + e + discordFormating;
+            from = ". From " + discordFormatting + e + discordFormatting;
         }
         if (cause.contains("jdk.nashorn.internal.runtime.ParserException") || from.contains("javax.script.ScriptException")) {
             if (cause.contains("TypeError: Cannot read property")) {
@@ -759,7 +759,7 @@ public class FozruciX extends ListenerAdapter {
         }
     }
 
-    private void sendCommandHelp(GenericEvent event, ArgumentParser parser, ArgumentParserException e) {
+    private void sendCommandHelp(GenericEvent event, ArgumentParser parser) {
         try {
             StringWriter stringWriter = new StringWriter();
             PrintWriter writer = new PrintWriter(stringWriter);
@@ -788,7 +788,7 @@ public class FozruciX extends ListenerAdapter {
 
     private boolean checkCooldown(MessageEvent event) {
         if (event.getUser() != null && commandCooldown.containsKey(event.getUser())) {
-            long timeToWait = (long) commandCooldown[event.getUser()] - System.currentTimeMillis();
+            long timeToWait = commandCooldown[event.getUser()] - System.currentTimeMillis();
             if (timeToWait < 0) { //wtf? this shouldn't happen
                 removeFromCooldown();
                 return false;
@@ -1212,7 +1212,7 @@ public class FozruciX extends ListenerAdapter {
             else if (commandChecker(event, arg, "checkLinks")) {
                 if (checkPerm(event.getUser(), 4)) {
                     BOOLS.flip(CHECK_LINKS);
-                    if ((boolean) BOOLS[CHECK_LINKS]) {
+                    if (BOOLS[CHECK_LINKS]) {
                         sendMessage(event, "Link checking is on");
                     } else {
                         sendMessage(event, "Link checking is off");
@@ -1708,7 +1708,7 @@ public class FozruciX extends ListenerAdapter {
                         }
 
                     } catch (ArgumentParserException e) {
-                        sendCommandHelp(event, parser, e);
+                        sendCommandHelp(event, parser);
                     } catch (Exception e) {
                         sendError(event, e);
                     }
@@ -1913,7 +1913,7 @@ public class FozruciX extends ListenerAdapter {
                         manager.addBot(normal.buildForServer(server, port, ns.getString("key")));
                         sendMessage(event, "Connecting bot to " + ns.getString("address"), false);
                     } catch (ArgumentParserException e) {
-                        sendCommandHelp(event, parser, e);
+                        sendCommandHelp(event, parser);
                     } catch (Exception e) {
                         sendError(event, e);
                     }
@@ -2513,7 +2513,7 @@ public class FozruciX extends ListenerAdapter {
                         sendMessage(event, df.format(eval));
                     }
                 } catch (ArgumentParserException e) {
-                    sendCommandHelp(event, parser, e);
+                    sendCommandHelp(event, parser);
                 } catch (Exception e) {
                     sendError(event, e);
                 }
@@ -2626,7 +2626,7 @@ public class FozruciX extends ListenerAdapter {
                         }
                     }
                 } catch (ArgumentParserException e) {
-                    sendCommandHelp(event, parser, e);
+                    sendCommandHelp(event, parser);
                 } catch (Exception e) {
                     sendError(event, e);
                 }
@@ -2683,7 +2683,7 @@ public class FozruciX extends ListenerAdapter {
                         }
                     }
                 } catch (ArgumentParserException e) {
-                    sendCommandHelp(event, parser, e);
+                    sendCommandHelp(event, parser);
                 } catch (Exception e) {
                     sendError(event, e);
                 }
@@ -3588,7 +3588,7 @@ public class FozruciX extends ListenerAdapter {
                         return;
                     }
                 } catch (ArgumentParserException e) {
-                    sendCommandHelp(event, parser, e);
+                    sendCommandHelp(event, parser);
                 } catch (Exception e) {
                     sendError(event, e);
                 }
@@ -3712,7 +3712,7 @@ public class FozruciX extends ListenerAdapter {
                 } catch (IllegalArgumentException e) {
                     sendError(event, new Exception("That Language doesn't exist!"));
                 } catch (ArgumentParserException e) {
-                    sendCommandHelp(event, parser, e);
+                    sendCommandHelp(event, parser);
                 } catch (IOException e) {
                     sendError(event, new Exception("IOException! try again"));
                     LOGGER.error("Trans error", e);
