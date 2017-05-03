@@ -1044,10 +1044,10 @@ public class FozruciX extends ListenerAdapter {
             String channel = event.getChannel().getName();
             String[] arg = LilGUtil.splitMessage(event.getMessage());
             boolean checklink = !commandChecker(event, arg, "checkLink", false);
-            boolean isAqua = !event.getUser().getNick().equalsIgnoreCase("aqua-sama");
-            boolean isLinkShorterner = !event.getMessage().contains("taglink: https://is.gd/");
-            if (checklink && BOOLS[CHECK_LINKS] && isAqua && isLinkShorterner) {
-                boolean channelContains = false;
+	        boolean isBot = isBot((event));
+	        boolean isLinkShorterner = !event.getMessage().contains("taglink: https://is.gd/");
+	        if (checklink && BOOLS[CHECK_LINKS] && isBot && isLinkShorterner) {
+		        boolean channelContains = false;
                 boolean containsServer = false;
                 boolean containsChannel = false;
                 try {
@@ -1363,8 +1363,8 @@ public class FozruciX extends ListenerAdapter {
                                     }
                                     if (checkPerm((DiscordUser) event.getUser(), permNeeded)) {
                                         List<net.dv8tion.jda.core.entities.User> mentioned = discordEvent.getMessage().getMentionedUsers();
-                                        LOGGER.trace("Mentioned users: %s", mentioned);
-                                        Guild guild = discordEvent.getGuild();
+	                                    LOGGER.trace(String.format("Mentioned users: %s", mentioned.toString()));
+	                                    Guild guild = discordEvent.getGuild();
                                         GuildController controller = guild.getController();
                                         if (!mentioned.isEmpty()) {
                                             for (net.dv8tion.jda.core.entities.User mentionedUser : mentioned) {
@@ -1448,11 +1448,11 @@ public class FozruciX extends ListenerAdapter {
                                                     }
                                                 } else {
                                                     if(user.matches("\\d+") && user.length() == 18){
-                                                        LOGGER.info("Treating %s as id to be hackbanned", user);
-                                                        if(isBan){
+	                                                    LOGGER.info(String.format("Treating %s as id to be hackbanned", user));
+	                                                    if(isBan){
                                                             controller.ban(user, ns.getInt("remove_messages")).queue();
-                                                            LOGGER.info("Banned user %s", user);
-                                                        } else {
+	                                                        LOGGER.info(String.format("Banned user %s", user));
+	                                                    } else {
                                                             sendMessage(event, "you cannot \"hackkick\" a user (user: " + user + ")");
                                                         }
                                                     } else {

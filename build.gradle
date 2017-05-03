@@ -62,8 +62,10 @@ dependencies {
 
     compile files('lib/WolframAlphaJavaLibrary/WolframAlpha-1.1.jar')
 
-    //compile files('/home/lil-g/.local/share/JetBrains/Toolbox/apps/IDEA-U/ch-0/171.4249.4/redist/annotations-java8.jar')
-    compile files('C:\\Users\\ggonz\\AppData\\Local\\JetBrains\\Toolbox\\apps\\IDEA-U\\ch-1\\163.13906.18\\redist\\annotations-java8.jar')
+    compile fileTree(dir: 'lib\\C#')
+
+    compile files('/home/lil-g/.local/share/JetBrains/Toolbox/apps/IDEA-U/ch-0/171.4249.4/redist/annotations-java8.jar')
+    //compile files('C:\\Users\\ggonz\\AppData\\Local\\JetBrains\\Toolbox\\apps\\IDEA-U\\ch-1\\163.13906.18\\redist\\annotations-java8.jar')
 
     compile group: 'net.dv8tion', name: 'JDA', version: '+'
     //compile group: 'org.pircbotx', name: 'pircbotx', version: '2.1'
