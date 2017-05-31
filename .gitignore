@@ -1,14 +1,5 @@
 .gitignore
 .idea/*
-Data/
-asmcyclecount/
-build/
-*.bin
-ffmpeg
-ffprobe
-lib/
-logs/
-youtube-dl
-cmake-build-debug/
-*~
-libs/
+packages/*
+FozruciCS/bin/*
+FozruciCS/obj/*

@@ -257,7 +257,7 @@ namespace FozruciCS.Utils {
             return (int)(value * 1000) / 10.0;
         }
 
-        public static List<T> toList<T>(this java.util.List javaList){
+        public static List<T> toList<T>(this List javaList){
             var ret = new List<T>();
             for(var i = 0; i < javaList.size(); i++){ ret[i] = (T)javaList.get(i); }
             return ret;
@@ -270,6 +270,12 @@ namespace FozruciCS.Utils {
                 ret[i] = (T)iter.next();
             }
             return ret;
+        }
+
+        public static List toJList<T>(this List<T> list){
+            var jList = new ArrayList();
+            foreach(var i in list){ jList.add(i); }
+            return jList;
         }
     }
 }

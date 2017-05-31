@@ -10,21 +10,21 @@ namespace FozruciCS.DataStructs{
 		private static List<string> _mutedServerList = new List<string>();
 		private static Dictionary<string, List<string>> _markovChain = new Dictionary<string, List<string>>();
 
-		public static List<Note> noteList{get;set;} = new List<Note>();
+		public static List<Note> NoteList{get;set;} = new List<Note>();
 
-		public static List<string> authedUser{get;set;} = new List<string>();
+		public static List<string> AuthedUser{get;set;} = new List<string>();
 
-		public static List<int> authedUserLevel{get;set;} = new List<int>();
+		public static List<int> AuthedUserLevel{get;set;} = new List<int>();
 
-		public static string avatarLink{get;set;} = "http://puu.sh/oiLvW.gif";
+		public static string AvatarLink{get;set;} = "http://puu.sh/oiLvW.gif";
 
-		public static Dictionary<string, Meme> memes{get;set;} = new Dictionary<string, Meme>();
+		public static Dictionary<string, Meme> Memes{get;set;} = new Dictionary<string, Meme>();
 
-		public static Dictionary<string, string> fcList{get;set;} = new Dictionary<string, string>();
+		public static Dictionary<string, string> FcList{get;set;} = new Dictionary<string, string>();
 
-		public static List<string> dndJoined{get;set;} = new List<string>();
+		public static List<string> DndJoined{get;set;} = new List<string>();
 
-		public static Dictionary<string, Dictionary<string, List<string>>> allowedCommands{
+		public static Dictionary<string, Dictionary<string, List<string>>> AllowedCommands{
 			get{
 				if(_allowedCommands == null){ _allowedCommands = new Dictionary<string, Dictionary<string, List<string>>>(); }
 				if(_allowedCommands.Count >= 1) return _allowedCommands;
@@ -48,7 +48,7 @@ namespace FozruciCS.DataStructs{
 			set=>_allowedCommands = value;
 		}
 
-		public static Dictionary<string, string> checkJoinsAndQuits{
+		public static Dictionary<string, string> CheckJoinsAndQuits{
 			get{
 				if(_checkJoinsAndQuits.Count < 1){ _checkJoinsAndQuits["191548246332538880"] = "214906329498648576"; }
 				return _checkJoinsAndQuits;
@@ -56,7 +56,7 @@ namespace FozruciCS.DataStructs{
 			set=>_checkJoinsAndQuits = value;
 		}
 
-		public static List<string> mutedServerList{
+		public static List<string> MutedServerList{
 			get{
 				if(_mutedServerList.Count < 1){ _mutedServerList.Add("110373943822540800"); }
 				return _mutedServerList;
@@ -64,9 +64,9 @@ namespace FozruciCS.DataStructs{
 			set=>_mutedServerList = value;
 		}
 
-		public static Dictionary<TextChannel, List<string>> wordFilter{get;set;} = new Dictionary<TextChannel, List<string>>();
+		public static Dictionary<TextChannel, List<string>> WordFilter{get;set;} = new Dictionary<TextChannel, List<string>>();
 
-		public static Dictionary<string, List<string>> markovChain{
+		public static Dictionary<string, List<string>> MarkovChain{
 			get{
 				if(_markovChain.Count >= 1) return _markovChain; // Create the first two entries (k:_start, k:_end)
 				_markovChain["_start"] = new List<string>();
