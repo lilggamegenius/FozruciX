@@ -23,16 +23,16 @@ namespace FozruciCS.Utils{
 			string plain, enc, plainAfter, decrypted;
 			foreach(Password pass in Enum.GetValues(typeof(Password))){
 				try{
-					Console.WriteLine(pass);
+					System.Console.WriteLine(pass);
 					plain = FozConfig.setPassword(pass);
 					enc = encrypt(plain);
-					Console.WriteLine("Original text: " + plain);
-					Console.WriteLine("Encrypted text: " + enc);
+					System.Console.WriteLine("Original text: " + plain);
+					System.Console.WriteLine("Encrypted text: " + enc);
 					plainAfter = decrypt(enc);
-					Console.WriteLine("Original text after decryption: " + plainAfter);
+					System.Console.WriteLine("Original text after decryption: " + plainAfter);
 					decrypted = decrypt(plain);
-					Console.WriteLine("Original text decrypted: " + decrypted);
-					Console.WriteLine();
+					System.Console.WriteLine("Original text decrypted: " + decrypted);
+					System.Console.WriteLine();
 				}
 				catch(Exception){ // ignored
  }

@@ -139,9 +139,9 @@ namespace FozruciCS {
         private static volatile MessageModes _messageMode = MessageModes.Normal;
         private static volatile int _arrayOffset = 0;
 
-        private static volatile JavaScript _js;
+        //private static volatile JavaScript _js;
 
-        private static volatile Python _py;
+        //private static volatile Python _py;
 
         private static volatile string _consolePrefix = ">";
         private static volatile string _avatar;
@@ -834,7 +834,7 @@ namespace FozruciCS {
 
         public override void onDisconnect(DisconnectEvent dc) {
             if (_debug != null) {
-                _debug.dispose();
+                _debug.Dispose();
             }
         }
 
@@ -1296,7 +1296,7 @@ namespace FozruciCS {
                                         });
                                         if (!mentionedUser.hasPrivateChannel()) {
                                             mentionedUser.openPrivateChannel().complete();
-                                        } 
+                                        }
                                         sendMsg.Start();
                                         if (isBan) {
                                             controller.ban(mentionedUser, ns.getInt("remove_messages").intValue()).queue();
@@ -1344,7 +1344,7 @@ namespace FozruciCS {
                                             });
                                             if (!currentDiscordUser.hasPrivateChannel()) {
                                                 currentDiscordUser.openPrivateChannel().complete();
-                                            } 
+                                            }
                                             sendMsg.Start();
                                             if (isBan) {
                                                 controller.ban(currentDiscordMember, ns.getInt("remove_messages").intValue()).queue();
@@ -2427,14 +2427,15 @@ namespace FozruciCS {
                 }
 
     // !cleanMarkov - cleans duplicates from markov chain list
-                else if (CommandChecker(@event, arg, "cleanMarkov")) {
+                /*else if (CommandChecker(@event, arg, "cleanMarkov")) {
                     var amountCleared = 0;
                     for(var i = 0; i < MarkovChain.Values.Count; i++) {
                         LilGUtil.removeDuplicates(ref MarkovChain.Values.ToList()[i]);
+                        MarkovChain.Values.ToList()[i] = new List<string>();
                         amountCleared++;
                     }
                     SendMessage(@event, "Cleared " + amountCleared);
-                }
+                }*/
 
     // !GC - Runs the garbage collector
                 else if (CommandChecker(@event, arg, "GC")) {
@@ -2447,7 +2448,7 @@ namespace FozruciCS {
                 }
 
     // !JS - evaluates a expression in JavaScript
-                else if (CommandChecker(@event, arg, "JS")) {
+                /*else if (CommandChecker(@event, arg, "JS")) {
                     var args = FormatstringArgs(LilGUtil.splitMessage(message, 0, false));
                     var parser = ArgumentParsers.newArgumentParser("JS")
                             .description("Calculates an expression")
@@ -2475,7 +2476,7 @@ namespace FozruciCS {
                                     } else {
                                         sendError(@event, ex);
                                     }
-                                };*/
+                                };* /
                                 if (_js == null) {
                                     //noinspection SuspiciousToArrayCall
                                     _js = new JavaScript(@event, ArgJoiner(ns.getList("expression").toList<string>().ToArray(), 0, 0), ns.getInt("base").intValue());
@@ -2532,7 +2533,7 @@ namespace FozruciCS {
                                     } else {
                                         sendError(@event, ex);
                                     }
-                                };*/
+                                };* /
                                 if (_py == null) {
                                     //noinspection SuspiciousToArrayCall
                                     _py = new Python();
@@ -2558,7 +2559,7 @@ namespace FozruciCS {
                     }
                     AddCooldown(@event.getUser());
 
-                }
+                }*/
 
     // if someone tells the bot to "Go to hell" do this
                 else if (message.contains(_bot.getNick()) && message.toLowerCase().contains("go to hell")) {
@@ -2937,7 +2938,7 @@ namespace FozruciCS {
     // !sql - execute sql statements
                 else if (CommandChecker(@event, arg, "sql")) {
                     if (CheckPerm(@event.getUser(), 9001)) {
-                        
+
                     } else {
                         PermErrorchn(@event);
                     }
@@ -3297,7 +3298,7 @@ namespace FozruciCS {
                             List<string> title = s1tcg.S1TCG.Process(FormatstringArgs(arg));
                             if (title.Count < 7) {
                                 foreach(var aTitle in title) {
-                                    sendNotice(@event, @event.getUser().getNick(), aTitle);
+                                    SendNotice(@event, @event.getUser().getNick(), aTitle);
                                 }
                             } else {
                                 SendPage(@event, arg, new List<string>(title));
@@ -3313,7 +3314,7 @@ namespace FozruciCS {
 
                 }
 
-    
+
     // !acc/68kcyc/asmcyclecounter - counts asm cycles
                 else if (CommandChecker(@event, arg, "acc") || CommandChecker(@event, arg, "68kcyc") || CommandChecker(@event, arg, "asmcyclecounter")) {
                     try {
@@ -3512,31 +3513,32 @@ namespace FozruciCS {
                 else if (arg[0].startsWith(_consolePrefix)) {
                     if (CheckPerm(@event.getUser(), 9001)) {
                         if (arg[0].substring(_consolePrefix.length()).equalsIgnoreCase(_consolePrefix + "start")) {
-                            _terminal.interrupt();
-                            _terminal = new CommandLine(@event, TrimFrontOfArray(arg, 1));
-                            _terminal.start();
+                            _terminal.Interrupt();
+                            _terminal = new CommandLine(@event, arg.Skip(1).ToArray());
+                            _terminal.Start();
                             if (!_terminal.isAlive()) {
                                 SendMessage(@event, "Command line started", false);
                             }
                         } else if (arg[0].substring(_consolePrefix.length()).equalsIgnoreCase(_consolePrefix + "close")) {
                             _terminal.doCommand(@event, "exit");
                         } else if (arg[0].substring(_consolePrefix.length()).equalsIgnoreCase(_consolePrefix + "stop")) {
-                            _terminal.interrupt();
+                            _terminal.Interrupt();
                         } else if (arg[0].substring(_consolePrefix.length()).equalsIgnoreCase(_consolePrefix + "prefix")) {
                             _consolePrefix = arg[1];
                             SendMessage(@event, "Console Prefix is now " + _consolePrefix);
+                        } else if (arg[0].equalsIgnoreCase(">_>")) {
+                            // do nothing
                         } else {
                             var command = message.substring(1);
                             _terminal.doCommand(@event, command);
                             Logger.Debug("Running " + command);
                         }
                     }
-                } else if (arg[0].equalsIgnoreCase("\\\\prefix")) {
-                    if (CheckPerm(@event.getUser(), 9001)) {
-                        _consolePrefix = arg[1];
-                        SendMessage(@event, "Console Prefix is now " + _consolePrefix);
-                    }
-                }
+                } else if (arg[0].equalsIgnoreCase(">>prefix")) {
+                if(!CheckPerm(@event.getUser(), 9001)) return;
+                _consolePrefix = arg[1];
+                SendMessage(@event, "Console Prefix is now " + _consolePrefix);
+            }
 
     // !SayRaw - Tells the bot to send a raw line
                 else if (CommandChecker(@event, arg, "SayRaw")) {
@@ -3575,7 +3577,7 @@ namespace FozruciCS {
     //			}
     //		}
 
-            
+
     // !leave - Tells the bot to leave the current channel
                 else if (CommandChecker(@event, arg, "leave")) {
                     if (CheckPerm(@event.getUser(), 5)) {
@@ -3591,7 +3593,7 @@ namespace FozruciCS {
 
     // !ReVoice - gives everyone voice if they didn't get it
                 else if (CommandChecker(@event, arg, "ReVoice")) {
-                    for (User user1 : @event.getChannel().getUsers()) {
+                    foreach(User user1 in @event.getChannel().getUsers()) {
                         user1.send().mode("+v");
                     }
                 }
@@ -3603,7 +3605,7 @@ namespace FozruciCS {
                         SaveData();
                         @event.getUser().send().notice("Disconnecting from server and exiting");
                         try {
-                            Thread exit = new Thread(() -> {
+                            var exit = new Thread(() => {
                                 if (GetArg(arg, 1) != null) {
                                     _manager.stop(ArgJoiner(arg, 1));
                                 } else {
@@ -3615,13 +3617,12 @@ namespace FozruciCS {
                                 } catch (Exception e) {
                                     e.printStackTrace();
                                 }
-                            }, "Exit-thread");
-                            exit.start();
+                            });
+                            exit.Start();
                             //noinspection StatementWithEmptyBody
-                            LilGUtil.pause(5);
-                        } catch (Exception ignored) {
-                        }
-                        global::java.lang.System.exit(0);
+                            pause(5);
+                        } catch{}
+                        Environment.Exit(0);
                     } else {
                         PermErrorchn(@event);
                     }
@@ -3672,7 +3673,7 @@ namespace FozruciCS {
                         return;
                     }
                     try {
-                        List<UserLevel> userLevels = Lists.newList(@event.getUser().getUserLevels(@event.getChannel()).iterator());
+                        List<UserLevel> userLevels = @event.getUser().getUserLevels(@event.getChannel()).toList<UserLevel>();
                         SendMessage(@event, userLevels.toString());
                         AddCooldown(@event.getUser());
                     } catch (Exception e) {
@@ -3684,7 +3685,7 @@ namespace FozruciCS {
     // !getCpu - Gets info about CPU
                 else if (CommandChecker(@event, arg, "getCpu")) {
                     try {
-                        string processorTime = string.format("%03f", LilGUtil.getProcessCpuLoad());
+                        string processorTime = java.lang.String.format("%03f", getProcessCpuLoad());
                         SendMessage(@event, "Processor time: " + processorTime);
                         AddCooldown(@event.getUser());
                     } catch (Exception e) {
@@ -3694,10 +3695,10 @@ namespace FozruciCS {
                 }
 
     // !getBat - Gets info about battery
-                else if (CommandChecker(@event, arg, "getBat")) {
+                /*else if (CommandChecker(@event, arg, "getBat")) {
                     try {
-                        if (Platform.isWindows()) {
-                            string statuses[] = {"discharging",
+                        if (!IsLinux) {
+                            string[] statuses = {"discharging",
                                     "The system has access to AC so no battery is being discharged. However, the battery is not necessarily charging.",
                                     "fully charged",
                                     "low",
@@ -3711,20 +3712,23 @@ namespace FozruciCS {
                             var batteryStatus = Convert.ToInt32(getWMIValue("Select BatteryStatus from Win32_Battery", "BatteryStatus"));
                             string batteryPercentRemaining = getWMIValue("Select EstimatedChargeRemaining from Win32_Battery", "EstimatedChargeRemaining");
                             SendMessage(@event, "Remaining battery: " + batteryPercentRemaining + "% Battery status: " + statuses[batteryStatus]);
-                        } else if (LilGUtil.IsLinux) {
-
+                        } else {
+                            //todo
                         }
                         AddCooldown(@event.getUser());
                     } catch (Exception e) {
                         SendError(@event, e);
                     }
-
-                }
+                }*/
 
     // !getMem - Gets various info about memory
                 else if (CommandChecker(@event, arg, "getMem")) {
                     var runtime = Runtime.getRuntime();
-                    var send = "Current memory usage: " + LilGUtil.formatFileSize(runtime.totalMemory() - runtime.freeMemory()) + "/" + LilGUtil.formatFileSize(runtime.totalMemory()) + ". Total memory that can be used: " + LilGUtil.formatFileSize(runtime.maxMemory()) + ".  Active Threads: " + Thread.activeCount() + "/" + ManagementFactory.getThreadMXBean().getThreadCount() + ".  Available Processors: " + runtime.availableProcessors();
+                    var send = "Current memory usage: " +
+                               LilGUtil.formatFileSize(runtime.totalMemory() - runtime.freeMemory()) + "/" + LilGUtil.formatFileSize(runtime.totalMemory()) +
+                               ". Total memory that can be used: " + LilGUtil.formatFileSize(runtime.maxMemory()) +
+                               ".  Active Threads: " + System.Diagnostics.Process.GetCurrentProcess().Threads.Count + "/" + ManagementFactory.getThreadMXBean().getThreadCount() +
+                               ".  Available Processors: " + runtime.availableProcessors();
                     SendMessage(@event, send, false);
                     AddCooldown(@event.getUser());
 
@@ -3732,7 +3736,7 @@ namespace FozruciCS {
 
     // !formatBytes -
                 else if (CommandChecker(@event, arg, "formatBytes")) {
-                    SendMessage(@event, LilGUtil.formatFileSize(long.decode(GetArg(arg, 1))));
+                    SendMessage(@event, LilGUtil.formatFileSize(Convert.ToInt64(GetArg(arg, 1))));
                     AddCooldown(@event.getUser());
                 }
 
@@ -3754,7 +3758,7 @@ namespace FozruciCS {
                             guild.getController().setNickname(guild.getMember(DiscordAdapter.getJda().getSelfUser()), GetArg(arg, 1)).queue();
                         } else {
                             _bot.sendIRC().changeNick(GetArg(arg, 1));
-                            _debug.setNick(GetArg(arg, 1));
+                            _debug.CurrentNick = GetArg(arg, 1);
                         }
                     } else {
                         PermErrorchn(@event);
@@ -3774,8 +3778,8 @@ namespace FozruciCS {
                 else if (CommandChecker(@event, arg, "jToggle")) {
                     if (GetArg(arg, 1).equalsIgnoreCase("toggle")) {
                         if (CheckPerm(@event.getUser(), 2)) {
-                            _bools.flip(JokeCommands);
-                            if (_bools.get(JokeCommands)) {
+                            // ReSharper disable once AssignmentInConditionalExpression
+                            if (_bools[JokeCommands] = !_bools[JokeCommands]) {
                                 SendMessage(@event, "Joke COMMANDS are now enabled");
                             } else {
                                 SendMessage(@event, "Joke COMMANDS are now disabled");
@@ -3784,7 +3788,7 @@ namespace FozruciCS {
                             PermErrorchn(@event);
                         }
                     } else {
-                        if (_bools.get(JokeCommands)) {
+                        if (_bools[JokeCommands]) {
                             SendMessage(@event, "Joke COMMANDS are currently enabled");
                         } else {
                             SendMessage(@event, "Joke COMMANDS are currently disabled");
@@ -3795,7 +3799,7 @@ namespace FozruciCS {
 
     // !sudo/make me a sandwich - You should already know this joke
                 else if (CommandChecker(@event, arg, "make me a sandwich")) {
-                    if (_bools.get(JokeCommands) || CheckPerm(@event.getUser(), 1)) {
+                    if (_bools[JokeCommands] || CheckPerm(@event.getUser(), 1)) {
                         SendMessage(@event, "No, make one yourself", false);
                         AddCooldown(@event.getUser());
                     } else {
@@ -3813,7 +3817,7 @@ namespace FozruciCS {
 
     // !Splatoon - Joke command - ask the splatoon question
                 else if (CommandChecker(@event, arg, "Splatoon")) {
-                    if (_bools.get(JokeCommands) || CheckPerm(@event.getUser(), 1)) {
+                    if (_bools[JokeCommands] || CheckPerm(@event.getUser(), 1)) {
                         SendMessage(@event, " YOU'RE A KID YOU'RE A SQUID");
                         AddCooldown(@event.getUser());
                     } else {
@@ -3824,7 +3828,7 @@ namespace FozruciCS {
 
     // !attempt - Joke command - NOT ATTEMPTED
                 else if (CommandChecker(@event, arg, "attempt")) {
-                    if (_bools.get(JokeCommands) || CheckPerm(@event.getUser(), 1)) {
+                    if (_bools[JokeCommands] || CheckPerm(@event.getUser(), 1)) {
                         SendMessage(@event, " NOT ATTEMPTED");
                         AddCooldown(@event.getUser());
                     } else {
@@ -3835,10 +3839,8 @@ namespace FozruciCS {
 
     // !potato - Joke command - say "i am potato" in Japanese
                 else if (CommandChecker(@event, arg, "potato")) {
-                    if (_bools.get(JokeCommands) || CheckPerm(@event.getUser(), 1)) {
-                        var bytes = "わたしわポタトデス".getBytes(Charset.forName("UTF-8"));
-                        var v = new string(bytes, Charset.forName("UTF-8"));
-                        SendMessage(@event, v);
+                    if (_bools[JokeCommands] || CheckPerm(@event.getUser(), 1)) {
+                        SendMessage(@event, "わたしわポタトデス");
                     } else
                         SendMessage(@event, " Sorry, Joke COMMANDS are disabled");
 
@@ -3846,9 +3848,9 @@ namespace FozruciCS {
 
     // !WhatIs? - Joke command -
                 else if (CommandChecker(@event, arg, "WhatIs?")) {
-                    if (_bools.get(JokeCommands) || CheckPerm(@event.getUser(), 1)) {
-                        var num = LilGUtil.randInt(0, Dictionary.length - 1);
-                        string comeback = string.format(Dictionary[num], ArgJoiner(arg, 1));
+                    if (_bools[JokeCommands] || CheckPerm(@event.getUser(), 1)) {
+                        var num = LilGUtil.randInt(0, Dictionary.Count() - 1);
+                        string comeback = java.lang.String.format(Dictionary[num], ArgJoiner(arg, 1));
                         SendMessage(@event, comeback);
                         AddCooldown(@event.getUser());
                     } else
@@ -3858,7 +3860,7 @@ namespace FozruciCS {
 
     // !rip - Joke command - never forgetti the spaghetti
                 else if (CommandChecker(@event, arg, "rip")) {
-                    if (_bools.get(JokeCommands) || CheckPerm(@event.getUser(), 1)) {
+                    if (_bools[JokeCommands] || CheckPerm(@event.getUser(), 1)) {
                         if (GetArg(arg, 1).equalsIgnoreCase(_currentUser.getNick())) {
                             SendMessage(@event, _currentUser.getNick() + " Will live forever!", false);
                         } else if (GetArg(arg, 1).equalsIgnoreCase(_bot.getNick())) {
@@ -3889,12 +3891,12 @@ namespace FozruciCS {
                     } else {
                         var msg = message.split("/");
                         if (msg.Length > 2) {
-                            if (!msg[1].Count == 0 || !msg[1].Equals(".")) {
+                            if (!msg[1].isEmpty() || !msg[1].Equals(".")) {
                                 var find = msg[1];
                                 var replace = msg[2];
                                 var replaceAll = msg.Length > 3 && msg[3].toLowerCase().startsWith("g");
                                 for (var i = _lastEvents.Count - 1; i >= 0; i--) {
-                                    MessageEvent last = _lastEvents[i];
+                                    MessageEvent last = _lastEvents;
                                     if (last.Equals(@event) || LilGUtil.wildCardMatch(last.getMessage(), "s/*/*")) continue;
                                     if (last.getChannel().Equals(@event.getChannel())) {
                                         var lastMessage = last.getMessage();
@@ -3942,7 +3944,7 @@ namespace FozruciCS {
             }
             return false;
         }
-    
+
         private string DoChatFunctions(string message) {
             if (!LilGUtil.wildCardMatch(message, "[$*(*)]")) {
                 return message;
@@ -3965,18 +3967,18 @@ namespace FozruciCS {
             }
             return returnStr.substring(0, returnStr.length() - 1);
         }
-    
-        
+
+
         public void OnPart(PartEvent part) {
             Log(part);
         }
-    
-        
+
+
         public void OnPrivateMessage( PrivateMessageEvent pm) {
             var arg = LilGUtil.splitMessage(pm.getMessage());
-    
+
     // !rps - Rock! Paper! ehh you know the rest
-            if (CommandChecker(pm, arg, "rps")) {
+            /*if (CommandChecker(pm, arg, "rps")) {
                 //noinspection ConstantConditions
                 var nick = pm.getUser().getNick();
                 if (CheckPerm(pm.getUser(), 9001)) {
@@ -4001,10 +4003,11 @@ namespace FozruciCS {
                                     } else {
                                         game.setP2Choice(1);
                                     }
+                                    break;
                             }
                         }
                     } else if (GetArg(arg, 1) != null && !(GetArg(arg, 1).equalsIgnoreCase("r") || GetArg(arg, 1).equalsIgnoreCase("p") || GetArg(arg, 1).equalsIgnoreCase("s"))) {
-                        RpsGames.Add(new RPSGame(pm.getUser().getNick(), GetArg(arg, 1)));
+                        RpsGames.Add(new RpsGame(pm.getUser().getNick(), GetArg(arg, 1)));
                         pm.getUser().send().notice("Created a game with " + GetArg(arg, 1));
                     } else {
                         pm.getUser().send().notice("You aren't in a game!");
@@ -4012,13 +4015,11 @@ namespace FozruciCS {
                 }
             }
     // !rejoin - Rejoins all channels
-            else if (pm.getMessage().equalsIgnoreCase(_prefix + "rejoin")) {
-                ImmutableList<string> autoChannels = _bot.getConfiguration().getAutoJoinChannels().keySet().asList();
-                for (var i = 0; i < autoChannels.Count; i++) {
-                    _bot.send().joinChannel(autoChannels[i]);
-                }
+            else */if (pm.getMessage().equalsIgnoreCase(_prefix + "rejoin")){
+                var autoChannels = _bot.getConfiguration().getAutoJoinChannels().keySet().asList().toList<string>();
+                foreach(string t in autoChannels){ _bot.send().joinChannel(t); }
             }
-    
+
     // !login - Sets the authed named to the new name ...if the password is right
             else if (CommandChecker(pm, arg, "login")) {
                 if (CryptoUtil.encrypt(GetArg(arg, 1)).Equals(FozConfig.Password)) {
@@ -4033,13 +4034,13 @@ namespace FozruciCS {
             }
             //Only allow me (Lil-G) to use PM COMMANDS except for the login command
             else if (CheckPerm(pm.getUser(), 6)) {
-    
-    
+
+
     // !SendTo - Tells the bot to say something on a channel
                 if (CommandChecker(pm, arg, "SendTo")) {
                     SendPrivateMessage(pm, GetArg(arg, 1), GetScramble(ArgJoiner(arg, 2)));
                 }
-    
+
     // !sendAction - Tells the bot to make a action on a channel
                 else if (CommandChecker(pm, arg, "sendAction")) {
                     var actionTags = Network == Network.Discord ? "__" : "";
@@ -4049,7 +4050,7 @@ namespace FozruciCS {
                 else if (CommandChecker(pm, arg, "sendRaw") && CheckPerm(pm.getUser(), 9001)) {
                     _bot.sendRaw().rawLineNow(ArgJoiner(arg, 1));
                 }
-    
+
     // !part - leaves a channel
                 else if (CommandChecker(pm, arg, "part")) {
                     if (Network != Network.Discord) {
@@ -4063,14 +4064,14 @@ namespace FozruciCS {
                         SendMessage(pm, "I can't leave channels in discord dumbass");
                     }
                 }
-    
+
     // !ChangeNick- Changes the nick of the bot
                 else if (CommandChecker(pm, arg, "changeNick") && CheckPerm(pm.getUser(), 9001)) {
                     _bot.sendIRC().changeNick(ArgJoiner(arg, 1));
                     _debug.CurrentNick = (ArgJoiner(arg, 1));
                 }
-    
-    
+
+
     // !Connect - Tells the bot to connect to specified channel
                 else if (CommandChecker(pm, arg, "connect")) {
                     if (GetArg(arg, 2) != null) {
@@ -4080,22 +4081,21 @@ namespace FozruciCS {
                     }
                     SendNotice(pm, "Successfully connected to " + GetArg(arg, 1));
                 }
-    
+
     // !QuitServ - Tells the bot to disconnect from server
                 else if (CommandChecker(pm, arg, "QuitServ") && CheckPerm(pm.getUser(), int.MaxValue)) {
                     SendNotice(pm, "Disconnecting from server");
-                    if (GetArg(arg, 1) != null) {
-                        _bot.sendIRC().quitServer(ArgJoiner(arg, 1));
-                    } else {
-                        _bot.sendIRC().quitServer("I'm only a year old and have already wasted my entire life.");
-                    }
+                    _bot.sendIRC()
+                        .quitServer(GetArg(arg, 1) != null
+                            ? ArgJoiner(arg, 1)
+                            : "I'm only a year old and have already wasted my entire life.");
                     try {
                         LilGUtil.pause(10);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
-    
-                    System.exit(0);
+
+                    Environment.Exit(0);
                 }
             }
             if (!pm.getMessage().contains(CryptoUtil.decrypt(FozConfig.Password))) {
@@ -4111,11 +4111,11 @@ namespace FozruciCS {
                 }
             }
             _bools[ArrayOffsetSet] = false;
-            _debug.updateBot = (_bot);
+            _debug.UpdateBot = (_bot);
             CheckNote(pm, pm.getUser().getNick(), null);
             _debug.CurrentNick = (_currentUser.getHostmask());
         }
-    
+
         public void OnNotice( NoticeEvent @event) {
             var message = @event.getMessage();
             //noinspection ConstantConditions
@@ -4130,7 +4130,7 @@ namespace FozruciCS {
                         message.contains("*** You are connected using SSL cipher") ||
                         message.contains("please choose a different nick.") ||
                         message.contains("nick, type /msg NickServ IDENTIFY password.  Otherwise,")) {
-    
+
                 } else if (message.contains("\u0001AVATAR")) {
                     @event.getUser().send().notice("\u0001AVATAR " + _avatar + "\u0001");
                 } else {
@@ -4141,16 +4141,16 @@ namespace FozruciCS {
             if (_bot.isConnected()) {
                 _debug.CurrentNick = (_currentUser.getNick());
             }
-            _debug.updateBot = (_bot);
+            _debug.UpdateBot = (_bot);
             Log(@event);
         }
-    
+
         public void OnAction( ActionEvent action) {
             //noinspection ConstantConditions
             OnMessage(new MessageEvent(_bot, action.getChannel(), action.getChannelSource(), action.getUserHostmask(), action.getUser(), action.getAction(), null), false);
             Log(action);
         }
-    
+
         public void OnJoin( JoinEvent join) {
             var hostmask = join.getUser().getHostmask();
             Logger.Debug("User Joined: " + (hostmask == null ? join.getUser().getNick() : hostmask));
@@ -4191,18 +4191,18 @@ namespace FozruciCS {
                 CheckNote(join, join.getUser().getNick(), null);
             }
             if (_debug != null) {
-                _debug.updateBot = (_bot);
+                _debug.UpdateBot = (_bot);
                 _debug.CurrentNick = (_currentUser.getHostmask());
             }
         }
-    
+
         public void OnNickChange( NickChangeEvent nick) {
             if (nick.getNewNick().equalsIgnoreCase(_currentUser.getNick())) {
                 _currentUser = _bot.getUserBot();
                 Logger.Debug("resetting Authed nick");
                 _debug.CurrentNick = (_currentUser.getNick());
             }
-    
+
             /*if (nick.getOldNick().equalsIgnoreCase(currentNick)) {
                 currentNick = nick.getNewNick();
                 //noinspection ConstantConditions
@@ -4212,16 +4212,16 @@ namespace FozruciCS {
                 debug.CurrentNick = (currentNick + "!" + currentUsername + "@" + currentHost);
             }*/
             CheckNote(nick, nick.getNewNick(), null);
-            _debug.updateBot = (_bot);
+            _debug.UpdateBot = (_bot);
             Log(nick);
         }
-    
+
         public void OnNickAlreadyInUse( NickAlreadyInUseEvent nick) {
-    
+
             _bools[NickInUse] = true;
             nick.respond(nick.getUsedNick() + 1);
         }
-    
+
         public void OnQuit( QuitEvent quit) {
             if (quit.getReason().contains("RECOVER") || quit.getReason().contains("GHOST") || quit.getReason().contains("REGAIN")) { //Recover @event
                 _bools[NickInUse] = true;
@@ -4239,7 +4239,7 @@ namespace FozruciCS {
             }
             Log(quit);
         }
-    
+
         public void OnBan(GuildBanEvent ban) {
             string channelToMessage = _checkJoinsAndQuits[ban.getGuild().getId()];
             if (channelToMessage != null) {
@@ -4250,9 +4250,9 @@ namespace FozruciCS {
                     }
                 }
             }
-    
+
         }
-    
+
         public void OnKick( KickEvent kick) {
             //noinspection ConstantConditions
             if (kick.getRecipient().getNick().equalsIgnoreCase(_bot.getNick())) {
@@ -4265,7 +4265,7 @@ namespace FozruciCS {
             }
             Log(kick);
         }
-    
+
         public void OnUnknown( UnknownEvent @event) {
             var line = @event.getLine();
             if (line.contains("\u0001AVATAR\u0001")) {
@@ -4278,7 +4278,7 @@ namespace FozruciCS {
                 _debug.CurrentNick = (_currentUser.getNick());
             }
         }
-    
+
         /**
          * Checks if the user attempting to use the command is allowed
          *
@@ -4328,7 +4328,7 @@ namespace FozruciCS {
             }
             return false;
         }
-    
+
         /**
          * Checks if the user attempting to use the command is allowed
          *
@@ -4350,46 +4350,46 @@ namespace FozruciCS {
             }
             return false;
         }
-    
+
         private void LoadData() {
             LoadData(true);
         }
-    
+
         private void LoadData(bool writeOnce) {
             if (writeOnce && _noteList == null)
                 _noteList = SaveDataStore.getINSTANCE().getNoteList();
-    
+
             if (writeOnce && _authedUser == null)
                 _authedUser = SaveDataStore.getINSTANCE().getAuthedUser();
-    
+
             if (writeOnce && _authedUserLevel == null)
                 _authedUserLevel = SaveDataStore.getINSTANCE().getAuthedUserLevel();
-    
+
             if (writeOnce && _avatar == null)
                 _avatar = SaveDataStore.getINSTANCE().getAvatarLink();
-    
+
             if (writeOnce && _memes == null)
                 _memes = SaveDataStore.getINSTANCE().getMemes();
-    
+
             if (writeOnce && _fcList == null)
                 _fcList = SaveDataStore.getINSTANCE().getFCList();
-    
+
             if (writeOnce && MarkovChain == null)
                 MarkovChain = SaveDataStore.getINSTANCE().getMarkovChain();
-    
+
             if (writeOnce && _allowedCommands == null)
                 _allowedCommands = SaveDataStore.getINSTANCE().getAllowedCommands();
-    
+
             if (writeOnce && _checkJoinsAndQuits == null)
                 _checkJoinsAndQuits = SaveDataStore.getINSTANCE().getCheckJoinsAndQuits();
-    
+
             if (writeOnce && _mutedServerList == null)
                 _mutedServerList = SaveDataStore.getINSTANCE().getMutedServerList();
-    
+
             if (writeOnce && DiscordData.wordFilter == null)
                 DiscordData.wordFilter = SaveDataStore.getINSTANCE().getWordFilter();
         }
-    
+
         private void CheckNote( Event @event,  string user,  string channel) {
             System.Console.WriteLine("Debug: Starting checkNote -> ");
             try {
@@ -4419,20 +4419,20 @@ namespace FozruciCS {
             }
             System.Console.WriteLine("| Ending checkNote");
         }
-    
+
         private void SetDebugInfo(MessageEvent @event) {
-            _debug.updateBot = (@event.getBot());
+            _debug.UpdateBot = (@event.getBot());
             _debug.CurrentNick = (_currentUser.getHostmask());
         }
-    
+
         public MessageEvent GetLastEvent() {
             return _lastEvents;
         }
-    
+
         private bool CommandChecker(GenericMessageEvent @event, string[] args, string command) {
             return CommandChecker(@event, args, command, true);
         }
-    
+
         private bool CommandChecker(GenericMessageEvent @event, string[] args, string command, bool printMsg) {
             if (@event.getMessage() == null) {
                 return false;
@@ -4480,7 +4480,7 @@ namespace FozruciCS {
             }
             return false;
         }
-    
+
         private void GetHelp(GenericMessageEvent @event, string command) {
             switch (command.toLowerCase()) {
                 case "commands":
@@ -4604,14 +4604,14 @@ namespace FozruciCS {
                     break;
             }
         }
-    
+
         public void SetAvatar(string avatar) {
             FozruciX._avatar = avatar;
             if (!(Network == Network.Discord || Network == Network.Twitch) && _currentUser.getNick() != null && _updateAvatar) {
                 SendNotice(_currentUser.getNick(), "\u0001AVATAR " + avatar + "\u0001");
             }
         }
-    
+
         private void AddWords( string phrase) {
             if (phrase.startsWith(_prefix) ||
                     phrase.startsWith(_consolePrefix)) {
@@ -4619,12 +4619,12 @@ namespace FozruciCS {
             }
             // put each word into an array
             var words = phrase.split(" ");
-    
+
             // Loop through each word, check if it's already added
             // if its added, then get the suffix List and add the word
             // if it hasn't been added then add the word to the list
             // if its the first or last word then select the _start / _end key
-    
+
             for (var i = 0; i < words.Length; i++) {
                 if (words[i].isEmpty()) {
                     break;
@@ -4633,7 +4633,7 @@ namespace FozruciCS {
                 if (i == 0) {
                     List<string> startWords = MarkovChain["_start"];
                     startWords.Add(words[i]);
-    
+
                     List<string> suffix = MarkovChain[words[i]];
                     if (suffix == null) {
                         suffix = new List<string>();
@@ -4643,11 +4643,11 @@ namespace FozruciCS {
                         suffix.Add(words[i + 1]);
                         MarkovChain[words[i]] = suffix;
                     }
-    
+
                 } else if (i == words.Length - 1) {
                     List<string> endWords = MarkovChain["_end"];
                     endWords.Add(words[i]);
-    
+
                 } else {
                     List<string> suffix = MarkovChain[words[i]];
                     if (suffix == null) {
@@ -4667,70 +4667,62 @@ namespace FozruciCS {
                 }
             }
         }
-    
-        private class Python : Thread {
+
+        /*private class Python /*: Thread * / {
             private MessageEvent _event;
+            private Thread _thread;
             private string _eval;
             private int _radix = 10;
             private ScriptEngine _engine;
-    
-            public Python() : base(){
-                this.setName("Python thread");
+
+            public Python(){
+                _thread.Name = ("Python thread");
                 _engine = new ScriptEngineManager().getEngineByName("python");
             }
-    
-            
+
+
             public void Run() {
                 try {
-                    object temp = _engine.eval(_eval);
-                    if (temp != null) {
-                        var eval = temp.toString();
-                        if (isNumeric(eval)) {
-                            if (_radix == 10) {
-                                SendMessage(_event, eval);
-                                Logger.Debug("Outputting as decimal");
-                            } else {
-                                var basePrefix = "";
-                                switch (_radix) {
-                                    case 2:
-                                        basePrefix = "0b";
-                                        break;
-                                    case 8:
-                                        basePrefix = "0";
-                                        break;
-                                    case 16:
-                                        basePrefix = "0x";
-                                        break;
-                                }
-                                eval = long.tostring(Convert.ToInt64(eval), _radix).toUpperCase();
-                                if (System.Math.Abs(eval.length()) % 2 == 1) {
-                                    eval = "0" + eval;
-    
-                                }
-                                SendMessage(_event, basePrefix + eval);
-                                Logger.Debug("Outputting as base " + _radix);
-                            }
-                        } else if (eval.length() < 470) {
+                    var temp = _engine.eval(_eval);
+                    if(temp == null) return;
+                    var eval = temp.toString();
+                    if (isNumeric(eval)) {
+                        if (_radix == 10) {
                             SendMessage(_event, eval);
+                            Logger.Debug("Outputting as decimal");
                         } else {
-                            SendPage(_event, new[]{"!PY", this._eval, "" + _radix}, new List<>(eval));
+                            var basePrefix = "";
+                            if(_radix == 2){ basePrefix = "0b"; }
+                            else if(_radix == 8){ basePrefix = "0"; }
+                            else if(_radix == 16) basePrefix = "0x";
+                            eval = Convert.ToString(Convert.ToInt64(eval), _radix);
+                            if (System.Math.Abs(eval.length()) % 2 == 1) {
+                                eval = "0" + eval;
+
+                            }
+                            SendMessage(_event, basePrefix + eval);
+                            Logger.Debug("Outputting as base " + _radix);
                         }
+                    } else if (eval.length() < 470) {
+                        SendMessage(_event, eval);
+                    } else {
+                        SendPage(_event, new[]{"!PY", this._eval, "" + _radix}, new List<string>(new[]{eval}));
                     }
                 } catch (Exception e) {
                     SendError(_event, e);
                 }
             }
 
-            internal void RunNewPython(MessageEvent @event, string code, int base) {
+            internal void RunNewPython(MessageEvent @event, string code, int @base) {
                 this._event = @event;
                 _eval = code;
-                _radix = base;
+                _radix = @base;
                 Run();
             }
-    
+
         }
 
-    public class JavaScript : Thread {
+    public class JavaScript /*: Thread * / {
             private readonly string[] _unsafeAttributes = {
                     "Java",
                     "JavaImporter",
@@ -4751,7 +4743,7 @@ namespace FozruciCS {
                     "java.lang.reflect",
                     "java.lang.invoke",
             };
-            
+
             private string _factorialFunct = "function fact(num) {  if (num < 0) {    return -1;  } else if (num == 0) {    return 1;  }  var tmp = num;  while (num-- > 2) {    tmp *= num;  }  return tmp;} " +
                     "function getBit(num, bit) {  var result = (num >> bit) & 1; return result == 1} " +
                     "function offset(array, offsetNum){array = eval(\"\" + array + \"\");var size = array.length * offsetNum;var result = [];for(var i = 0; i < array.length; i++){result[i] = parseInt(array[i], 16) + size} return result;} " +
@@ -4760,32 +4752,30 @@ namespace FozruciCS {
                     "fish = 4; eight = 6; triangle = 14; leet = 1337;";
             private MessageEvent _event;
             private string _arg;
-            private int _radix = 10;
+            private int _radix;
             private ScriptEngine _botOpEngine;
             private ScriptEngine _normalUserEngine;
 
-        internal JavaScript( MessageEvent @event, string arg, int radix) {
+        internal JavaScript( MessageEvent @event, string arg, int radix = 10) {
                 setName("JavaScript Thread");
                 this._event = @event;
                 this._arg = arg;
                 this._radix = radix;
                 _normalUserEngine = new NashornScriptEngineFactory().getScriptEngine(new JsClassFilter());
                 _botOpEngine = new NashornScriptEngineFactory().getScriptEngine();
-                try (InputStreamReader algebra = new InputStreamReader(new FileInputStream("algebra.min.js"))) {
+                using(InputStreamReader algebra = new InputStreamReader(new FileInputStream("algebra.min.js"))) {
                     _normalUserEngine.eval(_factorialFunct);
                     _normalUserEngine.eval(algebra);
                     ScriptContext context = _normalUserEngine.getContext();
                     int globalScope = context.getScopes().get(0);
-                    for (string unsafeAttribute : _unsafeAttributes) {
+                    foreach(string unsafeAttribute in _unsafeAttributes) {
                         context.removeAttribute(unsafeAttribute, globalScope);
                     }
                     _botOpEngine.eval(_factorialFunct);
                     UpdateVariables();
-                } catch (Exception) {
-                    sendError(@event, e);
                 }
             }
-    
+
             private void UpdateVariables() {
                 _botOpEngine["@event"] = _event;
                 _botOpEngine["message"] = _event.getMessage();
@@ -4821,8 +4811,8 @@ namespace FozruciCS {
                 UpdateVariables();
                 Run();
             }
-    
-            
+
+
             public void Run() {
                 try {
                     ScriptEngine engine;
@@ -4833,7 +4823,7 @@ namespace FozruciCS {
                         engine = _normalUserEngine;
                         Logger.Debug("Running as normal user");
                     }
-    
+
                     Object temp = engine.eval(_arg);
                     if (temp != null) {
                         var eval = temp.toString();
@@ -4857,7 +4847,7 @@ namespace FozruciCS {
                                 eval = long.tostring(Convert.ToInt64(eval), _radix).toUpperCase();
                                 if (Math.abs(eval.length()) % 2 == 1) {
                                     eval = "0" + eval;
-    
+
                                 }
                                 SendMessage(_event, basePrefix + eval);
                                 Logger.Debug("Outputting as base " + _radix);
@@ -4872,9 +4862,9 @@ namespace FozruciCS {
                     SendError(_event, e);
                 }
             }
-    
+
             private class JsClassFilter implements ClassFilter {
-                
+
                 public bool ExposeToScripts( string requestedClass) {
                     for (string unsafeClass : _unsafeClasses) {
                         if (requestedClass.Equals(unsafeClass)) return false;
@@ -4882,6 +4872,6 @@ namespace FozruciCS {
                     return true;
                 }
             }
-        }
+        }*/
     }
 }

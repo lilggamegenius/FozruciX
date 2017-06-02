@@ -73,11 +73,10 @@ namespace FozruciCS {
 		static FozConfig(){
 			Application.EnableVisualStyles();
 			Application.SetCompatibleTextRenderingDefault(false);
-			
+
 			loadData();
 			var locationTemp = LocationRelativeToServer.Locations.Local;
 			try{
-				Class.forName("com.mysql.jdbc.Driver").newInstance();
 				// Getting Ip address of local machine...
 				// First get the host name of local machine.
 				// Then using host name, get the IP address list..
