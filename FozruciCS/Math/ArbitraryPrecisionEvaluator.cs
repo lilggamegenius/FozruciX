@@ -240,7 +240,7 @@ namespace FozruciCS.Math{
                 return ((Apfloat)operands.next()).subtract((Apfloat)operands.next());
             }
             if (Plus.equals(operator_)) {
-                return ((Apfloat)operands.next()).add(((Apfloat)operands.next()));
+                return ((Apfloat)operands.next()).add((Apfloat)operands.next());
             }
             if (Multiply.equals(operator_)) {
                 return ((Apfloat)operands.next()).multiply((Apfloat)operands.next());
