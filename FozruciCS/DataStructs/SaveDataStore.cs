@@ -1,30 +1,32 @@
 ﻿using System.Collections.Generic;
 using net.dv8tion.jda.core.entities;
+using Newtonsoft.Json;
 
 namespace FozruciCS.DataStructs{
 	public struct SaveDataStore{
-		private static Dictionary<string, Dictionary<string, List<string>>> _allowedCommands =
-			new Dictionary<string, Dictionary<string, List<string>>>();
+		public static SaveDataStore instance{get;set;}
 
-		private static Dictionary<string, string> _checkJoinsAndQuits = new Dictionary<string, string>();
-		private static List<string> _mutedServerList = new List<string>();
-		private static Dictionary<string, List<string>> _markovChain = new Dictionary<string, List<string>>();
+		private Dictionary<string, Dictionary<string, List<string>>> _allowedCommands;
 
-		public static List<Note> NoteList{get;set;} = new List<Note>();
+		private Dictionary<string, string> _checkJoinsAndQuits;
+		private List<string> _mutedServerList;
+		private Dictionary<string, List<string>> _markovChain;
 
-		public static List<string> AuthedUser{get;set;} = new List<string>();
+		[JsonProperty("NoteList")] public List<Note> NoteList{get;set;}
 
-		public static List<int> AuthedUserLevel{get;set;} = new List<int>();
+		[JsonProperty("AuthedUser")] public List<string> AuthedUser{get;set;}
 
-		public static string AvatarLink{get;set;} = "http://puu.sh/oiLvW.gif";
+		[JsonProperty("AuthedUserLevel")] public List<int> AuthedUserLevel{get;set;}
 
-		public static Dictionary<string, Meme> Memes{get;set;} = new Dictionary<string, Meme>();
+		[JsonProperty("AvatarLink")] public string AvatarLink{get;set;}
 
-		public static Dictionary<string, string> FcList{get;set;} = new Dictionary<string, string>();
+		[JsonProperty("Memes")] public Dictionary<string, Meme> Memes{get;set;}
 
-		public static List<string> DndJoined{get;set;} = new List<string>();
+		[JsonProperty("FcList")] public Dictionary<string, string> FcList{get;set;}
 
-		public static Dictionary<string, Dictionary<string, List<string>>> AllowedCommands{
+		[JsonProperty("DndJoined")] public List<string> DndJoined{get;set;}
+
+		[JsonProperty("AllowedCommands")] public Dictionary<string, Dictionary<string, List<string>>> AllowedCommands{
 			get{
 				if(_allowedCommands == null){ _allowedCommands = new Dictionary<string, Dictionary<string, List<string>>>(); }
 				if(_allowedCommands.Count >= 1) return _allowedCommands;
@@ -48,7 +50,7 @@ namespace FozruciCS.DataStructs{
 			set=>_allowedCommands = value;
 		}
 
-		public static Dictionary<string, string> CheckJoinsAndQuits{
+		[JsonProperty("CheckJoinsAndQuits")] public Dictionary<string, string> CheckJoinsAndQuits{
 			get{
 				if(_checkJoinsAndQuits.Count < 1){ _checkJoinsAndQuits["191548246332538880"] = "214906329498648576"; }
 				return _checkJoinsAndQuits;
@@ -56,7 +58,7 @@ namespace FozruciCS.DataStructs{
 			set=>_checkJoinsAndQuits = value;
 		}
 
-		public static List<string> MutedServerList{
+		[JsonProperty("MutedServerList")] public List<string> MutedServerList{
 			get{
 				if(_mutedServerList.Count < 1){ _mutedServerList.Add("110373943822540800"); }
 				return _mutedServerList;
@@ -64,9 +66,9 @@ namespace FozruciCS.DataStructs{
 			set=>_mutedServerList = value;
 		}
 
-		public static Dictionary<TextChannel, List<string>> WordFilter{get;set;} = new Dictionary<TextChannel, List<string>>();
+		[JsonProperty("WordFilter")] public Dictionary<TextChannel, List<string>> WordFilter{get;set;}
 
-		public static Dictionary<string, List<string>> MarkovChain{
+		[JsonProperty("MarkovChain")] public Dictionary<string, List<string>> MarkovChain{
 			get{
 				if(_markovChain.Count >= 1) return _markovChain; // Create the first two entries (k:_start, k:_end)
 				_markovChain["_start"] = new List<string>();

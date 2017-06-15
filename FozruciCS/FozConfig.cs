@@ -7,11 +7,11 @@ using com.rmtheis.yandtran;
 using FozruciCS.DataStructs;
 using FozruciCS.Utils;
 using ikvm.extensions;
-using java.io;
 using java.lang;
 using java.nio.charset;
-using java.nio.file;
+using System.IO;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using NLog;
 using org.pircbotx;
 using org.pircbotx.cap;
@@ -64,15 +64,19 @@ namespace FozruciCS {
 		public static readonly LocationRelativeToServer.Locations Location;
 		private static readonly Logger Logger = new LogFactory().GetCurrentClassLogger();
 		[JsonIgnore] public static readonly string Password = setPassword(FozruciCS.Password.Normal);
-		private static readonly File Bak = new File("Data/DataBak.json");
-		private static readonly File SaveFile = new File("Data/Data.json");
+		private const string Bak = "Data/DataBak.json";
+		private const string SaveFile = "Data/Data.json";
 		private const int Attempts = 10;
 		private const int ConnectDelay = 15 * 1000;
-		private static readonly Gson Gson = new GsonBuilder().setPrettyPrinting().create();
+		private static readonly Newtonsoft.Json.JsonSerializer serializer = new Newtonsoft.Json.JsonSerializer();
 
 		static FozConfig(){
 			Application.EnableVisualStyles();
 			Application.SetCompatibleTextRenderingDefault(false);
+
+
+			serializer.Converters.Add(new JavaScriptDateTimeConverter());
+			serializer.NullValueHandling = NullValueHandling.Ignore;
 
 			loadData();
 			var locationTemp = LocationRelativeToServer.Locations.Local;
@@ -350,69 +354,61 @@ namespace FozruciCS {
 		}
 
 		public static string setPassword(Password password){
-			File file;
+			string file;
 			switch(password){
 				case FozruciCS.Password.Normal:
-					file = new File("pass.bin");
+					file = "pass.bin";
 					break;
 				case FozruciCS.Password.Twitch:
-					file = new File("twitch.bin");
+					file = "twitch.bin";
 					break;
 				case FozruciCS.Password.Discord:
-					file = new File("discord.bin");
+					file = "discord.bin";
 					break;
 				case FozruciCS.Password.Key:
-					file = new File("key.bin");
+					file = "key.bin";
 					break;
 				case FozruciCS.Password.Salt:
-					file = new File("salt.bin");
+					file = "salt.bin";
 					break;
 				case FozruciCS.Password.Ssh:
-					file = new File("ssh.bin");
+					file = "ssh.bin";
 					break;
-				default: throw new RuntimeException("Can't find file specified");
+				default: throw new FileNotFoundException();
 			}
 			string ret;
-			using(var fin = new FileInputStream(file)){
-				var fileContent = new byte[(int) file.length()];
 
-				// Reads up to certain bytes of data from this input stream into an array of bytes.
-				//noinspection ResultOfMethodCallIgnored
-				fin.read(fileContent);
-				//create string from byte array
-				ret = new string(Encoding.UTF8.GetString(fileContent).ToCharArray());
-			}
+			var fileContent = File.ReadAllBytes(file);
+			ret = new string(Encoding.UTF8.GetString(fileContent).ToCharArray());
 			return ret;
 		}
 
 		public static void loadData(){
 			Logger.Info("Starting to loadData");
-			if(!SaveFile.exists()){
+			if(!File.Exists(SaveFile)){
 				Logger.Info("Save file doesn't exist. Attempting to load backup");
 				try{
 					//noinspection StatementWithEmptyBody
 					//while(!bak.canWrite() || !saveFile.canWrite()){}
-					Files.move(Bak.toPath(), SaveFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+					File.Move(Bak, SaveFile);
 					Logger.Info("Backup file moved");
 				}
-				catch(FileSystemException e){
+				catch(System.Exception e){
 					Logger.Error("file in use: {0}", e);
 					return;
 				}
-				catch(Exception e){ Logger.Error("failed renaming backup file: {0}", e); }
 			}
 			try{
-				using(var br = new BufferedReader(new FileReader(SaveFile))){
+				using(var jr = new JsonTextReader (new StreamReader(SaveFile))){
 					Logger.Info("Attempting to load data");
-					SaveDataStore.setINSTANCE(Gson.fromJson(br, SaveDataStore.class));
-					if(SaveDataStore.getINSTANCE() != null){ Logger.Info("Loaded data"); }
+					serializer.Deserialize<SaveDataStore>(jr);
 				}
 			}
 			catch(Exception e){
 				Logger.Error("failed loading data, Attempting to save empty copy: {0}", e);
 				try{
-					using(var writer = new FileWriter(new File("Data/DataEmpty.json"))){
-						writer.write(Gson.toJson(new SaveDataStore()));
+					using(var writer = new JsonTextWriter(new StreamWriter("Data/DataEmpty.json"))){
+						serializer.Serialize(writer, SaveDataStore);
 					}
 				}
 				catch(Exception e1){ Logger.Error("Couldn't save data: {0}", e1); }

@@ -90,8 +90,7 @@ namespace FozruciCS {
 		Caps
 	}
 
-	[Flags]
-	public enum Bits : int{
+	public enum Bits : byte{
 		JokeCommands,
 		ArrayOffsetSet,
 		CleverBotInt,
@@ -266,10 +265,10 @@ namespace FozruciCS {
 			}*/
 			this.Network = network;
 			// true, false, null, null, null, false, true, true
-			_bools[JokeCommands] = true;
-			_bools[Color] = true;
-			_bools[RespondToPms] = true;
-			_bools[CheckLinks] = true;
+			_bools[(int)JokeCommands] = true;
+			_bools[(int)Color] = true;
+			_bools[(int)RespondToPms] = true;
+			_bools[(int)CheckLinks] = true;
 
 			FozruciX._manager = manager;
 
@@ -319,6 +318,8 @@ namespace FozruciCS {
 				case MessageModes.Caps:
 					msgToSend = msgToSend.toUpperCase();
 					break;
+				case MessageModes.Normal: break;
+				default: throw new ArgumentOutOfRangeException();
 			}
 			return msgToSend;
 		}
@@ -330,13 +331,14 @@ namespace FozruciCS {
 		}
 
 		private static void SendFile(MessageEvent @event, File file, string message = null, bool discordUpload = true){
-			if(@event is DiscordMessageEvent && discordUpload){
+			var messageEvent = @event as DiscordMessageEvent;
+			if(messageEvent != null && discordUpload){
 				try{
-					((DiscordMessageEvent) @event).getDiscordEvent()
+					messageEvent.getDiscordEvent()
 						.getTextChannel()
 						.sendFile(file, message != null ? new MessageBuilder().append(message).build() : null);
 				}
-				catch(IOException e){ SendError(@event, e); }
+				catch(IOException e){ SendError(messageEvent, e); }
 			}
 			else{ UploadFile(@event, file, null, message); }
 		}
@@ -610,23 +612,23 @@ namespace FozruciCS {
 			foreach(var aChannel in channel){
 				try{
 					// APPEND MODE SET HERE
-					var today = Calendar.getInstance();
-					var parent = "logs/" + network + "/" + EscapePath(aChannel) + "/" + today.get(Calendar.YEAR) + "/";
+					var today = DateTime.Now;
+					var parent = "logs/" + network + "/" + EscapePath(aChannel) + "/" + today.Year + "/";
 					var parentDir = new File(parent);
 					if(!parentDir.mkdirs() && !parentDir.exists()){ Logger.Error("Couldn't make dirs"); }
-					var path = java.lang.String.format("%02d", today.get(Calendar.MONTH) + 1)
+					var path = java.lang.String.format("%02d", today.Month)
 					           + "."
-					           + java.lang.String.format("%02d", today.get(Calendar.DATE))
+					           + java.lang.String.format("%02d", today.Day)
 					           + ".txt";
 					var file = new File(parent, path);
-					var minute = java.lang.String.format("%02d", today.get(Calendar.MINUTE));
+					var minute = java.lang.String.format("%02d", today.Minute);
 					if(minute.length() < 2){ minute = "0" + minute; }
 					PrintWriter pw;
-					var logFile = java.lang.String.format("%02d", today.get(Calendar.HOUR))
+					var logFile = java.lang.String.format("%02d", today.Hour)
 					              + ":"
 					              + minute
 					              + ":"
-					              + java.lang.String.format("%02d", today.get(Calendar.SECOND))
+					              + java.lang.String.format("%02d", today.Second)
 					              + java.lang.String.format("%1$12s", java.lang.String.format(eventType.toString(), user) + message);
 					if(file.exists() && !file.isDirectory()){
 						pw = new PrintWriter(new FileOutputStream(file, true));
@@ -687,7 +689,7 @@ namespace FozruciCS {
 			var discordFormatting = @event is DiscordMessageEvent ? "`" : "";
 			var cause = "";
 			string from;
-			if(_bools[Color] && discordFormatting.isEmpty()){ color = Colors.RED; }
+			if(_bools[(int)Color] && discordFormatting.isEmpty()){ color = Colors.RED; }
 			if(e.getCause() != null){ cause = "Error: " + discordFormatting + e.getCause() + discordFormatting; }
 			if(cause.isEmpty()){ from = "Error: " + discordFormatting + e + discordFormatting; }
 			else{ from = ". From " + discordFormatting + e + discordFormatting; }
@@ -899,11 +901,11 @@ namespace FozruciCS {
 
 		// ReSharper disable once ParameterHidesMember
 		private static void SetArrayOffset(string prefix){
-			if(_bools[ArrayOffsetSet]) return;
+			if(_bools[(int)ArrayOffsetSet]) return;
 			if((prefix.length() > 1) && !prefix.endsWith(".")){ _arrayOffset = StringUtils.countMatches(prefix, " "); }
 			else{ _arrayOffset = 0; }
 			Logger.Debug("Setting arrayOffset to " + _arrayOffset + " based on string \"" + prefix + "\"");
-			_bools[ArrayOffsetSet] = true;
+			_bools[(int)ArrayOffsetSet] = true;
 		}
 
 		private void SetArrayOffset(){ SetArrayOffset(_prefix); }
@@ -931,11 +933,11 @@ namespace FozruciCS {
 				MakeDebug();
 			}
 			_lastEvents.Enqueue(@event);
-			if(!_bools[DataLoaded]){
-				_bools[DataLoaded] = true;
+			if(!_bools[(int)DataLoaded]){
+				_bools[(int)DataLoaded] = true;
 				LoadData();
 			}
-			if((Network == Network.Normal) && _bools[NickInUse]){
+			if((Network == Network.Normal) && _bools[(int)NickInUse]){
 				if(!_bot.getNick().equalsIgnoreCase(_bot.getConfiguration().getName())){
 					SendNotice(@event, _currentUser.getNick(), "Ghost detected, recovering in 10 seconds");
 					new Thread(() => {
@@ -950,7 +952,7 @@ namespace FozruciCS {
 					}).Start();
 				}
 			}
-			_bools[NickInUse] = false;
+			_bools[(int)NickInUse] = false;
 			try{
 				if(!(@event.getMessage().startsWith(_prefix) && @event.getMessage().startsWith("."))){
 					if(LilGUtil.endsWithAny(@event.getMessage(), ".", "?", "!")){ AddWords(@event.getMessage()); }
@@ -976,7 +978,7 @@ namespace FozruciCS {
 				var checklink = !CommandChecker(@event, arg, "checkLink", false);
 				var isBot = this.IsBot(@event);
 				var isLinkShorterner = !@event.getMessage().contains("taglink: https://is.gd/");
-				if(!checklink || !_bools[CheckLinks] || !isBot || !isLinkShorterner) return;
+				if(!checklink || !_bools[(int)CheckLinks] || !isBot || !isLinkShorterner) return;
 				var channelContains = false;
 				var containsServer = false;
 				var containsChannel = false;
@@ -1136,7 +1138,7 @@ namespace FozruciCS {
 
 			if(!LilGUtil.containsAny(message, _prefix, _consolePrefix, _bot.getNick(), "s/")) return;
 			SetArrayOffset();
-			_bools[ArrayOffsetSet] = false;
+			_bools[(int)ArrayOffsetSet] = false;
 			if(CheckCooldown(@event) || !CheckPerm(@event.getUser(), 0) || IsBot(@event)){ return; }
 
 			// !getChannelName - Gets channel name, for debugging
@@ -1148,16 +1150,16 @@ namespace FozruciCS {
 			// !checkLinks
 			else if(CommandChecker(@event, arg, "checkLinks")){
 				if(!CheckPerm(@event.getUser(), 4)) return;
-				_bools[CheckLinks] = !_bools[CheckLinks];
-				SendMessage(@event, _bools[CheckLinks] ? "Link checking is on" : "Link checking is off");
+				_bools[(int)CheckLinks] = !_bools[(int)CheckLinks];
+				SendMessage(@event, _bools[(int)CheckLinks] ? "Link checking is on" : "Link checking is off");
 				AddCooldown(@event.getUser());
 			}
 
 			// !formatting - toggles COLOR (Mostly in the errors)
 			else if(CommandChecker(@event, arg, "formatting")){
 				if(CheckPerm(@event.getUser(), 9001)){
-					_bools[Color] = !_bools[Color];
-					SendMessage(@event, _bools[Color] ? "Color formatting is now On" : "Color formatting is now Off");
+					_bools[(int)Color] = !_bools[(int)Color];
+					SendMessage(@event, _bools[(int)Color] ? "Color formatting is now On" : "Color formatting is now Off");
 				}
 				else{ PermErrorchn(@event); }
 			}
@@ -1845,8 +1847,8 @@ namespace FozruciCS {
 			// !RESPOND_TO_PMS - sets whether or not to respond to PMs
 			else if(CommandChecker(@event, arg, "RESPOND_TO_PMS")){
 				if(CheckPerm(@event.getUser(), 9001)){
-					_bools[RespondToPms] = !_bools[RespondToPms];
-					SendMessage(@event, "Responding to PMs: " + _bools[RespondToPms], false);
+					_bools[(int)RespondToPms] = !_bools[(int)RespondToPms];
+					SendMessage(@event, "Responding to PMs: " + _bools[(int)RespondToPms], false);
 				}
 				else{ PermErrorchn(@event); }
 			}
@@ -1884,7 +1886,7 @@ namespace FozruciCS {
 
 			// !SkipLoad - skips loading save data
 			else if(CommandChecker(@event, arg, "SkipLoad")){
-				if(CheckPerm(@event.getUser(), 9001)){ _bools[DataLoaded] = true; }
+				if(CheckPerm(@event.getUser(), 9001)){ _bools[(int)DataLoaded] = true; }
 				else{ PermErrorchn(@event); }
 			}
 
@@ -2707,10 +2709,10 @@ namespace FozruciCS {
 			// !chat - chat's with a internet conversation bot
 			else if(CommandChecker(@event, arg, "chat")){
 				if(GetArg(arg, 1).equalsIgnoreCase("clever")){
-					if(!_bools[CleverBotInt]){
+					if(!_bools[(int)CleverBotInt]){
 						try{
 							_chatterBotSession = BotFactory.create(ChatterBotType.CLEVERBOT).createSession();
-							_bools[CleverBotInt] = true;
+							_bools[(int)CleverBotInt] = true;
 							//noinspection ConstantConditions
 							@event.getUser().send().notice("CleverBot started");
 						}
@@ -2720,10 +2722,10 @@ namespace FozruciCS {
 					catch(Exception e){ SendMessage(@event, "Error: Problem with bot. Error was: " + e); }
 				}
 				else if(GetArg(arg, 1).equalsIgnoreCase("pandora")){
-					if(!_bools[PandoraBotInt]){
+					if(!_bools[(int)PandoraBotInt]){
 						try{
 							_pandoraBotSession = BotFactory.create(ChatterBotType.PANDORABOTS, "b0dafd24ee35a477").createSession();
-							_bools[PandoraBotInt] = true;
+							_bools[(int)PandoraBotInt] = true;
 							//noinspection ConstantConditions
 							@event.getUser().send().notice("PandoraBot started");
 						}
@@ -2733,10 +2735,10 @@ namespace FozruciCS {
 					catch(Exception e){ SendMessage(@event, "Error: Problem with bot. Error was: " + e); }
 				}
 				else if(GetArg(arg, 1).equalsIgnoreCase("jabber")){
-					if(!_bools[JabberBotInt]){
+					if(!_bools[(int)JabberBotInt]){
 						try{
 							_jabberBotSession = BotFactory.create(ChatterBotType.JABBERWACKY, "b0dafd24ee35a477").createSession();
-							_bools[JabberBotInt] = true;
+							_bools[(int)JabberBotInt] = true;
 							//noinspection ConstantConditions
 							@event.getUser().send().notice("PandoraBot started");
 						}
@@ -3671,20 +3673,20 @@ namespace FozruciCS {
 				if(GetArg(arg, 1).equalsIgnoreCase("toggle")){
 					if(CheckPerm(@event.getUser(), 2)){
 						// ReSharper disable once AssignmentInConditionalExpression
-						if(_bools[JokeCommands] = !_bools[JokeCommands]){ SendMessage(@event, "Joke COMMANDS are now enabled"); }
+						if(_bools[(int)JokeCommands] = !_bools[(int)JokeCommands]){ SendMessage(@event, "Joke COMMANDS are now enabled"); }
 						else{ SendMessage(@event, "Joke COMMANDS are now disabled"); }
 					}
 					else{ PermErrorchn(@event); }
 				}
 				else{
-					if(_bools[JokeCommands]){ SendMessage(@event, "Joke COMMANDS are currently enabled"); }
+					if(_bools[(int)JokeCommands]){ SendMessage(@event, "Joke COMMANDS are currently enabled"); }
 					else{ SendMessage(@event, "Joke COMMANDS are currently disabled"); }
 				}
 			}
 
 			// !sudo/make me a sandwich - You should already know this joke
 			else if(CommandChecker(@event, arg, "make me a sandwich")){
-				if(_bools[JokeCommands] || CheckPerm(@event.getUser(), 1)){
+				if(_bools[(int)JokeCommands] || CheckPerm(@event.getUser(), 1)){
 					SendMessage(@event, "No, make one yourself", false);
 					AddCooldown(@event.getUser());
 				}
@@ -3700,7 +3702,7 @@ namespace FozruciCS {
 
 			// !Splatoon - Joke command - ask the splatoon question
 			else if(CommandChecker(@event, arg, "Splatoon")){
-				if(_bools[JokeCommands] || CheckPerm(@event.getUser(), 1)){
+				if(_bools[(int)JokeCommands] || CheckPerm(@event.getUser(), 1)){
 					SendMessage(@event, " YOU'RE A KID YOU'RE A SQUID");
 					AddCooldown(@event.getUser());
 				}
@@ -3709,7 +3711,7 @@ namespace FozruciCS {
 
 			// !attempt - Joke command - NOT ATTEMPTED
 			else if(CommandChecker(@event, arg, "attempt")){
-				if(_bools[JokeCommands] || CheckPerm(@event.getUser(), 1)){
+				if(_bools[(int)JokeCommands] || CheckPerm(@event.getUser(), 1)){
 					SendMessage(@event, " NOT ATTEMPTED");
 					AddCooldown(@event.getUser());
 				}
@@ -3718,13 +3720,13 @@ namespace FozruciCS {
 
 			// !potato - Joke command - say "i am potato" in Japanese
 			else if(CommandChecker(@event, arg, "potato")){
-				if(_bools[JokeCommands] || CheckPerm(@event.getUser(), 1)){ SendMessage(@event, "わたしわポタトデス"); }
+				if(_bools[(int)JokeCommands] || CheckPerm(@event.getUser(), 1)){ SendMessage(@event, "わたしわポタトデス"); }
 				else SendMessage(@event, " Sorry, Joke COMMANDS are disabled");
 			}
 
 			// !WhatIs? - Joke command -
 			else if(CommandChecker(@event, arg, "WhatIs?")){
-				if(_bools[JokeCommands] || CheckPerm(@event.getUser(), 1)){
+				if(_bools[(int)JokeCommands] || CheckPerm(@event.getUser(), 1)){
 					var num = LilGUtil.randInt(0, Dictionary.Count() - 1);
 					string comeback = java.lang.String.format(Dictionary[num], ArgJoiner(arg, 1));
 					SendMessage(@event, comeback);
@@ -3735,7 +3737,7 @@ namespace FozruciCS {
 
 			// !rip - Joke command - never forgetti the spaghetti
 			else if(CommandChecker(@event, arg, "rip")){
-				if(_bools[JokeCommands] || CheckPerm(@event.getUser(), 1)){
+				if(_bools[(int)JokeCommands] || CheckPerm(@event.getUser(), 1)){
 					if(GetArg(arg, 1).equalsIgnoreCase(_currentUser.getNick())){
 						SendMessage(@event, _currentUser.getNick() + " Will live forever!", false);
 					}
@@ -3966,7 +3968,7 @@ namespace FozruciCS {
 				try{ pm.respondWith(BotTalk("clever", pm.getMessage())); }
 				catch(Exception e){ e.printStackTrace(); }
 			}
-			_bools[ArrayOffsetSet] = false;
+			_bools[(int)ArrayOffsetSet] = false;
 			_debug.UpdateBot = (_bot);
 			CheckNote(pm, pm.getUser().getNick(), null);
 			_debug.CurrentNick = (_currentUser.getHostmask());
@@ -4077,7 +4079,7 @@ namespace FozruciCS {
 		}
 
 		public void OnNickAlreadyInUse(NickAlreadyInUseEvent nick){
-			_bools[NickInUse] = true;
+			_bools[(int)NickInUse] = true;
 			nick.respond(nick.getUsedNick() + 1);
 		}
 
@@ -4085,7 +4087,7 @@ namespace FozruciCS {
 			if(quit.getReason().contains("RECOVER")
 			   || quit.getReason().contains("GHOST")
 			   || quit.getReason().contains("REGAIN")){ //Recover @event
-				_bools[NickInUse] = true;
+				_bools[(int)NickInUse] = true;
 			}
 			if(quit is DiscordQuitEvent){
 				string channelToMessage = _checkJoinsAndQuits[((DiscordQuitEvent) quit).getLeaveEvent().getGuild().getId()];
@@ -4201,31 +4203,29 @@ namespace FozruciCS {
 			return false;
 		}
 
-		private void LoadData(){ LoadData(true); }
+		private void LoadData(bool writeOnce = true){
+			if(writeOnce && _noteList == null) _noteList = SaveDataStore.NoteList;
 
-		private void LoadData(bool writeOnce){
-			if(writeOnce && _noteList == null) _noteList = SaveDataStore.getINSTANCE().getNoteList();
+			if(writeOnce && _authedUser == null) _authedUser = SaveDataStore.AuthedUser;
 
-			if(writeOnce && _authedUser == null) _authedUser = SaveDataStore.getINSTANCE().getAuthedUser();
+			if(writeOnce && _authedUserLevel == null) _authedUserLevel = SaveDataStore.AuthedUserLevel;
 
-			if(writeOnce && _authedUserLevel == null) _authedUserLevel = SaveDataStore.getINSTANCE().getAuthedUserLevel();
+			if(writeOnce && _avatar == null) _avatar = SaveDataStore.AvatarLink;
 
-			if(writeOnce && _avatar == null) _avatar = SaveDataStore.getINSTANCE().getAvatarLink();
+			if(writeOnce && _memes == null) _memes = SaveDataStore.Memes;
 
-			if(writeOnce && _memes == null) _memes = SaveDataStore.getINSTANCE().getMemes();
+			if(writeOnce && _fcList == null) _fcList = SaveDataStore.FcList;
 
-			if(writeOnce && _fcList == null) _fcList = SaveDataStore.getINSTANCE().getFCList();
+			if(writeOnce && MarkovChain == null) MarkovChain = SaveDataStore.MarkovChain;
 
-			if(writeOnce && MarkovChain == null) MarkovChain = SaveDataStore.getINSTANCE().getMarkovChain();
-
-			if(writeOnce && _allowedCommands == null) _allowedCommands = SaveDataStore.getINSTANCE().getAllowedCommands();
+			if(writeOnce && _allowedCommands == null) _allowedCommands = SaveDataStore.AllowedCommands;
 
 			if(writeOnce && _checkJoinsAndQuits == null)
-				_checkJoinsAndQuits = SaveDataStore.getINSTANCE().getCheckJoinsAndQuits();
+				_checkJoinsAndQuits = SaveDataStore.CheckJoinsAndQuits;
 
-			if(writeOnce && _mutedServerList == null) _mutedServerList = SaveDataStore.getINSTANCE().getMutedServerList();
+			if(writeOnce && _mutedServerList == null) _mutedServerList = SaveDataStore.MutedServerList;
 
-			if(writeOnce && DiscordData.wordFilter == null) DiscordData.wordFilter = SaveDataStore.getINSTANCE().getWordFilter();
+			if(writeOnce && DiscordData.wordFilter == null) DiscordData.wordFilter = SaveDataStore.WordFilter;
 		}
 
 		private void CheckNote(Event @event, string user, string channel){
