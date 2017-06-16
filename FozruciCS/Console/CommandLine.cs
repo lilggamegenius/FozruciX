@@ -34,7 +34,25 @@ namespace FozruciCS.Console {
 			};
 		}
 
-		public CommandLine(){ throw new System.NotImplementedException(); }
+		public CommandLine(){ _output = new List<string>();
+			Process = new Process{
+				StartInfo = {
+					RedirectStandardInput = true,
+					RedirectStandardOutput = true,
+					RedirectStandardError = true,
+					UseShellExecute = false,
+					CreateNoWindow = true,
+					FileName = "CMD.exe"
+				}
+			};
+			//Process.StandardInput.AutoFlush = true;
+			Process.OutputDataReceived += (ignored, args) => {
+				Logger.Trace("CL: {0}", args.Data);
+				_output.Add(args.Data);
+			};
+			Process.Start();
+			Process.BeginOutputReadLine();
+		}
 
 		public void Start(){
 			Process.Start();

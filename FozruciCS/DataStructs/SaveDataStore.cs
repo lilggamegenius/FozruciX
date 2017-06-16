@@ -1,83 +1,129 @@
 ﻿using System.Collections.Generic;
 using net.dv8tion.jda.core.entities;
-using Newtonsoft.Json;
 
 namespace FozruciCS.DataStructs{
-	public struct SaveDataStore{
-		public static SaveDataStore instance{get;set;}
+	public struct SaveDataStore {
+		public static SaveDataStore Instance;
 
 		private Dictionary<string, Dictionary<string, List<string>>> _allowedCommands;
-
 		private Dictionary<string, string> _checkJoinsAndQuits;
 		private List<string> _mutedServerList;
 		private Dictionary<string, List<string>> _markovChain;
+		private List<Note> _noteList;
+		private List<string> _authedUser;
+		private List<int> _authedUserLevel;
+		private string _avatarLink;
+		private Dictionary<string, Meme> _memes;
+		private Dictionary<string, string> _fcList;
+		private List<string> _dndJoined;
+		private Dictionary<TextChannel, List<string>> _wordFilter;
 
-		[JsonProperty("NoteList")] public List<Note> NoteList{get;set;}
+		public static List<Note> NoteList{
+			get => Instance._noteList;
+			set => Instance._noteList = value;
+		}
 
-		[JsonProperty("AuthedUser")] public List<string> AuthedUser{get;set;}
+		public static List<string> AuthedUser{
+			get => Instance._authedUser;
+			set => Instance._authedUser = value;
+		}
 
-		[JsonProperty("AuthedUserLevel")] public List<int> AuthedUserLevel{get;set;}
+		public static List<int> AuthedUserLevel{
+			get => Instance._authedUserLevel;
+			set => Instance._authedUserLevel = value;
+		}
 
-		[JsonProperty("AvatarLink")] public string AvatarLink{get;set;}
+		public static string AvatarLink{
+			get => Instance._avatarLink;
+			set => Instance._avatarLink = value;
+		}
 
-		[JsonProperty("Memes")] public Dictionary<string, Meme> Memes{get;set;}
+		public static Dictionary<string, Meme> Memes{
+			get => Instance._memes;
+			set => Instance._memes = value;
+		}
 
-		[JsonProperty("FcList")] public Dictionary<string, string> FcList{get;set;}
+		public static Dictionary<string, string> FcList{
+			get => Instance._fcList;
+			set => Instance._fcList = value;
+		}
 
-		[JsonProperty("DndJoined")] public List<string> DndJoined{get;set;}
+		public static List<string> DndJoined{
+			get => Instance._dndJoined;
+			set => Instance._dndJoined = value;
+		}
 
-		[JsonProperty("AllowedCommands")] public Dictionary<string, Dictionary<string, List<string>>> AllowedCommands{
+		public static Dictionary<string, Dictionary<string, List<string>>> AllowedCommands{
 			get{
-				if(_allowedCommands == null){ _allowedCommands = new Dictionary<string, Dictionary<string, List<string>>>(); }
-				if(_allowedCommands.Count >= 1) return _allowedCommands;
+				if(Instance._allowedCommands == null){ Instance._allowedCommands = new Dictionary<string, Dictionary<string, List<string>>>(); }
+				if(Instance._allowedCommands.Count >= 1) return Instance._allowedCommands;
 				var temp =
 					new Dictionary<string, List<string>>{
 						["#retro"] = new List<string>(new[]{"GayDar", "url checker"}),
 						["#origami64"] = new List<string>(new[]{"markov", "my", "url checker"})
 					};
-				_allowedCommands["BadnikZONE"] = temp;
+				Instance._allowedCommands["BadnikZONE"] = temp;
 				temp = new Dictionary<string, List<string>>{["#deltasmash"] = new List<string>(new[]{"FC", "version"})};
-				_allowedCommands["twitch"] = temp;
+				Instance._allowedCommands["twitch"] = temp;
 				temp = new Dictionary<string, List<string>>{["#pmd"] = new List<string>(new[]{"url checker"})};
-				_allowedCommands["CaffieNET"] = temp;
+				Instance._allowedCommands["CaffieNET"] = temp;
 				temp = new Dictionary<string, List<string>>{
 					["#general"] = new List<string>(new[]{"url checker"}),
 					["#development"] = new List<string>(new[]{"url checker"})
 				};
-				_allowedCommands["Discord Bots"] = temp;
-				return _allowedCommands;
+				Instance._allowedCommands["Discord Bots"] = temp;
+				return Instance._allowedCommands;
 			}
-			set=>_allowedCommands = value;
+			set=>Instance._allowedCommands = value;
 		}
 
-		[JsonProperty("CheckJoinsAndQuits")] public Dictionary<string, string> CheckJoinsAndQuits{
+		public static Dictionary<string, string> CheckJoinsAndQuits{
 			get{
-				if(_checkJoinsAndQuits.Count < 1){ _checkJoinsAndQuits["191548246332538880"] = "214906329498648576"; }
-				return _checkJoinsAndQuits;
+				if(Instance._checkJoinsAndQuits == null) Instance._checkJoinsAndQuits = new Dictionary<string, string>();
+				if(Instance._checkJoinsAndQuits.Count < 1){ Instance._checkJoinsAndQuits["191548246332538880"] = "214906329498648576"; }
+				return Instance._checkJoinsAndQuits;
 			}
-			set=>_checkJoinsAndQuits = value;
+			set=>Instance._checkJoinsAndQuits = value;
 		}
 
-		[JsonProperty("MutedServerList")] public List<string> MutedServerList{
+		public static List<string> MutedServerList{
 			get{
-				if(_mutedServerList.Count < 1){ _mutedServerList.Add("110373943822540800"); }
-				return _mutedServerList;
+				if(Instance._mutedServerList== null) Instance._mutedServerList = new List<string>();
+				if(Instance._mutedServerList.Count < 1){ Instance._mutedServerList.Add("110373943822540800"); }
+				return Instance._mutedServerList;
 			}
-			set=>_mutedServerList = value;
+			set=>Instance._mutedServerList = value;
 		}
 
-		[JsonProperty("WordFilter")] public Dictionary<TextChannel, List<string>> WordFilter{get;set;}
+		public static Dictionary<TextChannel, List<string>> WordFilter{
+			get => Instance._wordFilter;
+			set => Instance._wordFilter = value;
+		}
 
-		[JsonProperty("MarkovChain")] public Dictionary<string, List<string>> MarkovChain{
+		public static Dictionary<string, List<string>> MarkovChain{
 			get{
-				if(_markovChain.Count >= 1) return _markovChain; // Create the first two entries (k:_start, k:_end)
-				_markovChain["_start"] = new List<string>();
-				_markovChain["_end"] = new List<string>();
-				return _markovChain;
+				if(Instance._markovChain == null) Instance._markovChain = new Dictionary<string, List<string>>();
+				if(Instance._markovChain.Count >= 1) return Instance._markovChain; // Create the first two entries (k:_start, k:_end)
+				Instance._markovChain["_start"] = new List<string>();
+				Instance._markovChain["_end"] = new List<string>();
+				return Instance._markovChain;
 			}
-			set=>_markovChain = value;
+			set=>Instance._markovChain = value;
 		}
 
-
+		public SaveDataStore(string avatarLink = "http://puu.sh/oiLvW.gif"){
+			_allowedCommands = new Dictionary<string, Dictionary<string, List<string>>>();
+			_checkJoinsAndQuits = new Dictionary<string, string>();
+			_mutedServerList = new List<string>();
+			_markovChain = new Dictionary<string, List<string>>();
+			_noteList = new List<Note>();
+			_authedUser = new List<string>();
+			_authedUserLevel = new List<int>();
+			_avatarLink = avatarLink;
+			_memes = new Dictionary<string, Meme>();
+			_fcList = new Dictionary<string, string>();
+			_dndJoined = new List<string>();
+			_wordFilter = new Dictionary<TextChannel, List<string>>();
+		}
 	}
 }

@@ -16,6 +16,7 @@ using NLog;
 using org.pircbotx;
 using org.pircbotx.cap;
 using Exception = java.lang.Exception;
+using Thread = System.Threading.Thread;
 
 namespace FozruciCS {
 	public enum Password {
@@ -60,7 +61,7 @@ namespace FozruciCS {
 		public const string Login = "SmugLeaf";
 		public const string KvircFlags = "\u00034\u000F";
 		public const string RealName = KvircFlags + "* Why do i always get the freaks...";
-		public static readonly MultiBotManager Manager = new MultiBotManager();
+		public static MultiBotManager Manager{ get; } = new MultiBotManager();
 		public static readonly LocationRelativeToServer.Locations Location;
 		private static readonly Logger Logger = new LogFactory().GetCurrentClassLogger();
 		[JsonIgnore] public static readonly string Password = setPassword(FozruciCS.Password.Normal);
@@ -320,9 +321,10 @@ namespace FozruciCS {
 
 		//Create our bot with the configuration
 		[STAThread]
-		public static void main(string[] args){
+		public static int Main(string[] args){
 			//Before anything else
 			//IdentServer.startServer();
+			Logger.Trace("Args: {0}", args);
 			Logger.Debug("Setting key");
 			YandexTranslatorAPI.setKey(ApiKeys.YANDEX_API_KEY);
 
@@ -351,6 +353,10 @@ namespace FozruciCS {
 #pragma warning restore 162
 			//Connect to the server
 			Manager.start();
+			while(true){
+				Thread.Sleep(int.MaxValue);
+			}
+			return 0;
 		}
 
 		public static string setPassword(Password password){
@@ -408,7 +414,7 @@ namespace FozruciCS {
 				Logger.Error("failed loading data, Attempting to save empty copy: {0}", e);
 				try{
 					using(var writer = new JsonTextWriter(new StreamWriter("Data/DataEmpty.json"))){
-						serializer.Serialize(writer, SaveDataStore);
+						serializer.Serialize(writer, SaveDataStore.Instance);
 					}
 				}
 				catch(Exception e1){ Logger.Error("Couldn't save data: {0}", e1); }
@@ -417,12 +423,17 @@ namespace FozruciCS {
 		}
 
 		public static void saveData(){
-			try{ using(FileWriter writer = new FileWriter(Bak)){ writer.write(Gson.toJson(SaveDataStore.getINSTANCE())); } }
-			catch(Exception e){ Logger.Error("Couldn't save data", e); }
-			Files.move(Bak.toPath(), SaveFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+			try{
+				using(var writer = new JsonTextWriter(File.AppendText(Bak))){
+					serializer.Serialize(writer, SaveDataStore.Instance);
+				}
+			}
+			catch(Exception e){ Logger.Error("Couldn't save data {0}", e); }
+			if (File.Exists(SaveFile)) {
+				File.Delete(SaveFile);
+			}
+			File.Move(Bak, SaveFile);
 			Logger.Info("Data saved");
 		}
-
-		public static MultiBotManager getManager(){ return Manager; }
 	}
 }

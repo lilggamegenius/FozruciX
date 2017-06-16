@@ -1,13 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Drawing;
+using System.Drawing.Imaging;
+using System.IO;
 using com.google.common.collect;
 using com.mashape.unirest.http;
 using FozruciCS.Utils;
-using java.io;
 using java.lang;
 using java.util;
-using javax.imageio;
-using lombok;
 using net.dv8tion.jda.core;
 using net.dv8tion.jda.core.entities;
 using net.dv8tion.jda.core.events;
@@ -19,71 +18,71 @@ using net.dv8tion.jda.core.hooks;
 using net.dv8tion.jda.core.managers;
 using NLog;
 using org.apache.commons.httpclient.util;
-using org.apache.log4j.spi;
 using org.pircbotx;
 using org.pircbotx.hooks.events;
 using org.pircbotx.snapshot;
 using Channel = org.pircbotx.Channel;
-using Exception = java.lang.Exception;
-using Object = java.lang.Object;
+using Exception = System.Exception;
+using Icon = net.dv8tion.jda.core.entities.Icon;
 using String = java.lang.String;
 using User = org.pircbotx.User;
+using Thread = System.Threading.Thread;
 
 namespace FozruciCS{
 	public class DiscordAdapter : ListenerAdapter{
 		private static readonly Logger Logger = new LogFactory().GetCurrentClassLogger();
-		public static File avatarFile;
-		static FozruciX bot;
-		internal static PircBotX pircBotX;
-		private static DiscordAdapter discordAdapter = null;
-		private static ReadyEvent readyEvent;
-		private static JDA jda;
-		private static GameThread game;
-		private static AvatarThread avatar;
+		public static string AvatarFile;
+		static FozruciX _bot;
+		internal static PircBotX PircBotX;
+		private static DiscordAdapter _discordAdapter = null;
+		private static ReadyEvent _readyEvent;
+		private static JDA _jda;
+		private static GameThread _game;
+		private static AvatarThread _avatar;
 
 		private DiscordAdapter(PircBotX pircBotX){
 			var token = CryptoUtil.decrypt(FozConfig.setPassword(Password.Discord));
 			Logger.Trace("Calling JDA Builder with token: " + token);
-			jda = new JDABuilder(AccountType.BOT)
+			_jda = new JDABuilder(AccountType.BOT)
 				.setToken(token)
 				.setAutoReconnect(true)
 				.setAudioEnabled(true)
 				.setEnableShutdownHook(true)
 				.addEventListener(this)
 				.buildBlocking();
-			bot = new FozruciX(FozConfig.getManager(), Network.discord);
-			FozruciCS.DiscordAdapter.pircBotX = pircBotX;
-			game = new GameThread(jda.getPresence());
-			game.setName("Game Setter thread");
-			game.start();
+			_bot = new FozruciX(FozConfig.Manager, Network.Discord);
+			PircBotX = pircBotX;
+			_game = new GameThread(_jda.getPresence());
+			_game.SetName("Game Setter thread");
+			_game.Start();
 
-			avatar = new AvatarThread(jda.getSelfUser().getManagerUpdatable(), bot);
-			avatar.setName("Avatar Setter thread");
-			avatar.start();
+			_avatar = new AvatarThread(_jda.getSelfUser().getManagerUpdatable(), _bot);
+			_avatar.SetName("Avatar Setter thread");
+			_avatar.Start();
 			Logger.Trace("DiscordAdapter created");
 			Logger.Trace("Calling onConnect() method");
-			lock(readyEvent){ bot.onConnect(new DiscordConnectEvent(pircBotX).setReadyEvent(readyEvent)); }
+			lock(_readyEvent){ _bot.onConnect(new DiscordConnectEvent(pircBotX).SetReadyEvent(_readyEvent)); }
 		}
 
-		internal static DiscordAdapter makeDiscord(PircBotX pircBotX){
+		internal static DiscordAdapter MakeDiscord(PircBotX pircBotX){
 			//Logger.setLevel(Level.ALL);
 			try{
 				Logger.Trace("Making Discord connection");
-				if(discordAdapter == null){
+				if(_discordAdapter == null){
 					Logger.Trace("Constructing...");
 					Unirest.setTimeouts(10 * 1000, 10 * 1000);
-					discordAdapter = new DiscordAdapter(pircBotX);
+					_discordAdapter = new DiscordAdapter(pircBotX);
 				}
 			}
-			catch(Exception e){ e.printStackTrace(); }
-			return discordAdapter;
+			catch(Exception e){ Logger.Error(e, "Error making Discord connection"); }
+			return _discordAdapter;
 		}
 
-		public static JDA getJda(){
-			return jda;
+		public static JDA GetJda(){
+			return _jda;
 		}
 
-		public static int getlevelFromPerm(Permission perm){
+		public static int GetlevelFromPerm(Permission perm){
 			if(perm == Permission.CREATE_INSTANT_INVITE){ return 0; }
 			if(perm == Permission.KICK_MEMBERS){ return 3; }
 			if(perm == Permission.BAN_MEMBERS){ return 3; }
@@ -112,40 +111,40 @@ namespace FozruciCS{
 			return 0;
 		}
 
-		public void onReady(ReadyEvent event_){
+		public override void onReady(ReadyEvent event_){
 			try{
 				lock(event_){
-					readyEvent = event_;
+					_readyEvent = event_;
 					Logger.Info("Discord is ready");
 				}
 			}
-			catch(Exception e){ e.printStackTrace(); }
+			catch(Exception e){ Logger.Error(e, "Error OnReady()"); }
 		}
 
-		public void onGuildMemberJoin(GuildMemberJoinEvent join){
+		public override void onGuildMemberJoin(GuildMemberJoinEvent join){
 			var discordNick = join.getMember().getEffectiveName();
 			var discordUsername = join.getMember().getUser().getName();
 			var discordHostmask = join.getMember().getUser().getId();
 			var discordUserHostmask =
-				new DiscordUserHostmask(pircBotX,
+				new DiscordUserHostmask(PircBotX,
 				                        (discordNick ?? discordUsername) + "!" + discordUsername + "@" +
 				                        discordHostmask);
 			Logger.Info(String.format("[%s] %s: %s", join.getGuild().getName(), discordUserHostmask.getHostmask(), "Joined"));
-			bot.onJoin(new DiscordJoinEvent(pircBotX,
-			                                new DiscordChannel(pircBotX, '#' + (join.getGuild().getPublicChannel() as MessageChannel).getName()),
+			_bot.onJoin(new DiscordJoinEvent(PircBotX,
+			                                new DiscordChannel(PircBotX, '#' + (join.getGuild().getPublicChannel() as MessageChannel).getName()),
 			                                discordUserHostmask,
 			                                new DiscordUser(discordUserHostmask, join.getMember().getUser(), join.getGuild()),
 			                                join));
 		}
 
-		public void onGuildMemberLeave(GuildMemberLeaveEvent leave){
+		public override void onGuildMemberLeave(GuildMemberLeaveEvent leave){
 			var discordNick = leave.getMember().getEffectiveName();
 			var discordUsername = leave.getMember().getUser().getName();
 			var discordHostmask = leave.getMember().getUser().getId();
 			var discordUserHostmask =
-				new DiscordUserHostmask(pircBotX, (discordNick ?? discordUsername) + "!" + discordUsername + "@" + discordHostmask);
+				new DiscordUserHostmask(PircBotX, (discordNick ?? discordUsername) + "!" + discordUsername + "@" + discordHostmask);
 			Logger.Info(String.format("[%s] %s: %s", leave.getGuild().getName(), discordUserHostmask.getHostmask(), "Left"));
-			bot.onQuit(new DiscordQuitEvent(pircBotX,
+			_bot.onQuit(new DiscordQuitEvent(PircBotX,
 			                                null,
 			                                discordUserHostmask,
 			                                new UserSnapshot(new DiscordUser(discordUserHostmask,
@@ -155,24 +154,24 @@ namespace FozruciCS{
 			                                leave));
 		}
 
-		public void onGuildBan(GuildBanEvent ban){
+		public override void onGuildBan(GuildBanEvent ban){
 			var discordNick = ban.getUser().getName();
 			var discordUsername = discordNick;
 			var discordHostmask = ban.getUser().getId();
 			var discordUserHostmask =
-				new DiscordUserHostmask(pircBotX, (discordNick ?? discordUsername) + "!" + discordUsername + "@" + discordHostmask);
+				new DiscordUserHostmask(PircBotX, (discordNick ?? discordUsername) + "!" + discordUsername + "@" + discordHostmask);
 			Logger.Info(String.format("[%s] %s: %s", ban.getGuild().getName(), discordUserHostmask.getHostmask(), "Banned"));
-			bot.onBan(ban);
+			_bot.onBan(ban);
 		}
 
-		public void onGuildMemberNickChange(GuildMemberNickChangeEvent nick){
+		public override void onGuildMemberNickChange(GuildMemberNickChangeEvent nick){
 			var discordNick = nick.getMember().getEffectiveName();
 			var discordUsername = nick.getMember().getUser().getName();
 			var discordOldNick = nick.getPrevNick();
-			discordOldNick = discordOldNick != null ? discordOldNick : discordUsername;
+			discordOldNick = discordOldNick ?? discordUsername;
 			var discordHostmask = nick.getMember().getUser().getId();
 			var discordUserHostmask =
-				new DiscordUserHostmask(pircBotX, discordNick + "!" + discordUsername + "@" + discordHostmask);
+				new DiscordUserHostmask(PircBotX, discordNick + "!" + discordUsername + "@" + discordHostmask);
 			Logger.Info(String.format("[%s]: %s %s %s %s %s",
 			                          nick.getGuild().getName(),
 			                          discordUserHostmask.getHostmask(),
@@ -180,7 +179,7 @@ namespace FozruciCS{
 			                          discordOldNick,
 			                          "to",
 			                          discordNick));
-			bot.onNickChange(new NickChangeEvent(pircBotX,
+			_bot.onNickChange(new NickChangeEvent(PircBotX,
 			                                     discordOldNick,
 			                                     discordNick,
 			                                     discordUserHostmask,
@@ -189,7 +188,7 @@ namespace FozruciCS{
 			                                                     nick.getGuild())));
 		}
 
-		public void onMessageReceived(MessageReceivedEvent event_){
+		public override void onMessageReceived(MessageReceivedEvent event_){
 			var discordNick = "Error nick";
 			var discordUsername = "Error UserName";
 			var discordHostmask = "Error Hostmask";
@@ -205,12 +204,12 @@ namespace FozruciCS{
 			}
 			catch(Exception e){ Logger.Error("Error receiving message", e); }
 			var discordUserHostmask =
-				new DiscordUserHostmask(pircBotX, discordNick + "!" + discordUsername + "@" + discordHostmask);
+				new DiscordUserHostmask(PircBotX, discordNick + "!" + discordUsername + "@" + discordHostmask);
 
 			if(event_.isFromType(ChannelType.PRIVATE)){
 				Logger.Info(String.format("[PM] %s: %s", discordUserHostmask.getHostmask(), event_.getMessage().getRawContent()));
-				if(!event_.getAuthor().getId().Equals(jda.getSelfUser().getId())){
-					bot.onPrivateMessage(new DiscordPrivateMessageEvent(pircBotX,
+				if(!event_.getAuthor().getId().Equals(_jda.getSelfUser().getId())){
+					_bot.onPrivateMessage(new DiscordPrivateMessageEvent(PircBotX,
 					                                                    discordUserHostmask,
 					                                                    new DiscordUser(discordUserHostmask, event_.getAuthor(), null),
 					                                                    event_.getMessage().getRawContent(),
@@ -220,14 +219,14 @@ namespace FozruciCS{
 			else if(event_.isFromType(ChannelType.TEXT)){
 				Logger.Info(String.format("[%s][%s] %s: %s",
 				                          event_.getGuild().getName(),
-				                          event_.getTextChannel().getName(),
+				                          ((MessageChannel)event_.getTextChannel()).getName(),
 				                          discordUserHostmask.getHostmask(),
 				                          event_.getMessage().getRawContent()));
-				if(!event_.getAuthor().getId().Equals(jda.getSelfUser().getId())){
-					bot.onMessage(new DiscordMessageEvent(pircBotX,
-					                                      new DiscordChannel(pircBotX, event_.getTextChannel().getName())
-						                                      .setChannel(event_.getTextChannel()),
-					                                      event_.getTextChannel().getName(),
+				if(!event_.getAuthor().getId().Equals(_jda.getSelfUser().getId())){
+					_bot.onMessage(new DiscordMessageEvent(PircBotX,
+					                                      new DiscordChannel(PircBotX, ((MessageChannel)event_.getTextChannel()).getName())
+						                                      .SetChannel(event_.getTextChannel()),
+															  ((MessageChannel)event_.getTextChannel()).getName(),
 					                                      discordUserHostmask,
 					                                      new DiscordUser(discordUserHostmask, event_.getAuthor(), event_.getGuild()),
 					                                      event_.getMessage().getRawContent(),
@@ -240,13 +239,13 @@ namespace FozruciCS{
 			}
 		}
 
-		public void onTextChannelUpdateTopic(TextChannelUpdateTopicEvent event_){
+		public override void onTextChannelUpdateTopic(TextChannelUpdateTopicEvent event_){
 			try{
-				bot.onTopic(new DiscordTopicEvent(pircBotX,
-				                                  new DiscordChannel(pircBotX, event_.getChannel().getName()),
+				_bot.onTopic(new DiscordTopicEvent(PircBotX,
+				                                  new DiscordChannel(PircBotX, ((MessageChannel)event_.getChannel()).getName()),
 				                                  event_.getOldTopic(),
 				                                  event_.getChannel().getTopic(),
-				                                  new DiscordUserHostmask(pircBotX, ""),
+				                                  new DiscordUserHostmask(PircBotX, ""),
 				                                  DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond,
 				                                  true));
 			}
@@ -255,7 +254,7 @@ namespace FozruciCS{
 	}
 
 	class DiscordMessageEvent : MessageEvent{
-		private MessageReceivedEvent discordEvent;
+		private MessageReceivedEvent _discordEvent;
 
 		internal DiscordMessageEvent(PircBotX bot,
 		                             Channel channel,
@@ -271,79 +270,85 @@ namespace FozruciCS{
 		                                                                       user,
 		                                                                       message,
 		                                                                       tags){
-			this.discordEvent = discordEvent;
+			_discordEvent = discordEvent;
 		}
 
-		public MessageReceivedEvent getDiscordEvent(){
-			return discordEvent;
+		public MessageReceivedEvent GetDiscordEvent(){
+			return _discordEvent;
 		}
 
-		public void respond(string response){
-			discordEvent.getChannel().sendMessage(discordEvent.getAuthor().getAsMention() + ": " + response).queue();
+		public void Respond(string response){
+			_discordEvent.getChannel().sendMessage(_discordEvent.getAuthor().getAsMention() + ": " + response).queue();
 		}
 
-		public void respondWith(string fullLine){
-			discordEvent.getChannel().sendMessage(fullLine).queue();
+		public void RespondWith(string fullLine){
+			_discordEvent.getChannel().sendMessage(fullLine).queue();
 		}
 	}
 
 	class DiscordPrivateMessageEvent : PrivateMessageEvent{
-		private MessageReceivedEvent discordEvent;
+		private MessageReceivedEvent _discordEvent;
 
 		internal DiscordPrivateMessageEvent(PircBotX bot,
 		                                    UserHostmask userHostmask,
 		                                    User user,
 		                                    string message,
 		                                    MessageReceivedEvent discordEvent) : base(bot, userHostmask, user, message){
-			this.discordEvent = discordEvent;
+			_discordEvent = discordEvent;
 		}
 
-		public MessageReceivedEvent getDiscordEvent(){
-			return discordEvent;
+		public MessageReceivedEvent GetDiscordEvent(){
+			return _discordEvent;
 		}
 
-		public void respond(string response){
-			var user = discordEvent.getAuthor();
-			var messageToSend = discordEvent.getAuthor().getAsMention() + ": " + response;
+		public void Respond(string response){
+			var user = _discordEvent.getAuthor();
+			var messageToSend = _discordEvent.getAuthor().getAsMention() + ": " + response;
 			if(user.hasPrivateChannel()){ user.getPrivateChannel().sendMessage(messageToSend).queue(); }
-			else{ user.openPrivateChannel().queue(privateChannel->user.getPrivateChannel().sendMessage(messageToSend).queue()); }
+			else{
+				user.openPrivateChannel().complete();
+				user.getPrivateChannel().sendMessage(messageToSend).queue();
+			}
 		}
 
-		public void respondWith(string fullLine){
-			var user = discordEvent.getAuthor();
+		public void RespondWith(string fullLine){
+			var user = _discordEvent.getAuthor();
 			if(user.hasPrivateChannel()){ user.getPrivateChannel().sendMessage(fullLine).queue(); }
-			else{ user.openPrivateChannel().queue(privateChannel->user.getPrivateChannel().sendMessage(fullLine).queue()); }
+			else{
+				user.openPrivateChannel().complete();
+				user.getPrivateChannel().sendMessage(fullLine).queue();
+			}
 		}
 	}
 
 	class DiscordChannel : Channel{
-		private TextChannel channel;
+		private TextChannel _channel;
 
 		internal DiscordChannel(PircBotX bot, string name) : base(bot, "#" + name){}
 
-		public DiscordChannel setChannel(TextChannel channel){
-			this.channel = channel;
+		public DiscordChannel SetChannel(TextChannel channel){
+			_channel = channel;
 			return this;
 		}
 
-		public ImmutableSortedSet getUsers(){
-			var discordMembers = channel.getMembers();
+		public ImmutableSortedSet GetUsers(){
+			var discordMembers = _channel.getMembers();
 			var users = new ArrayList();
-			foreach(Member member in discordMembers){
+			foreach(var member in discordMembers.toList<Member>()){
 				var discordNick = member.getEffectiveName();
 				var discordUsername = member.getUser().getName();
 				var discordHostmask = member.getUser().getId(); //misnomer but it acts as the same thing
 				users.add(new DiscordUser(new DiscordUserHostmask(bot,
 				                                                  discordNick + "!" + discordUsername + "@" + discordHostmask),
 				                          member.getUser(),
-				                          channel.getGuild()));
+				                          _channel.getGuild()));
 			}
 			return ImmutableSortedSet.copyOf(users);
 		}
 	}
 
 	class DiscordConnectEvent : ConnectEvent{
-		private ReadyEvent ready;
+		private ReadyEvent _ready;
 
 		/**
 		 * Default constructor to setup object. Timestamp is automatically set to
@@ -353,40 +358,40 @@ namespace FozruciCS{
 		 */
 		internal DiscordConnectEvent(PircBotX bot) : base(bot){}
 
-		ReadyEvent getReadyEvent(){
-			return ready;
+		ReadyEvent GetReadyEvent(){
+			return _ready;
 		}
 
-		internal DiscordConnectEvent setReadyEvent(ReadyEvent ready){
-			this.ready = ready;
+		internal DiscordConnectEvent SetReadyEvent(ReadyEvent ready){
+			_ready = ready;
 			return this;
 		}
 	}
 
 	class DiscordUser : User{
-		private net.dv8tion.jda.core.entities.User discordUser;
-		private Guild guild = null; //null if PM
+		private net.dv8tion.jda.core.entities.User _discordUser;
+		private Guild _guild = null; //null if PM
 
 		internal DiscordUser(UserHostmask hostmask, net.dv8tion.jda.core.entities.User user, Guild guild) : base(hostmask){
-			discordUser = user;
-			this.guild = guild;
+			_discordUser = user;
+			_guild = guild;
 		}
 
-		public net.dv8tion.jda.core.entities.User getDiscordUser(){
-			return discordUser;
+		public net.dv8tion.jda.core.entities.User GetDiscordUser(){
+			return _discordUser;
 		}
 
-		public Guild getGuild(){
-			return guild;
+		public Guild GetGuild(){
+			return _guild;
 		}
 
-		public bool isAway(){
-			return (guild != null) && (guild.getMember(discordUser).getOnlineStatus() != OnlineStatus.ONLINE);
+		public bool IsAway(){
+			return (_guild != null) && (_guild.getMember(_discordUser).getOnlineStatus() != OnlineStatus.ONLINE);
 		}
 	}
 
 	class DiscordQuitEvent : QuitEvent{
-		private GuildMemberLeaveEvent leaveEvent;
+		private GuildMemberLeaveEvent _leaveEvent;
 
 		public DiscordQuitEvent(PircBotX bot,
 		                        UserChannelDaoSnapshot userChannelDaoSnapshot,
@@ -394,16 +399,16 @@ namespace FozruciCS{
 		                        UserSnapshot user,
 		                        string reason,
 		                        GuildMemberLeaveEvent leave) : base(bot, userChannelDaoSnapshot, userHostmask, user, reason){
-			leaveEvent = leave;
+			_leaveEvent = leave;
 		}
 
-		public GuildMemberLeaveEvent getLeaveEvent(){
-			return leaveEvent;
+		public GuildMemberLeaveEvent GetLeaveEvent(){
+			return _leaveEvent;
 		}
 	}
 
 	class DiscordJoinEvent : JoinEvent{
-		GuildMemberJoinEvent joinEvent;
+		GuildMemberJoinEvent _joinEvent;
 
 		public DiscordJoinEvent(PircBotX bot,
 		                        Channel channel,
@@ -411,26 +416,26 @@ namespace FozruciCS{
 		                        User user,
 		                        GuildMemberJoinEvent joinEvent) : base(bot, channel, userHostmask, user){
 			;
-			this.joinEvent = joinEvent;
+			_joinEvent = joinEvent;
 		}
 
-		public GuildMemberJoinEvent getJoinEvent(){
-			return joinEvent;
+		public GuildMemberJoinEvent GetJoinEvent(){
+			return _joinEvent;
 		}
 	}
 
 	class DiscordUserHostmask : UserHostmask{
-		private net.dv8tion.jda.core.entities.User discordUser;
+		private net.dv8tion.jda.core.entities.User _discordUser;
 
 		internal DiscordUserHostmask(PircBotX bot, string rawHostmask) : base(bot, rawHostmask){}
 
-		public net.dv8tion.jda.core.entities.User getDiscordUser(){
-			return discordUser;
+		public net.dv8tion.jda.core.entities.User GetDiscordUser(){
+			return _discordUser;
 		}
 	}
 
 	class DiscordNickChangeEvent : NickChangeEvent{
-		GuildMemberNickChangeEvent nickChangeEvent;
+		GuildMemberNickChangeEvent _nickChangeEvent;
 
 		public DiscordNickChangeEvent(PircBotX bot,
 		                              string oldNick,
@@ -442,7 +447,7 @@ namespace FozruciCS{
 		                                                                                 newNick,
 		                                                                                 userHostmask,
 		                                                                                 user){
-			this.nickChangeEvent = nickChangeEvent;
+			_nickChangeEvent = nickChangeEvent;
 		}
 	}
 
@@ -456,16 +461,19 @@ namespace FozruciCS{
 		                         bool changed) : base(bot, channel, oldTopic, topic, user, date, changed){}
 	}
 
-	class GameThread : Thread{
-		private Presence presence;
+	class GameThread{
+		private static readonly Logger Logger = new LogFactory().GetCurrentClassLogger();
+		private Presence _presence;
+
+		private Thread _thread;
 
 		private GameThread(){}
 
 		internal GameThread(Presence presence){
-			this.presence = presence;
+			_presence = presence;
 		}
 
-		public void run(){
+		public void Run(){
 			string[] listOfGames = {
 				"With bleach",
 				"With fire",
@@ -481,82 +489,107 @@ namespace FozruciCS{
 				"basketball with the head of my enemies",
 				"football with the head of my enemies"
 			};
-			while(!currentThread().isInterrupted()){
+			while(true){
 				try{
-					presence.setGame(Game.of((listOfGames[LilGUtil.randInt(0, listOfGames.Length - 1)])));
+					_presence.setGame(Game.of((listOfGames[LilGUtil.randInt(0, listOfGames.Length - 1)])));
 					LilGUtil.pause(LilGUtil.randInt(10, 30));
 				}
-				catch(InterruptedException e){ currentThread().interrupt(); }
-				catch(Exception e){ e.printStackTrace(); }
+				//catch(InterruptedException e){ currentThread().interrupt(); }
+				catch(Exception e){ Logger.Error(e, "Error in game setter thread"); }
+			}
+		}
+
+		public void Start(){
+			_thread = new Thread(Run);
+			_thread.Start();
+		}
+		public void SetName(string avatarSetterThread){
+			if(_thread != null){
+				_thread.Name = avatarSetterThread;
 			}
 		}
 	}
 
-	class AvatarThread : Thread{
+	class AvatarThread{
 		private static readonly Logger Logger = new LogFactory().GetCurrentClassLogger();
 
-		private AccountManagerUpdatable accountManager;
-		private FozruciX bot;
+		private Thread _thread;
+
+		private AccountManagerUpdatable _accountManager;
+		private FozruciX _bot;
 
 		public AvatarThread(AccountManagerUpdatable accountManager, FozruciX bot){
-			this.accountManager = accountManager;
-			this.bot = bot;
+			_accountManager = accountManager;
+			_bot = bot;
 		}
 
-		public void run(){
-			var avatarPath = new File(LilGUtil.IsLinux
+		public void Run(){
+			var avatarPath = LilGUtil.IsLinux
 				                          ? "/media/lil-g/OS/Users/ggonz/Pictures/avatar/burgerpants"
-				                          : "C:/Users/ggonz/Pictures/avatar/burgerpants/");
-			var tempImage = new File("./data/temp.png");
-			while(!Thread.currentThread().isInterrupted()){
+				                          : "C:/Users/ggonz/Pictures/avatar/burgerpants/";
+			var tempImage = "./data/temp.png";
+			while(true){
 				try{
 					LilGUtil.pause(LilGUtil.randInt(30, 120));
-					var avatarList = avatarPath.listFiles();
+					var avatarList = Directory.GetFiles(avatarPath);
 					var pathArray = new StringBuilder();
-					if(avatarList != null){
-						foreach(var anAvatarList in
-							avatarList){ if(!(anAvatarList.isDirectory() || anAvatarList.canRead())){ pathArray.append(anAvatarList); } }
+						foreach(var anAvatarList in avatarList){
+							if(!Directory.Exists(anAvatarList)){
+								pathArray.append(anAvatarList);
+							}
+						}
 						Logger.Info("File list: " + pathArray);
-						avatarFile = avatarList[LilGUtil.randInt(0, avatarList.Length - 1)];
-						Logger.Info("Picked file: " + avatarFile);
-						var field = accountManager.getAvatarField();
+						DiscordAdapter.AvatarFile = avatarList[LilGUtil.randInt(0, avatarList.Length - 1)];
+						Logger.Info("Picked file: " + DiscordAdapter.AvatarFile);
+						var field = _accountManager.getAvatarField();
 						try{
 							field.shouldUpdate();
-							field.setValue(Icon.from(avatarFile));
+							field.setValue(Icon.from(new java.io.File(DiscordAdapter.AvatarFile)));
 						}
-						catch(UnsupportedEncodingException e){
+						catch(Exception e){
 							try{
-								ImageIO.write(ImageIO.read(avatarFile), "png", tempImage);
-								field.setValue(Icon.from(tempImage));
+								Image.FromFile(DiscordAdapter.AvatarFile).Save(tempImage, ImageFormat.Png);
+								field.setValue(Icon.from(new java.io.File(tempImage)));
 							}
 							catch(ArrayIndexOutOfBoundsException arrayE){
 								arrayE.printStackTrace();
-								Logger.Error(avatarFile.getAbsolutePath());
+								Logger.Error(Path.GetFullPath(DiscordAdapter.AvatarFile));
 							}
 						}
 						foreach(var pircBotObj in
-							FozConfig.getManager().getBots().toArray()){
+							FozConfig.Manager.getBots().toArray()){
 							var temp = ((PircBotX)pircBotObj).getConfiguration().getListenerManager().getListeners().toArray();
 							FozruciX bot = null;
 							var index = 0;
 							while(index < temp.Length){
-								if(temp[index] is FozruciX){
-									bot = (FozruciX)temp[index];
+								var x = temp[index] as FozruciX;
+								if(x != null){
+									bot = x;
 									break;
 								}
 								index++;
 							}
-							if(bot != null)
-								bot.setAvatar(URIUtil.encodeQuery("https://lilggamegenius.ml/burgerpants/" + avatarFile.getName()));
+							bot?.SetAvatar(URIUtil.encodeQuery("https://lilggamegenius.ml/burgerpants/" + new java.io.File(DiscordAdapter.AvatarFile).getName()));
 						}
-					}
-					accountManager.update(null).queue();
-					Logger.debug("Set Avatar");
+					_accountManager.update(null).queue();
+					Logger.Debug("Set Avatar");
 				}
-				catch(InterruptedException){ currentThread().interrupt(); }
-				catch(Exception e){ e.printStackTrace(); }
+				//catch(InterruptedException){ currentThread().interrupt(); }
+				catch(Exception e){ Logger.Error(e, "Error in avatar setter thread"); }
+			}
+			// ReSharper disable once FunctionNeverReturns
+		}
+
+		public void SetName(string avatarSetterThread){
+			if(_thread != null){
+				_thread.Name = avatarSetterThread;
 			}
 		}
+
+		public void Start(){
+			_thread = new Thread(Run);
+			_thread.Start();
+		}
 	}
-	
+
 }
