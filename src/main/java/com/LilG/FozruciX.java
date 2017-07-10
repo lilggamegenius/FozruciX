@@ -34,8 +34,6 @@ import com.sun.jna.Native;
 import com.sun.jna.NativeLibrary;
 import com.sun.jna.Platform;
 import com.wolfram.alpha.*;
-import de.tudarmstadt.ukp.jwktl.JWKTL;
-import de.tudarmstadt.ukp.jwktl.api.*;
 import info.bliki.api.Page;
 import info.bliki.wiki.filter.PlainTextConverter;
 import info.bliki.wiki.model.WikiModel;
@@ -104,22 +102,22 @@ import static com.citumpe.ctpTools.jWMI.getWMIValue;
  */
 public class FozruciX extends ListenerAdapter {
     public final static float VERSION = 2.7f;
-    public final static String[] DICTIONARY = {"i don't know what \"%s\" is, do i look like a DICTIONARY?", "Go look it up yourself.", "Why not use your computer and look \"%s\" up.", "Google it.", "Nope.", "Get someone else to do it.", "Why not get that " + Colors.RED + "Other bot" + Colors.NORMAL + " to do it?", "There appears to be a error between your " + Colors.BOLD + "seat" + Colors.NORMAL + " and the " + Colors.BOLD + "Keyboard" + Colors.NORMAL + " >_>", "Uh oh, there appears to be a User error.", "error: Fuck count too low, Cannot give Fuck.", ">_>"};
-    public final static String[] LIST_OF_NOES = {" It’s not a priority for me at this time.", "I’d rather stick needles in my eyes.", "My schedule is up in the air right now. SEE IT WAFTING GENTLY DOWN THE CORRIDOR.", "I don’t love it, which means I’m not the right person for it.", "I would prefer another option.", "I would be the absolute worst person to execute, are you on crack?!", "Life is too short TO DO THINGS YOU don’t LOVE.", "I no longer do things that make me want to kill myself", "You should do this yourself, you would be awesome sauce.", "I would love to say yes to everything, but that would be stupid", "Fuck no.", "Some things have come up that need my attention.", "There is a person who totally kicks ass at this. I AM NOT THAT PERSON.", "Shoot me now...", "It would cause the slow withering death of my soul.", "I’d rather remove my own gallbladder with an oyster fork.", "I'd love to but I did my own thing and now I've got to undo it."};
-    public final static String[] COMMANDS = {"COMMANDS", " Time", " calcj", " RandomInt", " StringToBytes", " Chat", " Temp", " BlockConv", " Hello", " Bot", " GetName", " recycle", " Login", " GetLogin", " GetID", " GetSate", " prefix", " SayThis", " ToSciNo", " Trans", " DebugVar", " cmd", " SayRaw", " SayCTCPCommnad", " Leave", " Respawn", " Kill", " ChangeNick", " SayAction", " NoteJ", "Memes", " jToggle", " Joke: Splatoon", "Joke: Attempt", " Joke: potato", " Joke: whatIs?", "Joke: getFinger", " Joke: GayDar"};
-    private final static File WIKTIONARY_DIRECTORY = new File("Data/Wiktionary");
-    private final static int JOKE_COMMANDS = 0;
-    private final static int ARRAY_OFFSET_SET = 1;
-    private final static int CLEVER_BOT_INT = 2;
-    private final static int PANDORA_BOT_INT = 3;
-    private final static int JABBER_BOT_INT = 4;
-    private final static int NICK_IN_USE = 5;
-    private final static int COLOR = 6;
-    private final static int RESPOND_TO_PMS = 7;
-    private final static int DATA_LOADED = 8;
-    private final static int CHECK_LINKS = 9;
-    private final static ChatterBotFactory BOT_FACTORY = new ChatterBotFactory();
-    private final static ArbitraryPrecisionEvaluator EVALUATOR = new ArbitraryPrecisionEvaluator();
+	public final static String[] DICTIONARY = {"i don't know what \"%s\" is, do i look like a DICTIONARY?", "Go look it up yourself.", "Why not use your computer and look \"%s\" up.", "Google it.", "Nope.", "Get someone else to do it.", "Why not get that " + Colors.RED + "Other bot" + Colors.NORMAL + " to do it?", "There appears to be a error between your " + Colors.BOLD + "seat" + Colors.NORMAL + " and the " + Colors.BOLD + "Keyboard" + Colors.NORMAL + " >_>", "Uh oh, there appears to be a User error.", "error: Fuck count too low, Cannot give Fuck.", ">_>"},
+			LIST_OF_NOES = {" It’s not a priority for me at this time.", "I’d rather stick needles in my eyes.", "My schedule is up in the air right now. SEE IT WAFTING GENTLY DOWN THE CORRIDOR.", "I don’t love it, which means I’m not the right person for it.", "I would prefer another option.", "I would be the absolute worst person to execute, are you on crack?!", "Life is too short TO DO THINGS YOU don’t LOVE.", "I no longer do things that make me want to kill myself", "You should do this yourself, you would be awesome sauce.", "I would love to say yes to everything, but that would be stupid", "Fuck no.", "Some things have come up that need my attention.", "There is a person who totally kicks ass at this. I AM NOT THAT PERSON.", "Shoot me now...", "It would cause the slow withering death of my soul.", "I’d rather remove my own gallbladder with an oyster fork.", "I'd love to but I did my own thing and now I've got to undo it."},
+			COMMANDS = {"COMMANDS", " Time", " calcj", " RandomInt", " StringToBytes", " Chat", " Temp", " BlockConv", " Hello", " Bot", " GetName", " recycle", " Login", " GetLogin", " GetID", " GetSate", " prefix", " SayThis", " ToSciNo", " Trans", " DebugVar", " cmd", " SayRaw", " SayCTCPCommnad", " Leave", " Respawn", " Kill", " ChangeNick", " SayAction", " NoteJ", "Memes", " jToggle", " Joke: Splatoon", "Joke: Attempt", " Joke: potato", " Joke: whatIs?", "Joke: getFinger", " Joke: GayDar"};
+	//private final static File WIKTIONARY_DIRECTORY = new File("Data/Wiktionary");
+	private final static int JOKE_COMMANDS = 0,
+			ARRAY_OFFSET_SET = 1,
+			CLEVER_BOT_INT = 2,
+			PANDORA_BOT_INT = 3,
+			JABBER_BOT_INT = 4,
+			NICK_IN_USE = 5,
+			COLOR = 6,
+			RESPOND_TO_PMS = 7,
+			DATA_LOADED = 8,
+			CHECK_LINKS = 9;
+	private final static ChatterBotFactory BOT_FACTORY = new ChatterBotFactory();
+	private final static ArbitraryPrecisionEvaluator EVALUATOR = new ArbitraryPrecisionEvaluator();
     private final static StaticVariableSet<Apfloat> VARIABLE_SET = new StaticVariableSet<>();
     private final static String APP_ID = "RGHHEP-HQU7HL67W9";
     private final static LinkedList<RPSGame> RPS_GAMES = new LinkedList<>();
@@ -129,12 +127,12 @@ public class FozruciX extends ListenerAdapter {
     public static volatile ConcurrentHashMap<String, LinkedList<String>> markovChain = null;
     @NotNull
     private static volatile Random rnd = new Random();
-    private static volatile ChatterBotSession chatterBotSession;
-    private static volatile ChatterBotSession pandoraBotSession;
-    private static volatile ChatterBotSession jabberBotSession;
-    private static volatile @NotNull SizedArray<MessageEvent> lastEvents = new SizedArray<>(30);
-    private static volatile String lastLinkTitle = "";
-    private static volatile long lastLinkTime = System.currentTimeMillis();
+	private static volatile ChatterBotSession pandoraBotSession;
+	private static volatile ChatterBotSession jabberBotSession;
+	@NotNull
+	private static volatile Map<Channel, SizedArray<MessageEvent>> lastMessages = new HashMap<>();
+	private static volatile String lastLinkTitle = "";
+	private static volatile long lastLinkTime = System.currentTimeMillis();
     @Nullable
     private static volatile CMD singleCMD = null;
     //------------- save data -----------------------------------
@@ -174,17 +172,18 @@ public class FozruciX extends ListenerAdapter {
     private static volatile int saveTime = 20;
     private static volatile int defaultCoolDownTime = 4;
     private static volatile SizedArray<Exception> lastExceptions = new SizedArray<>(30);
-    private static volatile M68kSim m68k = null;
-    private static Thread saveThread = new Thread(() -> {
+	private static volatile SizedArray<MessageEvent> lastEvents = new SizedArray<>(30);
+	private static volatile M68kSim m68k = null;
+	private static Thread saveThread = new Thread(() -> {
         Thread.currentThread().setName("save Thread");
         while (!Thread.interrupted()) {
             try {
                 LilGUtil.pause(LilGUtil.randInt(saveTime, saveTime + 10), false);
                 saveData();
-            } catch (Exception ignored) {
-            }
-        }
-    });
+			} catch (Exception ignored) {
+			}
+		}
+	});
 
     static {
         saveThread.start();
@@ -251,13 +250,14 @@ public class FozruciX extends ListenerAdapter {
             msgToSend = new StringBuilder(msgToSend).reverse().toString();
         } else if (messageMode == MessageModes.wordReversed) {
             LinkedList<String> message = new LinkedList<>(Arrays.asList(msgToSend.split("\\s+")));
-            msgToSend = "";
-            for (int i = message.size() - 1; i >= 0; i--) {
-                msgToSend += message[i] + " ";
-            }
-        } else if (messageMode == MessageModes.scrambled) {
-            char[] msgChars = msgToSend.toCharArray();
-            LinkedList<Character> chars = new LinkedList<>();
+			StringBuilder msgToSendBuilder = new StringBuilder();
+			for (int i = message.size() - 1; i >= 0; i--) {
+				msgToSendBuilder.append(message[i]).append(" ");
+			}
+			msgToSend = msgToSendBuilder.toString();
+		} else if (messageMode == MessageModes.scrambled) {
+			char[] msgChars = msgToSend.toCharArray();
+			LinkedList<Character> chars = new LinkedList<>();
             for (char msgChar : msgChars) {
                 chars.add(msgChar);
             }
@@ -733,7 +733,6 @@ public class FozruciX extends ListenerAdapter {
             sendMessage(event, color + cause + from, false);
         }
         e.printStackTrace();
-        lastExceptions.add(e);
     }
 
     private static boolean checkChatFunction(String args, String function) {
@@ -856,14 +855,11 @@ public class FozruciX extends ListenerAdapter {
             List<net.dv8tion.jda.core.entities.User> users = DiscordAdapter.getJda().getUsersByName(userToSendTo, true);
             for (net.dv8tion.jda.core.entities.User name : users) {
                 if (name.getName().equalsIgnoreCase(userToSendTo)) {
-                    if (!name.hasPrivateChannel()) {
-                        String str = msgToSend;
-                        name.openPrivateChannel().queue(privateChannel -> name.getPrivateChannel().sendMessage(str).queue());
-                    }
-                    name.getPrivateChannel().sendMessage(msgToSend).queue();
-                    return;
-                }
-            }
+					String str = msgToSend;
+					name.openPrivateChannel().queue(privateChannel -> privateChannel.sendMessage(str).queue());
+					return;
+				}
+			}
             LOGGER.warn("Couldn't find user with the name of " + userToSendTo);
         } else {
             event.getBot().send().message(userToSendTo, msgToSend);
@@ -874,8 +870,8 @@ public class FozruciX extends ListenerAdapter {
         LOGGER.debug("Creating Debug window");
         debug = new DebugWindow(event, network, this);
         LOGGER.debug("Debug window created");
-        debug.setCurrentNick(currentUser.getHostmask());
-    }
+		debug.setCurrentNick(currentUser != null ? currentUser.getHostmask() : null);
+	}
 
     private synchronized void makeDebug() {
         if (debug == null || debug.getConnectEvent() == null) {
@@ -972,8 +968,8 @@ public class FozruciX extends ListenerAdapter {
         try {
             System.arraycopy(arg, amount, ret, 0, ret.length);
         } catch (Exception e) {
-            sendError(lastEvents.get(), e);
-        }
+			LOGGER.error("Error trimming array", e);
+		}
 
         return ret;
     }
@@ -995,9 +991,9 @@ public class FozruciX extends ListenerAdapter {
             }
             makeDebug();
         }
-        lastEvents.add(event);
-        if (!BOOLS[DATA_LOADED]) {
-            BOOLS[DATA_LOADED] = true;
+		addMessage(event);
+		if (!BOOLS[DATA_LOADED]) {
+			BOOLS[DATA_LOADED] = true;
             loadData();
         }
         if (network == Network.normal && BOOLS[NICK_IN_USE]) {
@@ -1181,9 +1177,15 @@ public class FozruciX extends ListenerAdapter {
         }
     }
 
-    private synchronized void doCommand(MessageEvent event) {
-        String channel = null;
-        if (event.getChannel() != null) {
+	private void addMessage(@NotNull MessageEvent event) {
+		final SizedArray<MessageEvent> events = lastMessages.get(event.getChannel());
+		events.add(event);
+		lastEvents.add(event);
+	}
+
+	private synchronized void doCommand(MessageEvent event) {
+		String channel = null;
+		if (event.getChannel() != null) {
             channel = event.getChannel().getName();
         }
         String message = event.getMessage();
@@ -2728,8 +2730,8 @@ public class FozruciX extends ListenerAdapter {
 
             }
 
-// !LookUpWord - Looks up a word in the Wiktionary
-            else if (commandChecker(event, arg, "LookupWord")) {
+/*// !LookUpWord - Looks up a word in the Wiktionary
+			else if (commandChecker(event, arg, "LookupWord")) {
                 try {
                     String lookedUpWord = "Null";
                     LOGGER.debug("Looking up word");
@@ -2783,13 +2785,13 @@ public class FozruciX extends ListenerAdapter {
                 }
                 addCooldown(event.getUser());
 
-            }
+            }*/
 
 //!lookup - Looks up something in Wikipedia
             else if (commandChecker(event, arg, "Lookup")) {
-                if (getArg(arg, 1) != null) {
-                    sendMessage(event, "You forgot a param ya dingus");
-                } else try {
+				if (getArg(arg, 1) == null) {
+					sendMessage(event, "You forgot a param ya dingus");
+				} else try {
                     String[] listOfTitleStrings = {argJoiner(arg, 1)};
                     info.bliki.api.User user = new info.bliki.api.User("", "", "http://en.wikipedia.org/w/api.php");
                     user.login();
@@ -2879,9 +2881,9 @@ public class FozruciX extends ListenerAdapter {
                 if (getArg(arg, 1).equalsIgnoreCase("clever")) {
                     if (!BOOLS[CLEVER_BOT_INT]) {
                         try {
-                            chatterBotSession = BOT_FACTORY.create(ChatterBotType.CLEVERBOT).createSession();
-                            BOOLS.set(CLEVER_BOT_INT);
-                            //noinspection ConstantConditions
+							BOT_FACTORY.create(ChatterBotType.CLEVERBOT).createSession();
+							BOOLS.set(CLEVER_BOT_INT);
+							//noinspection ConstantConditions
                             event.getUser().send().notice("CleverBot started");
                         } catch (Exception e) {
                             sendMessage(event, "Error: Could not create clever bot session. Error was: " + e);
@@ -4173,8 +4175,9 @@ public class FozruciX extends ListenerAdapter {
                         if (!msg[1].isEmpty() || !msg[1].equals(".")) {
                             String find = msg[1];
                             String replace = msg[2];
-                            boolean replaceAll = msg.length > 3 && msg[3].toLowerCase().startsWith("g");
-                            for (int i = lastEvents.size() - 1; i >= 0; i--) {
+							SizedArray<MessageEvent> lastEvents = lastMessages.get(event.getChannel());
+							boolean replaceAll = msg.length > 3 && msg[3].toLowerCase().startsWith("g");
+							for (int i = lastEvents.size() - 1; i >= 0; i--) {
                                 MessageEvent last = lastEvents.get(i);
                                 if (last.equals(event) || LilGUtil.wildCardMatch(last.getMessage(), "s/*/*")) continue;
                                 if (last.getChannel().equals(event.getChannel())) {

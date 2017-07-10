@@ -1,16 +1,25 @@
 package com.LilG.Misc;
 
 import ch.qos.logback.classic.Logger;
+import com.LilG.Audio.AudioPlayerSendHandler;
 import com.LilG.DiscordAdapter;
+import com.LilG.FozConfig;
 import com.LilG.FozruciX;
 import com.LilG.utils.LilGUtil;
 import com.google.common.collect.ImmutableSortedSet;
+import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
+import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
+import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
+import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
+import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import marytts.LocalMaryInterface;
 import marytts.MaryInterface;
 import net.dv8tion.jda.core.JDA;
+import net.dv8tion.jda.core.audio.AudioSendHandler;
 import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.TextChannel;
 import net.dv8tion.jda.core.entities.VoiceChannel;
+import net.dv8tion.jda.core.managers.AudioManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.pircbotx.Channel;
@@ -20,13 +29,18 @@ import org.pircbotx.hooks.events.ConnectEvent;
 import org.pircbotx.hooks.events.OutputEvent;
 import org.slf4j.LoggerFactory;
 
+import javax.sound.sampled.AudioFileFormat;
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
 import javax.swing.*;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.io.File;
 import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 /**
@@ -60,8 +74,9 @@ public class DebugWindow extends JFrame {
 	private DefaultComboBoxModel<String> comboBox;
 	private GridLayout gridLayout = new GridLayout(4, 2);
 	private Runtime runtime = Runtime.getRuntime();
-	//private FilePlayer player = new FilePlayer();
+	private AudioPlayer player = FozConfig.playerManager.createPlayer();
 	private MaryInterface marytts;
+	private VoiceChannel voiceChannel;
 
 	public DebugWindow(@NotNull ConnectEvent event, @NotNull FozruciX.Network network, @NotNull FozruciX fozruciX) {
 		this.fozruciX = fozruciX;
@@ -178,7 +193,7 @@ public class DebugWindow extends JFrame {
 		if (network == FozruciX.Network.discord) {
 			String guildName = selectedChannel.substring(0, selectedChannel.indexOf(':'));
 			String channel = selectedChannel.substring(selectedChannel.indexOf('#') + 1);
-exitLoop:
+			exitLoop:
 			for (Guild guild : jda.getGuildsByName(guildName, false)) {
 				if (guild.getName().equalsIgnoreCase(guildName)) {
 					for (TextChannel textChannel : guild.getTextChannels()) {
@@ -194,30 +209,49 @@ exitLoop:
 							break exitLoop;
 						}
 					}
-				    /*for (VoiceChannel voiceChannel : guild.getVoiceChannels()) {
-                        if (voiceChannel.getName().equalsIgnoreCase(channel) && selectedChannel.contains(": v#")) {
-                            AudioManager audioManager = voiceChannel;
-                            File outputFile = new File("Data/messageSent.wav");
-                            LOGGER.info("I currently have " + marytts.getAvailableVoices() + " voices in "
-                                    + marytts.getAvailableLocales() + " languages available.");
-                            LOGGER.info("Out of these, " + marytts.getAvailableVoices(Locale.US) + " are for US English.");
-                            try {
-                                if (!voiceChannel.equals(voiceChannel)) {
-                                    audioManager.closeAudioConnection();
-                                    audioManager.openAudioConnection(voiceChannel);
-                                    audioManager.setSendingHandler(player);
+					for (VoiceChannel voiceChannel : guild.getVoiceChannels()) {
+						if (voiceChannel.getName().equalsIgnoreCase(channel) && selectedChannel.contains(": v#")) {
+							AudioManager audioManager = guild.getAudioManager();
+							File outputFile = new File("Data/messageSent.wav");
+							LOGGER.info("I currently have " + marytts.getAvailableVoices() + " voices in "
+									+ marytts.getAvailableLocales() + " languages available.");
+							LOGGER.info("Out of these, " + marytts.getAvailableVoices(Locale.US) + " are for US English.");
+							try {
+								AudioInputStream audio = marytts.generateAudio(FozruciX.getScramble(message.getText()));
+								AudioSystem.write(AudioSystem.getAudioInputStream(AudioSendHandler.INPUT_FORMAT, audio), AudioFileFormat.Type.WAVE, outputFile);
+								FozConfig.playerManager.loadItem(outputFile.getAbsolutePath(), new AudioLoadResultHandler() {
+									@Override
+									public void trackLoaded(AudioTrack track) {
+										player.playTrack(track);
+										LOGGER.trace("Found audio file");
+									}
 
-                                }
-                                AudioInputStream audio = marytts.generateAudio(FozruciX.getScramble(message.getText()));
-                                AudioSystem.write(AudioSystem.getAudioInputStream(AudioSendHandler.INPUT_FORMAT, audio), AudioFileFormat.Type.WAVE, outputFile);
-                                player.setAudioFile(outputFile);
-                                player.play();
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-                            break exitLoop;
-                        }
-                    }*/
+									@Override
+									public void playlistLoaded(AudioPlaylist playlist) {
+									}
+
+									@Override
+									public void noMatches() {
+										LOGGER.warn("No audio file found");
+									}
+
+									@Override
+									public void loadFailed(FriendlyException throwable) {
+										LOGGER.error("Audio file loading failed", throwable);
+									}
+								});
+								if (!voiceChannel.equals(this.voiceChannel)) {
+									audioManager.closeAudioConnection();
+									audioManager.openAudioConnection(voiceChannel);
+									audioManager.setSendingHandler(new AudioPlayerSendHandler(player));
+									this.voiceChannel = voiceChannel;
+								}
+							} catch (Exception e) {
+								LOGGER.error("Error in audio file playing", e);
+							}
+							break exitLoop;
+						}
+					}
 				}
 			}
 		} else {

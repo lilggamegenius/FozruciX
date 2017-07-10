@@ -8,7 +8,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.mashape.unirest.http.Unirest;
 import com.sun.jna.Platform;
-import lombok.NonNull;
 import net.dv8tion.jda.core.*;
 import net.dv8tion.jda.core.entities.*;
 import net.dv8tion.jda.core.events.ReadyEvent;
@@ -24,6 +23,7 @@ import net.dv8tion.jda.core.managers.AccountManagerUpdatable;
 import net.dv8tion.jda.core.managers.Presence;
 import net.dv8tion.jda.core.managers.fields.AccountField;
 import org.apache.commons.httpclient.util.URIUtil;
+import org.jetbrains.annotations.NotNull;
 import org.pircbotx.Channel;
 import org.pircbotx.PircBotX;
 import org.pircbotx.User;
@@ -262,7 +262,7 @@ public class DiscordAdapter extends ListenerAdapter {
 class DiscordMessageEvent extends MessageEvent {
     private MessageReceivedEvent discordEvent;
 
-    DiscordMessageEvent(PircBotX bot, @NonNull Channel channel, @NonNull String channelSource, @NonNull UserHostmask userHostmask, User user, @NonNull String message, ImmutableMap<String, String> tags, MessageReceivedEvent discordEvent) {
+    DiscordMessageEvent(PircBotX bot, @NotNull Channel channel, @NotNull String channelSource, @NotNull UserHostmask userHostmask, User user, @NotNull String message, ImmutableMap<String, String> tags, MessageReceivedEvent discordEvent) {
         super(bot, channel, channelSource, userHostmask, user, message, tags);
         this.discordEvent = discordEvent;
     }
@@ -286,7 +286,7 @@ class DiscordMessageEvent extends MessageEvent {
 class DiscordPrivateMessageEvent extends PrivateMessageEvent {
     private MessageReceivedEvent discordEvent;
 
-    DiscordPrivateMessageEvent(PircBotX bot, @NonNull UserHostmask userHostmask, User user, @NonNull String message, MessageReceivedEvent discordEvent) {
+    DiscordPrivateMessageEvent(PircBotX bot, @NotNull UserHostmask userHostmask, User user, @NotNull String message, MessageReceivedEvent discordEvent) {
         super(bot, userHostmask, user, message);
         this.discordEvent = discordEvent;
     }
@@ -300,21 +300,13 @@ class DiscordPrivateMessageEvent extends PrivateMessageEvent {
     public void respond(String response) {
         net.dv8tion.jda.core.entities.User user = discordEvent.getAuthor();
         String messageToSend = discordEvent.getAuthor().getAsMention() + ": " + response;
-        if (user.hasPrivateChannel()) {
-            user.getPrivateChannel().sendMessage(messageToSend).queue();
-        } else {
-            user.openPrivateChannel().queue(privateChannel -> user.getPrivateChannel().sendMessage(messageToSend).queue());
-        }
+        user.openPrivateChannel().queue(privateChannel -> privateChannel.sendMessage(messageToSend).queue());
     }
 
     @Override
     public void respondWith(String fullLine) {
         net.dv8tion.jda.core.entities.User user = discordEvent.getAuthor();
-        if (user.hasPrivateChannel()) {
-            user.getPrivateChannel().sendMessage(fullLine).queue();
-        } else {
-            user.openPrivateChannel().queue(privateChannel -> user.getPrivateChannel().sendMessage(fullLine).queue());
-        }
+        user.openPrivateChannel().queue(privateChannel -> privateChannel.sendMessage(fullLine).queue());
     }
 }
 
@@ -395,7 +387,7 @@ class DiscordQuitEvent extends QuitEvent {
 
     private GuildMemberLeaveEvent leaveEvent;
 
-    public DiscordQuitEvent(PircBotX bot, UserChannelDaoSnapshot userChannelDaoSnapshot, @NonNull UserHostmask userHostmask, UserSnapshot user, @NonNull String reason, GuildMemberLeaveEvent leave) {
+    public DiscordQuitEvent(PircBotX bot, UserChannelDaoSnapshot userChannelDaoSnapshot, @NotNull UserHostmask userHostmask, UserSnapshot user, @NotNull String reason, GuildMemberLeaveEvent leave) {
         super(bot, userChannelDaoSnapshot, userHostmask, user, reason);
         leaveEvent = leave;
     }
@@ -409,7 +401,7 @@ class DiscordJoinEvent extends JoinEvent {
 
     GuildMemberJoinEvent joinEvent;
 
-    public DiscordJoinEvent(PircBotX bot, @NonNull Channel channel, @NonNull UserHostmask userHostmask, User user, GuildMemberJoinEvent joinEvent) {
+    public DiscordJoinEvent(PircBotX bot, @NotNull Channel channel, @NotNull UserHostmask userHostmask, User user, GuildMemberJoinEvent joinEvent) {
         super(bot, channel, userHostmask, user);
         this.joinEvent = joinEvent;
     }
@@ -436,7 +428,7 @@ class DiscordNickChangeEvent extends NickChangeEvent {
 
     GuildMemberNickChangeEvent nickChangeEvent;
 
-    public DiscordNickChangeEvent(PircBotX bot, @NonNull String oldNick, @NonNull String newNick, @NonNull UserHostmask userHostmask, User user, GuildMemberNickChangeEvent nickChangeEvent) {
+    public DiscordNickChangeEvent(PircBotX bot, @NotNull String oldNick, @NotNull String newNick, @NotNull UserHostmask userHostmask, User user, GuildMemberNickChangeEvent nickChangeEvent) {
         super(bot, oldNick, newNick, userHostmask, user);
         this.nickChangeEvent = nickChangeEvent;
     }
@@ -444,7 +436,7 @@ class DiscordNickChangeEvent extends NickChangeEvent {
 
 class DiscordTopicEvent extends TopicEvent {
 
-    public DiscordTopicEvent(PircBotX bot, @NonNull Channel channel, String oldTopic, @NonNull String topic, @NonNull UserHostmask user, long date, boolean changed) {
+    public DiscordTopicEvent(PircBotX bot, @NotNull Channel channel, String oldTopic, @NotNull String topic, @NotNull UserHostmask user, long date, boolean changed) {
         super(bot, channel, oldTopic, topic, user, date, changed);
     }
 }
@@ -487,7 +479,7 @@ class AvatarThread extends Thread {
 
     @Override
     public void run() {
-        File avatarPath = new File(Platform.isLinux() ? "/media/lil-g/OS/Users/ggonz/Pictures/avatar/burgerpants" : "C:/Users/ggonz/Pictures/avatar/burgerpants/");
+        File avatarPath = new File(Platform.isLinux() ? "/media/lil-g/OS/Users/ggonz/OneDrive/Pictures/avatar/burgerpants" : "C:/Users/ggonz/OneDrive/Pictures/avatar/burgerpants");
         File tempImage = new File("./data/temp.png");
         while (!Thread.currentThread().isInterrupted()) {
             try {

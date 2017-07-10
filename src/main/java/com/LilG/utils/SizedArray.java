@@ -6,8 +6,8 @@ public class SizedArray<T> extends LinkedList<T> {
     private int maxSize;
 
     public SizedArray() {
-        this(5);
-    }
+		this(20);
+	}
 
     public SizedArray(int size) {
         super();
@@ -16,16 +16,14 @@ public class SizedArray<T> extends LinkedList<T> {
 
     public void setMaxSize(int size) {
         maxSize = size;
-    }
+		clean();
+	}
 
     @Override
     public boolean add(T object) {
-        //If the array is too big, remove elements until it's the right size.
-        while (size() >= maxSize) {
-            remove(0);
-        }
-        return super.add(object);
-    }
+		clean();
+		return super.add(object);
+	}
 
     public T get() {
         if (size() == 0) {
@@ -33,4 +31,11 @@ public class SizedArray<T> extends LinkedList<T> {
         }
         return super.get(size() - 1);
     }
+
+	private void clean() {
+		//If the array is too big, remove elements until it's the right size.
+		while (size() >= maxSize) {
+			remove(0);
+		}
+	}
 }

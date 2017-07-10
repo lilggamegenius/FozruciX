@@ -9,6 +9,10 @@ import com.rmtheis.yandtran.ApiKeys;
 import com.rmtheis.yandtran.YandexTranslatorAPI;
 import com.rmtheis.yandtran.detect.Detect;
 import com.rmtheis.yandtran.translate.Translate;
+import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
+import com.sedmelluq.discord.lavaplayer.player.DefaultAudioPlayerManager;
+import com.sedmelluq.discord.lavaplayer.source.AudioSourceManagers;
+import com.sedmelluq.discord.lavaplayer.source.local.LocalAudioSourceManager;
 import org.jetbrains.annotations.NotNull;
 import org.pircbotx.Configuration;
 import org.pircbotx.MultiBotManager;
@@ -30,9 +34,9 @@ import java.util.Enumeration;
  */
 
 public class FozConfig {
-    public final static boolean debug = false;
-    public final static String badnik = "irc.badnik.zone";
-    public final static String twitch = "irc.twitch.tv";
+	public final static boolean debug = true;
+	public final static String badnik = "irc.badnik.zone";
+	public final static String twitch = "irc.twitch.tv";
     public final static String caffie = "irc.caffie.net";
     public final static String esper = "irc.esper.net";
     public final static String nova = "irc.novasquirrel.com";
@@ -52,11 +56,14 @@ public class FozConfig {
     private final static int attempts = 10;
     private final static int connectDelay = 15 * 1000;
     private final static Gson gson = new GsonBuilder().setPrettyPrinting().create();
+	public final static AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
 
     static {
         loadData();
-        LocationRelativeToServer locationTemp = LocationRelativeToServer.local;
-        try {
+		AudioSourceManagers.registerRemoteSources(playerManager);
+		playerManager.registerSourceManager(new LocalAudioSourceManager());
+		LocationRelativeToServer locationTemp = LocationRelativeToServer.local;
+		try {
             System.setProperty("jna.library.path", "M68k");
             System.setProperty("jna.debug_load", "true");
             System.setProperty("jna.debug_load.jna", "true");
@@ -71,10 +78,10 @@ getAddress:
                         continue;
                     String address = inetAddress.getHostAddress();
                     LOGGER.debug("Address is " + address);
-                    if (address.startsWith("10.0.0.")) {
-                        if (address.equalsIgnoreCase("10.0.0.63")) {
-                            locationTemp = LocationRelativeToServer.self;
-                            break getAddress;
+					if (address.startsWith("192.168.1.")) {
+						if (address.equalsIgnoreCase("192.168.1.178")) {
+							locationTemp = LocationRelativeToServer.self;
+							break getAddress;
                         } else {
                             locationTemp = LocationRelativeToServer.local;
                             break getAddress;
@@ -411,8 +418,8 @@ getAddress:
 
     private enum LocationRelativeToServer {
         self("localhost"),
-        local("10.0.0.63"),
-        global("lilggamegenius.ml");
+		local("192.168.1.192"),
+		global("lilggamegenius.ml");
 
         public final String address;
 

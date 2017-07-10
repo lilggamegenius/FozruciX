@@ -8,6 +8,7 @@ version '2.2'
 
 repositories {
     jcenter()
+    maven { url 'http://amelentev.github.io/mvnrepo/' }
     maven { url "https://jitpack.io" }
 }
 
@@ -40,7 +41,7 @@ dependencies {
     compile group: 'net.sourceforge.argparse4j', name: 'argparse4j', version: '0.7.0'
     compile group: 'ch.qos.logback', name: 'logback-classic', version: '1.0.13'
     compile group: 'ch.qos.logback', name: 'logback-core', version: '1.0.13'
-    compile group: 'org.projectlombok', name: 'lombok', version: '1.12.2'
+    //compile group: 'org.projectlombok', name: 'lombok', version: '1.12.2'
     compile group: 'commons-io', name: 'commons-io', version: '1.4'
     compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.4'
     compile group: 'org.apache.commons', name: 'commons-parent', version: '9'
@@ -56,16 +57,18 @@ dependencies {
     compile group: 'com.jcraft', name: 'jsch', version: '0.1.53'
     compile group: 'com.fathzer', name: 'javaluator', version: '3.0.1'
     compile group: 'de.dfki.mary', name: 'voice-cmu-bdl-hsmm', version: '5.2'
+    compile group: 'com.sedmelluq', name: 'lavaplayer', version: '1.2.42'
     compile files('lib/yandex-translator-java-api.jar')
 
     compile 'java-oo:javac8-oo-plugin:0.5'
 
     compile files('lib/WolframAlphaJavaLibrary/WolframAlpha-1.1.jar')
+    compile files('lib/annotations/annotations-java8.jar')
 
-    compile fileTree(dir: 'lib\\C#')
+    //compile fileTree(dir: 'lib\\C#')
 
-    compile files('/home/lil-g/.local/share/JetBrains/Toolbox/apps/IDEA-U/ch-0/171.4249.4/redist/annotations-java8.jar')
-    //compile files('C:\\Users\\ggonz\\AppData\\Local\\JetBrains\\Toolbox\\apps\\IDEA-U\\ch-1\\163.13906.18\\redist\\annotations-java8.jar')
+    //compile files('/home/lil-g/.local/share/JetBrains/Toolbox/apps/IDEA-U/ch-0/171.4249.4/redist/annotations-java8.jar')
+    compile files('C:\\Users\\ggonz\\AppData\\Local\\JetBrains\\Toolbox\\apps\\IDEA-U\\ch-1\\163.13906.18\\redist\\annotations-java8.jar')
 
     compile group: 'net.dv8tion', name: 'JDA', version: '+'
     //compile group: 'org.pircbotx', name: 'pircbotx', version: '2.1'
