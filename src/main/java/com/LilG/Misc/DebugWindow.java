@@ -2,6 +2,7 @@ package com.LilG.Misc;
 
 import ch.qos.logback.classic.Logger;
 import com.LilG.Audio.AudioPlayerSendHandler;
+import com.LilG.Audio.VoiceRecognition;
 import com.LilG.DiscordAdapter;
 import com.LilG.FozConfig;
 import com.LilG.FozruciX;
@@ -52,6 +53,10 @@ public class DebugWindow extends JFrame {
 	private static final int WIDTH = 800;
 	private static final int HEIGHT = 220;
 	private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(DebugWindow.class);
+	private static Runtime runtime = Runtime.getRuntime();
+	public static AudioPlayer player = FozConfig.playerManager.createPlayer();
+	public static MaryInterface marytts;
+	public static VoiceChannel voiceChannel;
 	private JTextField currentNick;
 	private JTextField lastMessage;
 	private JTextField memoryUsage;
@@ -73,10 +78,18 @@ public class DebugWindow extends JFrame {
 	private String selectedChannel = "#null";
 	private DefaultComboBoxModel<String> comboBox;
 	private GridLayout gridLayout = new GridLayout(4, 2);
-	private Runtime runtime = Runtime.getRuntime();
-	private AudioPlayer player = FozConfig.playerManager.createPlayer();
-	private MaryInterface marytts;
-	private VoiceChannel voiceChannel;
+
+	static {
+		try {
+			marytts = new LocalMaryInterface();
+			marytts.setVoice("cmu-bdl-hsmm");
+			LOGGER.info("I currently have " + marytts.getAvailableVoices() + " voices in "
+					+ marytts.getAvailableLocales() + " languages available.");
+			LOGGER.info("Out of these, " + marytts.getAvailableVoices(Locale.US) + " are for US English.");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 
 	public DebugWindow(@NotNull ConnectEvent event, @NotNull FozruciX.Network network, @NotNull FozruciX fozruciX) {
 		this.fozruciX = fozruciX;
@@ -89,12 +102,6 @@ public class DebugWindow extends JFrame {
 			jda = DiscordAdapter.getJda();
 			networkName = "Discord";
 			nick = jda.getSelfUser().getName();
-			try {
-				marytts = new LocalMaryInterface();
-				marytts.setVoice("cmu-bdl-hsmm");
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
 		} else if (networkName == null) {
 			networkName = bot.getServerHostname();
 			networkName = networkName.substring(networkName.indexOf(".") + 1, networkName.lastIndexOf("."));
@@ -194,66 +201,38 @@ public class DebugWindow extends JFrame {
 			String guildName = selectedChannel.substring(0, selectedChannel.indexOf(':'));
 			String channel = selectedChannel.substring(selectedChannel.indexOf('#') + 1);
 			exitLoop:
-			for (Guild guild : jda.getGuildsByName(guildName, false)) {
-				if (guild.getName().equalsIgnoreCase(guildName)) {
-					for (TextChannel textChannel : guild.getTextChannels()) {
-						if (textChannel.getName().equalsIgnoreCase(channel) && !selectedChannel.contains(": v#")) {
-							String messageToSend = FozruciX.getScramble(message.getText());
-							textChannel.sendMessage(messageToSend).queue();
-							try {
-								messageToSend = "PRIVMSG #" + textChannel.getName() + " :" + messageToSend;
-								fozruciX.onOutput(new OutputEvent(bot, messageToSend, Utils.tokenizeLine(messageToSend)));
-							} catch (Exception e) {
-								LOGGER.error("Error sending output event", e);
-							}
-							break exitLoop;
-						}
-					}
-					for (VoiceChannel voiceChannel : guild.getVoiceChannels()) {
-						if (voiceChannel.getName().equalsIgnoreCase(channel) && selectedChannel.contains(": v#")) {
-							AudioManager audioManager = guild.getAudioManager();
-							File outputFile = new File("Data/messageSent.wav");
-							LOGGER.info("I currently have " + marytts.getAvailableVoices() + " voices in "
-									+ marytts.getAvailableLocales() + " languages available.");
-							LOGGER.info("Out of these, " + marytts.getAvailableVoices(Locale.US) + " are for US English.");
-							try {
-								AudioInputStream audio = marytts.generateAudio(FozruciX.getScramble(message.getText()));
-								AudioSystem.write(AudioSystem.getAudioInputStream(AudioSendHandler.INPUT_FORMAT, audio), AudioFileFormat.Type.WAVE, outputFile);
-								FozConfig.playerManager.loadItem(outputFile.getAbsolutePath(), new AudioLoadResultHandler() {
-									@Override
-									public void trackLoaded(AudioTrack track) {
-										player.playTrack(track);
-										LOGGER.trace("Found audio file");
-									}
-
-									@Override
-									public void playlistLoaded(AudioPlaylist playlist) {
-									}
-
-									@Override
-									public void noMatches() {
-										LOGGER.warn("No audio file found");
-									}
-
-									@Override
-									public void loadFailed(FriendlyException throwable) {
-										LOGGER.error("Audio file loading failed", throwable);
-									}
-								});
-								if (!voiceChannel.equals(this.voiceChannel)) {
-									audioManager.closeAudioConnection();
-									audioManager.openAudioConnection(voiceChannel);
-									audioManager.setSendingHandler(new AudioPlayerSendHandler(player));
-									this.voiceChannel = voiceChannel;
+			if (jda != null)
+				for (Guild guild : jda.getGuildsByName(guildName, false)) {
+					if (guild.getName().equalsIgnoreCase(guildName)) {
+						for (TextChannel textChannel : guild.getTextChannels()) {
+							if (textChannel.getName().equalsIgnoreCase(channel) && !selectedChannel.contains(": v#")) {
+								String messageToSend = FozruciX.getScramble(message.getText());
+								textChannel.sendMessage(messageToSend).queue();
+								try {
+									messageToSend = "PRIVMSG #" + textChannel.getName() + " :" + messageToSend;
+									fozruciX.onOutput(new OutputEvent(bot, messageToSend, Utils.tokenizeLine(messageToSend)));
+								} catch (Exception e) {
+									LOGGER.error("Error sending output event", e);
 								}
-							} catch (Exception e) {
-								LOGGER.error("Error in audio file playing", e);
+								break exitLoop;
 							}
-							break exitLoop;
+						}
+						for (VoiceChannel voiceChannel : guild.getVoiceChannels()) {
+							if (voiceChannel.getName().equalsIgnoreCase(channel) && selectedChannel.contains(": v#")) {
+								//AudioManager audioManager = guild.getAudioManager();
+								if (!voiceChannel.equals(DebugWindow.voiceChannel)) {
+									if(DebugWindow.voiceChannel.getGuild() != guild){
+										DebugWindow.voiceChannel.getGuild().getAudioManager().closeAudioConnection();
+									}
+									DebugWindow.voiceChannel = voiceChannel;
+									new VoiceRecognition(voiceChannel);
+								}
+								FozruciX.sendMessage(voiceChannel, message.getText());
+								break exitLoop;
+							}
 						}
 					}
 				}
-			}
 		} else {
 			bot.send().message(selectedChannel, FozruciX.getScramble(message.getText()));
 		}

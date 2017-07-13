@@ -381,6 +381,37 @@ class DiscordUser extends User {
     public boolean isAway() {
         return guild != null && guild.getMember(discordUser).getOnlineStatus() != OnlineStatus.ONLINE;
     }
+
+    @Override
+    public boolean isVerified() {
+    	return !discordUser.isFake();
+    }
+
+	@Override
+	public String getRealName() {
+		return discordUser.getName();
+	}
+
+	@Override
+	public String getAwayMessage() {
+    	if(guild!=null){
+    		return guild.getMember(discordUser).getOnlineStatus().getKey();
+	    }
+		return null;
+	}
+
+	@Override
+	public boolean isIrcop() {
+		return guild != null && guild.getMember(discordUser).isOwner();
+	}
+
+	@Override
+	public String getHostmask() {
+		if(guild!=null){
+			return String.format("%s!%s@%s", guild.getMember(discordUser).getEffectiveName(), discordUser.getName(), discordUser.getId());
+		}
+		return String.format("%s!%s@%s", discordUser.getName(), discordUser.getName(), discordUser.getId());
+	}
 }
 
 class DiscordQuitEvent extends QuitEvent {

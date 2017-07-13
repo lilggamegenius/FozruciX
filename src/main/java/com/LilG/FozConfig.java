@@ -34,7 +34,7 @@ import java.util.Enumeration;
  */
 
 public class FozConfig {
-	public final static boolean debug = true;
+	public final static boolean debug = false;
 	public final static String badnik = "irc.badnik.zone";
 	public final static String twitch = "irc.twitch.tv";
     public final static String caffie = "irc.caffie.net";
@@ -49,6 +49,7 @@ public class FozConfig {
     public final static String realName = kvircFlags + "* Why do i always get the freaks...";
     public final static MultiBotManager manager = new MultiBotManager();
     public final static LocationRelativeToServer location;
+	public final static edu.cmu.sphinx.api.Configuration configuration = new edu.cmu.sphinx.api.Configuration();
     private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(FozConfig.class);
     transient final static String PASSWORD = setPassword(Password.normal);
     private final static File bak = new File("Data/DataBak.json");
@@ -58,8 +59,11 @@ public class FozConfig {
     private final static Gson gson = new GsonBuilder().setPrettyPrinting().create();
 	public final static AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
 
-    static {
+	static {
         loadData();
+		configuration.setAcousticModelPath("resource:/edu/cmu/sphinx/models/en-us/en-us");
+		configuration.setDictionaryPath("resource:/edu/cmu/sphinx/models/en-us/cmudict-en-us.dict");
+		configuration.setLanguageModelPath("resource:/edu/cmu/sphinx/models/en-us/en-us.lm.bin");
 		AudioSourceManagers.registerRemoteSources(playerManager);
 		playerManager.registerSourceManager(new LocalAudioSourceManager());
 		LocationRelativeToServer locationTemp = LocationRelativeToServer.local;
