@@ -103,8 +103,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static com.LilG.Misc.DebugWindow.player;
-import static com.LilG.utils.LilGUtil.endsWithAny;
-import static com.LilG.utils.LilGUtil.equalsAnyIgnoreCase;
+import static com.LilG.utils.LilGUtil.*;
 import static com.citumpe.ctpTools.jWMI.getWMIValue;
 
 /**
@@ -148,9 +147,8 @@ public class FozruciX extends ListenerAdapter {
     private static volatile CMD singleCMD = null;
     //------------- save data -----------------------------------
     private static volatile LinkedList<Note> noteList = null;
-    private static volatile LinkedList<String> authedUser = null;
-    private static volatile LinkedList<Integer> authedUserLevel = null;
-    private static volatile HashMap<String, HashMap<String, ArrayList<String>>> allowedCommands = null;
+	private static volatile TreeMap<String, Integer> authedUser = null;
+	private static volatile HashMap<String, HashMap<String, ArrayList<String>>> allowedCommands = null;
     private static volatile ConcurrentHashMap<String, String> checkJoinsAndQuits = null;
     private static volatile LinkedList<String> mutedServerList = null;
     //-----------------------------------------------------------
@@ -317,13 +315,9 @@ public class FozruciX extends ListenerAdapter {
 
     private synchronized static void sendFile(MessageEvent event, File file, String message, boolean discordUpload) {
         if (event instanceof DiscordMessageEvent && discordUpload) {
-            try {
-                ((DiscordMessageEvent) event).getDiscordEvent().getTextChannel().sendFile(file, message != null ? new MessageBuilder().append(message).build() : null);
-            } catch (IOException e) {
-                sendError(event, e);
-            }
-        } else {
-            uploadFile(event, file, null, message);
+			((DiscordMessageEvent) event).getDiscordEvent().getTextChannel().sendFile(file, message != null ? new MessageBuilder().append(message).build() : null);
+		} else {
+			uploadFile(event, file, null, message);
         }
     }
 
@@ -2375,18 +2369,17 @@ public class FozruciX extends ListenerAdapter {
                 if (checkPerm(event.getUser(), Integer.MAX_VALUE)) {
                     if (getArg(arg, 1).equalsIgnoreCase("set")) {
                         try {
-                            if (authedUser.contains(getArg(arg, 2))) {
-                                try {
-                                    authedUserLevel.set(authedUser.indexOf(getArg(arg, 2)), Integer.decode(getArg(arg, 3)));
-                                } catch (Exception e) {
+							if (authedUser.containsKey(getArg(arg, 2))) {
+								try {
+									authedUser.put(getArg(arg, 2), Integer.decode(getArg(arg, 3)));
+								} catch (Exception e) {
                                     sendError(event, e);
                                 }
                                 sendMessage(event, "Set " + getArg(arg, 2) + " To level " + getArg(arg, 3));
                             } else {
                                 try {
-                                    authedUser.add(getArg(arg, 2));
-                                    authedUserLevel.add(Integer.decode(getArg(arg, 3)));
-                                } catch (Exception e) {
+									authedUser.put(getArg(arg, 2), Integer.decode(getArg(arg, 3)));
+								} catch (Exception e) {
                                     sendError(event, e);
                                 }
                                 sendMessage(event, "Added " + getArg(arg, 2) + " To authed users with level " + getArg(arg, 3));
@@ -2396,35 +2389,23 @@ public class FozruciX extends ListenerAdapter {
                         }
                     } else if (getArg(arg, 1).equalsIgnoreCase("del")) {
                         try {
-                            int index = authedUser.indexOf(getArg(arg, 2));
-                            authedUserLevel.remove(index);
-                            authedUser.remove(index);
-                        } catch (Exception e) {
+							authedUser.remove(getArg(arg, 2));
+						} catch (Exception e) {
                             sendError(event, e);
                         }
                         sendMessage(event, "Removed " + getArg(arg, 2) + " from the authed user list");
                     } else if (getArg(arg, 1).equalsIgnoreCase("clear")) {
                         authedUser.clear();
-                        authedUserLevel.clear();
                         sendMessage(event, "Permission list cleared");
                     } else if (getArg(arg, 1).equalsIgnoreCase("List")) {
                         sendMessage(event, authedUser.toString());
                     } else {
-                        int place = -1;
-                        try {
-                            for (int i = 0; authedUser.size() >= i; i++) {
-                                if (authedUser[i].equalsIgnoreCase(getArg(arg, 1))) {
-                                    place = i;
-                                }
-                            }
-                        } catch (IndexOutOfBoundsException e) {
-                            sendMessage(event, "That user wasn't found in the list of authed users", false);
-                        }
-                        if (place == -1) {
-                            sendMessage(event, "That user wasn't found in the list of authed users", false);
+						Integer level = authedUser.get(getArg(arg, 1));
+						if (level == null) {
+							sendMessage(event, "That user wasn't found in the list of authed users", false);
                         } else {
-                            sendMessage(event, "User " + authedUser[place] + " Has permission level " + authedUserLevel[place], false);
-                        }
+							sendMessage(event, "User " + getArg(arg, 1) + " Has permission level " + level, false);
+						}
 
                     }
 
@@ -2904,8 +2885,8 @@ public class FozruciX extends ListenerAdapter {
                         if (related != null) {
                             plainStr = new StringBuilder(page.getTitle() + " may refer to: ");
                             for (int i = 0; i < related.size() && i < 5; i++) {
-                                plainStr.append(related[i].replace("* ", "").replace("*", "")).append("; ");
-                            }
+								plainStr.append(related.get(i).replace("* ", "").replace("*", "")).append("; ");
+							}
                             int lastIndex = plainStr.lastIndexOf(",");
                             if (lastIndex != -1)
                                 plainStr = new StringBuilder(plainStr.substring(0, lastIndex));
@@ -2948,8 +2929,8 @@ public class FozruciX extends ListenerAdapter {
                 addCooldown(event.getUser());
             }
 
-// !chat - chat's with a internet conversation bot
-            else if (commandChecker(event, arg, "chat")) {
+// !chat - chats with a internet conversation bot
+			else if (commandChecker(event, arg, "chat")) {
                 if (getArg(arg, 1).equalsIgnoreCase("clever")) {
                     if (!BOOLS[CLEVER_BOT_INT]) {
                         try {
@@ -4639,13 +4620,6 @@ public class FozruciX extends ListenerAdapter {
     private boolean checkPerm(@NotNull User user, int requiredUserLevel) {
         if (user.equals(currentUser)) {
             return true;
-        } else if (authedUser.contains(user.getNick())) {
-            int index = authedUser.indexOf(user.getHostmask());
-            if (index > -1) {
-                if (authedUserLevel.get(index) >= requiredUserLevel) {
-                    return true;
-                }
-            }
         } else if (user instanceof DiscordUser) {
             if (user.getHostname().equals(currentUser.getHostname())) {
                 return true;
@@ -4662,15 +4636,12 @@ public class FozruciX extends ListenerAdapter {
             }
             return highestLevel >= requiredUserLevel;
         } else {
-            int index = authedUser.size() - 1;
-            while (index > -1) {
-                String ident = authedUser.get(index);
-                if (LilGUtil.matchHostMask(user.getHostmask(), ident)) {
-                    return authedUserLevel.get(index) >= requiredUserLevel;
-                }
-                index--;
-            }
-            ArrayList<UserLevel> levels = Lists.newArrayList(user.getUserLevels(lastEvents.get().getChannel()).iterator());
+			for (String hostmask : authedUser.keySet()) {
+				if (matchHostMask(user.getHostmask(), hostmask)) {
+					return authedUser.get(hostmask) >= requiredUserLevel;
+				}
+			}
+			ArrayList<UserLevel> levels = Lists.newArrayList(user.getUserLevels(lastEvents.get().getChannel()).iterator());
             if (requiredUserLevel <= getUserLevel(levels)) {
                 return true;
             }
@@ -4710,9 +4681,6 @@ public class FozruciX extends ListenerAdapter {
 
         if (writeOnce && authedUser == null)
             authedUser = SaveDataStore.getINSTANCE().getAuthedUser();
-
-        if (writeOnce && authedUserLevel == null)
-            authedUserLevel = SaveDataStore.getINSTANCE().getAuthedUserLevel();
 
         if (writeOnce && avatar == null)
             avatar = SaveDataStore.getINSTANCE().getAvatarLink();

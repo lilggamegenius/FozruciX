@@ -2,10 +2,12 @@
   <library name="Gradle: com.google.guava:guava:23.0-android-SNAPSHOT">
     <CLASSES>
       <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.google.guava/guava/23.0-android-SNAPSHOT/782fbfc7584b8304e236be505e4996e150f4df42/guava-23.0-android-SNAPSHOT.jar!/" />
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.google.guava/guava/23.0-android-SNAPSHOT/490ec6433bcbb61e49c384d791fb1ca4d5966872/guava-23.0-android-SNAPSHOT.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>
       <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.google.guava/guava/23.0-android-SNAPSHOT/16c617f4966284eea77da67469a6062adb4c8b0b/guava-23.0-android-SNAPSHOT-sources.jar!/" />
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.google.guava/guava/23.0-android-SNAPSHOT/65189c1fade92e8d8dcf175d3da0786fbffb2662/guava-23.0-android-SNAPSHOT-sources.jar!/" />
     </SOURCES>
   </library>
 </component>

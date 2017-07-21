@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="Gradle: org.apache.httpcomponents:httpcore-nio:4.1">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.apache.httpcomponents/httpcore-nio/4.1/9bc553a00ee6c28903498b073a1ff4aa3f22de17/httpcore-nio-4.1.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.apache.httpcomponents/httpcore-nio/4.1/5535eb51f8b6d5fc13adee71badbb9590f0d438/httpcore-nio-4.1-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

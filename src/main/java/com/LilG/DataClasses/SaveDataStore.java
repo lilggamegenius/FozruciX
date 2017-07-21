@@ -16,10 +16,8 @@ public class SaveDataStore {
     @NotNull
     private LinkedList<Note> noteList = new LinkedList<>();
     @NotNull
-    private LinkedList<String> authedUser = new LinkedList<>();
-    @NotNull
-    private LinkedList<Integer> authedUserLevel = new LinkedList<>();
-    @NotNull
+	private TreeMap<String, Integer> authedUser = new TreeMap<>();
+	@NotNull
     private String avatarLink = "http://puu.sh/oiLvW.gif";
     @NotNull
     private TreeMap<String, Meme> memes = new TreeMap<>();
@@ -65,13 +63,8 @@ public class SaveDataStore {
     }
 
     @NotNull
-    public LinkedList<String> getAuthedUser() {
-        return authedUser;
-    }
-
-    @NotNull
-    public LinkedList<Integer> getAuthedUserLevel() {
-        return authedUserLevel;
+	public TreeMap<String, Integer> getAuthedUser() {
+		return authedUser;
     }
 
     @NotNull

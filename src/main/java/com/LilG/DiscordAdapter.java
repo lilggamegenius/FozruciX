@@ -6,7 +6,6 @@ import com.LilG.utils.CryptoUtil;
 import com.LilG.utils.LilGUtil;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedSet;
-import com.mashape.unirest.http.Unirest;
 import com.sun.jna.Platform;
 import net.dv8tion.jda.core.*;
 import net.dv8tion.jda.core.entities.*;
@@ -88,7 +87,6 @@ public class DiscordAdapter extends ListenerAdapter {
             LOGGER.trace("Making Discord connection");
             if (discordAdapter == null) {
                 LOGGER.trace("Constructing...");
-                Unirest.setTimeouts(10 * 1000, 10 * 1000);
                 discordAdapter = new DiscordAdapter(pircBotX);
             }
         } catch (Exception e) {

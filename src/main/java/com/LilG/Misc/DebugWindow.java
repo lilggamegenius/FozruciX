@@ -1,26 +1,19 @@
 package com.LilG.Misc;
 
 import ch.qos.logback.classic.Logger;
-import com.LilG.Audio.AudioPlayerSendHandler;
 import com.LilG.Audio.VoiceRecognition;
 import com.LilG.DiscordAdapter;
 import com.LilG.FozConfig;
 import com.LilG.FozruciX;
 import com.LilG.utils.LilGUtil;
 import com.google.common.collect.ImmutableSortedSet;
-import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
-import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
-import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
-import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import marytts.LocalMaryInterface;
 import marytts.MaryInterface;
 import net.dv8tion.jda.core.JDA;
-import net.dv8tion.jda.core.audio.AudioSendHandler;
 import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.TextChannel;
 import net.dv8tion.jda.core.entities.VoiceChannel;
-import net.dv8tion.jda.core.managers.AudioManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.pircbotx.Channel;
@@ -30,15 +23,11 @@ import org.pircbotx.hooks.events.ConnectEvent;
 import org.pircbotx.hooks.events.OutputEvent;
 import org.slf4j.LoggerFactory;
 
-import javax.sound.sampled.AudioFileFormat;
-import javax.sound.sampled.AudioInputStream;
-import javax.sound.sampled.AudioSystem;
 import javax.swing.*;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.io.File;
 import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.Locale;
@@ -221,7 +210,7 @@ public class DebugWindow extends JFrame {
 							if (voiceChannel.getName().equalsIgnoreCase(channel) && selectedChannel.contains(": v#")) {
 								//AudioManager audioManager = guild.getAudioManager();
 								if (!voiceChannel.equals(DebugWindow.voiceChannel)) {
-									if(DebugWindow.voiceChannel.getGuild() != guild){
+									if (DebugWindow.voiceChannel.getGuild() != guild) {
 										DebugWindow.voiceChannel.getGuild().getAudioManager().closeAudioConnection();
 									}
 									DebugWindow.voiceChannel = voiceChannel;
