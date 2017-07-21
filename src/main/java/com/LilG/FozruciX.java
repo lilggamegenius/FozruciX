@@ -5,10 +5,7 @@ import ch.qos.logback.classic.Logger;
 import com.LilG.Audio.AudioPlayerSendHandler;
 import com.LilG.CMD.CMD;
 import com.LilG.CMD.CommandLine;
-import com.LilG.DataClasses.DiscordData;
-import com.LilG.DataClasses.Meme;
-import com.LilG.DataClasses.Note;
-import com.LilG.DataClasses.SaveDataStore;
+import com.LilG.DataClasses.*;
 import com.LilG.Misc.DebugWindow;
 import com.LilG.Misc.RPSGame;
 import com.LilG.m68k.M68kSim;
@@ -83,6 +80,7 @@ import javax.script.ScriptEngineManager;
 import javax.sound.sampled.AudioFileFormat;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
+import java.awt.*;
 import java.io.*;
 import java.lang.management.ManagementFactory;
 import java.net.MalformedURLException;
@@ -97,6 +95,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.Date;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -315,9 +314,11 @@ public class FozruciX extends ListenerAdapter {
 
     private synchronized static void sendFile(MessageEvent event, File file, String message, boolean discordUpload) {
         if (event instanceof DiscordMessageEvent && discordUpload) {
-			((DiscordMessageEvent) event).getDiscordEvent().getTextChannel().sendFile(file, message != null ? new MessageBuilder().append(message).build() : null);
-		} else {
-			uploadFile(event, file, null, message);
+
+                ((DiscordMessageEvent) event).getDiscordEvent().getTextChannel().sendFile(file, message != null ? new MessageBuilder().append(message).build() : null);
+
+        } else {
+            uploadFile(event, file, null, message);
         }
     }
 
@@ -1768,6 +1769,140 @@ public class FozruciX extends ListenerAdapter {
                 }
             }
 
+// !colorRole - Sets a color role for the user or manages them on the server
+            else if (commandChecker(event, arg, "colorRole")) {
+	            if(network != Network.discord) return;
+	            String[] args = formatStringArgs(LilGUtil.splitMessage(message, 0, false));
+	            ArgumentParser parser = ArgumentParsers.newArgumentParser("colorRole")
+			            .description("Manages Color roles")
+			            .defaultHelp(true);
+	            Subparsers subparsers = parser.addSubparsers()
+			            .title("Valid commands")
+			            .description("This is the list of commands you can use.")
+			            .dest("subcommand");
+	            Subparser set = subparsers.addParser("set") // Handles editing too
+			            .defaultHelp(true);
+	            set.addArgument("roleNameAndColor").type(String.class);
+	            MutuallyExclusiveGroup color = set.addMutuallyExclusiveGroup("Color");
+	            color.addArgument("--rgb").type(Integer.class).nargs(3);
+	            color.addArgument("--hsl").type(Float.class).nargs(3);
+	            color.addArgument("--hsv", "--hsb").type(Float.class).nargs(3).dest("hsv");
+
+	            Subparser remove = subparsers.addParser("remove")
+			            .defaultHelp(true);
+	            if (checkPerm(event.getUser(), 3)) {
+					Subparser requiredRole = subparsers.addParser("required-role")
+							.defaultHelp(true);
+					requiredRole.addArgument("role").type(String.class);
+
+					Subparser bannedNames = subparsers.addParser("banned-names")
+							.defaultHelp(true);
+					bannedNames.addArgument("name").type(String.class);
+					bannedNames.addArgument("-r", "--remove").action(Arguments.storeTrue());
+					bannedNames.addArgument("-f", "--force").action(Arguments.storeTrue());
+	            }
+	            Namespace ns;
+	            try {
+		            ns = parser.parseArgs(args);
+		            Member member = ((DiscordMessageEvent)event).getDiscordEvent().getMember();
+		            Guild guild = member.getGuild();
+		            GuildController guildController = guild.getController();
+		            GuildEX guildEX = GuildEX.getGuildEX(guild);
+		            switch(ns.getString("subcommand").toLowerCase()){
+			            case "set":{
+			            	if(!guildEX.canUseColorRole(member)) sendMessage(event, "You don't have the correct role to manage your color role");
+			            	if(guild.getSelfMember().canInteract(member)) sendMessage(event, "Your permission level is too high for the bot to modify you");
+
+				            Role curRole = null;
+				            Role wantedRole = null;
+				            String wantedRoleStr = ns.getString("roleNameAndColor");
+				            Color wantedColor = null;
+				            for(Role role : guildEX.getColorRoleList()){
+					            if(member.getRoles().contains(role)){
+						            curRole = role;
+						            break;
+					            }
+				            }
+
+				            if(ns.getList("rgb") != null){
+				            	List<Integer> colorParts = ns.getList("rgb");
+				            	if(colorParts.size() != 3){
+				            		sendMessage(event, "Invalid number of args");
+					            }
+								wantedColor = new Color(colorParts[0], colorParts[1], colorParts[2]);
+				            } else if(ns.getList("hsl") != null){
+					            List<Float> colorParts = ns.getList("hsl");
+					            if(colorParts.size() != 3){
+						            sendMessage(event, "Invalid number of args");
+					            }
+					            wantedColor = Color.getHSBColor(colorParts[0], colorParts[1], colorParts[2]);
+				            } else if(ns.getList("hsv") != null){
+					            List<Float> colorParts = ns.getList("hsv");
+					            if(colorParts.size() != 3){
+						            sendMessage(event, "Invalid number of args");
+					            }
+					            int[] rgb = hslToRgb(colorParts[0], colorParts[1], colorParts[2]);
+					            wantedColor = new Color(rgb[0], rgb[1], rgb[2]);
+				            } else{
+					            for(Role role : guildEX.getColorRoleList()){
+						            if(role.getId().equals(wantedRoleStr) || role.getName().equalsIgnoreCase(wantedRoleStr)){
+							            wantedRole = role;
+						            }
+					            }
+				            }
+
+				            if(wantedColor != null){                  // create new role or edit
+								if(curRole != null){
+									if(GuildEX.isRole(curRole, wantedRoleStr)){             // Editing a role
+										if (guildEX.canEditColorRole(curRole, member)) {    // only user using role
+											curRole.getManager().setColor(wantedColor).reason(String.format("%s: changing role %s's color", member.getEffectiveName(), curRole.getName())).queue();
+										} else {
+											sendMessage(event, "Cannot edit role because someone else is using the role");
+										}
+									}else {                                                 // Creating
+										if (guildEX.canEditColorRole(curRole, member)) {    // only user using role
+											curRole.getManager().setName(wantedRoleStr).reason(String.format("%s: changing role %s", member.getEffectiveName(), curRole.getName())).queue();
+											curRole.getManager().setColor(wantedColor).reason(String.format("%s: changing role %s", member.getEffectiveName(), curRole.getName())).queue();
+										} else {
+											if(guildEX.getRole(wantedRoleStr) == null) {
+												guildController.removeRolesFromMember(member, curRole).reason(String.format("%s: changing roles", member.getEffectiveName())).queue();
+												guildController.createRole().setName(wantedRoleStr).setColor(wantedColor).reason(String.format("%s: changing roles", member.getEffectiveName())).queue();
+											} else {
+												sendMessage(event, "That role already exists");
+											}
+										}
+									}
+								}
+				            } else if(wantedRole != null){           // set to existing role
+					            if(curRole != null){
+						            guildController.removeRolesFromMember(member, curRole).reason(String.format("%s: changing roles", member.getEffectiveName())).queue();
+					            }
+					            guildController.addRolesToMember(member).reason(String.format("%s: changing roles", member.getEffectiveName())).queue();
+
+				            } else {
+
+				            } /*else if(wantedColor == null && wantedRole == null){           // ????
+
+				            }*/
+			            }break;
+			            case "remove":{
+
+			            }break;
+			            case "required-role":{
+
+			            }break;
+			            case "banned-names":{
+
+			            }break;
+		            }
+		            LOGGER.debug(ns.toString());
+	            } catch (ArgumentParserException e) {
+		            sendCommandHelp(event, parser);
+	            } catch(Exception e){
+	            	sendError(event, e);
+	            }
+            }
+
 // !muteServer - mutes entire server
             else if (commandChecker(event, arg, "muteServer")) {
                 if (checkPerm(event.getUser(), 9001)) {
@@ -1782,6 +1917,7 @@ public class FozruciX extends ListenerAdapter {
                     }
                 }
             }
+
 
 // !command - Sets what commands can be used where
             else if (commandChecker(event, arg, "command")) {

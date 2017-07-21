@@ -341,4 +341,45 @@ public class LilGUtil {
         // returns a percentage value with 1 decimal point precision
         return ((int) (value * 1000) / 10.0);
     }
+
+	/**
+	 * Converts an HSL color value to RGB. Conversion formula
+	 * adapted from http://en.wikipedia.org/wiki/HSL_color_space.
+	 * Assumes h, s, and l are contained in the set [0, 1] and
+	 * returns r, g, and b in the set [0, 255].
+	 *
+	 * @param h       The hue
+	 * @param s       The saturation
+	 * @param l       The lightness
+	 * @return int array, the RGB representation
+	 */
+	public static int[] hslToRgb(float h, float s, float l){
+		float r, g, b;
+
+		if (s == 0f) {
+			r = g = b = l; // achromatic
+		} else {
+			float q = l < 0.5f ? l * (1 + s) : l + s - l * s;
+			float p = 2 * l - q;
+			r = hueToRgb(p, q, h + 1f/3f);
+			g = hueToRgb(p, q, h);
+			b = hueToRgb(p, q, h - 1f/3f);
+		}
+		int[] rgb = {(int) (r * 255), (int) (g * 255), (int) (b * 255)};
+		return rgb;
+	}
+	/** Helper method that converts hue to rgb */
+	public static float hueToRgb(float p, float q, float t) {
+		if (t < 0f)
+			t += 1f;
+		if (t > 1f)
+			t -= 1f;
+		if (t < 1f/6f)
+			return p + (q - p) * 6f * t;
+		if (t < 1f/2f)
+			return q;
+		if (t < 2f/3f)
+			return p + (q - p) * (2f/3f - t) * 6f;
+		return p;
+	}
 }
