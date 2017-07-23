@@ -18,8 +18,8 @@ import java.util.List;
  * Created by lil-g on 12/23/16.
  */
 public class MultiAudioPlayer implements AudioSendHandler {
-	List<AudioPlayer> audioPlayers;
 	final static Logger LOGGER = (Logger) LoggerFactory.getLogger(MultiAudioPlayer.class);
+	List<AudioPlayer> audioPlayers;
 
 	@Override
 	public boolean canProvide() {

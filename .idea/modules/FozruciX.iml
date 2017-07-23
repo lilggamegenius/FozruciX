@@ -2,6 +2,9 @@
 <module external.linked.project.id="FozruciX" external.linked.project.path="$MODULE_DIR$/../.." external.root.project.path="$MODULE_DIR$/../.." external.system.id="GRADLE" external.system.module.group="com.LilG" external.system.module.version="2.2" type="JAVA_MODULE" version="4">
   <component name="NewModuleRootManager" inherit-compiler-output="true">
     <exclude-output />
+    <annotation-paths>
+      <root url="file://$MODULE_DIR$/../../Annotations" />
+    </annotation-paths>
     <content url="file://$MODULE_DIR$/../..">
       <excludeFolder url="file://$MODULE_DIR$/../../.gradle" />
       <excludeFolder url="file://$MODULE_DIR$/../../build" />

@@ -13,10 +13,10 @@ import java.util.Map;
  * Storage class for Discord Stuff
  */
 public class DiscordData {
-    public static Map<TextChannel, List<Role>> channelRoleMap = new HashMap<>();
+	public static Map<TextChannel, List<Role>> channelRoleMap = new HashMap<>();
 
-    public static Map<TextChannel, List<String>> wordFilter = new HashMap<>();
+	public static Map<String, List<String>> wordFilter = new HashMap<>();
 
-    private DiscordData() {
-    }
+	private DiscordData() {
+	}
 }

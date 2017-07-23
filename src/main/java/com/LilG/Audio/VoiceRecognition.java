@@ -14,7 +14,9 @@ import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.UnsupportedAudioFileException;
-import java.io.*;
+import java.io.IOException;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
 
 import static com.LilG.FozConfig.configuration;
 
@@ -27,18 +29,18 @@ public class VoiceRecognition extends Thread {
 	AudioManager audioManager;
 	VoiceRecognitionRecieveHandler recieveHandler;
 
-	public VoiceRecognition(VoiceChannel channel){
+	public VoiceRecognition(VoiceChannel channel) {
 		this(channel.getGuild().getAudioManager());
 	}
 
-	public VoiceRecognition(AudioManager manager){
+	public VoiceRecognition(AudioManager manager) {
 		audioManager = manager;
 		audioManager.setReceivingHandler((recieveHandler = new VoiceRecognitionRecieveHandler()));
 		start();
 	}
 
 	@Override
-	public void run(){
+	public void run() {
 		StreamSpeechRecognizer recognizer;
 		try {
 			recognizer = new StreamSpeechRecognizer(configuration);

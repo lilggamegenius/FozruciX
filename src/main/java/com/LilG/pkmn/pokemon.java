@@ -7,25 +7,25 @@ import java.util.BitSet;
  */
 public interface pokemon {
 
-    short getHealth();
+	short getHealth();
 
-    short getMaxHealth();
+	short getMaxHealth();
 
-    String getName();
+	String getName();
 
-    Type getMainType();
+	Type getMainType();
 
-    Type getSecondaryType();
+	Type getSecondaryType();
 
-    BitSet getStatus();
+	BitSet getStatus();
 
-    boolean setStatus(StatusEffect status);
+	boolean setStatus(StatusEffect status);
 
-    boolean getStatus(StatusEffect status);
+	boolean getStatus(StatusEffect status);
 
-    int doDamage(int damageToDeal, Type type);
+	int doDamage(int damageToDeal, Type type);
 
-    int takeDamage(int damageTaken, Type type);
+	int takeDamage(int damageTaken, Type type);
 
-    Ability getAbility();
+	Ability getAbility();
 }

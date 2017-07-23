@@ -42,10 +42,23 @@ public class DebugWindow extends JFrame {
 	private static final int WIDTH = 800;
 	private static final int HEIGHT = 220;
 	private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(DebugWindow.class);
-	private static Runtime runtime = Runtime.getRuntime();
 	public static AudioPlayer player = FozConfig.playerManager.createPlayer();
 	public static MaryInterface marytts;
 	public static VoiceChannel voiceChannel;
+	private static Runtime runtime = Runtime.getRuntime();
+
+	static {
+		try {
+			marytts = new LocalMaryInterface();
+			marytts.setVoice("cmu-bdl-hsmm");
+			LOGGER.info("I currently have " + marytts.getAvailableVoices() + " voices in "
+					+ marytts.getAvailableLocales() + " languages available.");
+			LOGGER.info("Out of these, " + marytts.getAvailableVoices(Locale.US) + " are for US English.");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
 	private JTextField currentNick;
 	private JTextField lastMessage;
 	private JTextField memoryUsage;
@@ -67,18 +80,6 @@ public class DebugWindow extends JFrame {
 	private String selectedChannel = "#null";
 	private DefaultComboBoxModel<String> comboBox;
 	private GridLayout gridLayout = new GridLayout(4, 2);
-
-	static {
-		try {
-			marytts = new LocalMaryInterface();
-			marytts.setVoice("cmu-bdl-hsmm");
-			LOGGER.info("I currently have " + marytts.getAvailableVoices() + " voices in "
-					+ marytts.getAvailableLocales() + " languages available.");
-			LOGGER.info("Out of these, " + marytts.getAvailableVoices(Locale.US) + " are for US English.");
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
 
 	public DebugWindow(@NotNull ConnectEvent event, @NotNull FozruciX.Network network, @NotNull FozruciX fozruciX) {
 		this.fozruciX = fozruciX;

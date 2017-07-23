@@ -25,322 +25,326 @@ import java.util.regex.Pattern;
  */
 
 public class LilGUtil {
-    private final static Random rand = new Random();
-    private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(LilGUtil.class);
+	private final static Random rand = new Random();
+	private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(LilGUtil.class);
 
-    /**
-     * Returns a pseudo-random number between min and max, inclusive.
-     * The difference between min and max can be at most
-     * <code>Integer.MAX_VALUE - 1</code>.
-     *
-     * @param min Minimum value
-     * @param max Maximum value.  Must be greater than min.
-     * @return Integer between min and max, inclusive.
-     * @see java.util.Random#nextInt(int)
-     */
+	/**
+	 * Returns a pseudo-random number between min and max, inclusive.
+	 * The difference between min and max can be at most
+	 * <code>Integer.MAX_VALUE - 1</code>.
+	 *
+	 * @param min Minimum value
+	 * @param max Maximum value.  Must be greater than min.
+	 * @return Integer between min and max, inclusive.
+	 * @see java.util.Random#nextInt(int)
+	 */
 
-    public static int randInt(int min, int max) {
-        // nextInt is normally exclusive of the top value,
-        // so add 1 to make it inclusive
+	public static int randInt(int min, int max) {
+		// nextInt is normally exclusive of the top value,
+		// so add 1 to make it inclusive
 
-        return rand.nextInt((max - min) + 1) + min;
-    }
+		return rand.nextInt((max - min) + 1) + min;
+	}
 
-    public static double randDec(double min, double max) {
-        // nextInt is normally exclusive of the top value,
-        // so add 1 to make it inclusive
+	public static double randDec(double min, double max) {
+		// nextInt is normally exclusive of the top value,
+		// so add 1 to make it inclusive
 
-        return rand.nextFloat() * (max - min) + min;
-    }
+		return rand.nextFloat() * (max - min) + min;
+	}
 
-    public static String getBytes(@NotNull String bytes) {
-        byte[] Bytes = bytes.getBytes();
-        return Arrays.toString(Bytes);
-    }
+	public static String getBytes(@NotNull String bytes) {
+		byte[] Bytes = bytes.getBytes();
+		return Arrays.toString(Bytes);
+	}
 
-    public static String formatFileSize(long size) {
-        String hrSize;
+	public static String formatFileSize(long size) {
+		String hrSize;
 
-        double k = size / 1024.0;
-        double m = ((size / 1024.0) / 1024.0);
-        double g = (((size / 1024.0) / 1024.0) / 1024.0);
-        double t = ((((size / 1024.0) / 1024.0) / 1024.0) / 1024.0);
+		double k = size / 1024.0;
+		double m = ((size / 1024.0) / 1024.0);
+		double g = (((size / 1024.0) / 1024.0) / 1024.0);
+		double t = ((((size / 1024.0) / 1024.0) / 1024.0) / 1024.0);
 
-        DecimalFormat dec = new DecimalFormat("0.00");
+		DecimalFormat dec = new DecimalFormat("0.00");
 
-        if (t > 1) {
-            hrSize = dec.format(t).concat(" TB");
-        } else if (g > 1) {
-            hrSize = dec.format(g).concat(" GB");
-        } else if (m > 1) {
-            hrSize = dec.format(m).concat(" MB");
-        } else if (k > 1) {
-            hrSize = dec.format(k).concat(" KB");
-        } else {
-            hrSize = dec.format((double) size).concat(" B");
-        }
+		if (t > 1) {
+			hrSize = dec.format(t).concat(" TB");
+		} else if (g > 1) {
+			hrSize = dec.format(g).concat(" GB");
+		} else if (m > 1) {
+			hrSize = dec.format(m).concat(" MB");
+		} else if (k > 1) {
+			hrSize = dec.format(k).concat(" KB");
+		} else {
+			hrSize = dec.format((double) size).concat(" B");
+		}
 
-        return hrSize;
-    }
+		return hrSize;
+	}
 
-    public static boolean isNumeric(@NotNull String str) {
-        return str.matches("-?\\d+(\\.\\d+)?");  //match a number with optional '-' and decimal.
-    }
+	public static boolean isNumeric(@NotNull String str) {
+		return str.matches("-?\\d+(\\.\\d+)?");  //match a number with optional '-' and decimal.
+	}
 
-    /**
-     * This method guarantees that garbage collection is
-     * done unlike <code>{@link System#gc()}</code>
-     */
-    public static int gc() {
-        int timesRan = 0;
-        Object obj = new Object();
-        WeakReference<?> ref = new WeakReference<>(obj);
-        //noinspection UnusedAssignment
-        obj = null;
-        while (ref.get() != null) {
-            System.gc();
-            timesRan++;
-        }
-        LOGGER.info("Took " + timesRan + " attempt(s) to run GC");
-        return timesRan;
-    }
+	/**
+	 * This method guarantees that garbage collection is
+	 * done unlike <code>{@link System#gc()}</code>
+	 */
+	public static int gc() {
+		int timesRan = 0;
+		Object obj = new Object();
+		WeakReference<?> ref = new WeakReference<>(obj);
+		//noinspection UnusedAssignment
+		obj = null;
+		while (ref.get() != null) {
+			System.gc();
+			timesRan++;
+		}
+		LOGGER.info("Took " + timesRan + " attempt(s) to run GC");
+		return timesRan;
+	}
 
-    public static Unsafe getUnsafe() {
-        try {
-            Field f = Unsafe.class.getDeclaredField("theUnsafe");
-            f.setAccessible(true);
-            return (Unsafe) f.get(null);
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            LOGGER.error("Error getting unsafe class", e);
-        }
-        return null;
-    }
+	public static Unsafe getUnsafe() {
+		try {
+			Field f = Unsafe.class.getDeclaredField("theUnsafe");
+			f.setAccessible(true);
+			return (Unsafe) f.get(null);
+		} catch (NoSuchFieldException | IllegalAccessException e) {
+			LOGGER.error("Error getting unsafe class", e);
+		}
+		return null;
+	}
 
-    public static long sizeOf(Object o) {
-        Unsafe u = getUnsafe();
-        assert u != null;
-        HashSet<Field> fields = new HashSet<>();
-        Class c = o.getClass();
-        while (c != Object.class) {
-            for (Field f : c.getDeclaredFields()) {
-                if ((f.getModifiers() & Modifier.STATIC) == 0) {
-                    fields.add(f);
-                }
-            }
-            c = c.getSuperclass();
-        }
+	public static long sizeOf(Object o) {
+		Unsafe u = getUnsafe();
+		assert u != null;
+		HashSet<Field> fields = new HashSet<>();
+		Class c = o.getClass();
+		while (c != Object.class) {
+			for (Field f : c.getDeclaredFields()) {
+				if ((f.getModifiers() & Modifier.STATIC) == 0) {
+					fields.add(f);
+				}
+			}
+			c = c.getSuperclass();
+		}
 
-        // get offset
-        long maxSize = 0;
-        for (Field f : fields) {
-            long offset = u.objectFieldOffset(f);
-            if (offset > maxSize) {
-                maxSize = offset;
-            }
-        }
+		// get offset
+		long maxSize = 0;
+		for (Field f : fields) {
+			long offset = u.objectFieldOffset(f);
+			if (offset > maxSize) {
+				maxSize = offset;
+			}
+		}
 
-        return ((maxSize / 8) + 1) * 8;   // padding
-    }
+		return ((maxSize / 8) + 1) * 8;   // padding
+	}
 
-    @NotNull
-    public static String[] splitMessage(String stringToSplit) {
-        return splitMessage(stringToSplit, 0);
-    }
+	@NotNull
+	public static String[] splitMessage(String stringToSplit) {
+		return splitMessage(stringToSplit, 0);
+	}
 
-    @NotNull
-    public static String[] splitMessage(String stringToSplit, int amountToSplit) {
-        return splitMessage(stringToSplit, amountToSplit, true);
-    }
+	@NotNull
+	public static String[] splitMessage(String stringToSplit, int amountToSplit) {
+		return splitMessage(stringToSplit, amountToSplit, true);
+	}
 
-    @NotNull
-    public static String[] splitMessage(@Nullable String stringToSplit, int amountToSplit, boolean removeQuotes) {
-        if (stringToSplit == null)
-            return new String[0];
+	@NotNull
+	public static String[] splitMessage(@Nullable String stringToSplit, int amountToSplit, boolean removeQuotes) {
+		if (stringToSplit == null)
+			return new String[0];
 
-        LinkedList<String> list = new LinkedList<>();
-        Matcher argSep = Pattern.compile("([^\"]\\S*|\".+?\")\\s*").matcher(stringToSplit);
-        while (argSep.find())
-            list.add(argSep.group(1));
+		LinkedList<String> list = new LinkedList<>();
+		Matcher argSep = Pattern.compile("([^\"]\\S*|\".+?\")\\s*").matcher(stringToSplit);
+		while (argSep.find())
+			list.add(argSep.group(1));
 
-        if (removeQuotes) {
-            if (amountToSplit != 0) {
-                for (int i = 0; list.size() > i; i++) { // go through all of the
-                    list.set(i, list.get(i).replaceAll("\"", "")); // remove quotes left in the string
-                    list.set(i, list.get(i).replaceAll("''", "\"")); // replace double ' to quotes
-                    // go to next string
-                }
-            } else {
-                for (int i = 0; list.size() > i || amountToSplit > i; i++) { // go through all of the
-                    list.set(i, list.get(i).replaceAll("\"", "")); // remove quotes left in the string
-                    list.set(i, list.get(i).replaceAll("''", "\"")); // replace double ' to quotes
-                    // go to next string
-                }
-            }
-        }
-        return list.toArray(new String[list.size()]);
-    }
+		if (removeQuotes) {
+			if (amountToSplit != 0) {
+				for (int i = 0; list.size() > i; i++) { // go through all of the
+					list.set(i, list.get(i).replaceAll("\"", "")); // remove quotes left in the string
+					list.set(i, list.get(i).replaceAll("''", "\"")); // replace double ' to quotes
+					// go to next string
+				}
+			} else {
+				for (int i = 0; list.size() > i || amountToSplit > i; i++) { // go through all of the
+					list.set(i, list.get(i).replaceAll("\"", "")); // remove quotes left in the string
+					list.set(i, list.get(i).replaceAll("''", "\"")); // replace double ' to quotes
+					// go to next string
+				}
+			}
+		}
+		return list.toArray(new String[list.size()]);
+	}
 
-    public static boolean containsAny(@NotNull String check, @NotNull String... contain) {
-        for (String aContain : contain) {
-            if (check.contains(aContain)) {
-                return true;
-            }
-        }
-        return false;
-    }
+	public static boolean containsAny(@NotNull String check, @NotNull String... contain) {
+		for (String aContain : contain) {
+			if (check.contains(aContain)) {
+				return true;
+			}
+		}
+		return false;
+	}
 
-    public static boolean equalsAny(@NotNull String check, @NotNull String... equal) {
-        for (String aEqual : equal) {
-            if (check.equals(aEqual)) {
-                return true;
-            }
-        }
-        return false;
-    }
+	public static boolean equalsAny(@NotNull String check, @NotNull String... equal) {
+		for (String aEqual : equal) {
+			if (check.equals(aEqual)) {
+				return true;
+			}
+		}
+		return false;
+	}
 
-    public static boolean equalsAnyIgnoreCase(@NotNull String check, @NotNull String... equal) {
-        for (String aEqual : equal) {
-            if (check.equalsIgnoreCase(aEqual)) {
-                return true;
-            }
-        }
-        return false;
-    }
+	public static boolean equalsAnyIgnoreCase(@NotNull String check, @NotNull String... equal) {
+		for (String aEqual : equal) {
+			if (check.equalsIgnoreCase(aEqual)) {
+				return true;
+			}
+		}
+		return false;
+	}
 
-    public static boolean containsAnyIgnoreCase(@NotNull String check, @NotNull String... equal) {
-        for (String aEqual : equal) {
-            if (check.toLowerCase().contains(aEqual.toLowerCase())) {
-                return true;
-            }
-        }
-        return false;
-    }
+	public static boolean containsAnyIgnoreCase(@NotNull String check, @NotNull String... equal) {
+		for (String aEqual : equal) {
+			if (check.toLowerCase().contains(aEqual.toLowerCase())) {
+				return true;
+			}
+		}
+		return false;
+	}
 
-    public static boolean startsWithAny(@NotNull String check, @NotNull String... equal) {
-        for (String aEqual : equal) {
-            if (check.startsWith(aEqual)) {
-                return true;
-            }
-        }
-        return false;
-    }
+	public static boolean startsWithAny(@NotNull String check, @NotNull String... equal) {
+		for (String aEqual : equal) {
+			if (check.startsWith(aEqual)) {
+				return true;
+			}
+		}
+		return false;
+	}
 
-    public static boolean endsWithAny(@NotNull String check, @NotNull String... equal) {
-        for (String aEqual : equal) {
-            if (check.endsWith(aEqual)) {
-                return true;
-            }
-        }
-        return false;
-    }
+	public static boolean endsWithAny(@NotNull String check, @NotNull String... equal) {
+		for (String aEqual : equal) {
+			if (check.endsWith(aEqual)) {
+				return true;
+			}
+		}
+		return false;
+	}
 
-    /**
-     * Performs a wildcard matching for the text and pattern
-     * provided.
-     *
-     * @param text    the text to be tested for matches.
-     * @param pattern the pattern to be matched for.
-     *                This can contain the wildcard character '*' (asterisk).
-     * @return <tt>true</tt> if a match is found, <tt>false</tt>
-     * otherwise.
-     */
-    public static boolean wildCardMatch(@NotNull String text, @NotNull String pattern) {
-        // Create the cards by splitting using a RegEx. If more speed
-        // is desired, a simpler character based splitting can be done.
-        String[] cards = pattern.split("\\*");
+	/**
+	 * Performs a wildcard matching for the text and pattern
+	 * provided.
+	 *
+	 * @param text    the text to be tested for matches.
+	 * @param pattern the pattern to be matched for.
+	 *                This can contain the wildcard character '*' (asterisk).
+	 * @return <tt>true</tt> if a match is found, <tt>false</tt>
+	 * otherwise.
+	 */
+	public static boolean wildCardMatch(@NotNull String text, @NotNull String pattern) {
+		// Create the cards by splitting using a RegEx. If more speed
+		// is desired, a simpler character based splitting can be done.
+		String[] cards = pattern.split("\\*");
 
-        // Iterate over the cards.
-        for (String card : cards) {
-            int idx = text.indexOf(card);
+		// Iterate over the cards.
+		for (String card : cards) {
+			int idx = text.indexOf(card);
 
-            // Card not detected in the text.
-            if (idx == -1) {
-                return false;
-            }
+			// Card not detected in the text.
+			if (idx == -1) {
+				return false;
+			}
 
-            // Move ahead, towards the right of the text.
-            text = text.substring(idx + card.length());
-        }
+			// Move ahead, towards the right of the text.
+			text = text.substring(idx + card.length());
+		}
 
-        return true;
-    }
+		return true;
+	}
 
-    public static boolean matchHostMask(@NotNull String hostmask, @NotNull String pattern) {
-        String nick = hostmask.substring(0, hostmask.indexOf("!"));
-        String userName = hostmask.substring(hostmask.indexOf("!") + 1, hostmask.indexOf("@"));
-        String hostname = hostmask.substring(hostmask.indexOf("@") + 1);
+	public static boolean matchHostMask(@NotNull String hostmask, @NotNull String pattern) {
+		String nick = hostmask.substring(0, hostmask.indexOf("!"));
+		String userName = hostmask.substring(hostmask.indexOf("!") + 1, hostmask.indexOf("@"));
+		String hostname = hostmask.substring(hostmask.indexOf("@") + 1);
 
-        String patternNick = pattern.substring(0, pattern.indexOf("!"));
-        String patternUserName = pattern.substring(pattern.indexOf("!") + 1, pattern.indexOf("@"));
-        String patternHostname = pattern.substring(pattern.indexOf("@") + 1);
-        if (wildCardMatch(nick, patternNick)) {
-            if (wildCardMatch(userName, patternUserName)) {
-                if (wildCardMatch(hostname, patternHostname)) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
+		String patternNick = pattern.substring(0, pattern.indexOf("!"));
+		String patternUserName = pattern.substring(pattern.indexOf("!") + 1, pattern.indexOf("@"));
+		String patternHostname = pattern.substring(pattern.indexOf("@") + 1);
+		if (wildCardMatch(nick, patternNick)) {
+			if (wildCardMatch(userName, patternUserName)) {
+				if (wildCardMatch(hostname, patternHostname)) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
 
-    public static void pause(int time) throws InterruptedException {
-        pause(time, true);
-    }
+	public static void pause(int time) throws InterruptedException {
+		pause(time, true);
+	}
 
-    public static void pause(int time, boolean echoTime) throws InterruptedException {
-        if(echoTime) {
-            LOGGER.debug("Sleeping for " + time + " seconds");
-        }
-        Thread.sleep(time * 1000);
-    }
+	public static void pause(int time, boolean echoTime) throws InterruptedException {
+		if (echoTime) {
+			LOGGER.debug("Sleeping for " + time + " seconds");
+		}
+		Thread.sleep(time * 1000);
+	}
 
-    public static <T extends Enum<?>> T searchEnum(Class<T> enumeration, String search) {
-        for (T each : enumeration.getEnumConstants()) {
-            if (each.name().equalsIgnoreCase(search)) {
-                return each;
-            }
-        }
-        return null;
-    }
+	public static <T extends Enum<?>> T searchEnum(Class<T> enumeration, String search) {
+		for (T each : enumeration.getEnumConstants()) {
+			if (each.name().equalsIgnoreCase(search)) {
+				return each;
+			}
+		}
+		return null;
+	}
 
-    public static void removeDuplicates(LinkedList<String> list) {
-        LinkedList<String> ar = new LinkedList<>();
-        while (list.size() > 0) {
-            ar.add(list.get(0));
-            list.removeAll(Collections.singleton(list.get(0)));
-        }
-        list.addAll(ar);
-    }
+	public static void removeDuplicates(List<String> list) {
+		LinkedList<String> ar = new LinkedList<>();
+		while (list.size() > 0) {
+			ar.add(list.get(0));
+			list.removeAll(Collections.singleton(list.get(0)));
+		}
+		list.addAll(ar);
+	}
 
-    public static <T, S> S cast(T type, Class<S> cast) throws ClassCastException {
-        return cast.cast(type);
-    }
+	public static <T, S> S cast(T type, Class<S> cast) throws ClassCastException {
+		return cast.cast(type);
+	}
 
-    public static int hash(@NotNull String string, int maxNum) {
-        int hash = 0;
-        for (int i = 0; i < string.length(); i++) {
-            int charCode = string.charAt(i);
-            hash += charCode;
-        }
-        return hash % maxNum;
-    }
+	public static int hash(@NotNull String string, int maxNum) {
+		int hash = 0;
+		for (int i = 0; i < string.length(); i++) {
+			int charCode = string.charAt(i);
+			hash += charCode;
+		}
+		return hash % maxNum;
+	}
 
-    public static double getProcessCpuLoad() throws Exception {
+	public static double getProcessCpuLoad() throws Exception {
 
-        MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
-        ObjectName name = ObjectName.getInstance("java.lang:type=OperatingSystem");
-        AttributeList list = mbs.getAttributes(name, new String[]{"ProcessCpuLoad"});
+		MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+		ObjectName name = ObjectName.getInstance("java.lang:type=OperatingSystem");
+		AttributeList list = mbs.getAttributes(name, new String[]{"ProcessCpuLoad"});
 
-        if (list.isEmpty()) return Double.NaN;
+		if (list.isEmpty()) return Double.NaN;
 
-        Attribute att = (Attribute) list.get(0);
-        Double value = (Double) att.getValue();
+		Attribute att = (Attribute) list.get(0);
+		Double value = (Double) att.getValue();
 
-        // usually takes a couple of seconds before we get real values
-        if (value == -1.0) return Double.NaN;
-        // returns a percentage value with 1 decimal point precision
-        return ((int) (value * 1000) / 10.0);
-    }
+		// usually takes a couple of seconds before we get real values
+		if (value == -1.0) return Double.NaN;
+		// returns a percentage value with 1 decimal point precision
+		return ((int) (value * 1000) / 10.0);
+	}
+
+	public static float clamp(float val, float min, float max) {
+		return Math.max(min, Math.min(max, val));
+	}
 
 	/**
 	 * Converts an HSL color value to RGB. Conversion formula
@@ -348,12 +352,12 @@ public class LilGUtil {
 	 * Assumes h, s, and l are contained in the set [0, 1] and
 	 * returns r, g, and b in the set [0, 255].
 	 *
-	 * @param h       The hue
-	 * @param s       The saturation
-	 * @param l       The lightness
+	 * @param h The hue
+	 * @param s The saturation
+	 * @param l The lightness
 	 * @return int array, the RGB representation
 	 */
-	public static int[] hslToRgb(float h, float s, float l){
+	public static int[] hslToRgb(float h, float s, float l) {
 		float r, g, b;
 
 		if (s == 0f) {
@@ -361,25 +365,28 @@ public class LilGUtil {
 		} else {
 			float q = l < 0.5f ? l * (1 + s) : l + s - l * s;
 			float p = 2 * l - q;
-			r = hueToRgb(p, q, h + 1f/3f);
+			r = hueToRgb(p, q, h + 1f / 3f);
 			g = hueToRgb(p, q, h);
-			b = hueToRgb(p, q, h - 1f/3f);
+			b = hueToRgb(p, q, h - 1f / 3f);
 		}
 		int[] rgb = {(int) (r * 255), (int) (g * 255), (int) (b * 255)};
 		return rgb;
 	}
-	/** Helper method that converts hue to rgb */
+
+	/**
+	 * Helper method that converts hue to rgb
+	 */
 	public static float hueToRgb(float p, float q, float t) {
 		if (t < 0f)
 			t += 1f;
 		if (t > 1f)
 			t -= 1f;
-		if (t < 1f/6f)
+		if (t < 1f / 6f)
 			return p + (q - p) * 6f * t;
-		if (t < 1f/2f)
+		if (t < 1f / 2f)
 			return q;
-		if (t < 2f/3f)
-			return p + (q - p) * (2f/3f - t) * 6f;
+		if (t < 2f / 3f)
+			return p + (q - p) * (2f / 3f - t) * 6f;
 		return p;
 	}
 }

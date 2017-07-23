@@ -1,0 +1,12 @@
+<root>
+    <item name='net.dv8tion.jda.core.entities.impl.GuildImpl'>
+        <annotation name='com.fasterxml.jackson.annotation.JsonIdentityInfo'>
+            <val name="generator" val="ObjectIdGenerators.IntSequenceGenerator.class"/>
+        </annotation>
+    </item>
+    <item name='net.dv8tion.jda.core.entities.impl.TextChannelImpl'>
+        <annotation name='com.fasterxml.jackson.annotation.JsonIdentityInfo'>
+            <val name="generator" val="ObjectIdGenerators.IntSequenceGenerator.class"/>
+        </annotation>
+    </item>
+</root>
