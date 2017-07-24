@@ -1,7 +1,6 @@
 package com.LilG.Misc;
 
 import ch.qos.logback.classic.Logger;
-import com.LilG.Audio.VoiceRecognition;
 import com.LilG.DiscordAdapter;
 import com.LilG.FozConfig;
 import com.LilG.FozruciX;
@@ -211,11 +210,11 @@ public class DebugWindow extends JFrame {
 							if (voiceChannel.getName().equalsIgnoreCase(channel) && selectedChannel.contains(": v#")) {
 								//AudioManager audioManager = guild.getAudioManager();
 								if (!voiceChannel.equals(DebugWindow.voiceChannel)) {
-									if (DebugWindow.voiceChannel.getGuild() != guild) {
+									if (DebugWindow.voiceChannel != null && DebugWindow.voiceChannel.getGuild() != guild) {
 										DebugWindow.voiceChannel.getGuild().getAudioManager().closeAudioConnection();
 									}
 									DebugWindow.voiceChannel = voiceChannel;
-									new VoiceRecognition(voiceChannel);
+									//new VoiceRecognition(voiceChannel);
 								}
 								FozruciX.sendMessage(voiceChannel, message.getText());
 								break exitLoop;

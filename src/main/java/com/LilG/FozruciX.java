@@ -1773,11 +1773,11 @@ public class FozruciX extends ListenerAdapter {
 				}
 			}
 
-// !colorRole - Sets a color role for the user or manages them on the server
-			else if (commandChecker(event, arg, "colorRole")) {
+// !Role - Sets a color role for the user or manages them on the server
+			else if (commandChecker(event, arg, "Role")) {
 				if (network != Network.discord) return;
 				String[] args = formatStringArgs(LilGUtil.splitMessage(message, 0, true));
-				ArgumentParser parser = ArgumentParsers.newArgumentParser("colorRole")
+				ArgumentParser parser = ArgumentParsers.newArgumentParser("Role")
 						.description("Manages Color roles")
 						.defaultHelp(true);
 				Subparsers subparsers = parser.addSubparsers()
@@ -1787,8 +1787,10 @@ public class FozruciX extends ListenerAdapter {
 				Subparser set = subparsers.addParser("set") // Handles editing too
 						.defaultHelp(true)
 						.help("Allows you to create and set Color Roles");
-				set.addArgument("roleNameAndColor").type(String.class);
+				set.addArgument("roleNameAndColor").type(String.class).nargs("+");
 				MutuallyExclusiveGroup color = set.addMutuallyExclusiveGroup("Color");
+				//color.addArgument("-c", "--color").type(String.class)
+				//.choices("white", "lightGray", "gray", "darkGray", "black", "red", "pink", "orange", "yellow", "green", "magenta", "cyan", "blue");
 				color.addArgument("--rgb").type(Integer.class).nargs(3);
 				color.addArgument("--hsl").type(Float.class).nargs(3);
 				color.addArgument("--hsv", "--hsb").type(Float.class).nargs(3).dest("hsv");
@@ -1838,7 +1840,7 @@ public class FozruciX extends ListenerAdapter {
 							}
 
 							Role wantedRole = null;
-							String wantedRoleStr = ns.getString("roleNameAndColor");
+							String wantedRoleStr = ns.getList("roleNameAndColor").get(0);
 							Color wantedColor = null;
 
 							if (ns.getList("rgb") != null) {
@@ -1861,9 +1863,53 @@ public class FozruciX extends ListenerAdapter {
 								int[] rgb = hslToRgb(colorParts[0] % 360, clamp(colorParts[1] / 100, 0, 100), clamp(colorParts[2] / 100, 0, 100));
 								wantedColor = new Color(rgb[0], rgb[1], rgb[2]);
 							} else {
-								for (Role role : guildEX.getColorRoleList()) {
-									if (role.getId().equals(wantedRoleStr) || role.getName().equalsIgnoreCase(wantedRoleStr)) {
-										wantedRole = role;
+								if (ns.getList("roleNameAndColor").size() > 1) {
+									switch (ns.getList("roleNameAndColor").get(1).toString().toLowerCase()) {
+										case "white":
+											wantedColor = Color.white;
+											break;
+										case "lightgray":
+											wantedColor = Color.lightGray;
+											break;
+										case "gray":
+											wantedColor = Color.gray;
+											break;
+										case "darkgray":
+											wantedColor = Color.darkGray;
+											break;
+										case "black":
+											wantedColor = Color.black;
+											break;
+										case "red":
+											wantedColor = Color.red;
+											break;
+										case "pink":
+											wantedColor = Color.pink;
+											break;
+										case "orange":
+											wantedColor = Color.orange;
+											break;
+										case "yellow":
+											wantedColor = Color.yellow;
+											break;
+										case "green":
+											wantedColor = Color.green;
+											break;
+										case "magenta":
+											wantedColor = Color.magenta;
+											break;
+										case "cyan":
+											wantedColor = Color.cyan;
+											break;
+										case "blue":
+											wantedColor = Color.blue;
+											break;
+									}
+								} else {
+									for (Role role : guildEX.getColorRoleList()) {
+										if (role.getId().equals(wantedRoleStr) || role.getName().equalsIgnoreCase(wantedRoleStr)) {
+											wantedRole = role;
+										}
 									}
 								}
 							}

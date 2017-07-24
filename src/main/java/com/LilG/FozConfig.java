@@ -90,11 +90,11 @@ public class FozConfig {
 					.setAutoReconnect(true)
 					.setAudioEnabled(true)
 					.setEnableShutdownHook(true)
-					.buildBlocking();
+					.buildAsync();
 			game = new GameThread(jda.getPresence());
 			game.setName("Game Setter thread");
 			game.start();
-		} catch (LoginException | InterruptedException | RateLimitedException e) {
+		} catch (LoginException | RateLimitedException e) {
 			e.printStackTrace();
 			System.exit(-1);
 		}

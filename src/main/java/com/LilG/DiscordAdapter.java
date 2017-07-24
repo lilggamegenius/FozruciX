@@ -39,6 +39,8 @@ import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import static com.LilG.DiscordAdapter.avatarFile;
 
@@ -46,16 +48,16 @@ import static com.LilG.DiscordAdapter.avatarFile;
  * Created by ggonz on 7/10/2016.
  */
 public class DiscordAdapter extends ListenerAdapter {
+	private static final Lock lock = new ReentrantLock();
 	private static final Logger LOGGER = (Logger) LoggerFactory.getLogger(DiscordAdapter.class);
 	public static File avatarFile;
 	static FozruciX bot;
 	static PircBotX pircBotX;
-	private static DiscordAdapter discordAdapter = null;
-	private static volatile ReadyEvent readyEvent;
+	static DiscordAdapter discordAdapter = null;
+	//private static volatile ReadyEvent readyEvent;
 
 	private DiscordAdapter(PircBotX pircBotX) throws LoginException, InterruptedException, RateLimitedException {
-		LOGGER.trace("DiscordAdapter created");
-		FozConfig.jda.addEventListener(this);
+		LOGGER.trace("DiscordAdapter creation started");
 
 		DiscordAdapter.bot = new FozruciX(FozruciX.Network.discord, FozConfig.getManager());
 		DiscordAdapter.pircBotX = pircBotX;
@@ -66,22 +68,28 @@ public class DiscordAdapter extends ListenerAdapter {
 
 		LOGGER.trace("Calling onConnect() method");
 		new Thread(() -> {
-			while (readyEvent == null) ;
-			bot.onConnect(new DiscordConnectEvent(pircBotX).setReadyEvent(readyEvent));
+			Thread.currentThread().setName("ReadyEvent Thread");
+			LOGGER.trace("Bot connecting");
+			bot.onConnect(new DiscordConnectEvent(pircBotX));
 		}).run();
 	}
 
-	static synchronized DiscordAdapter makeDiscord(PircBotX pircBotX) {
+	static DiscordAdapter makeDiscord(PircBotX pircBotX) {
 		LOGGER.setLevel(Level.ALL);
 		try {
 			LOGGER.trace("Making Discord connection");
-			if (discordAdapter == null) {
-				LOGGER.trace("Constructing...");
-				discordAdapter = new DiscordAdapter(pircBotX);
+			if (lock.tryLock()) {
+				if (discordAdapter == null) {
+					LOGGER.trace("Constructing...");
+					discordAdapter = new DiscordAdapter(pircBotX);
+				}
+				lock.unlock();
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+
+		LOGGER.trace("DiscordAdapter creation finished");
 		return discordAdapter;
 	}
 
@@ -152,13 +160,14 @@ public class DiscordAdapter extends ListenerAdapter {
 
 	@Override
 	public void onReady(ReadyEvent event) {
+		lock.lock();
 		try {
-			synchronized (event) {
-				readyEvent = event;
-				LOGGER.info("Discord is ready");
-			}
+			//readyEvent = event;
+			LOGGER.info("Discord is ready");
 		} catch (Exception e) {
 			e.printStackTrace();
+		} finally {
+			lock.unlock();
 		}
 	}
 

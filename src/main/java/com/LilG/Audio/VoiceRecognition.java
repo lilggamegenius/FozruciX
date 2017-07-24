@@ -84,7 +84,6 @@ public class VoiceRecognition extends Thread {
 			try {
 				outputStream.write(combinedAudio.getAudioData(1.0));
 			} catch (IOException e) {
-				e.printStackTrace();
 			}
 		}
 
