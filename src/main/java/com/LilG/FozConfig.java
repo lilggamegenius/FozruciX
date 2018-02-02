@@ -494,7 +494,7 @@ public class FozConfig {
 	private enum LocationRelativeToServer {
 		self("localhost"),
 		local("192.168.1.192"),
-		global("lilggamegenius.ml");
+		global("lilggamegenius.net");
 
 		public final String address;
 
