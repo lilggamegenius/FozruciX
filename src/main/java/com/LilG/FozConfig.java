@@ -52,12 +52,12 @@ import java.util.*;
  */
 
 public class FozConfig {
-	public final static boolean debug = true;
+	public final static boolean debug = false;
 	public final static String badnik = "irc.badnik.zone";
 	public final static String twitch = "irc.twitch.tv";
 	public final static String caffie = "irc.caffie.net";
 	public final static String esper = "irc.esper.net";
-	public final static String nova = "irc.novasquirrel.com";
+	public final static String nova = "comit.electrocode.net";
 	public final static String rizon = "irc.rizon.io";
 	public final static String Lil_G_Net;
 	//Configure what we want our bot to do
@@ -83,7 +83,7 @@ public class FozConfig {
 
 	static {
 		String token = CryptoUtil.decrypt(FozConfig.setPassword(FozConfig.Password.discord));
-		LOGGER.trace("Calling JDA Builder with token: " + token);
+		LOGGER.trace("Calling data loader JDA Builder with token: " + token);
 		try {
 			jda = new JDABuilder(AccountType.BOT)
 					.setToken(token)
@@ -91,9 +91,6 @@ public class FozConfig {
 					.setAudioEnabled(true)
 					.setEnableShutdownHook(true)
 					.buildAsync();
-			game = new GameThread(jda.getPresence());
-			game.setName("Game Setter thread");
-			game.start();
 		} catch (LoginException | RateLimitedException e) {
 			e.printStackTrace();
 			System.exit(-1);
@@ -253,12 +250,15 @@ public class FozConfig {
 			.setRealName(realName)
 			.setSocketFactory(new UtilSSLSocketFactory().trustAllCertificates())
 			.addAutoJoinChannel("#Lil-G|bot") //Join the official #Lil-G|Bot channel
+			.addAutoJoinChannel("#dnd")
 			.addAutoJoinChannel("#retro")
 			.addAutoJoinChannel("#pokemon")
 			.addAutoJoinChannel("#retrotech")
 			.addAutoJoinChannel("#SSB")
 			.addAutoJoinChannel("#idkwtf")
 			.addAutoJoinChannel("#ducks")
+			.addAutoJoinChannel("#SSRG")
+			.addAutoJoinChannel("#GensGS")
 			.addListener(new FozruciX(manager)); //Add our listener that will be called on Events
 	public final static Configuration.Builder normalSmwc = new Configuration.Builder()
 			.setAutoReconnectDelay(connectDelay)
@@ -491,9 +491,9 @@ public class FozConfig {
 		normal, twitch, discord, key, salt, ssh
 	}
 
-	private enum LocationRelativeToServer {
+	public enum LocationRelativeToServer {
 		self("localhost"),
-		local("192.168.1.192"),
+		local("192.168.1.178"),
 		global("lilggamegenius.ml");
 
 		public final String address;

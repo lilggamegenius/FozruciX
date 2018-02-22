@@ -2,12 +2,10 @@
   <library name="Gradle: de.dfki.mary:marytts-runtime:5.2">
     <CLASSES>
       <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/de.dfki.mary/marytts-runtime/5.2/c75f16642056cb3342588420dba9eac940f161ef/marytts-runtime-5.2.jar!/" />
-      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/de.dfki.mary/marytts-runtime/5.2/bce04bb3f4b7f6ff367c1433d10799eac54a3c24/marytts-runtime-5.2.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>
       <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/de.dfki.mary/marytts-runtime/5.2/207f122c4861af0a22d01ca0e2790ab5233f0df/marytts-runtime-5.2-sources.jar!/" />
-      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/de.dfki.mary/marytts-runtime/5.2/851610311e417a35d870a0e336e29d12857d0692/marytts-runtime-5.2-sources.jar!/" />
     </SOURCES>
   </library>
 </component>

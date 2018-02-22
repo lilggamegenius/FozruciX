@@ -66,6 +66,7 @@ import org.pircbotx.*;
 import org.pircbotx.User;
 import org.pircbotx.hooks.Event;
 import org.pircbotx.hooks.ListenerAdapter;
+import org.pircbotx.hooks.WaitForQueue;
 import org.pircbotx.hooks.events.*;
 import org.pircbotx.hooks.types.GenericEvent;
 import org.pircbotx.hooks.types.GenericMessageEvent;
@@ -140,6 +141,7 @@ public class FozruciX extends ListenerAdapter {
 	private static volatile ChatterBotSession jabberBotSession;
 	@NotNull
 	private static volatile Map<Channel, SizedArray<MessageEvent>> lastMessages = new HashMap<>();
+	private static volatile Map<Channel, List<String>> spamFilterList = new HashMap<>();
 	private static volatile String lastLinkTitle = "";
 	private static volatile long lastLinkTime = System.currentTimeMillis();
 	@Nullable
@@ -345,7 +347,7 @@ public class FozruciX extends ListenerAdapter {
 			ChannelSftp sftp = (ChannelSftp) channel;
 			folder = folder != null ? folder + "/" : "";
 			sftp.put(file.getAbsolutePath(), "/var/www/html/upload/" + folder);
-			sendMessage(event, new URL("http://" + FozConfig.location + "/upload/" + folder + file.getName() + (suffix == null ? "" : " " + suffix)).toExternalForm());
+			sendMessage(event, new URL("http://" + FozConfig.LocationRelativeToServer.global.address + "/upload/" + folder + file.getName() + (suffix == null ? "" : " " + suffix)).toExternalForm());
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
@@ -798,7 +800,7 @@ public class FozruciX extends ListenerAdapter {
 
 	private static synchronized void saveData() {
 	    /*if (!BOOLS[DATA_LOADED]) {
-            LOGGER.debug("Data save canceled because data hasn't been loaded yet");
+	        LOGGER.debug("Data save canceled because data hasn't been loaded yet");
             return;
         }*/
 		try {
@@ -951,12 +953,12 @@ public class FozruciX extends ListenerAdapter {
 			currentUser = new DiscordUser(new DiscordUserHostmask(bot, event.getBot().getUserBot().getHostmask()), DiscordAdapter.getJda().getSelfUser(), null);
 		} else {
 			currentUser = event.getBot().getUserBot();
+			makeDiscord();
 		}
 
 		Thread.currentThread().setName("FozruciX: " + getSeverName(event));
 		loadData(true);
 		makeDebug(event);
-		makeDiscord();
 	}
 
 	private synchronized void sendPage(@NotNull MessageEvent event, @NotNull String[] arg, @NotNull LinkedList<String> messagesToSend) {
@@ -1093,6 +1095,7 @@ public class FozruciX extends ListenerAdapter {
 
 // url checker - Checks if string contains a url and parses
 		try {
+			if(event instanceof DiscordMessageEvent) return;
 			String channel = event.getChannel().getName();
 			String[] arg = LilGUtil.splitMessage(event.getMessage());
 			boolean checklink = !commandChecker(event, arg, "checkLink", false);
@@ -1615,7 +1618,7 @@ public class FozruciX extends ListenerAdapter {
 											if (mChannel.getTopic().startsWith(topicStr)) {
 												mChannel.getManager().setTopic(mChannel.getTopic().substring(topicStr.length())).queue();
 											}
-	                                        /*if (currentDiscordUser != null) { // commented out due to lib dev forgetting to re-add the delete function lol
+		                                    /*if (currentDiscordUser != null) { // commented out due to lib dev forgetting to re-add the delete function lol
                                                 PermissionOverride overRide = mChannel.getPermissionOverride(mChannel.getGuild().getMember(currentDiscordUser));
                                                 if(overRide != null){
                                                     overRide.delete();
@@ -2931,8 +2934,9 @@ public class FozruciX extends ListenerAdapter {
 							};
 							if (js == null) {
 								//noinspection SuspiciousToArrayCall
-								js = new JavaScript(event, argJoiner(ns.getList("expression").toArray(new String[]{}), 0, 0), ns.getInt("base"));
+								js = new JavaScript(this, event, argJoiner(ns.getList("expression").toArray(new String[]{}), 0, 0), ns.getInt("base"));
 								js.setUncaughtExceptionHandler(exceptionHandler);
+								js.setDaemon(true);
 								js.start();
 							} else {
 								//noinspection SuspiciousToArrayCall
@@ -2990,6 +2994,7 @@ public class FozruciX extends ListenerAdapter {
 								//noinspection SuspiciousToArrayCall
 								py = new Python();
 								py.setUncaughtExceptionHandler(exceptionHandler);
+								py.setDaemon(true);
 								py.start();
 							}
 							//noinspection SuspiciousToArrayCall
@@ -3966,9 +3971,7 @@ public class FozruciX extends ListenerAdapter {
 					while ((disasmTemp = disasm.readLine()) != null) {
 						LOGGER.debug("disasm: %s", disasmTemp);
 						messagesToSend.add(disasmTemp);
-						if (stdoutWasEmpty) {
-							stdoutWasEmpty = false;
-						}
+						stdoutWasEmpty = false;
 
 					}
 					disasm.close();
@@ -3978,8 +3981,12 @@ public class FozruciX extends ListenerAdapter {
 						if (messagesToSend.size() > 3) {
 							sendPage(event, arg, messagesToSend);
 						} else {
-							for (String aMessagesToSend : messagesToSend) {
-								sendMessage(event, aMessagesToSend);
+							if(messagesToSend.get(0).equalsIgnoreCase("invalid")){
+								sendMessage(event, "Disassembly failed, Was the code valid?");
+							} else {
+								for (String aMessagesToSend : messagesToSend) {
+									sendMessage(event, aMessagesToSend);
+								}
 							}
 						}
 					}
@@ -4096,6 +4103,7 @@ public class FozruciX extends ListenerAdapter {
 						} else {
 							try {
 								singleCMD = new CMD(event, arg);
+								singleCMD.setDaemon(true);
 								singleCMD.start();
 							} catch (Exception e) {
 								sendError(event, e);
@@ -4115,6 +4123,7 @@ public class FozruciX extends ListenerAdapter {
 					if (arg[0].substring(consolePrefix.length()).equalsIgnoreCase(consolePrefix + "start")) {
 						terminal.interrupt();
 						terminal = new CommandLine(event, trimFrontOfArray(arg, 1));
+						terminal.setDaemon(true);
 						terminal.start();
 						if (!terminal.isAlive()) {
 							sendMessage(event, "Command line started", false);
@@ -4194,6 +4203,11 @@ public class FozruciX extends ListenerAdapter {
 				for (User user1 : event.getChannel().getUsers()) {
 					user1.send().mode("+v");
 				}
+			}
+
+// !invite - gives everyone voice if they didn't get it
+			else if (commandChecker(event, arg, "invite")) {
+				sendMessage(event, "https://discordapp.com/oauth2/authorize?&client_id=183784658767577088&scope=bot&permissions=-1");
 			}
 
 // !kill - Tells the bot to disconnect from server and exit
@@ -4433,6 +4447,92 @@ public class FozruciX extends ListenerAdapter {
 
 			}
 
+//// !stfu - Joke command - say "no u"
+//		if (commandChecker(event, arg, "stfu")){
+//			if(BOOLS[JOKE_COMMANDS] || checkPerm(event.getUser()))
+//				sendMessage(event, sender + ": " + prefix + "no u");
+//		}
+
+// !EatABowlOfDicks - Joke command - joke help command
+			else if (commandChecker(event, arg, "EatABowlOfDicks")) {
+				if (BOOLS.get(JOKE_COMMANDS) || checkPerm(event.getUser(), 1)) {
+					sendMessage(event, "no u");
+					addCooldown(event.getUser());
+				}
+
+			}
+
+// !eat a bowl of dicks - Joke command - joke help command
+			else if (commandChecker(event, arg, "eat")) {
+				if (BOOLS.get(JOKE_COMMANDS) || checkPerm(event.getUser(), 1)) {
+					if ((getArg(arg, 0) + getArg(arg, 1) + getArg(arg, 2) + getArg(arg, 3)).equalsIgnoreCase("EatABowlOfDicks")) {
+						sendMessage(event, "no u");
+						addCooldown(event.getUser());
+					}
+				}
+
+			}
+
+// !my  - Joke command - This was requested by Greeny in #origami64. ask him about it
+			else if (commandChecker(event, arg, "my")) {
+				if (BOOLS.get(JOKE_COMMANDS) || checkPerm(event.getUser(), 1)) {
+					if (getArg(arg, 1).equalsIgnoreCase("DickSize")) {
+						if (event.getUser().equals(currentUser)) {
+							sendMessage(event, "Error: IntegerOutOfBoundsException: Greater than Integer.MAX_VALUE");
+						} else {
+							int size = LilGUtil.randInt(0, jokeCommandDebugVar);
+							sendMessage(event, "8" + StringUtils.leftPad("D", size, "=") + " - " + size);
+						}
+					} else if (getArg(arg, 1).equalsIgnoreCase("vaginaDepth")) {
+						if (event.getUser().equals(currentUser)) {
+							sendMessage(event, Color.RED + "Error: IntegerOutOfBoundsException: Less than Integer.MIN_VALUE");
+						} else {
+							int size = LilGUtil.randInt(0, jokeCommandDebugVar);
+							sendMessage(event, "|" + StringUtils.leftPad("{0}", size, "=") + " -  -" + size);
+						}
+					} else if (getArg(arg, 1).equalsIgnoreCase("BallCount")) {
+						if (event.getUser().equals(currentUser)) {
+							sendMessage(event, "Error: IntegerOutOfBoundsException: Greater than Integer.MAX_VALUE");
+						} else {
+							int size = LilGUtil.randInt(0, jokeCommandDebugVar);
+							sendMessage(event, StringUtils.leftPad("", size, "8") + " - " + size);
+						}
+					} else if (getArg(arg, 1).equalsIgnoreCase("xdLength")) {
+						int size = LilGUtil.randInt(0, jokeCommandDebugVar);
+						sendMessage(event, "X" + StringUtils.leftPad("", size, "D") + " - " + size);
+					} else if (getArg(arg, 1).equalsIgnoreCase("ass")) {
+						sendMessage(event, "No.");
+					} else if (getArg(arg, 1).equalsIgnoreCase("lolicount")) {
+						sendMessage(event, "You're going to jail.");
+					} else if (getArg(arg, 1).equalsIgnoreCase("iq")) {
+						if (event.getUser().equals(currentUser)) {
+							sendMessage(event, "Error: IntegerOutOfBoundsException: Greater than Integer.MAX_VALUE");
+						} else {
+							sendMessage(event, "Your IQ is: " + LilGUtil.randInt(0, jokeCommandDebugVar * 10));
+						}
+					} else if (getArg(arg, 1).equalsIgnoreCase("powerLevel")) {
+						if (checkPerm(event.getUser(), 9001)) {
+							sendMessage(event, "Its OVER 9000!!!!");
+						} else {
+							sendMessage(event, "The scouter says their power level is... " + LilGUtil.randInt(-1, 9000) + "!");
+						}
+					} else if (getArg(arg, 1).equalsIgnoreCase("bullshit")) {
+						String[] listOfBullshit = {"Not bullshit", "A little bullshit", "Almost not bullshit", "Normal bullshit", "Put on your boots", "High bullshit", "Get the shovel", "Total bullshit", "Get a vest", "Holy shit", "Super bullshit", "Fucking bullshit", "GET IN THE LIFE BOATS"};
+						if (getArg(arg, 2) != null) {
+							sendMessage(event, "Bullshit reading: " + listOfBullshit[LilGUtil.hash(argJoiner(arg, 2), listOfBullshit.length)]);
+						} else {
+							sendMessage(event, "Bullshit reading: " + listOfBullshit[LilGUtil.randInt(0, listOfBullshit.length - 1)]);
+						}
+					} else if (getArg(arg, 1).equalsIgnoreCase("help")) {
+						sendMessage(event, "Current things you can measure are: DickSize, VaginaDepth, BallCount, xdLength, ass (>_>), iq, powerLevel, bullShit, lolicount");
+
+					}
+					addCooldown(event.getUser());
+				}
+
+			}
+
+
 // !potato - Joke command - say "i am potato" in Japanese
 			else if (commandChecker(event, arg, "potato")) {
 				if (BOOLS.get(JOKE_COMMANDS) || checkPerm(event.getUser(), 1)) {
@@ -4472,7 +4572,7 @@ public class FozruciX extends ListenerAdapter {
 			}
 
 // s/*/*[/g] - sed
-			else if (arg[0].toLowerCase().startsWith("s/")) {
+			else if (arg[0].toLowerCase().startsWith("s/") && checkPerm(event.getUser(), 0)) {
 				if (channel == null) {
 					sendMessage(event, "This is for channels");
 					return;
@@ -4499,7 +4599,7 @@ public class FozruciX extends ListenerAdapter {
 								if (last.equals(event) || LilGUtil.wildCardMatch(last.getMessage(), "s/*/*")) continue;
 								if (last.getChannel().equals(event.getChannel())) {
 									String lastMessage = last.getMessage();
-									if (message.contains(find)) {
+									if (lastMessage.contains(find)) {
 										if (replaceAll) {
 											lastMessage = lastMessage.replace(find, replace);
 										} else {
@@ -4750,6 +4850,7 @@ public class FozruciX extends ListenerAdapter {
 	}
 
 	public void onJoin(@NotNull JoinEvent join) {
+		getSpamList(join.getChannel());
 		String hostmask = join.getUser().getHostmask();
 		LOGGER.debug("User Joined: " + (hostmask == null ? join.getUser().getNick() : hostmask));
 		if (join instanceof DiscordJoinEvent) {
@@ -4791,6 +4892,37 @@ public class FozruciX extends ListenerAdapter {
 		if (debug != null) {
 			debug.updateBot(bot);
 			debug.setCurrentNick(currentUser.getHostmask());
+		}
+
+		if(join.getUser().getLogin().equals("Mibbit") && LilGUtil.equalsAnyIgnoreCase(join.getChannel().getName(), "#SSRG", "#retro", "#x", "#GensGS", "#Lil-G|bot")){
+			String[] dns = join.getUser().getHostname().split("\\.");
+			if(dns.length == 4){
+				try{
+					for(String dnsPart : dns){
+						LOGGER.trace(Integer.decode("0x" + dnsPart).toString());
+					}
+				}catch(NumberFormatException e){
+					return;
+				}
+				LOGGER.info("Found ITZ?");
+				switch(randInt(0, 3)){
+					case 0:
+						join.getChannel().send().message("Lil-G: The category is: PEOPLE WHO ANNOY YOU");
+						join.getChannel().send().message("D-V-D -ER--Z");
+						break;
+					case 1:
+						join.getChannel().send().message(join.getUser().getNick() + ": https://media.giphy.com/media/EFyxFNTW9KTx6/giphy.gif");
+						currentUser.send().notice(String.format("ITZ in channel %s", join.getChannel().getName()));
+						break;
+					case 2:
+						join.getChannel().send().message(join.getUser().getNick() + ": https://cdn.discordapp.com/attachments/328224686410301450/363089900527943685/ITZ.png");
+						currentUser.send().notice(String.format("ITZ in channel %s", join.getChannel().getName()));
+						break;
+					case 3:
+						join.getChannel().send().message(join.getUser().getNick() + ": https://cdn.discordapp.com/attachments/328224686410301450/363750014243045376/Ready_Steady_Cuck.png");
+						currentUser.send().notice(String.format("ITZ in channel %s", join.getChannel().getName()));
+				}
+			}
 		}
 	}
 
@@ -4874,6 +5006,13 @@ public class FozruciX extends ListenerAdapter {
 		LOGGER.debug("Received unknown: " + event.getLine());
 		if (debug != null) {
 			debug.setCurrentNick(currentUser.getNick());
+		}
+	}
+
+	@Override
+	public void onMode(ModeEvent event) {
+		if(event.getMode().contains("m")){
+			getSpamList(event.getChannel());
 		}
 	}
 
@@ -5198,6 +5337,36 @@ public class FozruciX extends ListenerAdapter {
 		}
 	}
 
+	public void getSpamList(final Channel channel) {
+		spamFilterList.computeIfAbsent(channel, k -> new ArrayList<>());
+		spamFilterList.get(channel).clear();
+		new Thread(() -> {
+			WaitForQueue queue = new WaitForQueue(channel.getBot());
+			//Infinite loop since we might recieve messages that aren't WaitTest's.
+			channel.send().setMode("+g");
+			try {
+				while (true) {
+					//Use the waitFor() method to wait for a ServerResponseEvent.
+					//This will block (wait) until a ServerResponseEvent comes in, ignoring
+					//everything else
+					ServerResponseEvent currentEvent = queue.waitFor(ServerResponseEvent.class);
+					//Check if this message is the "ping" command
+					if (currentEvent.getCode() == 941) {
+						spamFilterList.get(channel).add(currentEvent.getParsedResponse().get(2));
+					}else if (currentEvent.getCode() == 940) {
+						LOGGER.trace("End of channel spam Filter list");
+						queue.close();
+						//Very important that we end the infinite loop or else the test
+						//will continue forever!
+						return;
+					}
+				}
+			} catch(InterruptedException e){
+				LOGGER.warn("Getting spam filter list interrupted", e);
+			}
+		}).start();
+	}
+
 	private synchronized void addWords(@NotNull String phrase) {
 		if (phrase.startsWith(prefix) ||
 				phrase.startsWith(consolePrefix)) {
@@ -5373,12 +5542,14 @@ public class FozruciX extends ListenerAdapter {
 		private int radix = 10;
 		private ScriptEngine botOPEngine;
 		private ScriptEngine normalUserEngine;
+		private FozruciX fozruciX;
 
-		JavaScript(@NotNull MessageEvent event, String arg, int radix) {
+		JavaScript(FozruciX fozruciX, @NotNull MessageEvent event, String arg, int radix) {
 			setName("JavaScript Thread");
 			this.event = event;
 			this.arg = arg;
 			this.radix = radix;
+			this.fozruciX = fozruciX;
 			normalUserEngine = new NashornScriptEngineFactory().getScriptEngine(new JSClassFilter());
 			botOPEngine = new NashornScriptEngineFactory().getScriptEngine();
 			try (InputStreamReader algebra = new InputStreamReader(new FileInputStream("algebra.min.js"))) {
@@ -5400,27 +5571,37 @@ public class FozruciX extends ListenerAdapter {
 			botOPEngine["event"] = event;
 			botOPEngine["message"] = event.getMessage();
 			botOPEngine["channel"] = event.getChannel();
+			botOPEngine["users"] = event.getChannel().getUsers();
 			botOPEngine["user"] = event.getUser();
+			botOPEngine["userChannels"] = event.getUser().getChannels();
 			botOPEngine["bot"] = event.getBot();
 			botOPEngine["hostmask"] = event.getUserHostmask();
 			botOPEngine["server"] = event.getBot().getServerInfo();
+			botOPEngine["channels"] = event.getBot().getUserChannelDao().getAllChannels().first().getName();
 			botOPEngine["jda"] = DiscordAdapter.getJda();
+			botOPEngine["fozrucix"] = fozruciX;
+			botOPEngine["this"] = this;
 			if (event instanceof DiscordMessageEvent) {
-				botOPEngine["discordEvent"] = ((DiscordMessageEvent) event).getDiscordEvent();
-				botOPEngine["discordChannel"] = ((DiscordMessageEvent) event).getDiscordEvent().getChannel();
-				botOPEngine["discordType"] = ((DiscordMessageEvent) event).getDiscordEvent().getChannelType();
-				botOPEngine["discordGuild"] = ((DiscordMessageEvent) event).getDiscordEvent().getGuild();
-				botOPEngine["discordAuthor"] = ((DiscordMessageEvent) event).getDiscordEvent().getAuthor();
-				botOPEngine["discordMember"] = ((DiscordMessageEvent) event).getDiscordEvent().getMember();
-				botOPEngine["discordGroup"] = ((DiscordMessageEvent) event).getDiscordEvent().getGroup();
+				botOPEngine["dEvent"] = ((DiscordMessageEvent) event).getDiscordEvent();
+				botOPEngine["dChannel"] = ((DiscordMessageEvent) event).getDiscordEvent().getChannel();
+				botOPEngine["dChannelHistory"] = ((DiscordMessageEvent) event).getDiscordEvent().getChannel().getHistory();
+				botOPEngine["dChannelType"] = ((DiscordMessageEvent) event).getDiscordEvent().getChannelType();
+				botOPEngine["dServer"] = ((DiscordMessageEvent) event).getDiscordEvent().getGuild();
+				botOPEngine["dRoles"] = ((DiscordMessageEvent) event).getDiscordEvent().getGuild().getRoles();
+				botOPEngine["dServerController"] = ((DiscordMessageEvent) event).getDiscordEvent().getGuild().getController();
+				botOPEngine["dServerManager"] = ((DiscordMessageEvent) event).getDiscordEvent().getGuild().getManager();
+				botOPEngine["dUser"] = ((DiscordMessageEvent) event).getDiscordEvent().getMember();
+				botOPEngine["dUserRoles"] = ((DiscordMessageEvent) event).getDiscordEvent().getMember().getRoles();
+				//botOPEngine["dAuthor"] = ((DiscordMessageEvent) event).getDiscordEvent().getAuthor();
+				//botOPEngine["dGroup"] = ((DiscordMessageEvent) event).getDiscordEvent().getGroup();
 			} else {
 				botOPEngine["discordEvent"] = null;
 				botOPEngine["discordChannel"] = null;
 				botOPEngine["discordType"] = null;
 				botOPEngine["discordGuild"] = null;
-				botOPEngine["discordAuthor"] = null;
 				botOPEngine["discordMember"] = null;
-				botOPEngine["discordGroup"] = null;
+				//botOPEngine["discordAuthor"] = null;
+				//botOPEngine["discordGroup"] = null;
 			}
 		}
 

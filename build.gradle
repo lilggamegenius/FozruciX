@@ -70,7 +70,7 @@ dependencies {
 
     compile files('lib/yandex-translator-java-api.jar')
 
-    compile group: 'java-oo', name: 'javac8-oo-plugin', version: '0.5'
+    compile files('lib/javac8-oo-plugin-0.5.jar')
 
     compile files('lib/WolframAlphaJavaLibrary/WolframAlpha-1.1.jar')
     compile files('lib/annotations/annotations-java8.jar')

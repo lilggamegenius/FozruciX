@@ -2,13 +2,12 @@ package com.LilG;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
+import com.LilG.utils.CryptoUtil;
 import com.LilG.utils.LilGUtil;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.sun.jna.Platform;
-import net.dv8tion.jda.core.JDA;
-import net.dv8tion.jda.core.OnlineStatus;
-import net.dv8tion.jda.core.Permission;
+import net.dv8tion.jda.core.*;
 import net.dv8tion.jda.core.entities.*;
 import net.dv8tion.jda.core.events.ReadyEvent;
 import net.dv8tion.jda.core.events.channel.text.update.TextChannelUpdateTopicEvent;
@@ -32,6 +31,7 @@ import org.pircbotx.hooks.events.*;
 import org.pircbotx.snapshot.UserChannelDaoSnapshot;
 import org.pircbotx.snapshot.UserSnapshot;
 import org.slf4j.LoggerFactory;
+import sun.rmi.runtime.Log;
 
 import javax.imageio.ImageIO;
 import javax.security.auth.login.LoginException;
@@ -62,9 +62,34 @@ public class DiscordAdapter extends ListenerAdapter {
 		DiscordAdapter.bot = new FozruciX(FozruciX.Network.discord, FozConfig.getManager());
 		DiscordAdapter.pircBotX = pircBotX;
 
-		FozConfig.avatar = new AvatarThread(FozConfig.jda.getSelfUser().getManagerUpdatable(), bot);
-		FozConfig.avatar.setName("Avatar Setter thread");
-		FozConfig.avatar.start();
+		try {
+			String token = CryptoUtil.decrypt(FozConfig.setPassword(FozConfig.Password.discord));
+			LOGGER.trace("Calling JDA Builder with token: " + token);
+			//FozConfig.jda.shutdown();
+			FozConfig.jda = new JDABuilder(AccountType.BOT)
+					.setToken(token)
+					.setAutoReconnect(true)
+					.setAudioEnabled(true)
+					.setEnableShutdownHook(true)
+					.addEventListener(this)
+					.buildAsync();
+			FozConfig.game = new GameThread(FozConfig.jda.getPresence());
+			FozConfig.game.setName("Game Setter thread");
+			FozConfig.game.start();
+
+			SelfUser self;
+			while((self = FozConfig.jda.getSelfUser()) == null) LilGUtil.pause(1);
+			AccountManagerUpdatable managerUpdatable = self.getManagerUpdatable();
+			FozConfig.avatar = new AvatarThread(managerUpdatable, bot);
+			FozConfig.avatar.setName("Avatar Setter thread");
+			FozConfig.avatar.start();
+		} catch (LoginException | RateLimitedException e) {
+			e.printStackTrace();
+			System.exit(-1);
+		} catch (NullPointerException e) {
+			LOGGER.error("Error. JDA is " + FozConfig.jda + " bot is " + bot, e);
+			System.exit(2);
+		}
 
 		LOGGER.trace("Calling onConnect() method");
 		new Thread(() -> {
@@ -77,8 +102,8 @@ public class DiscordAdapter extends ListenerAdapter {
 	static DiscordAdapter makeDiscord(PircBotX pircBotX) {
 		LOGGER.setLevel(Level.ALL);
 		try {
-			LOGGER.trace("Making Discord connection");
 			if (lock.tryLock()) {
+				LOGGER.trace("Making Discord connection");
 				if (discordAdapter == null) {
 					LOGGER.trace("Constructing...");
 					discordAdapter = new DiscordAdapter(pircBotX);
@@ -177,7 +202,7 @@ public class DiscordAdapter extends ListenerAdapter {
 		String discordHostmask = join.getMember().getUser().getId();
 		DiscordUserHostmask discordUserHostmask = new DiscordUserHostmask(pircBotX, discordNick + "!" + discordUsername + "@" + discordHostmask);
 		LOGGER.info(String.format("[%s] %s: %s", join.getGuild().getName(), discordUserHostmask.getHostmask(), "Joined"));
-		bot.onJoin(new DiscordJoinEvent(pircBotX, new DiscordChannel(pircBotX, '#' + join.getGuild().getPublicChannel().getName()), discordUserHostmask, new DiscordUser(discordUserHostmask, join.getMember().getUser(), join.getGuild()), join));
+		bot.onJoin(new DiscordJoinEvent(pircBotX, new DiscordChannel(pircBotX, '#' + join.getGuild().getDefaultChannel().getName()), discordUserHostmask, new DiscordUser(discordUserHostmask, join.getMember().getUser(), join.getGuild()), join));
 	}
 
 	public void onGuildMemberLeave(GuildMemberLeaveEvent leave) {
@@ -405,6 +430,9 @@ class DiscordUser extends User {
 	@Override
 	public String getHostmask() {
 		if (guild != null) {
+			if(discordUser.isFake()){
+				return String.format("%s!%s@%s", guild.getMember(discordUser).getEffectiveName(), discordUser.getName(), "webhook");
+			}
 			return String.format("%s!%s@%s", guild.getMember(discordUser).getEffectiveName(), discordUser.getName(), discordUser.getId());
 		}
 		return String.format("%s!%s@%s", discordUser.getName(), discordUser.getName(), discordUser.getId());
@@ -511,7 +539,7 @@ class AvatarThread extends Thread {
 		File tempImage = new File("./data/temp.png");
 		while (!Thread.currentThread().isInterrupted()) {
 			try {
-				LilGUtil.pause(LilGUtil.randInt(30, 120));
+				LilGUtil.pause(LilGUtil.randInt(40, 120));
 				File[] avatarList = avatarPath.listFiles();
 				StringBuilder pathArray = new StringBuilder();
 				if (avatarList != null) {
